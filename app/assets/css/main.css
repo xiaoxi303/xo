@@ -1,0 +1,396 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Xo Custom Brand Typeface — 100% Localized ===== */
+@font-face {
+  font-family: 'Xo Display';
+  src: url('/fonts/xo-display.woff2') format('woff2'),
+       url('/fonts/xo-display.woff2') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Xo Display';
+  src: url('/fonts/xo-display.woff2') format('woff2'),
+       url('/fonts/xo-display.woff2') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Xo Sans';
+  src: url('/fonts/xo-sans.woff2') format('woff2'),
+       url('/fonts/xo-sans.woff2') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+/* ===== Design Token System — Quiet Luxury Warm ===== */
+:root {
+  /* Backgrounds — 温润麻布米棕，非纯白 */
+  --color-bg:           #f2ede6;   /* 亚麻暖米棕 */
+  --color-bg-2:         #ece7de;   /* 深一阶暖灰 */
+  --color-bg-3:         #e3ddd3;   /* 云石暖灰 */
+  --color-surface:      rgba(255,255,255,0.86);
+  --color-surface-2:    rgba(255,255,255,0.55);
+
+  /* Text */
+  --color-ink-1:        #0f1014;   /* 玄武岩极深碳 */
+  --color-ink-2:        #1e2025;   /* 石墨深碳 */
+  --color-ink-3:        #3a3c43;   /* 冷青灰碳 */
+  --color-ink-4:        #6b6d76;   /* 石灰中灰 */
+  --color-ink-5:        #9b9da6;   /* 月光浅灰 */
+
+  /* Accent — Antique Bronze Gold */
+  --color-bronze:       #b45309;   /* 古铜哑金 */
+  --color-bronze-light: #d97706;   /* 琥珀亮金 */
+  --color-bronze-dark:  #92400e;   /* 深棕铜 */
+  --color-bronze-bg:    rgba(180, 83, 9, 0.07);
+
+  /* Borders */
+  --color-border:       rgba(0,0,0,0.07);
+  --color-border-2:     rgba(0,0,0,0.12);
+  --color-border-3:     rgba(0,0,0,0.18);
+
+  /* Glass Mica — 暖米色调玻璃，不再是刺眼冷白 */
+  --glass-bg:     rgba(252, 248, 242, 0.78);   /* 带暖意的半透明奶油 */
+  --glass-border: rgba(255, 250, 240, 0.90);   /* 暖白高光边框 */
+  --glass-border-inner: rgba(180, 160, 130, 0.12); /* 底部暖棕内边 */
+  --glass-shadow: 0 1px 3px rgba(80,60,30,0.07),
+                  0 10px 36px -8px rgba(80,60,30,0.10),
+                  inset 0 1px 0 rgba(255,252,245,0.95);
+  --glass-shadow-hover: 0 2px 6px rgba(80,60,30,0.08),
+                  0 28px 52px -12px rgba(80,60,30,0.14),
+                  inset 0 1px 0 rgba(255,252,245,0.95);
+
+  /* Fonts */
+  --font-display: 'Xo Display', Georgia, serif;
+  --font-sans:    'Xo Sans', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Courier New', monospace;
+
+  /* Radii */
+  --r-sm:  8px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  28px;
+}
+
+/* ===== Global Reset ===== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  /* 温润亚麻底 + 微妙对角渐变，营造高级空间感 */
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(145deg,
+      rgba(232, 210, 172, 0.22) 0%,
+      transparent 40%,
+      transparent 60%,
+      rgba(196, 210, 220, 0.12) 100%);
+  color: var(--color-ink-3);
+  overflow-x: hidden;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Background Orbs — Vivid Warm Atmosphere ===== */
+.bg-orbs {
+  position: fixed; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  animation: orbDrift 38s ease-in-out infinite alternate;
+}
+/* 右上 — 香槟琥珀金晕 */
+.bg-orb-1 {
+  width: 800px; height: 800px;
+  background: radial-gradient(circle at 40% 40%, rgba(210,140,30,0.28) 0%, rgba(210,140,30,0.06) 55%, transparent 72%);
+  filter: blur(90px);
+  top: -200px; right: -120px;
+}
+/* 左下 — 冷石板蓝灰晕 */
+.bg-orb-2 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle at 50% 50%, rgba(100,140,175,0.18) 0%, rgba(100,140,175,0.04) 55%, transparent 72%);
+  filter: blur(110px);
+  bottom: -150px; left: -100px;
+  animation-delay: -10s;
+}
+/* 中央 — 暖玫瑰珀光晕 */
+.bg-orb-3 {
+  width: 560px; height: 560px;
+  background: radial-gradient(circle at 50% 50%, rgba(200,160,110,0.16) 0%, rgba(200,160,110,0.03) 55%, transparent 72%);
+  filter: blur(100px);
+  top: 30%; left: 18%;
+  animation-delay: -19s;
+}
+/* 右下 — 深玫瑰暖晕 */
+.bg-orb-4 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle at 50% 50%, rgba(180,100,80,0.12) 0%, rgba(180,100,80,0.02) 55%, transparent 72%);
+  filter: blur(120px);
+  bottom: 5%; right: 5%;
+  animation-delay: -26s;
+}
+@keyframes orbDrift {
+  0%   { transform: translate(0,0) scale(1); }
+  100% { transform: translate(40px,-28px) scale(1.04); }
+}
+
+/* Film grain texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.98' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.018'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 1; opacity: 0.8;
+}
+
+/* ===== Mica Glass Card — 暖米色调，融入亚麻背景 ===== */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(28px) saturate(1.6) brightness(1.02);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6) brightness(1.02);
+  /* 顶部暖白高光边 + 底部内轮廓 */
+  border: 1px solid rgba(200, 185, 160, 0.30);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--r-lg);
+  transition:
+    border-color 0.35s cubic-bezier(0.16,1,0.3,1),
+    box-shadow   0.35s cubic-bezier(0.16,1,0.3,1),
+    transform    0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.glass-card:hover {
+  border-color: rgba(180, 155, 120, 0.45);
+  box-shadow: var(--glass-shadow-hover);
+  transform: translateY(-3px);
+}
+
+/* ===== Typography helpers ===== */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Section label — e.g. "Portfolio" eyebrow text */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-bronze);
+}
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(140deg, var(--color-ink-1) 0%, var(--color-bronze) 60%, var(--color-bronze-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-brand {
+  background: linear-gradient(90deg, var(--color-bronze) 0%, var(--color-bronze-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Bento Grid ===== */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 768px) {
+  .bento-grid { grid-template-columns: repeat(6, 1fr); }
+}
+@media (min-width: 1024px) {
+  .bento-grid { grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
+}
+
+/* ===== Scroll Reveal ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1), transform 0.65s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.in-view { opacity: 1; transform: translateY(0); }
+
+/* ===== Timeline Dot Pulse ===== */
+.timeline-dot-pulse { position: relative; }
+.timeline-dot-pulse::after {
+  content: '';
+  position: absolute; inset: -4px;
+  border-radius: 50%;
+  background: var(--color-bronze);
+  opacity: 0;
+  animation: dotPulse 2.8s cubic-bezier(0.24,0,0.38,1) infinite;
+}
+@keyframes dotPulse {
+  0%   { transform: scale(0.85); opacity: 0.45; }
+  100% { transform: scale(2.4);  opacity: 0; }
+}
+
+/* ===== Buttons ===== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.6rem;
+  background: var(--color-ink-1);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.8rem;
+  border-radius: var(--r-md);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.28s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  background: var(--color-ink-2);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.6rem;
+  background: transparent;
+  color: var(--color-ink-4);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.8rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--color-border-2);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+.btn-ghost:hover {
+  background: rgba(0,0,0,0.02);
+  border-color: var(--color-border-3);
+  color: var(--color-ink-1);
+}
+
+.btn-bronze {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.6rem;
+  background: var(--color-bronze-bg);
+  color: var(--color-bronze);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(180,83,9,0.15);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+.btn-bronze:hover {
+  background: rgba(180,83,9,0.10);
+  border-color: rgba(180,83,9,0.25);
+}
+
+/* ===== Tags & Badges ===== */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.6rem;
+  background: rgba(0,0,0,0.025);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: var(--r-sm);
+  font-family: var(--font-sans);
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: var(--color-ink-4);
+  letter-spacing: 0.01em;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  background: var(--color-bronze-bg);
+  border: 1px solid rgba(180,83,9,0.12);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  font-weight: 600;
+  color: var(--color-bronze);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Divider */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* ===== Admin / Form helpers ===== */
+.form-input {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--color-border-2);
+  border-radius: var(--r-sm);
+  padding: 0.55rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--color-ink-1);
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--color-bronze);
+  box-shadow: 0 0 0 3px rgba(180,83,9,0.08);
+}
+.form-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-ink-3);
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.01em;
+}
+
+/* ===== Ambilight Video Player (Glow shadow reflects video color) ===== */
+.ambilight-container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--r-lg);
+  overflow: visible; /* 让模糊的光晕能够溢出到卡片外面 */
+}
+
+/* 后置用于模糊的投影视频 */
+.ambilight-shadow {
+  position: absolute;
+  top: 4%;
+  left: 3%;
+  width: 94%;
+  height: 94%;
+  filter: blur(48px) saturate(1.8) brightness(0.95);
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0); /* 开启硬件加速 */
+}

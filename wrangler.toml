@@ -1,0 +1,21 @@
+# Cloudflare Wrangler Configuration File
+# Learn more at: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "zpj"
+compatibility_date = "2026-07-20"
+pages_build_output_dir = ".output/public"
+
+# ==========================================
+# Cloudflare D1 数据库绑定
+# ==========================================
+# 1. 终端执行 npx wrangler d1 create xo-db 创建云数据库。
+# 
+# 2. 将命令行输出的 database_id 粘贴并替换下方的 database_id 值。
+# 
+# 3. 本地全仿真调试运行时，请在终端执行：
+#    npx wrangler pages dev
+# ==========================================
+[[d1_databases]]
+binding = "DB"
+database_name = "xo-db"
+database_id = "YOUR_D1_DATABASE_ID_HERE"

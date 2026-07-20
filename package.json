@@ -1,0 +1,23 @@
+{
+  "name": "zpj",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "bind-d1": "node scripts/bind-d1.js"
+  },
+  "dependencies": {
+    "@nuxt/content": "^3.5.1",
+    "@nuxt/image": "^1.10.0",
+    "@nuxtjs/tailwindcss": "^6.13.1",
+    "better-sqlite3": "^12.11.1",
+    "gsap": "^3.13.0",
+    "nuxt": "^4.5.0",
+    "vue": "^3.5.40",
+    "vue-router": "^5.2.0"
+  }
+}

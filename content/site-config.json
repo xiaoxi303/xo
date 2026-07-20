@@ -1,0 +1,124 @@
+{
+  "siteInfo": {
+    "brandName": "Xo",
+    "ownerName": "Xo",
+    "ownerInitial": "Z",
+    "contactEmail": "hello@xo.dev",
+    "vimeoUrl": "https://vimeo.com",
+    "githubUrl": "https://github.com",
+    "twitterUrl": "https://twitter.com",
+    "linkedinUrl": "https://linkedin.com",
+    "seoTitle": "Xo Studio · 影视后期剪辑与调色",
+    "seoDescription": "专注于 TVC 广告、品牌形象宣传片、科技感产品动效包装，以及高画质纪录片的后期全流程开发。",
+    "footerTagline": "基于达芬奇色彩科学规范开发"
+  },
+  "home": {
+    "heroTitle1": "用剪辑",
+    "heroTitle2": "重塑时间",
+    "heroTitle3": "与故事",
+    "heroSub": "资深视频剪辑师 & 调色包装设计师。专注于 TVC 广告、品牌形象宣传片、科技感产品动效包装，以及高画质纪录片的后期全流程开发。",
+    "statValue1": "120+",
+    "statLabel1": "剪辑交付量",
+    "statValue2": "4K HDR",
+    "statLabel2": "高规格支持",
+    "profileCardTitle": "Xo",
+    "profileCardSub": "DI / Film Editor",
+    "profileCardDesc": "专注于用节拍与叙事节奏微雕镜头。拥有 5 年影视及广告后期制作经验，主导过多个品牌形象概念片的后期开发与色彩美学搭建。",
+    "skillsTags": [
+      "Resolve",
+      "Premiere",
+      "After Effects",
+      "Cinema 4D",
+      "ACES Workflow",
+      "Logic Pro",
+      "Foley Sound"
+    ],
+    "bookingStatus": "Booking Open (2026)",
+    "heroVideoUrl": "https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4",
+    "heroVideoPoster": "https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?w=800&q=80",
+    "heroTechStack": [
+      "Pr / Resolve / AE",
+      "Cinema 4D",
+      "VFX Compositing",
+      "DI Color Science"
+    ]
+  },
+  "about": {
+    "role": "影视后期剪辑指导 & DI 调色总监",
+    "bio": "你好，我是 Xo，一名专注于极致视觉体验与叙事节奏的后期制作人。拥有 5 年影视及商业视频后期制作经验，曾为多个头部数码硬件、高奢潮牌及汽车品牌交付主视觉概念片。",
+    "bioSub": "我相信镜头是有呼吸的，每一个调色色键、每一段声音过渡都是对情感的潜意识引导。让画面本身说话，用节奏感编织出令人印象深刻的数字故事，是我持之以恒的追求。",
+    "skills": [
+      {
+        "name": "Video Editing",
+        "level": 95
+      },
+      {
+        "name": "Color Grading",
+        "level": 90
+      },
+      {
+        "name": "Motion VFX",
+        "level": 85
+      },
+      {
+        "name": "Sound Design",
+        "level": 80
+      }
+    ],
+    "experiences": [
+      {
+        "role": "资深剪辑指导 / DI 调色总监",
+        "company": "TechCreative Studio",
+        "period": "2023 — 至今",
+        "desc": "主导商业 TVC、高端品牌概念宣传片、高端数码新品主视觉的剪辑与色彩把控。建立并优化了达芬奇 DI 至 ACES 高规格色彩空间的高保真代理协作流程。",
+        "tags": [
+          "剪辑指导",
+          "达芬奇 DI",
+          "ACES 色彩科学",
+          "TVC 后期"
+        ]
+      },
+      {
+        "role": "影视后期总监",
+        "company": "StartupMedia",
+        "period": "2021 — 2023",
+        "desc": "负责线上多媒体产品包装与微电影后期流程。独立或协同交付 80 余支高质感商业短片，引入云端协作剪辑，让跨地域审片周期缩短 40%。",
+        "tags": [
+          "后期总监",
+          "三维动效包装",
+          "云工作流",
+          "AE 合成"
+        ]
+      },
+      {
+        "role": "自由职业剪辑师 / 独立后期",
+        "company": "独立制片与工作室协作",
+        "period": "2019 — 2021",
+        "desc": "为多家新锐潮牌、数码品牌提供前期创意与后期精剪一站式方案，擅长重节拍快节奏转场剪辑与叙事声音设计。",
+        "tags": [
+          "独立制片",
+          "街头蒙太奇",
+          "声音设计",
+          "创意短片"
+        ]
+      }
+    ],
+    "philosophies": [
+      {
+        "emoji": "⚡",
+        "title": "节奏即灵魂",
+        "desc": "剪辑是对时间的微雕。切准那一帧画面的呼吸点，才能让故事在观众心里产生化学反应。"
+      },
+      {
+        "emoji": "🎨",
+        "title": "色彩传递情绪",
+        "desc": "调色不仅是色彩还原，更是通过冷暖虚实的色彩空间，潜意识引导剧情张力与氛围感。"
+      },
+      {
+        "emoji": "🔊",
+        "title": "声画不可分割",
+        "desc": "声音是画面的另一半翅膀。通过拟音与音效设计，让平面的屏幕呈现出三维物理深度。"
+      }
+    ]
+  }
+}
