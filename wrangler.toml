@@ -5,11 +5,6 @@ name = "zpj"
 compatibility_date = "2026-07-20"
 pages_build_output_dir = ".output/public"
 
-[pages_build_env_vars]
-NODE_VERSION = "22"
-
-
-
 
 # ==========================================
 # Cloudflare D1 数据库绑定

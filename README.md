@@ -122,13 +122,20 @@ npm run dev
    ```
 
 3. **Cloudflare 后台配置与绑定**：
-   由于 Cloudflare Pages 限制在 Pages 的 `wrangler.toml` 文件中直接声明 `[build]` 表格，您需要在 **Cloudflare 控制台后台** 录入构建属性与数据库绑定：
+   由于 Cloudflare Pages 限制在 Pages 的 `wrangler.toml` 文件中直接声明 `[build]` 或 `[pages_build_env_vars]`，您需要在 **Cloudflare 控制台后台** 录入构建属性、环境变量与数据库绑定：
    
    - **配置构建参数 (Build Settings)**：
      - 进入您的 Pages 项目控制台，选择 `Settings` -> `Build & deployments` -> `Configure build settings`。
      - **Framework preset (框架预设)**：选择 **`Nuxt.js`**
      - **Build command (构建命令)**：输入 **`npm run build`**
      - **Build output directory (构建输出目录)**：输入 **`.output/public`**
+     
+   - **配置环境变量 (Environment Variables)**：
+     - 进入您的 Pages 项目控制台，选择 `Settings` -> `Environment variables` (环境变量)。
+     - 在 **Production (生产环境)** 和 **Preview (预览环境)** 中添加新变量：
+       - **Variable name (变量名)**：`NODE_VERSION`
+       - **Value (值)**：`22`
+     *这是因为 Nuxt 4.5.0 要求 Node.js v22.19.0 或更高版本，设置此变量可以强行升级 Cloudflare Pages 的构建容器环境。*
      
    - **绑定 D1 数据库 (D1 Bindings)**：
      - 进入您的 Pages 项目控制台，选择 `Settings` -> `Functions` -> `D1 database bindings`。
