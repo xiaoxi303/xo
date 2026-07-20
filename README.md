@@ -121,9 +121,19 @@ npm run dev
    database_id = "您的_DATABASE_ID_写在这里"
    ```
 
-3. **Cloudflare 后台绑定**：
-   - 登录 Cloudflare 控制台，进入您的 Pages 项目设置：`Settings` -> `Functions` -> `D1 database bindings`。
-   - 点击添加绑定 (Add binding)，设置 **Variable name** 为 `DB`，在 **D1 database** 中选择您刚才创建的数据库。
+3. **Cloudflare 后台配置与绑定**：
+   由于 Cloudflare Pages 限制在 Pages 的 `wrangler.toml` 文件中直接声明 `[build]` 表格，您需要在 **Cloudflare 控制台后台** 录入构建属性与数据库绑定：
+   
+   - **配置构建参数 (Build Settings)**：
+     - 进入您的 Pages 项目控制台，选择 `Settings` -> `Build & deployments` -> `Configure build settings`。
+     - **Framework preset (框架预设)**：选择 **`Nuxt.js`**
+     - **Build command (构建命令)**：输入 **`npm run build`**
+     - **Build output directory (构建输出目录)**：输入 **`.output/public`**
+     
+   - **绑定 D1 数据库 (D1 Bindings)**：
+     - 进入您的 Pages 项目控制台，选择 `Settings` -> `Functions` -> `D1 database bindings`。
+     - 点击 **Add binding (添加绑定)**。
+     - 将 **Variable name (变量名)** 设为 `DB`，在 **D1 database** 选择下拉框中，选中您创建的 `xo-db` 数据库。
 
 4. **使用 Wrangler 本地调试 D1**：
    如果您想在本地模拟 Cloudflare 容器和本地 D1 进行全仿真运行，可直接运行：
