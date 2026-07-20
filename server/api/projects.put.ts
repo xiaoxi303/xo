@@ -11,11 +11,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = await getD1Database(event)
+  const isCloudflare = !!event.context.cloudflare
   
-  if (!db && process.env.NODE_ENV === 'production') {
+  if (!db && isCloudflare) {
     throw createError({
       statusCode: 403,
-      statusMessage: 'For safety, editing local Markdown is disabled in production.'
+      statusMessage: 'For safety, editing local Markdown is disabled in production on Cloudflare Pages.'
     })
   }
 

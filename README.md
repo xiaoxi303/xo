@@ -134,7 +134,7 @@ npm run dev
    - **配置构建参数 (Build Settings)**：
      - 进入您的 Pages 项目控制台，选择 `Settings` -> `Build & deployments` -> `Configure build settings`。
      - **Framework preset (框架预设)**：选择 **`Nuxt.js`**
-     - **Build command (构建命令)**：输入 **`npm install && npm run build`** (这可以绕过 Cloudflare 默认 `npm ci` 的严格 lock 校验)
+     - **Build command (构建命令)**：输入 **`npm run build`**
      - **Build output directory (构建输出目录)**：输入 **`.output/public`**
      
    - **配置环境变量 (Environment Variables)**：
