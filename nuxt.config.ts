@@ -31,5 +31,10 @@ export default defineNuxtConfig({
   // Nuxt 4 目录规范
   future: {
     compatibilityVersion: 4
+  },
+
+  // Nitro 部署预设配置
+  nitro: {
+    preset: 'cloudflare-pages'
   }
 })
