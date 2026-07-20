@@ -18,5 +18,6 @@ pages_build_output_dir = ".output/public"
 # ==========================================
 [[d1_databases]]
 binding = "DB"
-database_name = "xo-db"
-database_id = "YOUR_D1_DATABASE_ID_HERE"
+database_name = "xo"
+database_id = "c4b071f4-d116-45a5-a6e8-a043a3b4a94a"
+
