@@ -91,6 +91,13 @@ npm run dev
 
 ## ☁️ 部署到 Cloudflare 并绑定 D1
 
+> [!IMPORTANT]
+> **☁️ 部署前关键配置说明**：
+> 由于 Cloudflare Pages 限制在 Pages 的 `wrangler.toml` 文件中直接声明 `[build]` 构建命令或 `[pages_build_env_vars]` 构建环境变量，为确保云端顺利完成打包部署，您**必须**在 Cloudflare 控制台项目设置中配置以下内容：
+> 1. 在 **Settings -> Build & deployments** 中，配置 **Build command** 为 `npm run build`，**Build output directory** 为 `.output/public`。
+> 2. 在 **Settings -> Environment variables** 中，添加环境变量 **`NODE_VERSION`** = **`22`**（以升级云端 Node.js 构建容器，Nuxt 4.5.0 要求 Node.js v22.19.0 或更高版本）。
+
+
 ### 🛠️ 推荐：一键自动绑定 D1（自动化脚本）
 项目内置了全自动绑定脚本。只需一步即可自动创建 D1 数据库、检索 UUID 并写入配置文件：
 1. **执行一键绑定**：
