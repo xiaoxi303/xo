@@ -249,7 +249,7 @@
                   我支持从视频分镜、后期精剪、调色降噪到动效合成的全流程定制服务。
                 </p>
               </div>
-              <a href="mailto:hello@xo.dev" class="btn-primary w-full justify-center text-xs py-2.5 relative z-10">
+              <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-primary w-full justify-center text-xs py-2.5 relative z-10">
                 发起项目咨询
               </a>
             </div>
@@ -279,6 +279,7 @@ const blurVideoRef = ref<HTMLVideoElement | null>(null)
 
 const { data: projects } = await useFetch<any[]>('/api/projects')
 const project = computed(() => (projects.value || []).find(p => p.slug === slug))
+const { data: siteConfig } = await useFetch<any>('/api/site-config')
 
 const isUnlocked = ref(false)
 const inputPassword = ref('')

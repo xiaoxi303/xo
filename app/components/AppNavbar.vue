@@ -21,7 +21,7 @@
         class="group flex items-baseline gap-1 no-underline flex-shrink-0 transition-all duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1)"
         aria-label="Xo Home"
       >
-        <span class="font-display text-[#121316] text-2xl font-bold tracking-tight">Xo</span>
+        <span class="font-display text-[#121316] text-2xl font-bold tracking-tight">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</span>
         <span class="font-display text-[var(--color-bronze)] text-2xl font-extrabold select-none">.</span>
       </NuxtLink>
 
@@ -56,7 +56,7 @@
       <div class="flex items-center gap-3 flex-shrink-0">
         <!-- Contact button -->
         <a
-          href="mailto:hello@xo.dev"
+          :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')"
           :class="[
             'hidden md:inline-flex items-center gap-2 text-xs font-semibold tracking-wide transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)',
             isScrolled 
@@ -106,7 +106,7 @@
           <span v-if="$route.path === link.to" class="w-1 h-1 rounded-full bg-[var(--color-bronze)]" />
         </NuxtLink>
         <div class="border-t border-black/[0.05] mt-2 pt-2.5 px-1">
-          <a href="mailto:hello@xo.dev" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-medium text-white bg-[#121316] hover:bg-[#25262c] transition-colors">
+          <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-medium text-white bg-[#121316] hover:bg-[#25262c] transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 opacity-70">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
@@ -124,6 +124,8 @@ const route = useRoute()
 const navbarRef = ref<HTMLElement | null>(null)
 const isScrolled = ref(false)
 const mobileOpen = ref(false)
+
+const { data: siteConfig } = await useFetch<any>('/api/site-config')
 
 const navLinks = [
   { label: '首页', to: '/' },
