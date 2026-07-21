@@ -1,16 +1,36 @@
 <template>
   <!-- High-performance video component with IntersectionObserver + 250ms debounce -->
-  <div ref="containerRef" class="relative overflow-hidden bg-slate-900" :style="{ borderRadius: 'inherit' }">
+  <div ref="containerRef" class="relative overflow-hidden bg-slate-900 w-full h-full" :style="{ borderRadius: 'inherit' }">
+    <MediaImage
+      v-if="!hasVideo && hasPoster"
+      :src="poster"
+      :alt="title"
+      :title="title"
+      :index="index"
+      :category="category"
+      :description="description"
+      class="w-full h-full"
+    />
+
+    <DefaultArtPoster
+      v-else-if="!hasVideo"
+      :title="title || '创意视频'"
+      :index="index || '01'"
+      :category="category"
+      :description="description"
+      class="w-full h-full"
+    />
+
     <!-- Poster image shown until video loads -->
     <div
-      v-if="!isVideoReady && poster"
+      v-else-if="!isVideoReady && poster"
       class="absolute inset-0 bg-cover bg-center"
       :style="{ backgroundImage: `url(${poster})` }"
     />
 
     <!-- Play icon overlay -->
     <div
-      v-if="showPlayIcon && !isPlaying"
+      v-if="hasVideo && showPlayIcon && !isPlaying"
       class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
     >
       <div class="w-14 h-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center">
@@ -21,6 +41,7 @@
     </div>
 
     <video
+      v-if="hasVideo"
       ref="videoRef"
       :src="src"
       :poster="poster"
@@ -40,10 +61,20 @@
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-  src: string
+  src?: string
   poster?: string
+  title?: string
+  index?: number | string
+  category?: string
+  description?: string
   showPlayIcon?: boolean
 }>(), {
+  src: '',
+  poster: '',
+  title: '',
+  index: '01',
+  category: 'CREATIVE VIDEO',
+  description: '',
   showPlayIcon: false,
 })
 
@@ -51,6 +82,8 @@ const containerRef = ref<HTMLElement | null>(null)
 const videoRef = ref<HTMLVideoElement | null>(null)
 const isVideoReady = ref(false)
 const isPlaying = ref(false)
+const hasVideo = computed(() => !!props.src?.trim())
+const hasPoster = computed(() => !!props.poster?.trim())
 let playTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {

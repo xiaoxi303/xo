@@ -61,6 +61,10 @@
                 <MediaVideo
                   :src="siteConfig?.home?.heroVideoUrl || 'https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4'"
                   :poster="siteConfig?.home?.heroVideoPoster || 'https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?w=800&q=80'"
+                  title="SHOWREEL"
+                  index="01"
+                  category="CREATIVE VIDEO"
+                  :description="siteConfig?.home?.heroSub"
                   class="w-full h-full"
                 />
               </div>
@@ -118,6 +122,10 @@
                 <MediaVideo
                   :src="tvcProject.videoUrl"
                   :poster="tvcProject.image"
+                  :title="tvcProject.title"
+                  index="01"
+                  :category="tvcProject.tags?.[0] || 'FLAGSHIP SHOWREEL'"
+                  :description="tvcProject.description"
                   class="w-full h-full"
                 />
                 <!-- Overlay shade -->
@@ -205,7 +213,15 @@
               
               <!-- Media area -->
               <div class="h-64 relative overflow-hidden bg-slate-900 border-b border-black/5">
-                <MediaImage :src="gradingProject.image" :alt="gradingProject.title" class="w-full h-full object-cover" />
+                <MediaImage
+                  :src="gradingProject.image"
+                  :alt="gradingProject.title"
+                  :title="gradingProject.title"
+                  index="02"
+                  :category="gradingProject.tags?.[0] || 'CINEMATIC GRADING'"
+                  :description="gradingProject.description"
+                  class="w-full h-full object-cover"
+                />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
                 
                 <!-- Absolute specs sticker -->

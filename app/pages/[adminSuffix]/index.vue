@@ -1014,9 +1014,12 @@
                 </div>
                 <div class="space-y-4">
                   <div class="space-y-1.5">
-                    <label class="form-label">封面图片 URL (Graded / Final Frame)</label>
+                    <label class="form-label flex items-center justify-between">
+                      <span>封面图片 URL (Graded / Final Frame)</span>
+                      <span class="text-[9px] font-normal text-amber-700 font-mono">(封面图或视频 URL 任意填一个即可)</span>
+                    </label>
                     <div class="flex gap-2">
-                      <input v-model="form.image" required class="form-input font-mono flex-1" placeholder="https://..." />
+                      <input v-model="form.image" class="form-input font-mono flex-1" placeholder="https://... (有视频可留空)" />
                       <label class="btn-ghost text-xs py-2 px-4 cursor-pointer flex items-center justify-center border border-dashed rounded-xl" style="border-color: var(--color-border-2); background: transparent;">
                         <span>📤 上传</span>
                         <input type="file" accept="image/*" class="hidden" @change="uploadProjectCover" />
@@ -1031,8 +1034,11 @@
                     <input v-model="form.imageBefore" class="form-input font-mono" placeholder="https://... (不开启请留空)" />
                   </div>
                   <div class="space-y-1.5">
-                    <label class="form-label">视频 MP4 URL</label>
-                    <input v-model="form.videoUrl" required class="form-input font-mono" placeholder="https://...mp4" />
+                    <label class="form-label flex items-center justify-between">
+                      <span>视频 MP4 URL</span>
+                      <span class="text-[9px] font-normal text-amber-700 font-mono">(可选，留空则展示静态/艺术海报)</span>
+                    </label>
+                    <input v-model="form.videoUrl" class="form-input font-mono" placeholder="https://...mp4 (只有图片可留空)" />
                   </div>
                 </div>
                 <!-- Featured & Password Protection Row -->
@@ -1174,7 +1180,14 @@
                   <div class="h-44 relative overflow-hidden flex items-center justify-center" style="background: var(--color-bg-2)">
                     <video v-if="form.videoUrl && isValidVideo" :src="form.videoUrl" muted autoplay loop playsinline class="w-full h-full object-cover pointer-events-none" />
                     <img v-else-if="form.image && isValidImage" :src="form.image" class="w-full h-full object-cover" alt="" />
-                    <div v-else class="absolute inset-0 flex items-center justify-center text-xs" style="color: var(--color-ink-5)">等待载入媒体...</div>
+                    <DefaultArtPoster
+                      v-else
+                      :title="form.title || '创意视频'"
+                      index="01"
+                      :category="form.tags?.[0] || 'CREATIVE VIDEO'"
+                      :description="form.description || '用创意点亮灵感，用镜头讲述故事...'"
+                      class="w-full h-full"
+                    />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
                   </div>
                   <div class="p-5 space-y-2.5">
@@ -1789,6 +1802,10 @@ const triggerFormSubmit = () => {
 }
 const saveProject = async () => {
   try {
+    if (!form.value.image?.trim() && !form.value.videoUrl?.trim()) {
+      alert('请至少填入【封面图片 URL】或【视频 MP4 URL】中的一个。')
+      return
+    }
     if (isEditing.value) await $fetch('/api/projects', { method: 'PUT', body: form.value })
     else await $fetch('/api/projects', { method: 'POST', body: form.value })
     await fetchProjects()

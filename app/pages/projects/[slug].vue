@@ -112,6 +112,16 @@
                 🖼️ 静帧作品
               </div>
             </div>
+
+            <div v-else class="relative rounded-2xl overflow-hidden glass-card" style="height: min(520px, 56vw); min-height: 260px;">
+              <DefaultArtPoster
+                :title="project.title"
+                index="01"
+                :category="project.tags?.[0] || 'CREATIVE VIDEO'"
+                :description="project.description"
+                class="w-full h-full"
+              />
+            </div>
           </div>
 
           <!-- Interactive LUT Grade Comparison Slider (only if imageBefore is set) -->

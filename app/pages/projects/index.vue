@@ -59,6 +59,10 @@
               <MediaImage
                 :src="project.image"
                 :alt="project.title"
+                :title="project.title"
+                :index="i + 1"
+                :category="project.tags?.[0] || 'CREATIVE VIDEO'"
+                :description="project.description"
                 class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <!-- Gradient overlay -->

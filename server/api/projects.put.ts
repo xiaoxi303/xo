@@ -10,6 +10,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (!body.image?.trim() && !body.videoUrl?.trim()) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: '请至少填写封面图片 URL 或视频 MP4 URL。'
+    })
+  }
+
   const db = await getD1Database(event)
   const isCloudflare = !!event.context.cloudflare
   
