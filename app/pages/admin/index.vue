@@ -535,14 +535,26 @@
               </div>
               <!-- Skills Sliders -->
               <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">技能标定 (Skills Faders)</h3>
-                <div class="p-5 rounded-2xl space-y-4" style="background: rgba(0,0,0,0.02); border: 1px solid var(--color-border)">
-                  <div v-for="skill in siteConfig.about.skills" :key="skill.name" class="space-y-2">
-                    <div class="flex items-center justify-between text-xs font-mono">
-                      <span style="color: var(--color-ink-3)">{{ skill.name }}</span>
-                      <span class="font-bold" style="color: var(--color-ink-1)">{{ skill.level }}%</span>
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">技能标定 (Skills Faders)</h3>
+                  <button type="button" @click="addSkill" class="text-xs font-bold font-mono hover:text-amber-700 transition-colors" style="color: var(--color-ink-1)">+ 添加技能</button>
+                </div>
+                <div class="space-y-3">
+                  <div v-for="(skill, idx) in siteConfig.about.skills" :key="idx"
+                       class="p-4 rounded-xl space-y-3 relative" style="background: rgba(0,0,0,0.02); border: 1px solid var(--color-border)">
+                    <button type="button" @click="removeSkill(idx)" class="absolute top-3 right-3 text-rose-500 hover:text-rose-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                    <div class="grid grid-cols-6 gap-3 pr-6">
+                      <div class="col-span-4 space-y-1">
+                        <span class="text-[9px] font-mono uppercase" style="color: var(--color-ink-5)">技能名称</span>
+                        <input v-model="skill.name" class="form-input text-xs" />
+                      </div>
+                      <div class="col-span-2 space-y-1">
+                        <span class="text-[9px] font-mono uppercase" style="color: var(--color-ink-5)">掌握度 ({{ skill.level }}%)</span>
+                        <input type="range" min="0" max="100" v-model.number="skill.level" class="w-full h-8 cursor-pointer" />
+                      </div>
                     </div>
-                    <input type="range" min="0" max="100" v-model.number="skill.level" class="w-full cursor-pointer" />
                   </div>
                 </div>
               </div>
@@ -1209,6 +1221,8 @@ const removeExperienceTag = (idx: number, tag: string) => {
 }
 const addPhilosophy = () => { siteConfig.value.about.philosophies.push({ emoji: '⚡', title: '', desc: '' }) }
 const removePhilosophy = (idx: number) => { siteConfig.value.about.philosophies.splice(idx, 1) }
+const addSkill = () => { siteConfig.value.about.skills.push({ name: '', level: 80 }) }
+const removeSkill = (idx: number) => { siteConfig.value.about.skills.splice(idx, 1) }
 
 const addWorkflowStep = () => form.value.workflow.push({ icon: '⚡', title: '', desc: '' })
 const removeWorkflowStep = (idx: number) => form.value.workflow.splice(idx, 1)
