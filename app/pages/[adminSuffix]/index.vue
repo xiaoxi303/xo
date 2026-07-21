@@ -813,7 +813,7 @@
           <div class="glass-card p-8 space-y-6">
             <div class="border-b pb-4" style="border-color: var(--color-border)">
               <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🔑 后台管理员账户设置 (Security Credentials)</h3>
-              <p class="text-xs mt-1" style="color: var(--color-ink-4)">自主修改登录后台系统的用户名和管理密码。</p>
+              <p class="text-xs mt-1" style="color: var(--color-ink-4)">自主修改登录后台系统的用户名、管理密码，以及自定义后台管理地址后缀。</p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-6" v-if="siteConfig.admin">
@@ -827,6 +827,40 @@
                   <span class="text-[9px] text-amber-700 font-bold font-mono">留空则不更改密码</span>
                 </label>
                 <input v-model="adminNewPassword" type="password" class="form-input font-mono" placeholder="•••••••• (无修改请留空)" />
+              </div>
+            </div>
+
+            <!-- Admin Path / URL Suffix -->
+            <div class="p-5 rounded-xl space-y-4" style="background: rgba(180,83,9,0.04); border: 1px solid rgba(180,83,9,0.14)">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl mt-0.5">🔗</span>
+                <div class="space-y-1">
+                  <h4 class="text-sm font-bold font-display" style="color: var(--color-ink-1)">自定义后台管理地址后缀 (Admin URL Suffix)</h4>
+                  <p class="text-xs" style="color: var(--color-ink-4)">修改后台管理面板的访问路径（URL 后缀）。当前访问地址：<code class="font-mono text-amber-700 bg-amber-50 px-1 py-0.5 rounded">{{ $route.params.adminSuffix }}</code></p>
+                </div>
+              </div>
+
+              <div class="space-y-2" v-if="siteConfig.admin">
+                <label class="form-label">新后台路径 (仅限英文字母、数字、- 和 _)</label>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-mono px-3 py-2 rounded-lg" style="background: rgba(0,0,0,0.04); color: var(--color-ink-4)">你的域名/</span>
+                  <input
+                    v-model="siteConfig.admin.adminPath"
+                    class="form-input font-mono flex-1"
+                    placeholder="例如: studio2026 或 dashboard"
+                    @input="siteConfig.admin.adminPath = ($event.target as HTMLInputElement).value.toLowerCase().replace(/[^a-z0-9_-]/g, '')"
+                  />
+                </div>
+                <!-- Live Preview URL -->
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-[10px] font-mono px-2 py-1 rounded" style="background: rgba(0,0,0,0.03); color: var(--color-ink-5)">
+                    新地址预览：<span style="color: var(--color-bronze)" class="font-bold">{{ siteConfig.admin.adminPath || 'admin' }}</span>
+                  </span>
+                  <span v-if="siteConfig.admin.adminPath && siteConfig.admin.adminPath !== $route.params.adminSuffix"
+                    class="text-[9px] font-mono font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full">
+                    ⚠️ 保存后将自动跳转到新地址
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -1166,6 +1200,20 @@
 </template>
 
 <script setup lang="ts">
+// ── Route guard: validate that the current URL suffix matches the configured admin path ──
+const route = useRoute()
+const router = useRouter()
+const currentSuffix = route.params.adminSuffix as string
+
+// Fetch config to validate suffix (only on client or SSR)
+const { data: _rawConfig } = await useFetch<any>('/api/site-config')
+const configuredPath = _rawConfig.value?.admin?.adminPath || 'admin'
+
+// If the suffix in the URL doesn't match the configured admin path, redirect to 404
+if (currentSuffix !== configuredPath) {
+  throw createError({ statusCode: 404, statusMessage: 'Page not found.' })
+}
+
 useHead({ title: '配置工作台 — xo.dev' })
 
 const isLoggedIn = ref(false)
@@ -1383,7 +1431,7 @@ const siteConfig = useState<any>('site-config', () => ({
     skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: []
   },
   about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [] },
-  admin: { username: 'admin' }
+  admin: { username: 'admin', adminPath: 'admin' }
 }))
 
 const isModalOpen = ref(false)
@@ -1494,6 +1542,7 @@ const fetchSiteConfig = async () => {
     about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [], ...data.about },
     admin: {
       username: 'admin',
+      adminPath: 'admin',
       ...data.admin
     }
   }
@@ -1568,20 +1617,34 @@ const adminNewPassword = ref('')
 
 const saveSiteConfig = async () => {
   try {
+    // Validate adminPath: must be non-empty, lowercase, no spaces or special chars
+    const newPath = (siteConfig.value.admin?.adminPath || 'admin').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')
+    if (!newPath) {
+      alert('后台路径不能为空，请输入有效的路径名称（仅限英文字母、数字、-、_）。')
+      return
+    }
+    siteConfig.value.admin.adminPath = newPath
+
     if (adminNewPassword.value.trim() !== '') {
       if (!siteConfig.value.admin) siteConfig.value.admin = {}
       siteConfig.value.admin.newPassword = adminNewPassword.value
     }
+
+    const oldPath = currentSuffix
     await $fetch('/api/site-config', { method: 'PUT', body: siteConfig.value })
-    
+
     // Clear local inputs and clean up payload key
     adminNewPassword.value = ''
     if (siteConfig.value.admin) {
       delete siteConfig.value.admin.newPassword
     }
-    
+
     alert('🎉 配置保存成功！')
-    if (showLivePreview.value) {
+
+    // If admin path changed, redirect to the new URL
+    if (newPath !== oldPath) {
+      await router.push(`/${newPath}`)
+    } else if (showLivePreview.value) {
       setTimeout(refreshPreview, 300)
     }
   } catch (e: any) { alert(e.statusMessage || '保存失败。') }
