@@ -428,8 +428,22 @@ const { data: projects } = await useFetch<any[]>('/api/projects')
 const project = computed(() => (projects.value || []).find(p => p.slug === slug))
 const { data: siteConfig } = await useFetch<any>('/api/site-config')
 const activeVideoIndex = ref(0)
+const parseVideoUrls = (input: any) => {
+  if (Array.isArray(input)) return input
+  if (typeof input !== 'string') return []
+
+  const trimmed = input.trim()
+  if (!trimmed) return []
+
+  try {
+    const parsed = JSON.parse(trimmed)
+    if (Array.isArray(parsed)) return parsed
+  } catch (e) {}
+
+  return trimmed.split(/[\n,，]+/g)
+}
 const projectVideoUrls = computed(() => {
-  const urls = Array.isArray(project.value?.videoUrls) ? project.value.videoUrls : []
+  const urls = parseVideoUrls(project.value?.videoUrls)
   const normalized = urls.map((url: string) => url?.trim()).filter(Boolean)
   const legacyUrl = project.value?.videoUrl?.trim()
   if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)

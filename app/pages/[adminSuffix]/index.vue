@@ -1852,7 +1852,9 @@ const lockedProjects = computed(() => (projectsList.value || []).filter((p: any)
 const isValidImage = computed(() => form.value.image && /^https?:\/\/.*?\.(jpg|jpeg|png|webp|avif|gif)/i.test(form.value.image))
 
 const normalizeProjectVideos = () => {
-  const urls = Array.isArray(form.value.videoUrls) ? form.value.videoUrls : []
+  const urls = Array.isArray(form.value.videoUrls)
+    ? form.value.videoUrls
+    : String(form.value.videoUrls || '').split(/[\n,，]+/g)
   const normalized = urls.map((url: string) => url?.trim()).filter(Boolean)
   const legacyUrl = form.value.videoUrl?.trim()
   if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)

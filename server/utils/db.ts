@@ -205,8 +205,23 @@ function parseMarkdownFile(filePath: string) {
   return { slug: path.basename(filePath, '.md') }
 }
 
+function parseVideoUrlsInput(input: any): any[] {
+  if (Array.isArray(input)) return input
+  if (typeof input !== 'string') return []
+
+  const trimmed = input.trim()
+  if (!trimmed) return []
+
+  try {
+    const parsed = JSON.parse(trimmed)
+    if (Array.isArray(parsed)) return parsed
+  } catch (e) {}
+
+  return trimmed.split(/[\n,，]+/g)
+}
+
 function normalizeVideoUrls(data: any): string[] {
-  const urls = Array.isArray(data?.videoUrls) ? data.videoUrls : []
+  const urls = parseVideoUrlsInput(data?.videoUrls)
   const normalized = urls
     .map((url: any) => String(url || '').trim())
     .filter(Boolean)
@@ -222,6 +237,17 @@ function normalizeProject(row: any) {
     ...row,
     videoUrls,
     videoUrl: row.videoUrl || videoUrls[0] || ''
+  }
+}
+
+function parseJsonArray(value: any): any[] {
+  if (Array.isArray(value)) return value
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (e) {
+    return []
   }
 }
 
@@ -306,10 +332,10 @@ export async function dbGetProjectsRaw(event: H3Event): Promise<any[]> {
     return results.map((row: any) => ({
       ...row,
       featured: Boolean(row.featured),
-      videoUrls: row.videoUrls ? JSON.parse(row.videoUrls) : [],
-      software: row.software ? JSON.parse(row.software) : [],
-      tags: row.tags ? JSON.parse(row.tags) : [],
-      workflow: row.workflow ? JSON.parse(row.workflow) : []
+      videoUrls: parseJsonArray(row.videoUrls),
+      software: parseJsonArray(row.software),
+      tags: parseJsonArray(row.tags),
+      workflow: parseJsonArray(row.workflow)
     })).map(normalizeProject)
   }
 
