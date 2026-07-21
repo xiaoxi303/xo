@@ -26,5 +26,20 @@ logs
 # Reference knowledge base
 knowledge_base/
 
+# ─────────────────────────────────────────────────────
+# Runtime user data — managed by admin panel on server.
+# These files MUST NOT be tracked by git.
+# git pull / git reset will NEVER overwrite them.
+# ─────────────────────────────────────────────────────
+
 # Admin session tokens (disk-persisted, server-local only)
 content/.sessions.json
+
+# Site configuration (edited via admin panel)
+content/site-config.json
+
+# Project files (created / edited via admin panel)
+content/projects/
+
+# Page-view analytics counter (server-local)
+content/page-views.json
