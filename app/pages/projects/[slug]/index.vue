@@ -99,24 +99,50 @@
           <!-- Media block: video player OR cover image fallback -->
           <div class="reveal">
             <!-- If has videoUrl: show ambilight video player -->
-            <div v-if="project.videoUrl && project.videoUrl.trim()" class="ambilight-container">
-              <!-- Ambient backdrop blur video -->
-              <video
-                ref="blurVideoRef"
-                :src="project.videoUrl"
-                muted loop playsinline
-                class="ambilight-shadow"
-              />
-              <!-- Foreground main player -->
-              <video
-                ref="mainVideoRef"
-                :src="project.videoUrl"
-                :poster="project.image"
-                controls autoplay muted playsinline
-                class="w-full rounded-2xl overflow-hidden relative z-10"
-                style="max-height: 520px; object-fit: cover; background: #000;"
-                @loadedmetadata="syncBlurVideo"
-              />
+            <div v-if="activeVideoUrl" class="space-y-3">
+              <div class="ambilight-container">
+                <!-- Ambient backdrop blur video -->
+                <video
+                  ref="blurVideoRef"
+                  :key="`blur-${activeVideoUrl}`"
+                  :src="activeVideoUrl"
+                  muted loop playsinline
+                  class="ambilight-shadow"
+                />
+                <!-- Foreground main player -->
+                <video
+                  ref="mainVideoRef"
+                  :key="`main-${activeVideoUrl}`"
+                  :src="activeVideoUrl"
+                  :poster="project.image"
+                  controls autoplay muted playsinline
+                  class="w-full rounded-2xl overflow-hidden relative z-10"
+                  style="max-height: 520px; object-fit: cover; background: #000;"
+                  @loadedmetadata="syncBlurVideo"
+                />
+              </div>
+
+              <div
+                v-if="projectVideoUrls.length > 1"
+                class="flex flex-wrap gap-2 rounded-2xl p-2"
+                style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18);"
+              >
+                <button
+                  v-for="(url, idx) in projectVideoUrls"
+                  :key="url"
+                  type="button"
+                  @click="activeVideoIndex = idx"
+                  :class="[
+                    'px-3 py-2 rounded-xl text-[10px] font-mono font-semibold transition-all',
+                    activeVideoIndex === idx ? 'shadow-sm' : 'hover:opacity-80'
+                  ]"
+                  :style="activeVideoIndex === idx
+                    ? { background: 'rgba(252,248,242,0.95)', color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.25)' }
+                    : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
+                >
+                  VIDEO {{ String(idx + 1).padStart(2, '0') }}
+                </button>
+              </div>
             </div>
 
             <!-- If no videoUrl but has image: show cover image -->
@@ -137,7 +163,7 @@
               <DefaultArtPoster
                 :title="project.title"
                 index="01"
-                :category="project.tags?.[0] || 'CREATIVE VIDEO'"
+                :category="project.tags?.[0] || ''"
                 :description="project.description"
                 class="w-full h-full"
               />
@@ -401,6 +427,19 @@ const blurVideoRef = ref<HTMLVideoElement | null>(null)
 const { data: projects } = await useFetch<any[]>('/api/projects')
 const project = computed(() => (projects.value || []).find(p => p.slug === slug))
 const { data: siteConfig } = await useFetch<any>('/api/site-config')
+const activeVideoIndex = ref(0)
+const projectVideoUrls = computed(() => {
+  const urls = Array.isArray(project.value?.videoUrls) ? project.value.videoUrls : []
+  const normalized = urls.map((url: string) => url?.trim()).filter(Boolean)
+  const legacyUrl = project.value?.videoUrl?.trim()
+  if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)
+  return normalized
+})
+const activeVideoUrl = computed(() => projectVideoUrls.value[activeVideoIndex.value] || '')
+
+watch(projectVideoUrls, (urls) => {
+  if (activeVideoIndex.value >= urls.length) activeVideoIndex.value = 0
+})
 
 // Check unlock status from server (uses HTTP-only cookie)
 const { data: unlockStatus } = await useFetch<any>(`/api/projects/${slug}/check`)

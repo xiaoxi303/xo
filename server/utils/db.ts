@@ -20,6 +20,7 @@ export async function getD1Database(event: H3Event) {
           image TEXT,
           imageBefore TEXT,
           videoUrl TEXT,
+          videoUrls TEXT,
           software TEXT,
           tags TEXT,
           featured INTEGER DEFAULT 0,
@@ -76,6 +77,9 @@ export async function getD1Database(event: H3Event) {
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE projects ADD COLUMN imageBefore TEXT;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN videoUrls TEXT;`)
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE projects ADD COLUMN releaseYear TEXT;`)
@@ -201,6 +205,26 @@ function parseMarkdownFile(filePath: string) {
   return { slug: path.basename(filePath, '.md') }
 }
 
+function normalizeVideoUrls(data: any): string[] {
+  const urls = Array.isArray(data?.videoUrls) ? data.videoUrls : []
+  const normalized = urls
+    .map((url: any) => String(url || '').trim())
+    .filter(Boolean)
+
+  const legacyUrl = String(data?.videoUrl || '').trim()
+  if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)
+  return normalized
+}
+
+function normalizeProject(row: any) {
+  const videoUrls = normalizeVideoUrls(row)
+  return {
+    ...row,
+    videoUrls,
+    videoUrl: row.videoUrl || videoUrls[0] || ''
+  }
+}
+
 function stringifyYaml(data: any): string {
   const lines = []
   lines.push(`title: "${(data.title || '').replace(/"/g, '\\"')}"`)
@@ -208,6 +232,14 @@ function stringifyYaml(data: any): string {
   lines.push(`longDescription: "${(data.longDescription || '').replace(/"/g, '\\"')}"`)
   lines.push(`image: "${(data.image || '').replace(/"/g, '\\"')}"`)
   lines.push(`videoUrl: "${(data.videoUrl || '').replace(/"/g, '\\"')}"`)
+  if (Array.isArray(data.videoUrls)) {
+    lines.push('videoUrls:')
+    normalizeVideoUrls(data).forEach((url: string) => {
+      lines.push(`  - "${url.replace(/"/g, '\\"')}"`)
+    })
+  } else {
+    lines.push('videoUrls: []')
+  }
   lines.push(`password: "${(data.password || '').replace(/"/g, '\\"')}"`)
   lines.push(`imageBefore: "${(data.imageBefore || '').replace(/"/g, '\\"')}"`)
   lines.push(`releaseYear: "${(data.releaseYear || '').replace(/"/g, '\\"')}"`)
@@ -256,7 +288,7 @@ function stringifyYaml(data: any): string {
 function sanitizeProject(row: any) {
   const { password, ...rest } = row
   return {
-    ...rest,
+    ...normalizeProject(rest),
     hasPassword: !!(password && String(password).trim() !== '')
   }
 }
@@ -274,17 +306,18 @@ export async function dbGetProjectsRaw(event: H3Event): Promise<any[]> {
     return results.map((row: any) => ({
       ...row,
       featured: Boolean(row.featured),
+      videoUrls: row.videoUrls ? JSON.parse(row.videoUrls) : [],
       software: row.software ? JSON.parse(row.software) : [],
       tags: row.tags ? JSON.parse(row.tags) : [],
       workflow: row.workflow ? JSON.parse(row.workflow) : []
-    }))
+    })).map(normalizeProject)
   }
 
   // Fallback: local markdown files
   const projectsDir = getRuntimeDataPath('projects')
   if (!fs.existsSync(projectsDir)) return []
   const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
-  const projects = files.map(file => parseMarkdownFile(path.join(projectsDir, file)))
+  const projects = files.map(file => normalizeProject(parseMarkdownFile(path.join(projectsDir, file))))
   return projects.sort((a: any, b: any) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
 }
 
@@ -312,17 +345,18 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
 
     await db.prepare(`
       INSERT INTO projects (
-        slug, title, image, imageBefore, videoUrl, software, tags, featured, 
+        slug, title, image, imageBefore, videoUrl, videoUrls, software, tags, featured, 
         description, longDescription, workflow, password,
         releaseYear, postSpecs, director, deliverFormat, audioFormat
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       body.slug,
       body.title,
       body.image || '',
       body.imageBefore || '',
-      body.videoUrl || '',
+      body.videoUrl || normalizeVideoUrls(body)[0] || '',
+      JSON.stringify(normalizeVideoUrls(body)),
       JSON.stringify(body.software || []),
       JSON.stringify(body.tags || []),
       body.featured ? 1 : 0,
@@ -363,7 +397,7 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
 
     await db.prepare(`
       UPDATE projects
-      SET title = ?, image = ?, imageBefore = ?, videoUrl = ?, software = ?, tags = ?, featured = ?, 
+      SET title = ?, image = ?, imageBefore = ?, videoUrl = ?, videoUrls = ?, software = ?, tags = ?, featured = ?, 
           description = ?, longDescription = ?, workflow = ?, password = ?,
           releaseYear = ?, postSpecs = ?, director = ?, deliverFormat = ?, audioFormat = ?
       WHERE slug = ?
@@ -371,7 +405,8 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
       body.title,
       body.image || '',
       body.imageBefore || '',
-      body.videoUrl || '',
+      body.videoUrl || normalizeVideoUrls(body)[0] || '',
+      JSON.stringify(normalizeVideoUrls(body)),
       JSON.stringify(body.software || []),
       JSON.stringify(body.tags || []),
       body.featured ? 1 : 0,

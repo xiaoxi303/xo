@@ -17,7 +17,7 @@
         <div class="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl self-start md:self-auto"
              style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18);">
           <button
-            v-for="f in filterOpts"
+            v-for="f in visibleFilterOpts"
             :key="f.value"
             @click="currentFilter = f.value"
             :class="[
@@ -61,7 +61,7 @@
                 :alt="project.title"
                 :title="project.title"
                 :index="i + 1"
-                :category="project.tags?.[0] || 'CREATIVE VIDEO'"
+                :category="project.tags?.[0] || ''"
                 :description="project.description"
                 class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -128,13 +128,28 @@ const filterOpts = [
   { label: '创意剪辑 / VFX', value: 'edit' }
 ]
 
+const filterProject = (project: any, filter: string) => {
+  if (filter === 'all') return true
+  if (filter === 'tvc') return project.tags?.some((t: string) => t.includes('广告') || t.includes('TVC'))
+  if (filter === 'color') return project.tags?.some((t: string) => t.includes('调色') || t.includes('DI'))
+  if (filter === 'edit') return project.tags?.some((t: string) => t.includes('剪辑') || t.includes('VFX') || t.includes('特效'))
+  return true
+}
+
+const visibleFilterOpts = computed(() => {
+  const list = projects.value || []
+  return filterOpts.filter((filter) => filter.value === 'all' || list.some((project) => filterProject(project, filter.value)))
+})
+
+watch(visibleFilterOpts, (filters) => {
+  if (!filters.some((filter) => filter.value === currentFilter.value)) {
+    currentFilter.value = 'all'
+  }
+})
+
 const filteredProjects = computed(() => {
   const list = projects.value || []
-  if (currentFilter.value === 'all') return list
-  if (currentFilter.value === 'tvc') return list.filter(p => p.tags?.some((t: string) => t.includes('广告') || t.includes('TVC')))
-  if (currentFilter.value === 'color') return list.filter(p => p.tags?.some((t: string) => t.includes('调色') || t.includes('DI')))
-  if (currentFilter.value === 'edit') return list.filter(p => p.tags?.some((t: string) => t.includes('剪辑') || t.includes('VFX') || t.includes('特效')))
-  return list
+  return list.filter((project) => filterProject(project, currentFilter.value))
 })
 
 let observer: IntersectionObserver | null = null

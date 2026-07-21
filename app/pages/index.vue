@@ -63,7 +63,7 @@
                   :poster="siteConfig?.home?.heroVideoPoster || 'https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?w=800&q=80'"
                   title="SHOWREEL"
                   index="01"
-                  category="CREATIVE VIDEO"
+                  category=""
                   :description="siteConfig?.home?.heroSub"
                   class="w-full h-full"
                 />
@@ -120,11 +120,11 @@
               <!-- Media cover -->
               <div class="h-80 relative overflow-hidden bg-slate-900 border-b border-black/5">
                 <MediaVideo
-                  :src="tvcProject.videoUrl"
+                  :src="getProjectVideoUrl(tvcProject)"
                   :poster="tvcProject.image"
                   :title="tvcProject.title"
                   index="01"
-                  :category="tvcProject.tags?.[0] || 'FLAGSHIP SHOWREEL'"
+                  :category="tvcProject.tags?.[0] || ''"
                   :description="tvcProject.description"
                   class="w-full h-full"
                 />
@@ -139,7 +139,7 @@
               <div class="p-8 space-y-2">
                 <div class="flex items-center gap-2">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-600" />
-                  <span class="text-slate-400 text-[9px] uppercase font-mono tracking-wider">Flagship Showreel</span>
+                  <span v-if="tvcProject.tags?.[0]" class="text-slate-400 text-[9px] uppercase font-mono tracking-wider">{{ tvcProject.tags[0] }}</span>
                 </div>
                 <h3 class="font-display font-bold text-slate-900 text-2xl group-hover:text-amber-700 transition-colors">
                   {{ tvcProject.title }}
@@ -220,7 +220,7 @@
                   :alt="gradingProject.title"
                   :title="gradingProject.title"
                   index="02"
-                  :category="gradingProject.tags?.[0] || 'CINEMATIC GRADING'"
+                  :category="gradingProject.tags?.[0] || ''"
                   :description="gradingProject.description"
                   class="w-full h-full object-cover"
                 />
@@ -237,7 +237,7 @@
                 <div class="space-y-2">
                   <div class="flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-600" />
-                    <span class="text-slate-400 text-[9px] uppercase font-mono tracking-wider">Cinematic Grading Show</span>
+                    <span v-if="gradingProject.tags?.[0]" class="text-slate-400 text-[9px] uppercase font-mono tracking-wider">{{ gradingProject.tags[0] }}</span>
                   </div>
                   <h3 class="font-display font-bold text-slate-900 text-2xl group-hover:text-amber-700 transition-colors">
                     {{ gradingProject.title }}
@@ -321,6 +321,12 @@ const skills = computed(() => {
     { name: 'Sound Design', level: 80 }
   ]
 })
+
+const getProjectVideoUrl = (project: any) => {
+  const urls = Array.isArray(project?.videoUrls) ? project.videoUrls : []
+  const firstUrl = urls.map((url: string) => url?.trim()).find(Boolean)
+  return firstUrl || project?.videoUrl || ''
+}
 
 // Scroll actions
 const scrollToBento = () => {

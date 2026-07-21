@@ -10,7 +10,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!body.image?.trim() && !body.videoUrl?.trim()) {
+  const hasVideo = body.videoUrl?.trim() || (Array.isArray(body.videoUrls) && body.videoUrls.some((url: string) => url?.trim()))
+  if (!body.image?.trim() && !hasVideo) {
     throw createError({
       statusCode: 400,
       statusMessage: '请至少填写封面图片 URL 或视频 MP4 URL。'

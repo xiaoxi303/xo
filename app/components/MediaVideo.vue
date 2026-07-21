@@ -73,7 +73,7 @@ const props = withDefaults(defineProps<{
   poster: '',
   title: '',
   index: '01',
-  category: 'CREATIVE VIDEO',
+  category: '',
   description: '',
   showPlayIcon: false,
 })

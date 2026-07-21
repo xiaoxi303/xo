@@ -1266,7 +1266,25 @@
                       <span>视频 MP4 URL</span>
                       <span class="text-[9px] font-normal text-amber-700 font-mono">(可选，作品详情页播放器使用)</span>
                     </label>
-                    <input v-model="form.videoUrl" class="form-input font-mono" placeholder="https://...mp4 (用于作品展示播放)" />
+                    <div class="space-y-2">
+                      <div v-for="(_, idx) in form.videoUrls" :key="idx" class="flex gap-2">
+                        <input
+                          v-model="form.videoUrls[idx]"
+                          class="form-input font-mono flex-1"
+                          :placeholder="idx === 0 ? 'https://...mp4 (main video)' : 'https://...mp4'"
+                        />
+                        <button
+                          type="button"
+                          @click="removeProjectVideo(idx)"
+                          class="btn-ghost text-xs px-3"
+                          :disabled="form.videoUrls.length === 1"
+                        >
+                          REMOVE
+                        </button>
+                      </div>
+                      <button type="button" @click="addProjectVideo" class="btn-ghost text-xs py-2 px-3">+ ADD VIDEO</button>
+                    </div>
+                    <p class="text-[10px] leading-relaxed" style="color: var(--color-ink-5)">First filled URL is used on cards. All URLs appear as switchable videos on the project detail page.</p>
                   </div>
                 </div>
                 <!-- Featured & Password Protection Row -->
@@ -1411,7 +1429,7 @@
                       v-else
                       :title="form.title || '创意视频'"
                       index="01"
-                      :category="form.tags?.[0] || 'CREATIVE VIDEO'"
+                      :category="form.tags?.[0] || ''"
                       :description="form.description || '用创意点亮灵感，用镜头讲述故事...'"
                       class="w-full h-full"
                     />
@@ -1821,13 +1839,33 @@ const tempExpInputs = ref<Record<number, string>>({})
 const submitButtonRef = ref<HTMLButtonElement | null>(null)
 
 const form = ref<any>({
-  slug: '', title: '', image: '', imageBefore: '', videoUrl: '', software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: '',
+  slug: '', title: '', image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: '',
   releaseYear: '', postSpecs: '', director: '', deliverFormat: '', audioFormat: ''
 })
 
 const featuredCount = computed(() => projectsList.value.filter(p => p.featured).length)
 const lockedProjects = computed(() => (projectsList.value || []).filter((p: any) => p.password && p.password.trim() !== ''))
 const isValidImage = computed(() => form.value.image && /^https?:\/\/.*?\.(jpg|jpeg|png|webp|avif|gif)/i.test(form.value.image))
+
+const normalizeProjectVideos = () => {
+  const urls = Array.isArray(form.value.videoUrls) ? form.value.videoUrls : []
+  const normalized = urls.map((url: string) => url?.trim()).filter(Boolean)
+  const legacyUrl = form.value.videoUrl?.trim()
+  if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)
+  form.value.videoUrls = normalized.length ? normalized : ['']
+  form.value.videoUrl = normalized[0] || ''
+  return normalized
+}
+
+const addProjectVideo = () => {
+  if (!Array.isArray(form.value.videoUrls)) form.value.videoUrls = ['']
+  form.value.videoUrls.push('')
+}
+
+const removeProjectVideo = (idx: number) => {
+  if (!Array.isArray(form.value.videoUrls) || form.value.videoUrls.length <= 1) return
+  form.value.videoUrls.splice(idx, 1)
+}
 
 // ── Chart computed helpers ────────────────────────────────────────────
 const chartMaxY = computed(() => {
@@ -2182,7 +2220,7 @@ const toggleSoftware = (soft: string) => {
 const openCreateModal = () => {
   isEditing.value = false
   form.value = {
-    slug: '', title: '', image: '', imageBefore: '', videoUrl: '', software: ['Premiere Pro', 'DaVinci Resolve'],
+    slug: '', title: '', image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: ['Premiere Pro', 'DaVinci Resolve'],
     tags: ['剪辑节奏', '达芬奇调色'], featured: false, description: '', longDescription: '',
     workflow: [{ icon: '⚡', title: 'Offline 粗剪', desc: '根据背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。' }],
     password: '',
@@ -2198,6 +2236,8 @@ const openCreateModal = () => {
 const openEditModal = (project: any) => {
   isEditing.value = true
   form.value = { ...project, software: [...(project.software || [])], tags: [...(project.tags || [])], workflow: JSON.parse(JSON.stringify(project.workflow || [])) }
+  form.value.videoUrls = Array.isArray(project.videoUrls) && project.videoUrls.length ? [...project.videoUrls] : [project.videoUrl || '']
+  normalizeProjectVideos()
   tempTagInput.value = ''
   isModalOpen.value = true
 }
@@ -2208,7 +2248,8 @@ const triggerFormSubmit = () => {
 }
 const saveProject = async () => {
   try {
-    if (!form.value.image?.trim() && !form.value.videoUrl?.trim()) {
+    const videos = normalizeProjectVideos()
+    if (!form.value.image?.trim() && videos.length === 0) {
       alert('请至少填入【封面图片 URL】或【视频 MP4 URL】中的一个。')
       return
     }

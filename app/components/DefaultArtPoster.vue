@@ -33,8 +33,8 @@
           {{ displayIndex }}
         </span>
         <div class="space-y-0.5">
-          <span class="text-[10px] font-mono tracking-widest uppercase block text-neutral-500 font-bold">
-            {{ category || 'CREATIVE VIDEO' }}
+          <span v-if="category" class="text-[10px] font-mono tracking-widest uppercase block text-neutral-500 font-bold">
+            {{ category }}
           </span>
           <span class="text-xs font-mono text-neutral-600 block">Autoplay Visuals</span>
         </div>
@@ -81,7 +81,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   title: '创意视频',
   index: '01',
-  category: 'CREATIVE VIDEO',
+  category: '',
   description: '用创意点亮灵感，用镜头讲述故事，让每一个帧率都成为打动人心的瞬间。'
 })
 
@@ -93,7 +93,7 @@ const displayIndex = computed(() => {
 })
 
 const englishSub = computed(() => {
-  return props.category ? props.category.toUpperCase() : 'CREATIVE VIDEO PORTFOLIO'
+  return props.category ? props.category.toUpperCase() : 'PORTFOLIO'
 })
 </script>
 
