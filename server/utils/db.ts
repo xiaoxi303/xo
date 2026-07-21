@@ -123,7 +123,7 @@ function parseYaml(yamlStr: string): any {
 
     const trimmed = line.trim()
     if (line.startsWith(' ') || line.startsWith('\t')) {
-      if (trimmed.startsWith('-') && !trimmed.includes(':') && currentKey) {
+      if (trimmed.startsWith('-') && currentKey && !/^-\s*[\w-]+\s*:/.test(trimmed)) {
         const val = trimmed.substring(1).trim().replace(/^['"]|['"]$/g, '')
         if (!Array.isArray(result[currentKey])) {
           result[currentKey] = []
@@ -135,7 +135,7 @@ function parseYaml(yamlStr: string): any {
       continue
     }
 
-    if (trimmed.startsWith('-') && !trimmed.includes(':') && currentKey) {
+    if (trimmed.startsWith('-') && currentKey && !/^-\s*[\w-]+\s*:/.test(trimmed)) {
       const val = trimmed.substring(1).trim().replace(/^['"]|['"]$/g, '')
       if (!Array.isArray(result[currentKey])) {
         result[currentKey] = []
