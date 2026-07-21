@@ -481,6 +481,7 @@ const defaultConfig = {
   },
   music: {
     enabled: true,
+    label: "AMBIENT AUDIO",
     url: "https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3"
   },
   home: {

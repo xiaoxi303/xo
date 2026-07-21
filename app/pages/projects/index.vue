@@ -115,30 +115,29 @@
 
 <script setup lang="ts">
 useHead({
-  title: '剪辑作品集 — xo.dev',
-  meta: [{ name: 'description', content: '查看 Xo Studio 精心打磨的全部剪辑、调色与三维特效后期作品。' }]
+  title: '剪辑作品集 - xo.dev',
+  meta: [{ name: 'description', content: '查看 Xo Studio 的剪辑、调色与后期作品。' }]
 })
 
 const { data: projects } = await useFetch<any[]>('/api/projects')
 const currentFilter = ref('all')
-const filterOpts = [
-  { label: '全部作品', value: 'all' },
-  { label: '商业广告 TVC', value: 'tvc' },
-  { label: 'DI 电影调色', value: 'color' },
-  { label: '创意剪辑 / VFX', value: 'edit' }
-]
 
 const filterProject = (project: any, filter: string) => {
   if (filter === 'all') return true
-  if (filter === 'tvc') return project.tags?.some((t: string) => t.includes('广告') || t.includes('TVC'))
-  if (filter === 'color') return project.tags?.some((t: string) => t.includes('调色') || t.includes('DI'))
-  if (filter === 'edit') return project.tags?.some((t: string) => t.includes('剪辑') || t.includes('VFX') || t.includes('特效'))
-  return true
+  return Array.isArray(project.tags) && project.tags.includes(filter)
 }
 
 const visibleFilterOpts = computed(() => {
   const list = projects.value || []
-  return filterOpts.filter((filter) => filter.value === 'all' || list.some((project) => filterProject(project, filter.value)))
+  const categories = Array.from(new Set(
+    list.flatMap((project) => Array.isArray(project.tags) ? project.tags : [])
+      .map((tag) => String(tag || '').trim())
+      .filter(Boolean)
+  ))
+  return [
+    { label: '全部作品', value: 'all' },
+    ...categories.map((category) => ({ label: category, value: category }))
+  ]
 })
 
 watch(visibleFilterOpts, (filters) => {
@@ -151,7 +150,6 @@ const filteredProjects = computed(() => {
   const list = projects.value || []
   return list.filter((project) => filterProject(project, currentFilter.value))
 })
-
 let observer: IntersectionObserver | null = null
 onMounted(async () => {
   await nextTick()

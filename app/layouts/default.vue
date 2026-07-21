@@ -100,7 +100,7 @@
 
       <!-- Music Info -->
       <div class="flex flex-col select-none cursor-pointer" @click="toggleMusic">
-        <span class="text-[9px] font-mono font-bold tracking-wider" style="color: var(--color-ink-3)">AMBIENT AUDIO</span>
+        <span class="text-[9px] font-mono font-bold tracking-wider" style="color: var(--color-ink-3)">{{ musicLabel }}</span>
         <span class="text-[9px] font-bold truncate max-w-[80px]" style="color: var(--color-ink-5)">{{ isPlaying ? '播放中' : '已静音' }}</span>
       </div>
 
@@ -210,6 +210,7 @@ const audioRef = ref<HTMLAudioElement | null>(null)
 
 const musicEnabled = computed(() => siteConfig.value?.music?.enabled ?? true)
 const musicUrl = computed(() => siteConfig.value?.music?.url || 'https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3')
+const musicLabel = computed(() => siteConfig.value?.music?.label || 'AMBIENT AUDIO')
 
 const toggleMusic = () => {
   if (!audioRef.value) return

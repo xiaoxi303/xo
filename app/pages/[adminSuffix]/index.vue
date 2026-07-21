@@ -1140,6 +1140,10 @@
                 <span>背景音乐 MP3 链接地址 (Soundtrack MP3 URL)</span>
                 <span class="text-[9px] text-[#b45309] font-bold">请填入高品质 MP3/AAC 格式直链</span>
               </label>
+              <div class="space-y-1.5 mb-4">
+                <label class="form-label">播放器标题 (Player Label)</label>
+                <input v-model="siteConfig.music.label" class="form-input font-mono text-xs uppercase" placeholder="AMBIENT AUDIO" />
+              </div>
               <input v-model="siteConfig.music.url" class="form-input font-mono text-xs" placeholder="https://..." />
             </div>
           </div>
@@ -1772,7 +1776,7 @@ const siteConfig = useState<any>('site-config', () => ({
     enabled: true, text: '', link: '', badge: 'NOTICE'
   },
   music: {
-    enabled: true, url: ''
+    enabled: true, label: 'AMBIENT AUDIO', url: ''
   },
   home: {
     heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '',
@@ -1969,7 +1973,7 @@ const fetchSiteConfig = async () => {
       ...data.announcement
     },
     music: {
-      enabled: true, url: 'https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3',
+      enabled: true, label: 'AMBIENT AUDIO', url: 'https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3',
       ...data.music
     },
     home: { 
