@@ -3,8 +3,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
+    "build": "node init-server-data.js && nuxt build",
+    "init-data": "node init-server-data.js",
+    "dev": "node init-server-data.js && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
