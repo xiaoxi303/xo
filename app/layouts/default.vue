@@ -1,5 +1,8 @@
 <template>
   <div>
+    <!-- Premium Cinematic Loading Preloader -->
+    <AppPreloader v-if="!preloaderDone && !isAdminPage" @complete="onPreloaderComplete" />
+
     <!-- Floating Announcement Banner (Bottom-Left Premium Capsule) -->
     <Transition name="slide-up">
       <div
@@ -115,6 +118,15 @@
 </template>
 
 <script setup lang="ts">
+const preloaderDone = useState('preloader-done', () => false)
+
+const onPreloaderComplete = () => {
+  preloaderDone.value = true
+  if (import.meta.client) {
+    document.body.style.overflow = ''
+  }
+}
+
 const { data: initialSiteConfig } = await useFetch<any>('/api/site-config')
 const siteConfig = useState<any>('site-config', () => initialSiteConfig.value)
 
@@ -190,6 +202,18 @@ const toggleMusic = () => {
     })
   }
 }
+
+onMounted(() => {
+  if (import.meta.client && !preloaderDone.value && !isAdminPage.value) {
+    document.body.style.overflow = 'hidden'
+  }
+})
+
+onBeforeUnmount(() => {
+  if (import.meta.client) {
+    document.body.style.overflow = ''
+  }
+})
 </script>
 
 <style scoped>
