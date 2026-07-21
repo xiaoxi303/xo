@@ -69,7 +69,7 @@
             {{ project.title }}
           </h1>
           <p class="text-sm font-mono" style="color: var(--color-ink-5)">
-            发布日期：2026 年 · 后期规格：4K 60FPS HDR
+            发布日期：{{ project.releaseYear || '2026' }} 年 · 后期规格：{{ project.postSpecs || '4K 60FPS HDR' }}
           </p>
         </div>
 
@@ -215,7 +215,7 @@
               <div class="space-y-0 font-mono text-xs" style="border-top: 1px solid var(--color-border);">
                 <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
                   <span style="color: var(--color-ink-4)">后期导演 (Director)</span>
-                  <span class="font-semibold" style="color: var(--color-ink-1)">Xo</span>
+                  <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.director || 'Xo' }}</span>
                 </div>
                 <div v-if="project.software?.[0]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
                   <span style="color: var(--color-ink-4)">剪辑软件 (NLE)</span>
@@ -227,11 +227,11 @@
                 </div>
                 <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
                   <span style="color: var(--color-ink-4)">交付格式</span>
-                  <span class="font-semibold" style="color: var(--color-ink-1)">ProRes 422 HQ</span>
+                  <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.deliverFormat || 'ProRes 422 HQ' }}</span>
                 </div>
                 <div class="flex justify-between py-3">
                   <span style="color: var(--color-ink-4)">声音编码</span>
-                  <span class="font-semibold" style="color: var(--color-ink-1)">24-bit 48kHz</span>
+                  <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.audioFormat || '24-bit 48kHz' }}</span>
                 </div>
               </div>
             </div>

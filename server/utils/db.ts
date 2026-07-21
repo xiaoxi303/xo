@@ -26,6 +26,11 @@ export async function getD1Database(event: H3Event) {
           longDescription TEXT,
           workflow TEXT,
           password TEXT,
+          releaseYear TEXT,
+          postSpecs TEXT,
+          director TEXT,
+          deliverFormat TEXT,
+          audioFormat TEXT,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS site_config (
@@ -52,6 +57,21 @@ export async function getD1Database(event: H3Event) {
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE projects ADD COLUMN imageBefore TEXT;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN releaseYear TEXT;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN postSpecs TEXT;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN director TEXT;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN deliverFormat TEXT;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN audioFormat TEXT;`)
       } catch (e) {}
       isDbInitialized = true
     } catch (err) {
@@ -168,6 +188,11 @@ function stringifyYaml(data: any): string {
   lines.push(`videoUrl: "${(data.videoUrl || '').replace(/"/g, '\\"')}"`)
   lines.push(`password: "${(data.password || '').replace(/"/g, '\\"')}"`)
   lines.push(`imageBefore: "${(data.imageBefore || '').replace(/"/g, '\\"')}"`)
+  lines.push(`releaseYear: "${(data.releaseYear || '').replace(/"/g, '\\"')}"`)
+  lines.push(`postSpecs: "${(data.postSpecs || '').replace(/"/g, '\\"')}"`)
+  lines.push(`director: "${(data.director || '').replace(/"/g, '\\"')}"`)
+  lines.push(`deliverFormat: "${(data.deliverFormat || '').replace(/"/g, '\\"')}"`)
+  lines.push(`audioFormat: "${(data.audioFormat || '').replace(/"/g, '\\"')}"`)
   
   if (Array.isArray(data.tags)) {
     lines.push('tags:')
@@ -236,8 +261,12 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
     }
 
     await db.prepare(`
-      INSERT INTO projects (slug, title, image, imageBefore, videoUrl, software, tags, featured, description, longDescription, workflow, password)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO projects (
+        slug, title, image, imageBefore, videoUrl, software, tags, featured, 
+        description, longDescription, workflow, password,
+        releaseYear, postSpecs, director, deliverFormat, audioFormat
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       body.slug,
       body.title,
@@ -250,7 +279,12 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
       body.description || '',
       body.longDescription || '',
       JSON.stringify(body.workflow || []),
-      body.password || ''
+      body.password || '',
+      body.releaseYear || '',
+      body.postSpecs || '',
+      body.director || '',
+      body.deliverFormat || '',
+      body.audioFormat || ''
     ).run()
     return
   }
@@ -279,7 +313,9 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
 
     await db.prepare(`
       UPDATE projects
-      SET title = ?, image = ?, imageBefore = ?, videoUrl = ?, software = ?, tags = ?, featured = ?, description = ?, longDescription = ?, workflow = ?, password = ?
+      SET title = ?, image = ?, imageBefore = ?, videoUrl = ?, software = ?, tags = ?, featured = ?, 
+          description = ?, longDescription = ?, workflow = ?, password = ?,
+          releaseYear = ?, postSpecs = ?, director = ?, deliverFormat = ?, audioFormat = ?
       WHERE slug = ?
     `).bind(
       body.title,
@@ -293,6 +329,11 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
       body.longDescription || '',
       JSON.stringify(body.workflow || []),
       body.password || '',
+      body.releaseYear || '',
+      body.postSpecs || '',
+      body.director || '',
+      body.deliverFormat || '',
+      body.audioFormat || '',
       body.slug
     ).run()
     return

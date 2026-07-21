@@ -1014,7 +1014,36 @@
                      </label>
                      <input v-model="form.password" type="text" class="form-input font-mono text-xs" placeholder="例如: client2026 (无密码请留空)" />
                    </div>
-                 </div>                <!-- Software -->
+                 </div>
+
+                 <!-- Technical Specifications Grid -->
+                 <div class="p-4 rounded-xl space-y-4" style="background: rgba(255, 255, 255, 0.4); border: 1px solid var(--color-border-2)">
+                   <p class="text-[10px] font-bold font-mono tracking-wider" style="color: var(--color-ink-3)">🎥 视频技术规格与参数 (Technical Specifications)</p>
+                   <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                     <div class="space-y-1">
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">发布年份 (Release Year)</label>
+                       <input v-model="form.releaseYear" class="form-input text-xs py-1.5 px-3" placeholder="例如: 2026" />
+                     </div>
+                     <div class="space-y-1">
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">后期规格 (Post Specs)</label>
+                       <input v-model="form.postSpecs" class="form-input text-xs py-1.5 px-3" placeholder="例如: 4K 60FPS HDR" />
+                     </div>
+                     <div class="space-y-1">
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">后期导演 (Director)</label>
+                       <input v-model="form.director" class="form-input text-xs py-1.5 px-3" placeholder="例如: Xo" />
+                     </div>
+                     <div class="space-y-1 col-span-2 sm:col-span-1">
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">交付格式 (Deliver Format)</label>
+                       <input v-model="form.deliverFormat" class="form-input text-xs py-1.5 px-3 font-mono" placeholder="例如: ProRes 422 HQ" />
+                     </div>
+                     <div class="space-y-1 col-span-2">
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">音频编码 (Audio Spec)</label>
+                       <input v-model="form.audioFormat" class="form-input text-xs py-1.5 px-3 font-mono" placeholder="例如: 24-bit 48kHz" />
+                     </div>
+                   </div>
+                 </div>
+
+                <!-- Software -->
                 <div class="space-y-2">
                   <label class="form-label">所用后期软件</label>
                   <div class="flex flex-wrap gap-2">
@@ -1367,7 +1396,8 @@ const tempExpInputs = ref<Record<number, string>>({})
 const submitButtonRef = ref<HTMLButtonElement | null>(null)
 
 const form = ref<any>({
-  slug: '', title: '', image: '', imageBefore: '', videoUrl: '', software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: ''
+  slug: '', title: '', image: '', imageBefore: '', videoUrl: '', software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: '',
+  releaseYear: '', postSpecs: '', director: '', deliverFormat: '', audioFormat: ''
 })
 
 const featuredCount = computed(() => projectsList.value.filter(p => p.featured).length)
@@ -1672,7 +1702,12 @@ const openCreateModal = () => {
     slug: '', title: '', image: '', imageBefore: '', videoUrl: '', software: ['Premiere Pro', 'DaVinci Resolve'],
     tags: ['剪辑节奏', '达芬奇调色'], featured: false, description: '', longDescription: '',
     workflow: [{ icon: '⚡', title: 'Offline 粗剪', desc: '根据背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。' }],
-    password: ''
+    password: '',
+    releaseYear: '2026',
+    postSpecs: '4K 60FPS HDR',
+    director: 'Xo',
+    deliverFormat: 'ProRes 422 HQ',
+    audioFormat: '24-bit 48kHz'
   }
   tempTagInput.value = ''
   isModalOpen.value = true
