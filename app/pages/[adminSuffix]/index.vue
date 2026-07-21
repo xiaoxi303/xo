@@ -1937,11 +1937,11 @@ const sparkFillPath = computed(() => {
   return `${sparkPath.value} L${lastX},14 L${firstX},14 Z`
 })
 
-const fetchProjects = async () => { projectsList.value = await $fetch('/api/admin/projects') as any[] }
+const fetchProjects = async () => { projectsList.value = await $fetch('/api/admin/projects?t=' + Date.now()) as any[] }
 const passwordRequests = ref<any[]>([])
 const fetchPasswordRequests = async () => {
   try {
-    passwordRequests.value = await $fetch('/api/password-requests') as any[]
+    passwordRequests.value = await $fetch('/api/password-requests?t=' + Date.now()) as any[]
   } catch (err) {
     console.error('Failed to fetch password requests:', err)
   }
@@ -1949,7 +1949,7 @@ const fetchPasswordRequests = async () => {
 const registeredUsers = ref<any[]>([])
 const fetchUsers = async () => {
   try {
-    registeredUsers.value = await $fetch('/api/admin/users') as any[]
+    registeredUsers.value = await $fetch('/api/admin/users?t=' + Date.now()) as any[]
   } catch (err) {
     console.error('Failed to fetch registered users:', err)
   }
