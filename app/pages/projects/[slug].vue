@@ -15,9 +15,9 @@
         </NuxtLink>
       </div>
 
-      <!-- Password Protection Lock Screen -->
+      <!-- Password Protection Lock Screen — only when server says hasPassword=true -->
       <Transition name="fade">
-        <div v-if="project && !isUnlocked" class="max-w-md mx-auto py-16 text-center space-y-6">
+        <div v-if="project && project.hasPassword && !isUnlocked" class="max-w-md mx-auto py-16 text-center space-y-6">
           <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm"
                style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
             🔐
@@ -38,14 +38,16 @@
               placeholder="请输入密码"
               required
               autofocus
+              :disabled="passwordLoading"
             />
-            <button type="submit" class="btn-primary w-full justify-center py-3 text-xs font-semibold">
-              验证密码并解锁
+            <button type="submit" class="btn-primary w-full justify-center py-3 text-xs font-semibold flex items-center gap-2" :disabled="passwordLoading">
+              <span v-if="passwordLoading" class="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin" style="border-color: currentColor; border-top-color: transparent;" />
+              {{ passwordLoading ? '正在验证...' : '验证密码并解锁' }}
             </button>
           </form>
 
           <p v-if="passwordError" class="text-xs text-rose-500 font-semibold">
-            ❌ 密码错误，请联系作者获取专属授权密码。
+            ❌ {{ passwordError }}
           </p>
 
           <div class="pt-4">
@@ -56,9 +58,9 @@
         </div>
       </Transition>
 
-      <!-- Project detail — only show when unlocked -->
+      <!-- Project detail — show when public (no password) or unlocked -->
       <Transition name="fade">
-        <div v-if="project && isUnlocked" class="space-y-10">
+        <div v-if="project && (!project.hasPassword || isUnlocked)" class="space-y-10">
 
           <!-- Title block -->
           <div class="space-y-4 reveal">
@@ -300,45 +302,50 @@ const slug = route.params.slug as string
 const mainVideoRef = ref<HTMLVideoElement | null>(null)
 const blurVideoRef = ref<HTMLVideoElement | null>(null)
 
+// Fetch project list (passwords are NEVER returned — only hasPassword:boolean)
 const { data: projects } = await useFetch<any[]>('/api/projects')
 const project = computed(() => (projects.value || []).find(p => p.slug === slug))
 const { data: siteConfig } = await useFetch<any>('/api/site-config')
 
-const isUnlocked = ref(false)
+// Check unlock status from server (uses HTTP-only cookie)
+const { data: unlockStatus } = await useFetch<any>(`/api/projects/${slug}/check`)
+
+const isUnlocked = ref(!!(unlockStatus.value?.unlocked))
 const inputPassword = ref('')
-const passwordError = ref(false)
+const passwordError = ref<string>('')
+const passwordLoading = ref(false)
 
-const verifyPassword = async () => {
-  if (inputPassword.value === project.value?.password) {
+// When project data loads, sync unlock state from server check result
+watch(unlockStatus, async (val) => {
+  if (val?.unlocked) {
     isUnlocked.value = true
-    passwordError.value = false
-    if (import.meta.client) {
-      sessionStorage.setItem('unlocked_' + slug, inputPassword.value)
-    }
-    // Re-run reveal animations after unlock
-    await nextTick()
-    initReveal()
-  } else {
-    passwordError.value = true
-    setTimeout(() => { passwordError.value = false }, 2000)
-  }
-}
-
-// Auto-unlock on load based on saved session or no password set
-watch(project, async (val) => {
-  if (val) {
-    if (!val.password || val.password.trim() === '') {
-      isUnlocked.value = true
-    } else if (import.meta.client) {
-      const saved = sessionStorage.getItem('unlocked_' + slug)
-      if (saved === val.password) {
-        isUnlocked.value = true
-      }
-    }
     await nextTick()
     initReveal()
   }
 }, { immediate: true })
+
+const verifyPassword = async () => {
+  if (!inputPassword.value.trim()) return
+  passwordLoading.value = true
+  passwordError.value = ''
+  try {
+    const res = await $fetch<any>(`/api/projects/${slug}/unlock`, {
+      method: 'POST',
+      body: { password: inputPassword.value }
+    })
+    if (res.success) {
+      isUnlocked.value = true
+      inputPassword.value = ''
+      await nextTick()
+      initReveal()
+    }
+  } catch (err: any) {
+    passwordError.value = err.data?.statusMessage || '密码错误，请联系作者获取授权密码。'
+    setTimeout(() => { passwordError.value = '' }, 2500)
+  } finally {
+    passwordLoading.value = false
+  }
+}
 
 // Image LUT slider logic
 const sliderContainerRef = ref<HTMLElement | null>(null)

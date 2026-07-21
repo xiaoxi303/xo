@@ -230,11 +230,20 @@ function stringifyYaml(data: any): string {
 // CRUD / Operations Dispatcher (D1 or Local File System)
 // ==========================================
 
+/** Strip password from a project row, replacing it with a hasPassword boolean */
+function sanitizeProject(row: any) {
+  const { password, ...rest } = row
+  return {
+    ...rest,
+    hasPassword: !!(password && String(password).trim() !== '')
+  }
+}
+
 export async function dbGetProjects(event: H3Event): Promise<any[]> {
   const db = await getD1Database(event)
   if (db) {
     const { results } = await db.prepare('SELECT * FROM projects ORDER BY featured DESC, createdAt DESC').all()
-    return results.map((row: any) => ({
+    return results.map((row: any) => sanitizeProject({
       ...row,
       featured: Boolean(row.featured),
       software: row.software ? JSON.parse(row.software) : [],
@@ -243,12 +252,25 @@ export async function dbGetProjects(event: H3Event): Promise<any[]> {
     }))
   }
 
-  // Fallback
+  // Fallback: local markdown files
   const projectsDir = path.resolve(process.cwd(), 'content/projects')
   if (!fs.existsSync(projectsDir)) return []
   const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
-  const projects = files.map(file => parseMarkdownFile(path.join(projectsDir, file)))
+  const projects = files.map(file => sanitizeProject(parseMarkdownFile(path.join(projectsDir, file))))
   return projects.sort((a: any, b: any) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+}
+
+/** Server-side only: retrieve raw password for unlock verification */
+export async function dbGetProjectPassword(event: H3Event, slug: string): Promise<string | null> {
+  const db = await getD1Database(event)
+  if (db) {
+    const row = await db.prepare('SELECT password FROM projects WHERE slug = ?').bind(slug).first() as any
+    return row?.password || null
+  }
+  const filePath = path.resolve(process.cwd(), 'content/projects', `${slug}.md`)
+  if (!fs.existsSync(filePath)) return null
+  const parsed = parseMarkdownFile(filePath)
+  return (parsed as any).password || null
 }
 
 export async function dbCreateProject(event: H3Event, body: any): Promise<void> {
