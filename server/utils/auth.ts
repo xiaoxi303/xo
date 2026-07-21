@@ -1,8 +1,11 @@
 /**
  * Auth Utilities — Server-side session management for Xo Admin Panel
- * Uses SHA-256 password hashing + in-memory session store with expiry.
+ * Uses SHA-256 password hashing + disk-persisted session store.
+ * Sessions survive server restarts and PM2 reloads.
  */
 import { createHash, randomBytes } from 'crypto'
+import fs from 'node:fs'
+import path from 'node:path'
 
 // ───────────────────────────────────────────────
 // Admin Credentials (change password via admin UI)
@@ -20,7 +23,7 @@ export function verifyPassword(plain: string, storedHash: string): boolean {
 }
 
 // ───────────────────────────────────────────────
-// In-Memory Session Store
+// Disk-persisted Session Store
 // ───────────────────────────────────────────────
 interface Session {
   username: string
@@ -28,41 +31,84 @@ interface Session {
   expiresAt: number
 }
 
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
-const sessions = new Map<string, Session>()
+type SessionStore = Record<string, Session>
 
-// Periodic cleanup of expired sessions
-function cleanExpired() {
-  const now = Date.now()
-  for (const [token, sess] of sessions.entries()) {
-    if (sess.expiresAt < now) sessions.delete(token)
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+// Resolve sessions file path from current working directory
+function getSessionsFilePath(): string {
+  const dir = path.resolve(process.cwd(), 'content')
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  return path.join(dir, '.sessions.json')
+}
+
+function loadSessions(): SessionStore {
+  try {
+    const filePath = getSessionsFilePath()
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf-8')
+      return JSON.parse(raw) as SessionStore
+    }
+  } catch (e) {
+    // Ignore corrupt sessions file — start fresh
+    console.warn('[auth] Failed to load sessions file, starting fresh.')
+  }
+  return {}
+}
+
+function saveSessions(store: SessionStore): void {
+  try {
+    const filePath = getSessionsFilePath()
+    fs.writeFileSync(filePath, JSON.stringify(store, null, 2), 'utf-8')
+  } catch (e) {
+    console.error('[auth] Failed to save sessions file:', e)
   }
 }
 
+function cleanExpired(store: SessionStore): SessionStore {
+  const now = Date.now()
+  const cleaned: SessionStore = {}
+  for (const [token, sess] of Object.entries(store)) {
+    if (sess.expiresAt >= now) {
+      cleaned[token] = sess
+    }
+  }
+  return cleaned
+}
+
 export function createSession(username: string): string {
-  cleanExpired()
+  let store = loadSessions()
+  store = cleanExpired(store)
+
   const token = randomBytes(32).toString('hex')
   const now = Date.now()
-  sessions.set(token, {
+  store[token] = {
     username,
     createdAt: now,
     expiresAt: now + SESSION_TTL_MS
-  })
+  }
+  saveSessions(store)
   return token
 }
 
 export function validateSession(token: string): Session | null {
-  const sess = sessions.get(token)
+  const store = loadSessions()
+  const sess = store[token]
   if (!sess) return null
   if (sess.expiresAt < Date.now()) {
-    sessions.delete(token)
+    // Expire it and clean up
+    const cleaned = cleanExpired(store)
+    saveSessions(cleaned)
     return null
   }
   return sess
 }
 
 export function destroySession(token: string): void {
-  sessions.delete(token)
+  let store = loadSessions()
+  delete store[token]
+  store = cleanExpired(store)
+  saveSessions(store)
 }
 
 // ───────────────────────────────────────────────

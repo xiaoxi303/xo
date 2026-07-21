@@ -25,3 +25,6 @@ logs
 
 # Reference knowledge base
 knowledge_base/
+
+# Admin session tokens (disk-persisted, server-local only)
+content/.sessions.json
