@@ -24,6 +24,10 @@
     "link": "mailto:hello@xo.dev",
     "badge": "NOTICE"
   },
+  "music": {
+    "enabled": false,
+    "url": "https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3"
+  },
   "home": {
     "heroTitle1": "用剪辑",
     "heroTitle2": "重塑时间",
@@ -132,10 +136,6 @@
         "desc": "声音是画面的另一半翅膀。通过拟音与音效设计，让平面的屏幕呈现出三维物理深度。"
       }
     ]
-  },
-  "music": {
-    "enabled": true,
-    "url": "https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3"
   },
   "admin": {
     "username": "admin",

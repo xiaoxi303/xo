@@ -75,8 +75,22 @@ function parseYaml(yamlStr: string): any {
     const line = lines[i].trimEnd()
     if (!line) continue
 
-    if (line.trim().startsWith('-') && !line.includes(':') && currentKey) {
-      const val = line.trim().substring(1).trim().replace(/^['"]|['"]$/g, '')
+    const trimmed = line.trim()
+    if (line.startsWith(' ') || line.startsWith('\t')) {
+      if (trimmed.startsWith('-') && !trimmed.includes(':') && currentKey) {
+        const val = trimmed.substring(1).trim().replace(/^['"]|['"]$/g, '')
+        if (!Array.isArray(result[currentKey])) {
+          result[currentKey] = []
+        }
+        result[currentKey].push(val)
+        continue
+      }
+      // Skip nested fields (like title, desc inside workflow) to prevent overwriting root keys
+      continue
+    }
+
+    if (trimmed.startsWith('-') && !trimmed.includes(':') && currentKey) {
+      const val = trimmed.substring(1).trim().replace(/^['"]|['"]$/g, '')
       if (!Array.isArray(result[currentKey])) {
         result[currentKey] = []
       }
