@@ -68,7 +68,12 @@
 </template>
 
 <script setup lang="ts">
-const { data: siteConfig } = await useFetch<any>('/api/site-config')
+const { data: initialSiteConfig } = await useFetch<any>('/api/site-config')
+const siteConfig = useState<any>('site-config', () => initialSiteConfig.value)
+
+watch(initialSiteConfig, (val) => {
+  if (val && !siteConfig.value) siteConfig.value = val
+}, { immediate: true })
 
 const showBanner = ref(true)
 

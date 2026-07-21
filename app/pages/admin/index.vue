@@ -141,8 +141,7 @@
                   </linearGradient>
                 </defs>
                 <template v-if="sparkPoints.length >= 2">
-                  <path :d="sparkPath" fill="none" stroke="var(--color-bronze)" stroke-width="1.8" stroke-linecap="round"/>
-                  <path :d="sparkPath + ` L${sparkPoints[sparkPoints.length-1].x},14 L${sparkPoints[0].x},14 Z`" fill="url(#sg1)"/>
+                  <path :d="sparkFillPath" fill="url(#sg1)"/>
                 </template>
               </svg>
             </div>
@@ -1018,10 +1017,8 @@
                                 :key="emoji"
                                 type="button"
                                 @mousedown.prevent="selectEmoji(idx, emoji)"
-                                class="w-6.5 h-6.5 flex items-center justify-center text-sm rounded-lg transition-all duration-200 active:scale-90"
+                                class="w-6.5 h-6.5 flex items-center justify-center text-sm rounded-lg transition-all duration-200 active:scale-90 hover:bg-amber-700/10 hover:text-amber-700"
                                 style="color: var(--color-ink-2); background: transparent;"
-                                onmouseover="this.style.background='rgba(180, 83, 9, 0.08)'; this.style.color='var(--color-bronze)'"
-                                onmouseout="this.style.background='transparent'; this.style.color='var(--color-ink-2)'"
                               >
                                 {{ emoji }}
                               </button>
@@ -1266,7 +1263,7 @@ const systemStatus = ref<any>({
 })
 
 const projectsList = ref<any[]>([])
-const siteConfig = ref<any>({
+const siteConfig = useState<any>('site-config', () => ({
   siteInfo: {
     brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z',
     contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
@@ -1285,7 +1282,7 @@ const siteConfig = ref<any>({
     skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: []
   },
   about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [] }
-})
+}))
 
 const isModalOpen = ref(false)
 const isEditing = ref(false)
@@ -1348,6 +1345,14 @@ const sparkPath = computed(() => {
   const pts = sparkPoints.value
   if (pts.length < 2) return ''
   return pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+})
+
+const sparkFillPath = computed(() => {
+  const pts = sparkPoints.value
+  if (pts.length < 2) return ''
+  const lastX = pts[pts.length - 1].x.toFixed(1)
+  const firstX = pts[0].x.toFixed(1)
+  return `${sparkPath.value} L${lastX},14 L${firstX},14 Z`
 })
 
 const fetchProjects = async () => { projectsList.value = await $fetch('/api/projects') as any[] }
