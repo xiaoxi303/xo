@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Premium Cinematic Loading Preloader -->
     <AppPreloader v-if="!preloaderDone && !isAdminPage" @complete="onPreloaderComplete" />
 
     <!-- Floating Announcement Banner (Bottom-Left Premium Capsule) -->

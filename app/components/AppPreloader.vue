@@ -1,16 +1,15 @@
 <template>
   <div
     v-if="isVisible"
-    class="preloader-overlay fixed inset-0 z-[999] flex flex-col items-center justify-center pointer-events-auto"
+    class="preloader-overlay notranslate fixed inset-0 z-[999] flex flex-col items-center justify-center pointer-events-auto"
+    translate="no"
     style="background-color: var(--color-bg);"
   >
-    <!-- Background grid lines for quiet luxury paper print aesthetic -->
     <div
       class="absolute inset-0 opacity-[0.03] pointer-events-none"
       style="background-image: linear-gradient(var(--color-ink-1) 1px, transparent 1px), linear-gradient(90deg, var(--color-ink-1) 1px, transparent 1px); background-size: 32px 32px;"
     />
 
-    <!-- Cinematic Aperture / Shutter Icon -->
     <div class="aperture-container mb-8 relative flex items-center justify-center opacity-0">
       <svg
         class="w-16 h-16 text-amber-800/80 transform rotate-[-45deg] scale-90"
@@ -19,10 +18,8 @@
         stroke="currentColor"
         stroke-width="1.2"
       >
-        <!-- Outer perfect circle -->
         <circle cx="50" cy="50" r="46" class="outer-ring" stroke-dasharray="290" stroke-dashoffset="290" />
         
-        <!-- Shutter blades lines -->
         <path d="M 50 4  L 20 40" class="blade-line" />
         <path d="M 96 50 L 60 20" class="blade-line" />
         <path d="M 50 96 L 80 60" class="blade-line" />
@@ -33,15 +30,12 @@
         <path d="M 80 60 L 60 70" class="blade-line" />
         <path d="M 40 80 L 30 50" class="blade-line" />
 
-        <!-- Center aperture opening -->
         <polygon points="40,30 70,50 60,70 30,50" class="iris-polygon" fill="rgba(180, 83, 9, 0.05)" />
       </svg>
 
-      <!-- Shading light beam -->
       <div class="absolute w-24 h-24 rounded-full bg-amber-500/10 blur-xl scale-75 animate-pulse" />
     </div>
 
-    <!-- Brand Typography Container -->
     <div class="text-center space-y-4">
       <div class="preloader-logo overflow-hidden h-12 md:h-16 flex items-center justify-center">
         <h1
@@ -62,20 +56,16 @@
       </div>
     </div>
 
-    <!-- Fine Luxury Progress Indicator -->
     <div class="progress-wrap flex flex-col items-center mt-12 opacity-0">
-      <!-- Fine progress track and fill -->
       <div class="w-48 h-[1px] bg-black/[0.06] relative overflow-hidden rounded-full">
         <div class="progress-bar absolute left-0 top-0 h-full w-0" style="background-color: var(--color-brand-accent);" />
       </div>
 
-      <!-- Live Loading Counter -->
       <div class="mt-3 text-[10px] font-mono tracking-[0.18em]" style="color: var(--color-ink-4);">
         <span class="counter-num">00</span>%
       </div>
     </div>
 
-    <!-- Subtle bottom copyright / indicator -->
     <div class="absolute bottom-10 text-[8px] font-mono tracking-[0.2em] opacity-40 uppercase">
       Loading Assets
     </div>
