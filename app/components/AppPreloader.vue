@@ -45,7 +45,7 @@
         正在建立服务器连接...
       </p>
       <p class="text-[9px] font-mono tracking-[0.2em] uppercase opacity-70" style="color: #b45309;">
-        REAL-TIME NETWORK ASSETS TRACKER
+        REAL-TIME HYBRID RESOURCE MONITOR
       </p>
     </div>
 
@@ -67,7 +67,7 @@
 
     <!-- Bottom Footer Tagline -->
     <div class="absolute bottom-8 text-[9px] font-mono tracking-[0.2em] opacity-40 uppercase" style="color: var(--color-ink-4);">
-      Xo Studio · Real-time Resource Monitor
+      Xo Studio · System Initializing
     </div>
   </div>
 </template>
@@ -84,9 +84,13 @@ const formattedProgress = computed(() => {
   return p < 10 ? `0${p}` : `${p}`
 })
 
-let targetProgress = 15
+// Minimum cinematic presentation duration (1.5 seconds)
+const MIN_PRESENTATION_MS = 1500
+
+let networkTargetProgress = 15
 let animationFrameId: number | null = null
 let isFullyLoaded = false
+let startTime = 0
 
 // Dynamic status text update
 const updateStatusText = (progress: number) => {
@@ -108,6 +112,8 @@ const updateStatusText = (progress: number) => {
 onMounted(async () => {
   if (!import.meta.client) return
 
+  startTime = Date.now()
+
   // Dynamically import GSAP
   const { gsap } = await import('gsap')
 
@@ -126,17 +132,15 @@ onMounted(async () => {
 
   // 3. Real Network Resource Load Tracking
   const images = Array.from(document.querySelectorAll('img'))
-  const totalResources = images.length + 2 // DOM + Fonts + Images
+  const totalResources = images.length + 2
   let loadedCount = 0
 
   const updateResourceProgress = () => {
     loadedCount++
     const resRatio = Math.min(loadedCount / Math.max(totalResources, 1), 1)
-    // Map resource loading ratio to 25% -> 85% range
-    targetProgress = Math.max(targetProgress, 25 + resRatio * 60)
+    networkTargetProgress = Math.max(networkTargetProgress, 25 + resRatio * 60)
   }
 
-  // Monitor image loading
   images.forEach(img => {
     if (img.complete) {
       updateResourceProgress()
@@ -146,44 +150,51 @@ onMounted(async () => {
     }
   })
 
-  // Monitor document ready state
   if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    targetProgress = Math.max(targetProgress, 35)
+    networkTargetProgress = Math.max(networkTargetProgress, 35)
   }
   
-  // Monitor window load event (complete network download)
   const onWindowLoad = () => {
     isFullyLoaded = true
-    targetProgress = 100
+    networkTargetProgress = 100
   }
 
   if (document.readyState === 'complete') {
     onWindowLoad()
   } else {
     window.addEventListener('load', onWindowLoad, { once: true })
-    // Fallback safety timeout if network hangs (max 3.5s)
+    // Safety fallback timeout (3.5s max)
     setTimeout(() => {
       onWindowLoad()
     }, 3500)
   }
 
-  // 4. Smooth Lerp Animation Loop (requestAnimationFrame)
+  // 4. Smooth Lerp Animation Loop with Minimum Presentation Time Guard
   const loop = () => {
-    // Smooth lerp interpolation towards target progress
-    const step = (targetProgress - displayProgress.value) * 0.08
-    if (Math.abs(targetProgress - displayProgress.value) > 0.1) {
+    const elapsed = Date.now() - startTime
+    // Time progress caps max growth to ensure at least MIN_PRESENTATION_MS duration
+    const timeCapProgress = Math.min((elapsed / MIN_PRESENTATION_MS) * 100, 100)
+    
+    // Effective target is limited by BOTH real network load AND min time cap
+    const effectiveTarget = Math.min(networkTargetProgress, timeCapProgress)
+
+    // Smooth lerp interpolation
+    const step = (effectiveTarget - displayProgress.value) * 0.08
+    if (Math.abs(effectiveTarget - displayProgress.value) > 0.1) {
       displayProgress.value += step
     } else {
-      displayProgress.value = targetProgress
+      displayProgress.value = effectiveTarget
     }
 
     updateStatusText(displayProgress.value)
 
-    if (displayProgress.value >= 99.5 && isFullyLoaded) {
+    const isMinTimeElapsed = elapsed >= MIN_PRESENTATION_MS
+
+    // Only exit when BOTH network load is complete AND minimum presentation time has elapsed
+    if (displayProgress.value >= 99.5 && isFullyLoaded && isMinTimeElapsed) {
       displayProgress.value = 100
       updateStatusText(100)
 
-      // Trigger exit animation
       setTimeout(() => {
         gsap.to('.preloader-overlay', {
           opacity: 0,
