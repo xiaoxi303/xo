@@ -402,6 +402,10 @@ const defaultConfig = {
         desc: "声音是画面的另一半翅膀。通过拟音与音效设计，让平面的屏幕呈现出三维物理深度。"
       }
     ]
+  },
+  admin: {
+    username: "admin",
+    passwordHash: "06bff6534b63ba2a13c446d41a36c52c9269fefb68cf96fbec792ddfac25e44b"
   }
 }
 

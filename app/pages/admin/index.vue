@@ -20,8 +20,8 @@
 
         <form @submit.prevent="handleLogin" class="space-y-4">
           <div class="space-y-1.5">
-            <label class="form-label font-mono uppercase text-[9px] tracking-wider">管理者账户</label>
-            <input v-model="loginForm.username" type="text" required class="form-input" placeholder="admin" :disabled="loginLoading" />
+            <label class="form-label font-mono uppercase text-[9px] tracking-wider">输入你的用户名</label>
+            <input v-model="loginForm.username" type="text" required class="form-input" placeholder="输入你的用户名" :disabled="loginLoading" />
           </div>
 
           <div class="space-y-1.5">
@@ -809,6 +809,28 @@
             </div>
           </div>
 
+          <!-- Admin Security Credentials -->
+          <div class="glass-card p-8 space-y-6">
+            <div class="border-b pb-4" style="border-color: var(--color-border)">
+              <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🔑 后台管理员账户设置 (Security Credentials)</h3>
+              <p class="text-xs mt-1" style="color: var(--color-ink-4)">自主修改登录后台系统的用户名和管理密码。</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6" v-if="siteConfig.admin">
+              <div class="space-y-1.5">
+                <label class="form-label">修改用户名 (Admin Username)</label>
+                <input v-model="siteConfig.admin.username" class="form-input font-mono" placeholder="admin" required />
+              </div>
+              <div class="space-y-1.5">
+                <label class="form-label flex justify-between">
+                  <span>修改管理密码 (Admin Password)</span>
+                  <span class="text-[9px] text-amber-700 font-bold font-mono">留空则不更改密码</span>
+                </label>
+                <input v-model="adminNewPassword" type="password" class="form-input font-mono" placeholder="•••••••• (无修改请留空)" />
+              </div>
+            </div>
+          </div>
+
           <!-- 2. Broadcast Announcement Banner -->
           <div class="glass-card p-8 space-y-6">
             <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
@@ -1299,7 +1321,8 @@ const siteConfig = useState<any>('site-config', () => ({
     profileCardTitle: '', profileCardSub: '', profileCardDesc: '',
     skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: []
   },
-  about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [] }
+  about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [] },
+  admin: { username: 'admin' }
 }))
 
 const isModalOpen = ref(false)
@@ -1402,7 +1425,11 @@ const fetchSiteConfig = async () => {
       skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: [],
       ...data.home 
     },
-    about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [], ...data.about }
+    about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [], ...data.about },
+    admin: {
+      username: 'admin',
+      ...data.admin
+    }
   }
 }
 
@@ -1471,9 +1498,22 @@ onMounted(() => {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
 })
 
+const adminNewPassword = ref('')
+
 const saveSiteConfig = async () => {
   try {
+    if (adminNewPassword.value.trim() !== '') {
+      if (!siteConfig.value.admin) siteConfig.value.admin = {}
+      siteConfig.value.admin.newPassword = adminNewPassword.value
+    }
     await $fetch('/api/site-config', { method: 'PUT', body: siteConfig.value })
+    
+    // Clear local inputs and clean up payload key
+    adminNewPassword.value = ''
+    if (siteConfig.value.admin) {
+      delete siteConfig.value.admin.newPassword
+    }
+    
     alert('🎉 配置保存成功！')
     if (showLivePreview.value) {
       setTimeout(refreshPreview, 300)

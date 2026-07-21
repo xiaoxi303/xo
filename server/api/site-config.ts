@@ -17,6 +17,18 @@ export default defineEventHandler(async (event) => {
 
     try {
       const body = await readBody(event)
+
+      // Handle administrator credential updates securely
+      if (body.admin) {
+        if (body.admin.newPassword && body.admin.newPassword.trim() !== '') {
+          const createHash = await import('crypto').then(m => m.createHash)
+          const plain = body.admin.newPassword
+          const hashed = createHash('sha256').update(`xo-studio:${plain}`).digest('hex')
+          body.admin.passwordHash = hashed
+        }
+        delete body.admin.newPassword
+      }
+
       await dbSaveSiteConfig(event, body)
       return { success: true }
     } catch (error) {
