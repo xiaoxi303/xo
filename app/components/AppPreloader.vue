@@ -42,10 +42,10 @@
     <!-- Minimal Functional Loading Status Text -->
     <div class="status-container text-center space-y-1.5 max-w-sm invisible">
       <p class="status-text text-xs sm:text-sm font-sans font-semibold tracking-wider" style="color: var(--color-ink-1);">
-        正在连接服务器数据...
+        正在建立服务器连接...
       </p>
       <p class="text-[9px] font-mono tracking-[0.2em] uppercase opacity-70" style="color: #b45309;">
-        SYNCHRONIZING STUDIO ASSETS
+        REAL-TIME NETWORK ASSETS TRACKER
       </p>
     </div>
 
@@ -53,18 +53,21 @@
     <div class="progress-wrap flex flex-col items-center mt-8 space-y-3 invisible">
       <!-- Bronze progress track and bar -->
       <div class="w-56 h-[2px] bg-black/[0.08] relative overflow-hidden rounded-full">
-        <div class="progress-bar absolute left-0 top-0 h-full w-0 rounded-full" style="background-color: #b45309;" />
+        <div
+          class="progress-bar absolute left-0 top-0 h-full rounded-full transition-all duration-75 ease-out"
+          :style="{ width: displayProgress + '%', backgroundColor: '#b45309' }"
+        />
       </div>
 
       <!-- Percentage Counter -->
       <div class="text-xs font-mono font-bold tracking-[0.2em]" style="color: var(--color-ink-3);">
-        <span class="counter-num">00</span>%
+        <span>{{ formattedProgress }}</span>%
       </div>
     </div>
 
     <!-- Bottom Footer Tagline -->
     <div class="absolute bottom-8 text-[9px] font-mono tracking-[0.2em] opacity-40 uppercase" style="color: var(--color-ink-4);">
-      Xo Studio · System Initializing
+      Xo Studio · Real-time Resource Monitor
     </div>
   </div>
 </template>
@@ -75,108 +78,137 @@ const emit = defineEmits<{
 }>()
 
 const isVisible = ref(true)
+const displayProgress = ref(0)
+const formattedProgress = computed(() => {
+  const p = Math.floor(displayProgress.value)
+  return p < 10 ? `0${p}` : `${p}`
+})
+
+let targetProgress = 15
+let animationFrameId: number | null = null
+let isFullyLoaded = false
+
+// Dynamic status text update
+const updateStatusText = (progress: number) => {
+  if (!import.meta.client) return
+  const st = document.querySelector('.status-text')
+  if (!st) return
+
+  if (progress < 30) {
+    st.textContent = '正在建立服务器连接...'
+  } else if (progress < 65) {
+    st.textContent = '正在从服务器加载网络资产与字体...'
+  } else if (progress < 95) {
+    st.textContent = '正在解析色彩规范与视频矩阵...'
+  } else {
+    st.textContent = '网络资源就绪，正在进入...'
+  }
+}
 
 onMounted(async () => {
   if (!import.meta.client) return
 
   // Dynamically import GSAP
   const { gsap } = await import('gsap')
-  
-  const tl = gsap.timeline({
-    onComplete: () => {
-      // Fade out & slide up preloader overlay
-      gsap.to('.preloader-overlay', {
-        opacity: 0,
-        yPercent: -10,
-        duration: 0.8,
-        ease: 'power4.inOut',
-        onComplete: () => {
-          isVisible.value = false
-          emit('complete')
-        }
-      })
-    }
-  })
 
   // 1. Initial State configuration
   gsap.set('.aperture-container', { autoAlpha: 0, scale: 0.85 })
   gsap.set('.status-container', { autoAlpha: 0, y: 10 })
   gsap.set('.progress-wrap', { autoAlpha: 0, y: 10 })
 
-  // 2. Animate Camera Shutter
-  tl.to('.aperture-container', {
-    autoAlpha: 1,
-    scale: 1,
-    duration: 0.6,
-    ease: 'power3.out'
-  })
-  
-  tl.to('.outer-ring', {
-    strokeDashoffset: 0,
-    duration: 1.2,
-    ease: 'power2.inOut'
-  }, '<')
+  // 2. Entrance Animation
+  const introTl = gsap.timeline()
+  introTl.to('.aperture-container', { autoAlpha: 1, scale: 1, duration: 0.5, ease: 'power3.out' })
+  introTl.to('.outer-ring', { strokeDashoffset: 0, duration: 1.0, ease: 'power2.inOut' }, '<')
+  introTl.to('.aperture-container svg', { rotate: 45, duration: 1.4, ease: 'sine.inOut' }, '<')
+  introTl.to('.status-container', { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out' }, '-=0.5')
+  introTl.to('.progress-wrap', { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.3')
 
-  tl.to('.aperture-container svg', {
-    rotate: 45,
-    duration: 1.6,
-    ease: 'sine.inOut'
-  }, '<')
+  // 3. Real Network Resource Load Tracking
+  const images = Array.from(document.querySelectorAll('img'))
+  const totalResources = images.length + 2 // DOM + Fonts + Images
+  let loadedCount = 0
 
-  // 3. Reveal Status Text & Progress Block
-  tl.to('.status-container', {
-    autoAlpha: 1,
-    y: 0,
-    duration: 0.5,
-    ease: 'power3.out'
-  }, '-=0.6')
+  const updateResourceProgress = () => {
+    loadedCount++
+    const resRatio = Math.min(loadedCount / Math.max(totalResources, 1), 1)
+    // Map resource loading ratio to 25% -> 85% range
+    targetProgress = Math.max(targetProgress, 25 + resRatio * 60)
+  }
 
-  tl.to('.progress-wrap', {
-    autoAlpha: 1,
-    y: 0,
-    duration: 0.5,
-    ease: 'power2.out'
-  }, '-=0.4')
-
-  // 4. Fill progress bar & dynamically update status text based on progress
-  const counterObj = { val: 0 }
-  const statusEl = () => document.querySelector('.status-text')
-
-  tl.to(counterObj, {
-    val: 100,
-    duration: 1.5,
-    ease: 'power2.inOut',
-    onUpdate: () => {
-      const currentNum = Math.floor(counterObj.val)
-      const numEl = document.querySelector('.counter-num')
-      if (numEl) {
-        numEl.textContent = currentNum < 10 ? `0${currentNum}` : `${currentNum}`
-      }
-
-      // Dynamic real-time loading text updates
-      const st = statusEl()
-      if (st) {
-        if (currentNum < 35) {
-          st.textContent = '正在连接服务器数据...'
-        } else if (currentNum < 75) {
-          st.textContent = '正在加载影视作品与色彩规范...'
-        } else if (currentNum < 99) {
-          st.textContent = '正在准备工作台...'
-        } else {
-          st.textContent = '加载完成'
-        }
-      }
+  // Monitor image loading
+  images.forEach(img => {
+    if (img.complete) {
+      updateResourceProgress()
+    } else {
+      img.addEventListener('load', updateResourceProgress, { once: true })
+      img.addEventListener('error', updateResourceProgress, { once: true })
     }
-  }, '-=0.5')
+  })
 
-  tl.to('.progress-bar', {
-    width: '100%',
-    duration: 1.5,
-    ease: 'power2.inOut'
-  }, '<')
+  // Monitor document ready state
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    targetProgress = Math.max(targetProgress, 35)
+  }
+  
+  // Monitor window load event (complete network download)
+  const onWindowLoad = () => {
+    isFullyLoaded = true
+    targetProgress = 100
+  }
 
-  // Brief pause at 100%
-  tl.to({}, { duration: 0.2 })
+  if (document.readyState === 'complete') {
+    onWindowLoad()
+  } else {
+    window.addEventListener('load', onWindowLoad, { once: true })
+    // Fallback safety timeout if network hangs (max 3.5s)
+    setTimeout(() => {
+      onWindowLoad()
+    }, 3500)
+  }
+
+  // 4. Smooth Lerp Animation Loop (requestAnimationFrame)
+  const loop = () => {
+    // Smooth lerp interpolation towards target progress
+    const step = (targetProgress - displayProgress.value) * 0.08
+    if (Math.abs(targetProgress - displayProgress.value) > 0.1) {
+      displayProgress.value += step
+    } else {
+      displayProgress.value = targetProgress
+    }
+
+    updateStatusText(displayProgress.value)
+
+    if (displayProgress.value >= 99.5 && isFullyLoaded) {
+      displayProgress.value = 100
+      updateStatusText(100)
+
+      // Trigger exit animation
+      setTimeout(() => {
+        gsap.to('.preloader-overlay', {
+          opacity: 0,
+          yPercent: -10,
+          duration: 0.7,
+          ease: 'power4.inOut',
+          onComplete: () => {
+            isVisible.value = false
+            emit('complete')
+          }
+        })
+      }, 150)
+      return
+    }
+
+    animationFrameId = requestAnimationFrame(loop)
+  }
+
+  animationFrameId = requestAnimationFrame(loop)
+})
+
+onBeforeUnmount(() => {
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId)
+  }
 })
 </script>
 
@@ -184,7 +216,7 @@ onMounted(async () => {
 .blade-line {
   stroke-dasharray: 80;
   stroke-dashoffset: 80;
-  animation: draw-blade 1.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  animation: draw-blade 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   animation-delay: 0.1s;
   opacity: 0.85;
 }
