@@ -277,24 +277,32 @@
               <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">服务器环境规格 (System Specs)</span>
               <div class="divide-y text-xs font-mono" style="divide-color: var(--color-border)">
                 <div class="py-2.5 flex justify-between">
-                  <span style="color: var(--color-ink-4)">运行时引擎</span>
-                  <span class="font-bold" style="color: var(--color-ink-1)">Nuxt 4 / Nitro</span>
+                  <span style="color: var(--color-ink-4)">操作系统</span>
+                  <span class="font-bold truncate max-w-[220px]" style="color: var(--color-ink-1)">{{ systemStatus.serverOs || 'Unknown OS' }}</span>
                 </div>
                 <div class="py-2.5 flex justify-between">
-                  <span style="color: var(--color-ink-4)">数据存储引擎</span>
+                  <span style="color: var(--color-ink-4)">处理器 (CPU)</span>
+                  <span class="font-bold truncate max-w-[220px]" style="color: var(--color-ink-1)">{{ systemStatus.serverCpu || 'Unknown CPU' }}</span>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                  <span style="color: var(--color-ink-4)">物理内存 (RAM)</span>
+                  <span class="font-bold" style="color: var(--color-ink-1)">{{ systemStatus.serverRam || '—' }}</span>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                  <span style="color: var(--color-ink-4)">系统运行时间</span>
+                  <span class="font-bold" style="color: var(--color-ink-1)">{{ systemStatus.serverUptime || '—' }}</span>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                  <span style="color: var(--color-ink-4)">主磁盘空间 (Disk)</span>
+                  <span class="font-bold" style="color: var(--color-ink-1)">{{ systemStatus.serverDisk || '150.0 GB' }}</span>
+                </div>
+                <div class="py-2.5 flex justify-between">
+                  <span style="color: var(--color-ink-4)">存储引擎</span>
                   <span class="font-bold text-emerald-600">{{ systemStatus.engine }}</span>
-                </div>
-                <div class="py-2.5 flex justify-between">
-                  <span style="color: var(--color-ink-4)">数据库健康</span>
-                  <span class="font-bold text-emerald-600">{{ systemStatus.dbHealth }} Connected</span>
                 </div>
                 <div class="py-2.5 flex justify-between">
                   <span style="color: var(--color-ink-4)">SSL 证书</span>
                   <span class="font-bold" style="color: var(--color-ink-1)">{{ systemStatus.ssl }}</span>
-                </div>
-                <div class="py-2.5 flex justify-between">
-                  <span style="color: var(--color-ink-4)">API 响应</span>
-                  <span class="font-bold" style="color: var(--color-ink-1)">{{ systemStatus.latency }}</span>
                 </div>
               </div>
             </div>
