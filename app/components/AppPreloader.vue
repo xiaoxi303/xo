@@ -10,7 +10,7 @@
       style="background-image: linear-gradient(var(--color-ink-1) 1px, transparent 1px), linear-gradient(90deg, var(--color-ink-1) 1px, transparent 1px); background-size: 32px 32px;"
     />
 
-    <div class="aperture-container mb-8 relative flex items-center justify-center opacity-0">
+    <div class="aperture-container mb-8 relative flex items-center justify-center invisible">
       <svg
         class="w-16 h-16 text-amber-800/80 transform rotate-[-45deg] scale-90"
         viewBox="0 0 100 100"
@@ -39,7 +39,7 @@
     <div class="text-center space-y-4">
       <div class="preloader-logo overflow-hidden h-12 md:h-16 flex items-center justify-center">
         <h1
-          class="font-display text-4xl md:text-6xl font-bold tracking-[0.25em] uppercase leading-none opacity-0 translate-y-full"
+          class="font-display text-4xl md:text-6xl font-bold tracking-[0.25em] uppercase leading-none invisible translate-y-full"
           style="color: var(--color-ink-1);"
         >
           Xo Studio
@@ -48,7 +48,7 @@
       
       <div class="preloader-sub overflow-hidden py-1">
         <p
-          class="text-[9px] font-mono tracking-[0.3em] uppercase opacity-0 translate-y-full"
+          class="text-[9px] font-mono tracking-[0.3em] uppercase invisible translate-y-full"
           style="color: var(--color-brand-accent);"
         >
           Cinematic Post-Production & Color Science
@@ -56,7 +56,7 @@
       </div>
     </div>
 
-    <div class="progress-wrap flex flex-col items-center mt-12 opacity-0">
+    <div class="progress-wrap flex flex-col items-center mt-12 invisible">
       <div class="w-48 h-[1px] bg-black/[0.06] relative overflow-hidden rounded-full">
         <div class="progress-bar absolute left-0 top-0 h-full w-0" style="background-color: var(--color-brand-accent);" />
       </div>
@@ -101,15 +101,15 @@ onMounted(async () => {
     }
   })
 
-  // 1. Initial State configuration (prevent flashing)
-  gsap.set('.aperture-container', { opacity: 0, scale: 0.85 })
-  gsap.set('.preloader-logo h1', { yPercent: 100, opacity: 0 })
-  gsap.set('.preloader-sub p', { yPercent: 100, opacity: 0 })
-  gsap.set('.progress-wrap', { opacity: 0, y: 15 })
+  // 1. Initial State configuration (prevent flashing using autoAlpha)
+  gsap.set('.aperture-container', { autoAlpha: 0, scale: 0.85 })
+  gsap.set('.preloader-logo h1', { yPercent: 100, autoAlpha: 0 })
+  gsap.set('.preloader-sub p', { yPercent: 100, autoAlpha: 0 })
+  gsap.set('.progress-wrap', { autoAlpha: 0, y: 15 })
 
   // 2. Animate Aperture Circle Drawing
   tl.to('.aperture-container', {
-    opacity: 1,
+    autoAlpha: 1,
     scale: 1,
     duration: 0.9,
     ease: 'power3.out'
@@ -131,21 +131,21 @@ onMounted(async () => {
   // 3. Stagger reveal logo & subtext
   tl.to('.preloader-logo h1', {
     yPercent: 0,
-    opacity: 1,
+    autoAlpha: 1,
     duration: 0.9,
     ease: 'power4.out'
   }, '-=1.1')
 
   tl.to('.preloader-sub p', {
     yPercent: 0,
-    opacity: 1,
+    autoAlpha: 1,
     duration: 0.8,
     ease: 'power4.out'
   }, '-=0.75')
 
   // 4. Fade in progress indicator
   tl.to('.progress-wrap', {
-    opacity: 1,
+    autoAlpha: 1,
     y: 0,
     duration: 0.6,
     ease: 'power2.out'
