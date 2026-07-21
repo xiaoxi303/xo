@@ -601,6 +601,17 @@ const initReveal = () => {
 onMounted(async () => {
   await nextTick()
   initReveal()
+
+  // Track client-side page visit for project clicks heat ranking
+  if (import.meta.client && project.value) {
+    $fetch('/api/analytics/event', {
+      method: 'POST',
+      body: {
+        event: 'project_click',
+        meta: JSON.stringify({ slug, title: project.value.title })
+      }
+    }).catch(() => {})
+  }
 })
 onBeforeUnmount(() => { if (observer) observer.disconnect() })
 </script>
