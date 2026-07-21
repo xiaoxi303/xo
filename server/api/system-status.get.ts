@@ -51,6 +51,17 @@ export default defineEventHandler(async (event) => {
   const todayViews = days[6].views
   const yesterdayViews = days[5].views
 
+  // Load local events if not D1
+  let localEvents: any[] = []
+  if (!db) {
+    const eventsFile = path.resolve(process.cwd(), 'content/events.json')
+    if (fs.existsSync(eventsFile)) {
+      try {
+        localEvents = JSON.parse(fs.readFileSync(eventsFile, 'utf-8'))
+      } catch {}
+    }
+  }
+
   // ── Referral breakdown (real: read Referer header stats from events) ──
   let referrals: { label: string; pct: number }[] = []
   if (db) {
@@ -62,6 +73,28 @@ export default defineEventHandler(async (event) => {
     referrals = (refRows.results as any[]).map((r: any) => ({
       label: r.meta || 'Direct',
       pct: total > 0 ? Math.round((Number(r.cnt) / total) * 100) : 0
+    }))
+  } else {
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString()
+
+    const refEvents = localEvents.filter(e => e.event === 'referral' && e.ts > sevenDaysAgoStr)
+    const counts: Record<string, number> = {}
+    refEvents.forEach(e => {
+      const label = e.meta || 'Direct'
+      counts[label] = (counts[label] || 0) + 1
+    })
+
+    const sorted = Object.entries(counts)
+      .map(([label, cnt]) => ({ label, cnt }))
+      .sort((a, b) => b.cnt - a.cnt)
+      .slice(0, 5)
+
+    const total = sorted.reduce((s, r) => s + r.cnt, 0)
+    referrals = sorted.map(r => ({
+      label: r.label,
+      pct: total > 0 ? Math.round((r.cnt / total) * 100) : 0
     }))
   }
 
@@ -84,6 +117,25 @@ export default defineEventHandler(async (event) => {
       try { const parsed = JSON.parse(r.meta); slug = parsed.slug; title = parsed.title } catch {}
       return { slug, title, clicks: Number(r.cnt) }
     })
+  } else {
+    const clickEvents = localEvents.filter(e => e.event === 'project_click')
+    const counts: Record<string, number> = {}
+    clickEvents.forEach(e => {
+      const meta = e.meta || ''
+      counts[meta] = (counts[meta] || 0) + 1
+    })
+
+    const sorted = Object.entries(counts)
+      .map(([meta, cnt]) => ({ meta, cnt }))
+      .sort((a, b) => b.cnt - a.cnt)
+      .slice(0, 4)
+
+    projectClicks = sorted.map(r => {
+      let slug = r.meta || ''
+      let title = slug
+      try { const parsed = JSON.parse(r.meta); slug = parsed.slug; title = parsed.title } catch {}
+      return { slug, title, clicks: r.cnt }
+    })
   }
 
   // ── Contact clicks ────────────────────────────────────────────────
@@ -93,6 +145,12 @@ export default defineEventHandler(async (event) => {
       `SELECT COUNT(*) as cnt FROM analytics_events WHERE event = 'contact_click' AND ts > datetime('now', '-7 days')`
     ).first() as any
     contactClicks = Number(cc?.cnt || 0)
+  } else {
+    const _7daysAgo = new Date()
+    _7daysAgo.setDate(_7daysAgo.getDate() - 7)
+    const _7daysAgoStr = _7daysAgo.toISOString()
+    
+    contactClicks = localEvents.filter(e => e.event === 'contact_click' && e.ts > _7daysAgoStr).length
   }
 
   // ── Real system latency ───────────────────────────────────────────
