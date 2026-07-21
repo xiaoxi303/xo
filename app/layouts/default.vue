@@ -1,5 +1,5 @@
 <template>
-  <div :style="layoutStyle">
+  <div>
     <!-- Floating Announcement Banner (Bottom-Left Premium Capsule) -->
     <Transition name="slide-up">
       <div
@@ -90,13 +90,25 @@ const showOrbs = computed(() => siteConfig.value?.theme?.showOrbs ?? true)
 const showFilmGrain = computed(() => siteConfig.value?.theme?.showFilmGrain ?? true)
 const announcement = computed(() => siteConfig.value?.announcement)
 
-const layoutStyle = computed(() => {
-  const preset = siteConfig.value?.theme?.accentPreset || 'bronze'
-  const ac = accentColors[preset as keyof typeof accentColors] || accentColors.bronze
+const preset = computed(() => siteConfig.value?.theme?.accentPreset || 'bronze')
+
+watch(preset, (val) => {
+  const ac = accentColors[val as keyof typeof accentColors] || accentColors.bronze
+  if (import.meta.client) {
+    const root = document.documentElement
+    root.style.setProperty('--color-brand-accent', ac.primary)
+    root.style.setProperty('--color-brand-accent-rgb', ac.primaryRgb)
+    root.style.setProperty('--color-brand-accent-hover', ac.hover)
+  }
+}, { immediate: true })
+
+useHead(() => {
+  const p = preset.value
+  const ac = accentColors[p as keyof typeof accentColors] || accentColors.bronze
   return {
-    '--color-brand-accent': ac.primary,
-    '--color-brand-accent-rgb': ac.primaryRgb,
-    '--color-brand-accent-hover': ac.hover
+    htmlAttrs: {
+      style: `--color-brand-accent: ${ac.primary}; --color-brand-accent-rgb: ${ac.primaryRgb}; --color-brand-accent-hover: ${ac.hover};`
+    }
   }
 })
 

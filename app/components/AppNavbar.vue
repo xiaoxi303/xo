@@ -22,7 +22,7 @@
         aria-label="Xo Home"
       >
         <span class="font-display text-[#121316] text-2xl font-bold tracking-tight">Xo</span>
-        <span class="font-display text-[#b45309] text-2xl font-extrabold select-none">.</span>
+        <span class="font-display text-[var(--color-bronze)] text-2xl font-extrabold select-none">.</span>
       </NuxtLink>
 
       <!-- Desktop nav links -->
@@ -46,7 +46,7 @@
             <!-- Active underline -->
             <span
               v-if="$route.path === link.to"
-              class="absolute bottom-0.5 left-3.5 right-3.5 h-px bg-[#b45309] rounded-full"
+              class="absolute bottom-0.5 left-3.5 right-3.5 h-px bg-[var(--color-bronze)] rounded-full"
             />
           </NuxtLink>
         </li>
@@ -60,7 +60,7 @@
           :class="[
             'hidden md:inline-flex items-center gap-2 text-xs font-semibold tracking-wide transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)',
             isScrolled 
-              ? 'px-3.5 py-1.5 rounded-full text-[#b45309] bg-transparent hover:bg-black/[0.03] hover:text-[#92400e]'
+              ? 'px-3.5 py-1.5 rounded-full text-[var(--color-bronze)] bg-transparent hover:bg-black/[0.03] hover:text-[var(--color-bronze-dark)]'
               : 'px-4 py-2.5 rounded-xl text-[#121316] bg-[#fdfdfc]/80 backdrop-blur-sm border border-black/[0.08] hover:bg-[#121316] hover:text-white hover:border-[#121316] hover:-translate-y-[1px] shadow-[0_1px_2px_rgba(0,0,0,0.02)]'
           ]"
         >
@@ -103,7 +103,7 @@
           @click="mobileOpen = false"
         >
           {{ link.label }}
-          <span v-if="$route.path === link.to" class="w-1 h-1 rounded-full bg-[#b45309]" />
+          <span v-if="$route.path === link.to" class="w-1 h-1 rounded-full bg-[var(--color-bronze)]" />
         </NuxtLink>
         <div class="border-t border-black/[0.05] mt-2 pt-2.5 px-1">
           <a href="mailto:hello@xo.dev" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-medium text-white bg-[#121316] hover:bg-[#25262c] transition-colors">
