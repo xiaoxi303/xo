@@ -26,7 +26,7 @@
                style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
             🔐
           </div>
-          <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-amber-700 font-bold block">CLIENT SIGN IN</span>
+          <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-amber-700 font-bold block">客户登录验证</span>
           <h1 class="font-display text-2xl font-bold text-slate-900">客户身份验证</h1>
           <p class="text-xs text-slate-500 leading-relaxed">
             该加密作品 <span class="font-bold text-slate-800">《{{ projectTitle }}》</span> 的在线密码提取功能仅限内部注册客户使用，请登录后获取密码。
@@ -94,7 +94,7 @@
         </div>
 
         <div class="text-center space-y-2">
-          <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-emerald-700 font-bold block">ACCESS GRANTED</span>
+          <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-emerald-700 font-bold block">授权认证成功</span>
           <h1 class="font-display text-2xl font-bold text-slate-900">专属访问密码已生成</h1>
           <p class="text-xs text-slate-500 leading-relaxed">
             尊敬的客户 <span class="font-bold text-slate-800">{{ clientUsername }}</span>，您已通过身份验证。<br>
@@ -104,7 +104,7 @@
 
         <!-- Password Output Box -->
         <div class="p-6 rounded-2xl border bg-black/[0.02] border-black/[0.04] text-center space-y-2">
-          <span class="text-[9px] font-mono tracking-widest text-slate-400 block">ACCESS CODE</span>
+          <span class="text-[9px] font-mono tracking-widest text-slate-400 block">项目访问密码</span>
           <div v-if="loading" class="h-8 flex items-center justify-center">
             <span class="w-5 h-5 rounded-full border-2 border-amber-700 border-t-transparent animate-spin" />
           </div>
@@ -165,7 +165,7 @@ const loginError = ref('')
 
 // Page Head
 useHead({
-  title: '获取访问密码 — xo.dev'
+  title: '在线提取访问密码 — Xo Studio'
 })
 
 // Check if client session is valid

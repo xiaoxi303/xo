@@ -162,14 +162,14 @@
                 </div>
                 <div class="space-y-0.5">
                   <h3 class="font-display font-bold text-slate-900 text-xl">{{ siteConfig?.home?.profileCardTitle || 'Xo' }}</h3>
-                  <p class="text-amber-700 text-[10px] font-mono uppercase tracking-wider font-semibold">{{ siteConfig?.home?.profileCardSub || 'DI / Film Editor' }}</p>
+                  <p class="text-amber-700 text-[10px] font-mono uppercase tracking-wider font-semibold">{{ siteConfig?.home?.profileCardSub || '调色指导 / 视频剪辑' }}</p>
                 </div>
                 <p class="text-slate-500 text-xs leading-relaxed font-sans">
                   {{ siteConfig?.home?.profileCardDesc || '专注于用节拍与叙事节奏微雕镜头。拥有 5 年影视及广告后期制作经验。' }}
                 </p>
               </div>
               <div class="inline-flex items-center gap-2 text-xs text-slate-900 font-semibold hover:text-amber-700 transition-colors font-sans">
-                个人履历 (Profile)
+                查看个人履历
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                   <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.63L9.7 5.47a.75.75 0 011.06-1.06l5.75 5.75a.75.75 0 010 1.06l-5.75 5.75a.75.75 0 11-1.06-1.06l4.68-4.68H3.75A.75.75 0 013 10z" clip-rule="evenodd"/>
                 </svg>
@@ -183,10 +183,10 @@
               <div>
                 <div class="space-y-1 mb-4">
                   <h3 class="font-display font-bold text-slate-900 text-xl">工具与工作流</h3>
-                  <p class="text-slate-400 text-[9px] uppercase font-mono">Resolve Workflow</p>
+                  <p class="text-slate-400 text-[9px] uppercase font-mono">达芬奇调色流程</p>
                 </div>
                 <div class="flex flex-wrap gap-1.5">
-                  <span v-for="t in (siteConfig?.home?.skillsTags && siteConfig.home.skillsTags.length > 0 ? siteConfig.home.skillsTags : ['Resolve', 'Premiere', 'After Effects', 'Cinema 4D', 'ACES Workflow', 'Logic Pro', 'Foley Sound'])" :key="t" class="tag">{{ t }}</span>
+                  <span v-for="t in (siteConfig?.home?.skillsTags && siteConfig.home.skillsTags.length > 0 ? siteConfig.home.skillsTags : ['Resolve', 'Premiere', 'After Effects', 'Cinema 4D', 'ACES 工作流', 'Logic Pro', 'Foley 音效'])" :key="t" class="tag">{{ t }}</span>
                 </div>
               </div>
 
@@ -228,7 +228,7 @@
                 
                 <!-- Absolute specs sticker -->
                 <div class="absolute top-4 left-4">
-                  <span class="px-2.5 py-0.5 rounded text-[8px] bg-white/95 border border-black/5 text-slate-800 font-mono font-bold uppercase shadow-sm">ACES LOGC GRADE</span>
+                  <span class="px-2.5 py-0.5 rounded text-[8px] bg-white/95 border border-black/5 text-slate-800 font-mono font-bold uppercase shadow-sm">ACES 色彩规范</span>
                 </div>
               </div>
 

@@ -17,7 +17,7 @@
              style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
           🔐
         </div>
-        <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-amber-700 font-bold block">CLIENT LOGIN</span>
+        <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-amber-700 font-bold block">客户登录</span>
         <h1 class="font-display text-2xl font-bold text-slate-900">客户登录</h1>
         <p class="text-xs text-slate-500">登录客户账号以在线提取受保护作品密码。</p>
       </div>
@@ -91,7 +91,7 @@ const error = ref('')
 
 // Page Head
 useHead({
-  title: '客户登录 — xo.dev'
+  title: '客户登录 — Xo Studio'
 })
 
 const handleLogin = async () => {

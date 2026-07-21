@@ -18,7 +18,7 @@
              style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
           👥
         </div>
-        <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-amber-700 font-bold block">CLIENT PORTAL</span>
+        <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-amber-700 font-bold block">客户通道</span>
         <h1 class="font-display text-2xl font-bold text-slate-900">创建客户账号</h1>
         <p class="text-xs text-slate-500">注册专属账号以对接您的私人作品与授权需求。</p>
       </div>
@@ -130,7 +130,7 @@ const success = ref(false)
 
 // Page Head
 useHead({
-  title: '注册客户账号 — xo.dev'
+  title: '注册客户账号 — Xo Studio'
 })
 
 const handleRegister = async () => {

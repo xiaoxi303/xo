@@ -1240,15 +1240,15 @@
                     <input v-model="form.slug" :disabled="isEditing" required class="form-input font-mono" placeholder="tvc-commercial" />
                   </div>
                   <div class="space-y-1.5">
-                    <label class="form-label">项目名称 (Title)</label>
-                    <input v-model="form.title" required class="form-input font-display font-bold" placeholder="TVC 商业广告" />
+                    <label class="form-label">项目名称</label>
+                    <input v-model="form.title" required class="form-input font-display font-bold" placeholder="例如：TVC 商业广告" />
                   </div>
                 </div>
                 <div class="space-y-4">
                   <div class="space-y-1.5">
                     <label class="form-label flex items-center justify-between">
-                      <span>封面图片 URL (Graded / Final Frame)</span>
-                      <span class="text-[9px] font-normal text-amber-700 font-mono">(留空则自动生成动态封面)</span>
+                      <span>精修封面图片 URL</span>
+                      <span class="text-[9px] font-normal text-amber-700 font-mono">(留空则自动生成动态视频封面)</span>
                     </label>
                     <div class="flex gap-2">
                       <input v-model="form.image" class="form-input font-mono flex-1" placeholder="https://... (留空自动生成动态封面)" />
@@ -1260,42 +1260,42 @@
                   </div>
                   <div class="space-y-1.5">
                     <label class="form-label flex items-center justify-between">
-                      <span>调色前对比原片 URL (Log / Rec709 Before Frame)</span>
-                      <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">(可选，启用前后滑块对比)</span>
+                      <span>调色前对比原片 URL</span>
+                      <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">(可选，用于对比滑块)</span>
                     </label>
                     <input v-model="form.imageBefore" class="form-input font-mono" placeholder="https://... (不开启请留空)" />
                   </div>
                   <div class="space-y-1.5">
                     <label class="form-label flex items-center justify-between">
-                      <span>视频 MP4 URL</span>
-                      <span class="text-[9px] font-normal text-amber-700 font-mono">(可选，作品详情页播放器使用)</span>
+                      <span>视频 MP4 链接列表</span>
+                      <span class="text-[9px] font-normal text-amber-700 font-mono">(可选，详情页播放器播放使用)</span>
                     </label>
                     <div class="space-y-2">
                       <div v-for="(_, idx) in form.videoUrls" :key="idx" class="flex gap-2">
                         <input
                           v-model="form.videoUrls[idx]"
                           class="form-input font-mono flex-1"
-                          :placeholder="idx === 0 ? 'https://...mp4 (main video)' : 'https://...mp4'"
+                          :placeholder="idx === 0 ? 'https://...mp4 (主播放视频)' : 'https://...mp4 (备用/多视角版本)'"
                         />
                         <button
                           type="button"
                           @click="removeProjectVideo(idx)"
-                          class="btn-ghost text-xs px-3"
+                          class="btn-ghost text-xs px-3 text-rose-500 hover:text-rose-600 font-bold"
                           :disabled="form.videoUrls.length === 1"
                         >
-                          REMOVE
+                          删除
                         </button>
                       </div>
                       <button
                         type="button"
                         @click="addProjectVideo"
-                        class="btn-ghost text-xs py-2 px-3"
+                        class="btn-ghost text-xs py-2 px-3 hover:text-amber-700 font-bold"
                         :disabled="form.videoUrls.length >= MAX_PROJECT_VIDEOS"
                       >
-                        + ADD VIDEO
+                        + 添加视频链接
                       </button>
                     </div>
-                    <p class="text-[10px] leading-relaxed" style="color: var(--color-ink-5)">First filled URL is used on cards. All URLs appear as switchable videos on the project detail page.</p>
+                    <p class="text-[10px] leading-relaxed" style="color: var(--color-ink-5)">注：排在首位的链接将作为卡片封面预览视频。所有填入的链接均可在作品详情页进行多版本/机位自由切换播放。</p>
                   </div>
                 </div>
                 <!-- Featured & Password Protection Row -->
@@ -1306,7 +1306,7 @@
                    </div>
                    <div class="space-y-1.5">
                      <label class="form-label flex items-center gap-1">
-                       <span>🔐 访问保护密码 (Password)</span>
+                       <span>🔐 访问保护密码</span>
                        <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">(留空则完全公开)</span>
                      </label>
                      <input v-model="form.password" type="text" class="form-input font-mono text-xs" placeholder="例如: client2026 (无密码请留空)" />
@@ -1315,26 +1315,26 @@
 
                  <!-- Technical Specifications Grid -->
                  <div class="p-4 rounded-xl space-y-4" style="background: rgba(255, 255, 255, 0.4); border: 1px solid var(--color-border-2)">
-                   <p class="text-[10px] font-bold font-mono tracking-wider" style="color: var(--color-ink-3)">🎥 视频技术规格与参数 (Technical Specifications)</p>
+                   <p class="text-[10px] font-bold font-mono tracking-wider" style="color: var(--color-ink-3)">🎥 视频技术规格与参数</p>
                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                      <div class="space-y-1">
-                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">发布年份 (Release Year)</label>
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">发布年份</label>
                        <input v-model="form.releaseYear" class="form-input text-xs py-1.5 px-3" placeholder="例如: 2026" />
                      </div>
                      <div class="space-y-1">
-                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">后期规格 (Post Specs)</label>
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">剪辑/调色规格</label>
                        <input v-model="form.postSpecs" class="form-input text-xs py-1.5 px-3" placeholder="例如: 4K 60FPS HDR" />
                      </div>
                      <div class="space-y-1">
-                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">后期导演 (Director)</label>
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">导演/后期指导</label>
                        <input v-model="form.director" class="form-input text-xs py-1.5 px-3" placeholder="例如: Xo" />
                      </div>
                      <div class="space-y-1 col-span-2 sm:col-span-1">
-                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">交付格式 (Deliver Format)</label>
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">交付格式</label>
                        <input v-model="form.deliverFormat" class="form-input text-xs py-1.5 px-3 font-mono" placeholder="例如: ProRes 422 HQ" />
                      </div>
                      <div class="space-y-1 col-span-2">
-                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">音频编码 (Audio Spec)</label>
+                       <label class="text-[10px] font-medium" style="color: var(--color-ink-3)">音频编码规格</label>
                        <input v-model="form.audioFormat" class="form-input text-xs py-1.5 px-3 font-mono" placeholder="例如: 24-bit 48kHz" />
                      </div>
                    </div>

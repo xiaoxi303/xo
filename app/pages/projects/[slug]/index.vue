@@ -140,7 +140,7 @@
                     ? { background: 'rgba(252,248,242,0.95)', color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.25)' }
                     : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
                 >
-                  VIDEO {{ String(idx + 1).padStart(2, '0') }}
+                  视频版本 {{ String(idx + 1).padStart(2, '0') }}
                 </button>
               </div>
             </div>
@@ -216,7 +216,7 @@
                   draggable="false"
                 />
                 <div class="absolute bottom-4 right-4 z-20 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-[#b45309]/80 text-white backdrop-blur-sm border border-amber-500/20 uppercase tracking-widest">
-                  Graded 调色后
+                  调色后
                 </div>
               </div>
 
@@ -286,10 +286,10 @@
 
                 <div class="flex items-center justify-between pt-1">
                   <h2 class="font-display text-sm font-bold uppercase tracking-wider"
-                      style="color: var(--color-ink-1)">DI Console Specs</h2>
+                      style="color: var(--color-ink-1)">后期制作技术参数</h2>
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full animate-pulse" style="background: #16a34a" />
-                    <span class="text-[10px] uppercase font-mono" style="color: var(--color-ink-5)">Graded</span>
+                    <span class="text-[10px] uppercase font-mono" style="color: var(--color-ink-5)">已调色</span>
                   </div>
                 </div>
 
@@ -299,11 +299,11 @@
                     <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.director || 'Xo' }}</span>
                   </div>
                   <div v-if="project.software?.[0]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                    <span style="color: var(--color-ink-4)">剪辑软件 (NLE)</span>
+                    <span style="color: var(--color-ink-4)">剪辑与包装软件</span>
                     <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.software[0] }}</span>
                   </div>
                   <div v-if="project.software?.[1]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                    <span style="color: var(--color-ink-4)">色彩分级 (DI)</span>
+                    <span style="color: var(--color-ink-4)">色彩分级调色</span>
                     <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.software[1] }}</span>
                   </div>
                   <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
