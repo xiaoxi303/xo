@@ -14,7 +14,7 @@
     <!-- Cinematic Aperture / Shutter Icon -->
     <div class="aperture-container mb-6 relative flex items-center justify-center invisible">
       <svg
-        class="w-16 h-16 text-[#b45309] transform rotate-[-45deg] scale-95"
+        class="w-14 h-14 text-[#b45309] transform rotate-[-45deg] scale-95"
         viewBox="0 0 100 100"
         fill="none"
         stroke="currentColor"
@@ -35,41 +35,24 @@
         <polygon points="40,30 70,50 60,70 30,50" class="iris-polygon" fill="rgba(180, 83, 9, 0.08)" />
       </svg>
 
-      <!-- Soft amber light halo behind shutter -->
-      <div class="absolute w-24 h-24 rounded-full bg-amber-500/15 blur-xl scale-75 animate-pulse" />
+      <!-- Soft amber light halo -->
+      <div class="absolute w-20 h-20 rounded-full bg-amber-500/15 blur-xl scale-75 animate-pulse" />
     </div>
 
-    <!-- Brand Typography Container (Clear & Unclipped) -->
-    <div class="text-center space-y-2 max-w-lg">
-      <div class="preloader-logo py-1">
-        <h1
-          class="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-[0.18em] uppercase leading-tight invisible"
-          style="color: var(--color-ink-1);"
-        >
-          Xo Studio
-        </h1>
-      </div>
-      
-      <div class="preloader-sub py-1 space-y-1">
-        <p
-          class="text-xs sm:text-sm font-sans tracking-widest font-semibold uppercase invisible"
-          style="color: var(--color-ink-2);"
-        >
-          影视后期 · 达芬奇调色指导
-        </p>
-        <p
-          class="text-[10px] font-mono tracking-[0.22em] uppercase invisible opacity-80"
-          style="color: #b45309;"
-        >
-          Cinematic Post-Production & Color Science
-        </p>
-      </div>
+    <!-- Minimal Functional Loading Status Text -->
+    <div class="status-container text-center space-y-1.5 max-w-sm invisible">
+      <p class="status-text text-xs sm:text-sm font-sans font-semibold tracking-wider" style="color: var(--color-ink-1);">
+        正在连接服务器数据...
+      </p>
+      <p class="text-[9px] font-mono tracking-[0.2em] uppercase opacity-70" style="color: #b45309;">
+        SYNCHRONIZING STUDIO ASSETS
+      </p>
     </div>
 
     <!-- Progress Indicator Block -->
-    <div class="progress-wrap flex flex-col items-center mt-10 space-y-3 invisible">
-      <!-- Warm bronze progress bar -->
-      <div class="w-52 h-[2px] bg-black/[0.08] relative overflow-hidden rounded-full">
+    <div class="progress-wrap flex flex-col items-center mt-8 space-y-3 invisible">
+      <!-- Bronze progress track and bar -->
+      <div class="w-56 h-[2px] bg-black/[0.08] relative overflow-hidden rounded-full">
         <div class="progress-bar absolute left-0 top-0 h-full w-0 rounded-full" style="background-color: #b45309;" />
       </div>
 
@@ -81,7 +64,7 @@
 
     <!-- Bottom Footer Tagline -->
     <div class="absolute bottom-8 text-[9px] font-mono tracking-[0.2em] opacity-40 uppercase" style="color: var(--color-ink-4);">
-      Loading Studio Assets
+      Xo Studio · System Initializing
     </div>
   </div>
 </template>
@@ -101,11 +84,11 @@ onMounted(async () => {
   
   const tl = gsap.timeline({
     onComplete: () => {
-      // Smoothly fade out & slide up preloader
+      // Fade out & slide up preloader overlay
       gsap.to('.preloader-overlay', {
         opacity: 0,
         yPercent: -10,
-        duration: 0.9,
+        duration: 0.8,
         ease: 'power4.inOut',
         onComplete: () => {
           isVisible.value = false
@@ -115,17 +98,16 @@ onMounted(async () => {
     }
   })
 
-  // 1. Configure initial invisible states
+  // 1. Initial State configuration
   gsap.set('.aperture-container', { autoAlpha: 0, scale: 0.85 })
-  gsap.set('.preloader-logo h1', { autoAlpha: 0, y: 18 })
-  gsap.set('.preloader-sub', { autoAlpha: 0, y: 12 })
+  gsap.set('.status-container', { autoAlpha: 0, y: 10 })
   gsap.set('.progress-wrap', { autoAlpha: 0, y: 10 })
 
-  // 2. Animate Aperture Camera Shutter
+  // 2. Animate Camera Shutter
   tl.to('.aperture-container', {
     autoAlpha: 1,
     scale: 1,
-    duration: 0.7,
+    duration: 0.6,
     ease: 'power3.out'
   })
   
@@ -137,26 +119,18 @@ onMounted(async () => {
 
   tl.to('.aperture-container svg', {
     rotate: 45,
-    duration: 1.8,
+    duration: 1.6,
     ease: 'sine.inOut'
   }, '<')
 
-  // 3. Reveal Logo Title & Subtitle cleanly
-  tl.to('.preloader-logo h1', {
+  // 3. Reveal Status Text & Progress Block
+  tl.to('.status-container', {
     autoAlpha: 1,
     y: 0,
-    duration: 0.7,
+    duration: 0.5,
     ease: 'power3.out'
-  }, '-=0.8')
+  }, '-=0.6')
 
-  tl.to('.preloader-sub', {
-    autoAlpha: 1,
-    y: 0,
-    duration: 0.6,
-    ease: 'power3.out'
-  }, '-=0.5')
-
-  // 4. Reveal Progress Block
   tl.to('.progress-wrap', {
     autoAlpha: 1,
     y: 0,
@@ -164,29 +138,45 @@ onMounted(async () => {
     ease: 'power2.out'
   }, '-=0.4')
 
-  // 5. Fill progress bar & update counter
+  // 4. Fill progress bar & dynamically update status text based on progress
   const counterObj = { val: 0 }
+  const statusEl = () => document.querySelector('.status-text')
+
   tl.to(counterObj, {
     val: 100,
-    duration: 1.4,
+    duration: 1.5,
     ease: 'power2.inOut',
     onUpdate: () => {
+      const currentNum = Math.floor(counterObj.val)
       const numEl = document.querySelector('.counter-num')
       if (numEl) {
-        const currentNum = Math.floor(counterObj.val)
         numEl.textContent = currentNum < 10 ? `0${currentNum}` : `${currentNum}`
+      }
+
+      // Dynamic real-time loading text updates
+      const st = statusEl()
+      if (st) {
+        if (currentNum < 35) {
+          st.textContent = '正在连接服务器数据...'
+        } else if (currentNum < 75) {
+          st.textContent = '正在加载影视作品与色彩规范...'
+        } else if (currentNum < 99) {
+          st.textContent = '正在准备工作台...'
+        } else {
+          st.textContent = '加载完成'
+        }
       }
     }
   }, '-=0.5')
 
   tl.to('.progress-bar', {
     width: '100%',
-    duration: 1.4,
+    duration: 1.5,
     ease: 'power2.inOut'
   }, '<')
 
   // Brief pause at 100%
-  tl.to({}, { duration: 0.25 })
+  tl.to({}, { duration: 0.2 })
 })
 </script>
 
@@ -194,8 +184,8 @@ onMounted(async () => {
 .blade-line {
   stroke-dasharray: 80;
   stroke-dashoffset: 80;
-  animation: draw-blade 1.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  animation-delay: 0.15s;
+  animation: draw-blade 1.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  animation-delay: 0.1s;
   opacity: 0.85;
 }
 
