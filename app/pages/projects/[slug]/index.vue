@@ -447,7 +447,7 @@ const projectVideoUrls = computed(() => {
   const normalized = urls.map((url: string) => url?.trim()).filter(Boolean)
   const legacyUrl = project.value?.videoUrl?.trim()
   if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)
-  return normalized
+  return normalized.slice(0, 10)
 })
 const activeVideoUrl = computed(() => projectVideoUrls.value[activeVideoIndex.value] || '')
 

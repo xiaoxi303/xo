@@ -1286,7 +1286,14 @@
                           REMOVE
                         </button>
                       </div>
-                      <button type="button" @click="addProjectVideo" class="btn-ghost text-xs py-2 px-3">+ ADD VIDEO</button>
+                      <button
+                        type="button"
+                        @click="addProjectVideo"
+                        class="btn-ghost text-xs py-2 px-3"
+                        :disabled="form.videoUrls.length >= MAX_PROJECT_VIDEOS"
+                      >
+                        + ADD VIDEO
+                      </button>
                     </div>
                     <p class="text-[10px] leading-relaxed" style="color: var(--color-ink-5)">First filled URL is used on cards. All URLs appear as switchable videos on the project detail page.</p>
                   </div>
@@ -1847,6 +1854,7 @@ const form = ref<any>({
   releaseYear: '', postSpecs: '', director: '', deliverFormat: '', audioFormat: ''
 })
 
+const MAX_PROJECT_VIDEOS = 10
 const featuredCount = computed(() => projectsList.value.filter(p => p.featured).length)
 const lockedProjects = computed(() => (projectsList.value || []).filter((p: any) => p.password && p.password.trim() !== ''))
 const isValidImage = computed(() => form.value.image && /^https?:\/\/.*?\.(jpg|jpeg|png|webp|avif|gif)/i.test(form.value.image))
@@ -1858,13 +1866,15 @@ const normalizeProjectVideos = () => {
   const normalized = urls.map((url: string) => url?.trim()).filter(Boolean)
   const legacyUrl = form.value.videoUrl?.trim()
   if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)
-  form.value.videoUrls = normalized.length ? normalized : ['']
-  form.value.videoUrl = normalized[0] || ''
-  return normalized
+  const capped = normalized.slice(0, MAX_PROJECT_VIDEOS)
+  form.value.videoUrls = capped.length ? capped : ['']
+  form.value.videoUrl = capped[0] || ''
+  return capped
 }
 
 const addProjectVideo = () => {
   if (!Array.isArray(form.value.videoUrls)) form.value.videoUrls = ['']
+  if (form.value.videoUrls.length >= MAX_PROJECT_VIDEOS) return
   form.value.videoUrls.push('')
 }
 

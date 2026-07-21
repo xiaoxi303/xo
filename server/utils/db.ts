@@ -4,6 +4,7 @@ import path from 'node:path'
 import { getRuntimeDataPath } from './storage'
 
 let isDbInitialized = false
+const MAX_PROJECT_VIDEOS = 10
 
 // Helper to get D1 database and auto-initialize tables
 export async function getD1Database(event: H3Event) {
@@ -228,7 +229,7 @@ function normalizeVideoUrls(data: any): string[] {
 
   const legacyUrl = String(data?.videoUrl || '').trim()
   if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)
-  return normalized
+  return normalized.slice(0, MAX_PROJECT_VIDEOS)
 }
 
 function normalizeProject(row: any) {
