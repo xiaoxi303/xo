@@ -591,6 +591,32 @@
                   <input v-model="siteConfig.home.statLabel2" class="form-input text-[10px]" placeholder="高规格支持" />
                 </div>
               </div>
+
+              <!-- Homepage Featured Projects Selector -->
+              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">首页卡片大图作品展示</h3>
+                <p class="text-[10px] text-amber-700 leading-relaxed font-sans font-semibold">您可以指定在首页 Bento 磁贴网格上展示的两个核心作品。如果不指定，则会自动默认取作品库中排在前两位的作品。</p>
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="form-label">首页作品位置一 (大图 1)</label>
+                    <select v-model="siteConfig.home.featuredProject1" class="form-input">
+                      <option value="">-- 默认使用第一部作品 --</option>
+                      <option v-for="p in projectsList" :key="p.slug" :value="p.slug">
+                        🎬 {{ p.title }} ({{ p.slug }})
+                      </option>
+                    </select>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">首页作品位置二 (大图 2)</label>
+                    <select v-model="siteConfig.home.featuredProject2" class="form-input">
+                      <option value="">-- 默认使用第二部作品 --</option>
+                      <option v-for="p in projectsList" :key="p.slug" :value="p.slug">
+                        🎬 {{ p.title }} ({{ p.slug }})
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
               <!-- Profile Card -->
               <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
                 <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">个人磁贴卡片 (Profile Card)</h3>
@@ -1734,7 +1760,8 @@ const siteConfig = useState<any>('site-config', () => ({
     heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '',
     statValue1: '', statLabel1: '', statValue2: '', statLabel2: '',
     profileCardTitle: '', profileCardSub: '', profileCardDesc: '',
-    skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: []
+    skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: [],
+    featuredProject1: '', featuredProject2: ''
   },
   about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [] },
   admin: { username: 'admin', adminPath: 'admin' }
@@ -1912,6 +1939,7 @@ const fetchSiteConfig = async () => {
       statValue1: '', statLabel1: '', statValue2: '', statLabel2: '', 
       profileCardTitle: '', profileCardSub: '', profileCardDesc: '', 
       skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: [],
+      featuredProject1: '', featuredProject2: '',
       ...data.home 
     },
     about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [], ...data.about },

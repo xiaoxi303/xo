@@ -276,7 +276,16 @@ const { data: projects } = await useFetch<any[]>('/api/projects')
 
 // Fallback logic if database is empty
 const tvcProject = computed(() => {
-  return (projects.value || []).find(p => p.slug === 'tvc-commercial') || {
+  const list = projects.value || []
+  const selectedSlug = siteConfig.value?.home?.featuredProject1
+  if (selectedSlug) {
+    const found = list.find(p => p.slug === selectedSlug)
+    if (found) return found
+  }
+  // Fallback to first project in the list
+  if (list.length > 0) return list[0]
+  // Ultimate hardcoded fallback
+  return {
     slug: 'tvc-commercial',
     title: '2026 个人剪辑与后期样片秀 (Showreel)',
     description: '剪辑节奏 · 电影感调色 (DaVinci) · 三维动效 (C4D)',
@@ -286,7 +295,16 @@ const tvcProject = computed(() => {
 })
 
 const gradingProject = computed(() => {
-  return (projects.value || []).find(p => p.slug === 'sci-fi-boundary') || {
+  const list = projects.value || []
+  const selectedSlug = siteConfig.value?.home?.featuredProject2
+  if (selectedSlug) {
+    const found = list.find(p => p.slug === selectedSlug)
+    if (found) return found
+  }
+  // Fallback to second project in the list
+  if (list.length > 1) return list[1]
+  // Ultimate hardcoded fallback
+  return {
     slug: 'sci-fi-boundary',
     title: '商业调色作品集',
     description: 'DaVinci Resolve · Arri LogC · ACES 工作流',
