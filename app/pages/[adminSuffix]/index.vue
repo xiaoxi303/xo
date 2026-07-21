@@ -1560,10 +1560,10 @@ const checkAuth = async () => {
   try {
     const user = await $fetch('/api/auth/me') as any
     if (user && user.username) {
+      // Pre-load all data before revealing the panel — prevents blank screen on refresh
+      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus()])
+      await nextTick()
       isLoggedIn.value = true
-      await fetchProjects()
-      await fetchSiteConfig()
-      await fetchSystemStatus()
     }
   } catch (err) {
     isLoggedIn.value = false
@@ -1581,9 +1581,10 @@ const handleLogin = async () => {
       body: loginForm.value
     }) as any
     if (res.success) {
+      // Fetch all data FIRST, then reveal the panel — prevents blank screen
+      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus()])
+      await nextTick()
       isLoggedIn.value = true
-      await fetchProjects()
-      await fetchSiteConfig()
       loginForm.value = { username: '', password: '' }
     }
   } catch (err: any) {
