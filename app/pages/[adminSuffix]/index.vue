@@ -1596,6 +1596,11 @@ const presetEmojis = [
 ]
 
 const activeTab = ref('analytics')
+watch(activeTab, (newTab) => {
+  if (newTab === 'analytics') {
+    fetchSystemStatus()
+  }
+})
 const tabs = [
   { label: '数据看板', value: 'analytics', icon: '📊' },
   { label: '作品管理', value: 'projects', icon: '🎥' },
@@ -2007,7 +2012,7 @@ const fetchSiteConfig = async () => {
 
 const fetchSystemStatus = async () => {
   try {
-    systemStatus.value = await $fetch('/api/system-status') as any
+    systemStatus.value = await $fetch('/api/system-status?t=' + Date.now()) as any
   } catch (e) {
     console.error('Failed to fetch system status:', e)
   }
