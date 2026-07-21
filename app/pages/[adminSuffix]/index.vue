@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-28 pb-20 px-6 font-sans">
+  <div class="min-h-screen pt-10 pb-20 px-6 font-sans">
     
     <!-- 1. Auth check loading spinner -->
     <div v-if="isCheckingAuth" class="max-w-6xl mx-auto py-32 flex flex-col items-center justify-center space-y-4">

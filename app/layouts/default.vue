@@ -54,10 +54,11 @@
       <div class="bg-orb bg-orb-4" />
     </div>
 
-    <!-- Floating Ambient Soundscape Player (Bottom-Right Premium Capsule) -->
+    <!-- Floating Ambient Soundscape Player (Bottom-Left, below announcement) -->
     <div
-      v-if="musicEnabled"
-      class="fixed bottom-6 right-6 z-[60] rounded-full px-4 py-2.5 shadow-[0_8px_30px_rgba(80,60,30,0.08)] border flex items-center gap-3 transition-all duration-300 backdrop-blur-xl"
+      v-if="musicEnabled && !isAdminPage"
+      class="fixed z-[60] rounded-full px-4 py-2.5 shadow-[0_8px_30px_rgba(80,60,30,0.08)] border flex items-center gap-3 transition-all duration-300 backdrop-blur-xl"
+      :class="announcement?.enabled && announcement?.text && showBanner ? 'bottom-24 left-6' : 'bottom-6 left-6'"
       style="background: rgba(252, 248, 242, 0.9); border-color: rgba(200, 185, 160, 0.25);"
     >
       <!-- Audio Beat visualizer (dancing bar micro-animation) -->
@@ -101,16 +102,16 @@
       />
     </div>
 
-    <!-- Navbar -->
-    <AppNavbar />
+    <!-- Navbar — hidden on admin pages -->
+    <AppNavbar v-if="!isAdminPage" />
 
     <!-- Page content -->
     <main class="relative z-10">
       <slot />
     </main>
 
-    <!-- Footer -->
-    <AppFooter />
+    <!-- Footer — hidden on admin pages -->
+    <AppFooter v-if="!isAdminPage" />
   </div>
 </template>
 
@@ -165,6 +166,10 @@ watch(showFilmGrain, (val) => {
     else document.body.classList.remove('no-grain')
   }
 }, { immediate: true })
+
+// Hide player and footer/navbar on admin pages
+const route = useRoute()
+const isAdminPage = computed(() => !!route.params.adminSuffix)
 
 // Ambient Soundscape Player States & Logic
 const isPlaying = ref(false)
