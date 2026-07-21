@@ -423,13 +423,20 @@
                     <td class="py-4 px-6" style="color: var(--color-ink-4)">
                       {{ new Date(u.createdAt).toLocaleString('zh-CN', { hour12: false }) }}
                     </td>
-                    <td class="py-4 px-6 text-right">
+                    <td class="py-4 px-6 text-right space-x-3.5">
+                      <button
+                        type="button"
+                        @click="openEditUserModal(u)"
+                        class="text-amber-700 hover:text-amber-800 font-bold hover:underline"
+                      >
+                        编辑权限
+                      </button>
                       <button
                         type="button"
                         @click="deleteUser(u.id)"
                         class="text-rose-500 hover:text-rose-400 font-bold hover:underline"
                       >
-                        注销账号
+                        注销
                       </button>
                     </td>
                   </tr>
@@ -1359,6 +1366,89 @@
         </div>
       </div>
     </Transition>
+
+    <!-- Sliding Drawer Modal (For Editing Users) -->
+    <Transition name="drawer">
+      <div v-if="isUserModalOpen" class="fixed inset-0 z-50 flex justify-end">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="closeUserModal" />
+        <div class="relative w-full max-w-lg h-full flex flex-col shadow-2xl overflow-hidden font-sans"
+             style="background: var(--color-bg); border-left: 1px solid var(--color-border)">
+
+          <div class="flex items-center justify-between p-6" style="border-bottom: 1px solid var(--color-border)">
+            <div>
+              <h2 class="font-display text-lg font-bold" style="color: var(--color-ink-1)">编辑客户账号与权限</h2>
+              <p class="text-[10px] font-mono uppercase tracking-wider mt-0.5" style="color: var(--color-ink-5)">Edit Account Credentials & Authorizations</p>
+            </div>
+            <button @click="closeUserModal" class="p-1.5 rounded-lg hover:bg-black/5 transition-colors" style="color: var(--color-ink-4)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <!-- Account Info -->
+            <div class="space-y-4">
+              <h3 class="text-xs font-mono font-semibold uppercase tracking-wider pb-1 border-b" style="color: var(--color-ink-3)">基础账号信息</h3>
+              
+              <div class="space-y-1.5">
+                <label class="form-label">用户名</label>
+                <input :value="userForm.username" type="text" disabled class="form-input opacity-60 bg-black/[0.02]" />
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="form-label">电子邮件</label>
+                <input v-model="userForm.email" type="email" class="form-input font-mono" placeholder="client@example.com" />
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="form-label">账号角色 / 状态</label>
+                <select v-model="userForm.role" class="form-input">
+                  <option value="client">🟢 client (普通客户账号)</option>
+                  <option value="disabled">🔴 disabled (禁用该账号登录)</option>
+                </select>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="form-label">重置账户密码</label>
+                <input v-model="userForm.password" type="text" class="form-input font-mono" placeholder="留空表示不修改密码" />
+                <p class="text-[9px] text-slate-400 font-mono">若客户遗失密码，在此处输入新密码（至少 6 位）保存即可重置。</p>
+              </div>
+            </div>
+
+            <!-- Project Permissions -->
+            <div class="space-y-4 pt-2">
+              <h3 class="text-xs font-mono font-semibold uppercase tracking-wider pb-1 border-b" style="color: var(--color-ink-3)">作品授权范围</h3>
+              <p class="text-[10px] text-amber-800 font-sans leading-relaxed">您可以限制该客户只能提取特定加密作品的访问密码。若不勾选任何项目，则默认授权访问<b>所有</b>加密作品。</p>
+              
+              <div class="space-y-2 max-h-60 overflow-y-auto p-3 rounded-xl border bg-black/[0.01]" style="border-color: var(--color-border-2)">
+                <div v-for="p in lockedProjects" :key="p.slug" class="flex items-start gap-2.5 py-1.5">
+                  <input
+                    type="checkbox"
+                    :id="'user-proj-' + p.slug"
+                    :value="p.slug"
+                    v-model="selectedUserProjects"
+                    class="mt-0.5 rounded border-gray-300 text-amber-700 focus:ring-amber-500"
+                  />
+                  <label :for="'user-proj-' + p.slug" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-2)">
+                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ p.title }}</span>
+                    <span class="text-[10px] font-mono opacity-60 block mt-0.5">slug: {{ p.slug }}</span>
+                  </label>
+                </div>
+                <div v-if="lockedProjects.length === 0" class="text-center py-6 text-[10px] text-slate-400">
+                  当前未配置任何设置了访问密码的加密作品。
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6 flex items-center justify-end gap-3" style="border-top: 1px solid var(--color-border)">
+            <button type="button" @click="closeUserModal" class="btn-ghost text-xs py-2 px-4">取消</button>
+            <button type="button" @click="saveUser" class="btn-primary text-xs py-2 px-6">保存资料与权限</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -1608,6 +1698,50 @@ const siteConfig = useState<any>('site-config', () => ({
 
 const isModalOpen = ref(false)
 const isEditing = ref(false)
+
+const isUserModalOpen = ref(false)
+const selectedUserProjects = ref<string[]>([])
+const userForm = ref({
+  id: '',
+  username: '',
+  email: '',
+  role: 'client',
+  password: '',
+  allowedProjects: ''
+})
+
+const openEditUserModal = (u: any) => {
+  userForm.value = {
+    id: u.id,
+    username: u.username,
+    email: u.email || '',
+    role: u.role || 'client',
+    password: '',
+    allowedProjects: u.allowedProjects || ''
+  }
+  selectedUserProjects.value = u.allowedProjects
+    ? u.allowedProjects.split(',').map((s: string) => s.trim()).filter(Boolean)
+    : []
+  isUserModalOpen.value = true
+}
+
+const closeUserModal = () => {
+  isUserModalOpen.value = false
+}
+
+const saveUser = async () => {
+  try {
+    userForm.value.allowedProjects = selectedUserProjects.value.join(',')
+    await $fetch('/api/admin/users', {
+      method: 'PUT',
+      body: userForm.value
+    })
+    await fetchUsers()
+    closeUserModal()
+  } catch (err: any) {
+    alert(err.data?.statusMessage || '保存用户信息失败。')
+  }
+}
 const softwareList = ['Premiere Pro', 'DaVinci Resolve', 'After Effects', 'Cinema 4D', 'Logic Pro', 'FCPX', 'Redshift', 'Octane']
 const tempTagInput = ref('')
 const tempSkillsTagInput = ref('')

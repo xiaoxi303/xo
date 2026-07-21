@@ -1,5 +1,7 @@
-import { dbGetUsers } from '../../utils/db'
+import { getD1Database } from '../../utils/db'
+import { getRuntimeDataPath } from '../../utils/storage'
 import { verifyPassword, createSession, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
+import fs from 'node:fs'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -10,12 +12,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Retrieve raw users list to perform password verification
-  // Wait, dbGetUsers strips password from results.
   // We need to retrieve the user including password hash.
-  // Let's create a local helper to retrieve raw user from DB or JSON file.
-  const { getD1Database, getRuntimeDataPath } = await import('../../utils/db')
-  const fs = await import('node:fs')
-  
   let userRecord: any = null
   const db = await getD1Database(event)
   if (db) {

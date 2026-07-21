@@ -66,6 +66,7 @@ export async function getD1Database(event: H3Event) {
           email TEXT,
           password TEXT NOT NULL,
           role TEXT DEFAULT 'client',
+          allowedProjects TEXT DEFAULT '',
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
       `)
@@ -90,6 +91,9 @@ export async function getD1Database(event: H3Event) {
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE projects ADD COLUMN audioFormat TEXT;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN allowedProjects TEXT DEFAULT '';`)
       } catch (e) {}
       isDbInitialized = true
     } catch (err) {
@@ -633,7 +637,7 @@ export async function dbDeletePasswordRequest(event: H3Event, id: number | strin
 export async function dbGetUsers(event: H3Event): Promise<any[]> {
   const db = await getD1Database(event)
   if (db) {
-    const { results } = await db.prepare('SELECT id, username, email, role, createdAt FROM users ORDER BY createdAt DESC').all()
+    const { results } = await db.prepare('SELECT id, username, email, role, allowedProjects, createdAt FROM users ORDER BY createdAt DESC').all()
     return results
   }
 
@@ -659,8 +663,8 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
       throw createError({ statusCode: 409, statusMessage: '用户名已被注册。' })
     }
     await db.prepare(`
-      INSERT INTO users (username, email, password, role)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO users (username, email, password, role, allowedProjects)
+      VALUES (?, ?, ?, ?, '')
     `).bind(data.username, data.email, data.password, data.role || 'client').run()
     return
   }
@@ -683,6 +687,7 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
     email: data.email,
     password: data.password,
     role: data.role || 'client',
+    allowedProjects: '',
     createdAt: new Date().toISOString()
   }
   users.unshift(newUser)
@@ -703,5 +708,42 @@ export async function dbDeleteUser(event: H3Event, id: number | string): Promise
     let users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
     users = users.filter((u: any) => String(u.id) !== String(id))
     fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+  } catch (e) {}
+}
+
+export async function dbUpdateUser(event: H3Event, id: number | string, data: any): Promise<void> {
+  const db = await getD1Database(event)
+  if (db) {
+    if (data.password) {
+      await db.prepare(`
+        UPDATE users 
+        SET email = ?, role = ?, allowedProjects = ?, password = ?
+        WHERE id = ?
+      `).bind(data.email, data.role, data.allowedProjects || '', data.password, id).run()
+    } else {
+      await db.prepare(`
+        UPDATE users 
+        SET email = ?, role = ?, allowedProjects = ?
+        WHERE id = ?
+      `).bind(data.email, data.role, data.allowedProjects || '', id).run()
+    }
+    return
+  }
+
+  // Local fallback JSON file
+  const usersPath = getRuntimeDataPath('users.json')
+  if (!fs.existsSync(usersPath)) return
+  try {
+    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+    const idx = users.findIndex((u: any) => String(u.id) === String(id))
+    if (idx !== -1) {
+      users[idx].email = data.email
+      users[idx].role = data.role
+      users[idx].allowedProjects = data.allowedProjects || ''
+      if (data.password) {
+        users[idx].password = data.password
+      }
+      fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+    }
   } catch (e) {}
 }

@@ -12,9 +12,39 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: '会话已过期，请重新登录。' })
   }
 
+  // 2. Fetch client user details to check status and allowed project permissions
+  const { getD1Database, getRuntimeDataPath } = await import('../../../utils/db')
+  const fs = await import('node:fs')
+  let clientUser: any = null
+  const db = await getD1Database(event)
+  if (db) {
+    clientUser = await db.prepare('SELECT role, allowedProjects FROM users WHERE username = ?').bind(session.username).first()
+  } else {
+    const usersPath = getRuntimeDataPath('users.json')
+    if (fs.existsSync(usersPath)) {
+      try {
+        const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+        clientUser = users.find((u: any) => u.username === session.username)
+      } catch (e) {}
+    }
+  }
+
+  if (clientUser) {
+    if (clientUser.role === 'disabled') {
+      throw createError({ statusCode: 403, statusMessage: '您的客户账号已被禁用，请联系主理人。' })
+    }
+  }
+
   const slug = event.context.params?.slug
   if (!slug) {
     throw createError({ statusCode: 400, statusMessage: '缺少项目标识。' })
+  }
+
+  if (clientUser && clientUser.allowedProjects && clientUser.allowedProjects.trim() !== '') {
+    const allowed = clientUser.allowedProjects.split(',').map((s: string) => s.trim())
+    if (!allowed.includes(slug)) {
+      throw createError({ statusCode: 403, statusMessage: '您未获授权在线提取该作品的访问密码，请联系主理人添加授权。' })
+    }
   }
 
   // 2. Retrieve raw password safely using server-only helper
