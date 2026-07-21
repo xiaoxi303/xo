@@ -1,6 +1,7 @@
 import { H3Event } from 'h3'
 import fs from 'node:fs'
 import path from 'node:path'
+import { getRuntimeDataPath } from './storage'
 
 let isDbInitialized = false
 
@@ -240,10 +241,16 @@ function sanitizeProject(row: any) {
 }
 
 export async function dbGetProjects(event: H3Event): Promise<any[]> {
+  const projects = await dbGetProjectsRaw(event)
+  return projects.map((project: any) => sanitizeProject(project))
+}
+
+/** Admin-only project list: includes raw password for editing and lock overview. */
+export async function dbGetProjectsRaw(event: H3Event): Promise<any[]> {
   const db = await getD1Database(event)
   if (db) {
     const { results } = await db.prepare('SELECT * FROM projects ORDER BY featured DESC, createdAt DESC').all()
-    return results.map((row: any) => sanitizeProject({
+    return results.map((row: any) => ({
       ...row,
       featured: Boolean(row.featured),
       software: row.software ? JSON.parse(row.software) : [],
@@ -253,10 +260,10 @@ export async function dbGetProjects(event: H3Event): Promise<any[]> {
   }
 
   // Fallback: local markdown files
-  const projectsDir = path.resolve(process.cwd(), 'content/projects')
+  const projectsDir = getRuntimeDataPath('projects')
   if (!fs.existsSync(projectsDir)) return []
   const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
-  const projects = files.map(file => sanitizeProject(parseMarkdownFile(path.join(projectsDir, file))))
+  const projects = files.map(file => parseMarkdownFile(path.join(projectsDir, file)))
   return projects.sort((a: any, b: any) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
 }
 
@@ -267,7 +274,7 @@ export async function dbGetProjectPassword(event: H3Event, slug: string): Promis
     const row = await db.prepare('SELECT password FROM projects WHERE slug = ?').bind(slug).first() as any
     return row?.password || null
   }
-  const filePath = path.resolve(process.cwd(), 'content/projects', `${slug}.md`)
+  const filePath = getRuntimeDataPath('projects', `${slug}.md`)
   if (!fs.existsSync(filePath)) return null
   const parsed = parseMarkdownFile(filePath)
   return (parsed as any).password || null
@@ -312,7 +319,7 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
   }
 
   // Fallback
-  const projectsDir = path.resolve(process.cwd(), 'content/projects')
+  const projectsDir = getRuntimeDataPath('projects')
   if (!fs.existsSync(projectsDir)) {
     fs.mkdirSync(projectsDir, { recursive: true })
   }
@@ -362,7 +369,7 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
   }
 
   // Fallback
-  const projectsDir = path.resolve(process.cwd(), 'content/projects')
+  const projectsDir = getRuntimeDataPath('projects')
   const fileName = `${body.slug.toLowerCase().replace(/[^a-z0-9-_]/g, '')}.md`
   const filePath = path.join(projectsDir, fileName)
   if (!fs.existsSync(filePath)) {
@@ -380,7 +387,7 @@ export async function dbDeleteProject(event: H3Event, slug: string): Promise<voi
   }
 
   // Fallback
-  const projectsDir = path.resolve(process.cwd(), 'content/projects')
+  const projectsDir = getRuntimeDataPath('projects')
   const fileName = `${slug.toLowerCase().replace(/[^a-z0-9-_]/g, '')}.md`
   const filePath = path.join(projectsDir, fileName)
   if (!fs.existsSync(filePath)) {
@@ -509,7 +516,7 @@ export async function dbGetSiteConfig(event: H3Event): Promise<any> {
   }
 
   // Fallback
-  const configPath = path.resolve(process.cwd(), 'content/site-config.json')
+  const configPath = getRuntimeDataPath('site-config.json')
   try {
     if (fs.existsSync(configPath)) {
       const data = fs.readFileSync(configPath, 'utf-8')
@@ -534,7 +541,7 @@ export async function dbSaveSiteConfig(event: H3Event, config: any): Promise<voi
   }
 
   // Fallback
-  const configPath = path.resolve(process.cwd(), 'content/site-config.json')
+  const configPath = getRuntimeDataPath('site-config.json')
   const dir = path.dirname(configPath)
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8')

@@ -1,6 +1,6 @@
 import { getD1Database } from '../../utils/db'
 import fs from 'node:fs'
-import path from 'node:path'
+import { getRuntimeDataPath } from '../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     await db.prepare('INSERT INTO analytics_events (event, meta) VALUES (?, ?)').bind(eventName, metaStr).run()
   } else {
     // Local fallback: append to content/events.json
-    const eventsFile = path.resolve(process.cwd(), 'content/events.json')
+    const eventsFile = getRuntimeDataPath('events.json')
     let events: any[] = []
     if (fs.existsSync(eventsFile)) {
       try { events = JSON.parse(fs.readFileSync(eventsFile, 'utf-8')) } catch {}

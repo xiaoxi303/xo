@@ -1,6 +1,6 @@
 import { getD1Database } from '../utils/db'
 import fs from 'node:fs'
-import path from 'node:path'
+import { getRuntimeDataPath } from '../utils/storage'
 
 // Pages we want to track (skip assets, api routes, admin)
 const TRACKABLE_PATHS = ['/', '/projects', '/about']
@@ -34,8 +34,7 @@ export default defineEventHandler(async (event) => {
       })
     } else {
       // Local fallback: JSON file
-      const dataDir = path.resolve(process.cwd(), 'content')
-      const statsFile = path.join(dataDir, 'page-views.json')
+      const statsFile = getRuntimeDataPath('page-views.json')
 
       let stats: Record<string, Record<string, number>> = {}
       if (fs.existsSync(statsFile)) {

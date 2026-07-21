@@ -1,8 +1,8 @@
-import { getD1Database } from '../utils/db'
+import { dbGetProjectsRaw, getD1Database } from '../utils/db'
 import fs from 'node:fs'
-import path from 'node:path'
 import os from 'node:os'
 import { execSync } from 'node:child_process'
+import { getRuntimeDataPath } from '../utils/storage'
 
 export default defineEventHandler(async (event) => {
   const startTime = Date.now()
@@ -90,7 +90,7 @@ export default defineEventHandler(async (event) => {
     }
   } else {
     // Local fallback: read content/page-views.json
-    const statsFile = path.resolve(process.cwd(), 'content/page-views.json')
+    const statsFile = getRuntimeDataPath('page-views.json')
     if (fs.existsSync(statsFile)) {
       try {
         const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
@@ -112,7 +112,7 @@ export default defineEventHandler(async (event) => {
   // Load local events if not D1
   let localEvents: any[] = []
   if (!db) {
-    const eventsFile = path.resolve(process.cwd(), 'content/events.json')
+    const eventsFile = getRuntimeDataPath('events.json')
     if (fs.existsSync(eventsFile)) {
       try {
         localEvents = JSON.parse(fs.readFileSync(eventsFile, 'utf-8'))
@@ -163,38 +163,63 @@ export default defineEventHandler(async (event) => {
     ]
   }
 
-  // ── Project click events ──────────────────────────────────────────
+  const projects = await dbGetProjectsRaw(event).catch(() => [])
+  const projectTitles = new Map(projects.map((p: any) => [p.slug, p.title || p.slug]))
+
+  // ── Project engagement ranking: real project detail views plus click events ──
   let projectClicks: { slug: string; title: string; clicks: number }[] = []
+  const projectCounts: Record<string, number> = {}
+
+  const addProjectCount = (slug: string, count: number) => {
+    if (!slug) return
+    projectCounts[slug] = (projectCounts[slug] || 0) + count
+  }
+
   if (db) {
+    const viewRows = await db.prepare(
+      `SELECT path, SUM(count) as cnt FROM page_views WHERE path LIKE '/projects/%' GROUP BY path`
+    ).all()
+    ;((viewRows.results || []) as any[]).forEach((r: any) => {
+      const slug = String(r.path || '').replace(/^\/projects\//, '').split('/')[0]
+      addProjectCount(slug, Number(r.cnt || 0))
+    })
+
     const clickRows = await db.prepare(
       `SELECT meta, COUNT(*) as cnt FROM analytics_events WHERE event = 'project_click' GROUP BY meta ORDER BY cnt DESC LIMIT 4`
     ).all()
-    projectClicks = (clickRows.results as any[]).map((r: any) => {
+    ;((clickRows.results || []) as any[]).forEach((r: any) => {
       let slug = r.meta || ''
-      let title = slug
-      try { const parsed = JSON.parse(r.meta); slug = parsed.slug; title = parsed.title } catch {}
-      return { slug, title, clicks: Number(r.cnt) }
+      try { const parsed = JSON.parse(r.meta); slug = parsed.slug } catch {}
+      addProjectCount(slug, Number(r.cnt || 0))
     })
   } else {
+    const statsFile = getRuntimeDataPath('page-views.json')
+    if (fs.existsSync(statsFile)) {
+      try {
+        const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
+        for (const pathKey of Object.keys(stats)) {
+          if (!pathKey.startsWith('/projects/')) continue
+          const slug = pathKey.replace(/^\/projects\//, '').split('/')[0]
+          const views = Object.values(stats[pathKey] || {}).reduce((sum: number, n: any) => sum + Number(n || 0), 0)
+          addProjectCount(slug, views)
+        }
+      } catch {}
+    }
+
     const clickEvents = localEvents.filter(e => e.event === 'project_click')
-    const counts: Record<string, number> = {}
     clickEvents.forEach(e => {
       const meta = e.meta || ''
-      counts[meta] = (counts[meta] || 0) + 1
-    })
-
-    const sorted = Object.entries(counts)
-      .map(([meta, cnt]) => ({ meta, cnt }))
-      .sort((a, b) => b.cnt - a.cnt)
-      .slice(0, 4)
-
-    projectClicks = sorted.map(r => {
-      let slug = r.meta || ''
-      let title = slug
-      try { const parsed = JSON.parse(r.meta); slug = parsed.slug; title = parsed.title } catch {}
-      return { slug, title, clicks: r.cnt }
+      let slug = meta
+      try { const parsed = JSON.parse(meta); slug = parsed.slug } catch {}
+      addProjectCount(slug, 1)
     })
   }
+
+  projectClicks = Object.entries(projectCounts)
+    .map(([slug, clicks]) => ({ slug, title: String(projectTitles.get(slug) || slug), clicks }))
+    .filter(p => p.slug && p.clicks > 0)
+    .sort((a, b) => b.clicks - a.clicks)
+    .slice(0, 4)
 
   // ── Contact clicks ────────────────────────────────────────────────
   let contactClicks = 0
@@ -221,7 +246,7 @@ export default defineEventHandler(async (event) => {
     allTimeViews = Number(atv?.total || 0)
   } else {
     // local: sum page-views.json
-    const statsFile = path.resolve(process.cwd(), 'content/page-views.json')
+    const statsFile = getRuntimeDataPath('page-views.json')
     if (fs.existsSync(statsFile)) {
       try {
         const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))

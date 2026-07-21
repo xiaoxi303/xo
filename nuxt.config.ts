@@ -33,8 +33,8 @@ export default defineNuxtConfig({
     compatibilityVersion: 4
   },
 
-  // Nitro 部署预设配置
+  // Nitro 部署预设配置：标准 Node 服务器，支持服务器磁盘读写。
   nitro: {
-    preset: 'cloudflare-pages'
+    preset: 'node-server'
   }
 })

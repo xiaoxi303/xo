@@ -5,7 +5,7 @@
  */
 import { createHash, randomBytes } from 'crypto'
 import fs from 'node:fs'
-import path from 'node:path'
+import { getRuntimeDataPath } from './storage'
 
 // ───────────────────────────────────────────────
 // Admin Credentials (change password via admin UI)
@@ -37,9 +37,7 @@ const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 // Resolve sessions file path from current working directory
 function getSessionsFilePath(): string {
-  const dir = path.resolve(process.cwd(), 'content')
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  return path.join(dir, '.sessions.json')
+  return getRuntimeDataPath('.sessions.json')
 }
 
 function loadSessions(): SessionStore {

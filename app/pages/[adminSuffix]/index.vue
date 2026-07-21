@@ -1518,7 +1518,7 @@ const sparkFillPath = computed(() => {
   return `${sparkPath.value} L${lastX},14 L${firstX},14 Z`
 })
 
-const fetchProjects = async () => { projectsList.value = await $fetch('/api/projects') as any[] }
+const fetchProjects = async () => { projectsList.value = await $fetch('/api/admin/projects') as any[] }
 const fetchSiteConfig = async () => {
   const data = await $fetch('/api/site-config') as any
   if (!data.siteInfo) data.siteInfo = {}

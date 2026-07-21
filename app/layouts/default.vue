@@ -54,11 +54,11 @@
       <div class="bg-orb bg-orb-4" />
     </div>
 
-    <!-- Floating Ambient Soundscape Player (Bottom-Left, below announcement) -->
+    <!-- Floating Ambient Soundscape Player (Bottom-Center dock) -->
     <div
       v-if="musicEnabled && !isAdminPage"
       class="fixed z-[60] rounded-full px-4 py-2.5 shadow-[0_8px_30px_rgba(80,60,30,0.08)] border flex items-center gap-3 transition-all duration-300 backdrop-blur-xl"
-      :class="announcement?.enabled && announcement?.text && showBanner ? 'bottom-24 left-6' : 'bottom-6 left-6'"
+      :class="announcement?.enabled && announcement?.text && showBanner ? 'bottom-24 left-1/2 -translate-x-1/2' : 'bottom-6 left-1/2 -translate-x-1/2'"
       style="background: rgba(252, 248, 242, 0.9); border-color: rgba(200, 185, 160, 0.25);"
     >
       <!-- Audio Beat visualizer (dancing bar micro-animation) -->
