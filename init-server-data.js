@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /**
- * init-server-data.js
- * Run this ONCE on first server deploy to create default data files.
- * After that, git pull will NEVER touch these files — they are gitignored.
- *
- * Usage:  node init-server-data.js
+ * init-server-data.js (ES Module)
+ * Run this automatically or manually to ensure default content files exist.
+ * Files in content/ are gitignored, so git pull will NEVER overwrite them.
  */
 
-const fs = require('fs')
-const path = require('path')
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const contentDir = path.resolve(__dirname, 'content')
 const projectsDir = path.join(contentDir, 'projects')
