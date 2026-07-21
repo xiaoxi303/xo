@@ -115,7 +115,7 @@
         <!-- Grid -->
         <BentoContainer>
           <!-- Card 1: Showcase video -->
-          <BentoItem span="12:12:8" :to="'/projects/' + tvcProject.slug" class="reveal">
+          <BentoItem v-if="tvcProject" span="12:12:8" :to="'/projects/' + tvcProject.slug" class="reveal">
             <div class="h-full flex flex-col justify-between">
               <!-- Media cover -->
               <div class="h-80 relative overflow-hidden bg-slate-900 border-b border-black/5">
@@ -210,7 +210,7 @@
           </BentoItem>
 
           <!-- Card 4: Secondary Commercial Film Project -->
-          <BentoItem span="12:12:8" :to="'/projects/' + gradingProject.slug" class="reveal">
+          <BentoItem v-if="gradingProject" span="12:12:8" :to="'/projects/' + gradingProject.slug" class="reveal">
             <div class="h-full flex flex-col justify-between">
               
               <!-- Media area -->
@@ -284,14 +284,7 @@ const tvcProject = computed(() => {
   }
   // Fallback to first project in the list
   if (list.length > 0) return list[0]
-  // Ultimate hardcoded fallback
-  return {
-    slug: 'tvc-commercial',
-    title: '2026 个人剪辑与后期样片秀 (Showreel)',
-    description: '剪辑节奏 · 电影感调色 (DaVinci) · 三维动效 (C4D)',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-neon-sign-with-a-retro-style-41578-large.mp4',
-    image: 'https://images.unsplash.com/photo-1542204172-e7052809f852?w=800&q=80'
-  }
+  return null
 })
 
 const gradingProject = computed(() => {
@@ -303,13 +296,7 @@ const gradingProject = computed(() => {
   }
   // Fallback to second project in the list
   if (list.length > 1) return list[1]
-  // Ultimate hardcoded fallback
-  return {
-    slug: 'sci-fi-boundary',
-    title: '商业调色作品集',
-    description: 'DaVinci Resolve · Arri LogC · ACES 工作流',
-    image: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80'
-  }
+  return null
 })
 
 const techStack = ['Pr / Resolve / AE', 'Cinema 4D', 'VFX Compositing', 'DI Color Science']
