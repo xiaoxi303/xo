@@ -608,6 +608,28 @@
                   <label class="form-label">卡片描述</label>
                   <textarea v-model="siteConfig.home.profileCardDesc" rows="3" class="form-input resize-none" />
                 </div>
+                
+                <div class="space-y-1.5 pt-2">
+                  <label class="form-label flex justify-between">
+                    <span>个人头像图片 (Avatar Image)</span>
+                    <span class="text-[9px] text-amber-700 font-bold">支持链接地址或本地设备上传</span>
+                  </label>
+                  <div class="flex gap-2">
+                    <input v-model="siteConfig.siteInfo.avatar" class="form-input font-mono flex-1 text-xs" placeholder="https://... 或上传本地文件" />
+                    <label class="btn-ghost text-xs py-2 px-4 cursor-pointer flex items-center justify-center border border-dashed rounded-xl flex-shrink-0" style="border-color: var(--color-border-2); background: transparent;">
+                      <span>📤 上传</span>
+                      <input type="file" accept="image/*" class="hidden" @change="uploadAvatarFile" />
+                    </label>
+                  </div>
+                  <!-- Avatar Preview -->
+                  <div v-if="siteConfig.siteInfo.avatar" class="flex items-center gap-3 pt-2">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-black/10 flex-shrink-0">
+                      <img :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" />
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400">预览当前头像</span>
+                    <button type="button" @click="siteConfig.siteInfo.avatar = ''" class="text-[10px] font-bold text-rose-500 hover:underline ml-auto">清除头像</button>
+                  </div>
+                </div>
               </div>
               <!-- Skills Tags -->
               <div class="space-y-2 pt-4" style="border-top: 1px solid var(--color-border)">
@@ -689,6 +711,28 @@
                 <div class="space-y-1.5">
                   <label class="form-label">哲学旁白引言 (Sub Bio)</label>
                   <textarea v-model="siteConfig.about.bioSub" rows="3" class="form-input resize-none" />
+                </div>
+
+                <div class="space-y-1.5 pt-2">
+                  <label class="form-label flex justify-between">
+                    <span>个人头像图片 (Avatar Image)</span>
+                    <span class="text-[9px] text-amber-700 font-bold">支持链接地址或本地设备上传</span>
+                  </label>
+                  <div class="flex gap-2">
+                    <input v-model="siteConfig.siteInfo.avatar" class="form-input font-mono flex-1 text-xs" placeholder="https://... 或上传本地文件" />
+                    <label class="btn-ghost text-xs py-2 px-4 cursor-pointer flex items-center justify-center border border-dashed rounded-xl flex-shrink-0" style="border-color: var(--color-border-2); background: transparent;">
+                      <span>📤 上传</span>
+                      <input type="file" accept="image/*" class="hidden" @change="uploadAvatarFile" />
+                    </label>
+                  </div>
+                  <!-- Avatar Preview -->
+                  <div v-if="siteConfig.siteInfo.avatar" class="flex items-center gap-3 pt-2">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-black/10 flex-shrink-0">
+                      <img :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" />
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400">预览当前头像</span>
+                    <button type="button" @click="siteConfig.siteInfo.avatar = ''" class="text-[10px] font-bold text-rose-500 hover:underline ml-auto">清除头像</button>
+                  </div>
                 </div>
               </div>
               <!-- Skills Sliders -->
