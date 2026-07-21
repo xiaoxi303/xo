@@ -760,50 +760,51 @@
             <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5">保存高级配置</button>
           </div>
 
-          <!-- 1. Theme Aesthetics Tuner -->
+          <!-- 1. Project Password Manager -->
           <div class="glass-card p-8 space-y-6">
             <div class="border-b pb-4" style="border-color: var(--color-border)">
-              <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🎨 全站主色调与视觉氛围调校</h3>
-              <p class="text-xs mt-1" style="color: var(--color-ink-4)">一键切换网站品牌主调颜色与背景材质图层。</p>
+              <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🔐 作品隐私锁状态概览 (Password Locks Overview)</h3>
+              <p class="text-xs mt-1" style="color: var(--color-ink-4)">在此概览所有被密码保护的敏感商业作品或 NDA 项目。</p>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-6">
-              <!-- Accent Preset Select -->
-              <div class="space-y-2">
-                <label class="form-label">品牌主色调预设 (Accent Theme)</label>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  <button
-                    v-for="preset in accentOptions"
-                    :key="preset.value"
-                    type="button"
-                    @click="siteConfig.theme.accentPreset = preset.value"
-                    :class="[
-                      'p-3 rounded-xl border text-xs font-semibold flex items-center gap-2.5 transition-all',
-                      siteConfig.theme?.accentPreset === preset.value
-                        ? 'bg-white shadow-sm border-black/20 ring-2 ring-black/10'
-                        : 'bg-black/[0.02] border-black/[0.06] hover:bg-white/60'
-                    ]"
-                  >
-                    <span class="w-4 h-4 rounded-full flex-shrink-0 shadow-inner" :style="{ background: preset.color }" />
-                    <span style="color: var(--color-ink-1)">{{ preset.label }}</span>
-                  </button>
+            <!-- List of protected projects -->
+            <div class="space-y-3">
+              <template v-if="lockedProjects.length">
+                <div v-for="p in lockedProjects" :key="p.slug" class="p-4 rounded-xl flex items-center justify-between shadow-sm bg-black/[0.01]" style="border: 1px solid var(--color-border)">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">🔒</span>
+                    <div>
+                      <h4 class="font-bold text-sm" style="color: var(--color-ink-1)">{{ p.title }}</h4>
+                      <p class="text-[10px] font-mono" style="color: var(--color-ink-5)">/projects/{{ p.slug }}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="bg-amber-700/5 text-amber-700 text-xs px-3 py-1.5 rounded-lg border border-amber-800/10 font-mono font-bold">
+                      密码: {{ p.password }}
+                    </div>
+                    <button @click="openEditModal(p)" class="text-xs font-semibold hover:underline" style="color: var(--color-ink-4)">
+                      修改
+                    </button>
+                  </div>
                 </div>
+              </template>
+              <div v-else class="text-center py-6 border border-dashed rounded-xl" style="border-color: var(--color-border-2)">
+                <p class="text-xs font-mono" style="color: var(--color-ink-5)">当前无密码保护作品。您可在「作品管理」编辑中为特定视频设置授权密码。</p>
               </div>
+            </div>
 
-              <!-- Atmosphere Toggles -->
-              <div class="space-y-2">
-                <label class="form-label">背景光雾与质感图层</label>
-                <div class="p-4 rounded-xl space-y-3" style="background: rgba(0,0,0,0.02); border: 1px solid var(--color-border)">
-                  <label class="flex items-center justify-between cursor-pointer">
-                    <span class="text-xs font-medium" style="color: var(--color-ink-2)">动态背景光雾 (Atmosphere Orbs)</span>
-                    <input type="checkbox" v-model="siteConfig.theme.showOrbs" class="w-4 h-4 accent-amber-700 cursor-pointer" />
-                  </label>
-                  <div class="h-px bg-black/[0.05]" />
-                  <label class="flex items-center justify-between cursor-pointer">
-                    <span class="text-xs font-medium" style="color: var(--color-ink-2)">电影级胶片颗粒感 (Film Grain Overlay)</span>
-                    <input type="checkbox" v-model="siteConfig.theme.showFilmGrain" class="w-4 h-4 accent-amber-700 cursor-pointer" />
-                  </label>
-                </div>
+            <!-- Atmosphere Toggles -->
+            <div class="space-y-2 pt-2">
+              <label class="form-label">背景质感与动效图层</label>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <label class="flex items-center justify-between cursor-pointer p-4 rounded-xl bg-black/[0.01]" style="border: 1px solid var(--color-border)">
+                  <span class="text-xs font-medium" style="color: var(--color-ink-2)">动态背景光雾 (Atmosphere Orbs)</span>
+                  <input type="checkbox" v-model="siteConfig.theme.showOrbs" class="w-4 h-4 accent-amber-700 cursor-pointer" />
+                </label>
+                <label class="flex items-center justify-between cursor-pointer p-4 rounded-xl bg-black/[0.01]" style="border: 1px solid var(--color-border)">
+                  <span class="text-xs font-medium" style="color: var(--color-ink-2)">电影级胶片颗粒感 (Film Grain Overlay)</span>
+                  <input type="checkbox" v-model="siteConfig.theme.showFilmGrain" class="w-4 h-4 accent-amber-700 cursor-pointer" />
+                </label>
               </div>
             </div>
           </div>
@@ -949,7 +950,20 @@
                     <input v-model="form.videoUrl" required class="form-input font-mono" placeholder="https://...mp4" />
                   </div>
                 </div>
-                <!-- Software -->
+                <!-- Featured & Password Protection Row -->
+                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   <div class="flex items-center gap-2">
+                     <input id="featured" type="checkbox" v-model="form.featured" class="w-4 h-4 rounded cursor-pointer" />
+                     <label for="featured" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">设为首页精选置顶</label>
+                   </div>
+                   <div class="space-y-1.5">
+                     <label class="form-label flex items-center gap-1">
+                       <span>🔐 访问保护密码 (Password)</span>
+                       <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">(留空则完全公开)</span>
+                     </label>
+                     <input v-model="form.password" type="text" class="form-input font-mono text-xs" placeholder="例如: client2026 (无密码请留空)" />
+                   </div>
+                 </div>                <!-- Software -->
                 <div class="space-y-2">
                   <label class="form-label">所用后期软件</label>
                   <div class="flex flex-wrap gap-2">
@@ -976,11 +990,7 @@
                            style="color: var(--color-ink-1)" />
                   </div>
                 </div>
-                <!-- Featured -->
-                <div class="flex items-center gap-2">
-                  <input id="featured" type="checkbox" v-model="form.featured" class="w-4 h-4 rounded cursor-pointer" />
-                  <label for="featured" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">设为首页精选置顶</label>
-                </div>
+
                 <!-- Descriptions -->
                 <div class="space-y-4">
                   <div class="space-y-1.5">
@@ -1302,10 +1312,11 @@ const tempExpInputs = ref<Record<number, string>>({})
 const submitButtonRef = ref<HTMLButtonElement | null>(null)
 
 const form = ref<any>({
-  slug: '', title: '', image: '', videoUrl: '', software: [], tags: [], featured: false, description: '', longDescription: '', workflow: []
+  slug: '', title: '', image: '', videoUrl: '', software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: ''
 })
 
 const featuredCount = computed(() => projectsList.value.filter(p => p.featured).length)
+const lockedProjects = computed(() => (projectsList.value || []).filter((p: any) => p.password && p.password.trim() !== ''))
 const isValidImage = computed(() => form.value.image && /^https?:\/\/.*?\.(jpg|jpeg|png|webp|avif|gif)/i.test(form.value.image))
 const isValidVideo = computed(() => form.value.videoUrl && /^https?:\/\/.*?\.(mp4|mov|avi|m3u8|webm)/i.test(form.value.videoUrl))
 
@@ -1584,7 +1595,8 @@ const openCreateModal = () => {
   form.value = {
     slug: '', title: '', image: '', videoUrl: '', software: ['Premiere Pro', 'DaVinci Resolve'],
     tags: ['剪辑节奏', '达芬奇调色'], featured: false, description: '', longDescription: '',
-    workflow: [{ icon: '⚡', title: 'Offline 粗剪', desc: '根据背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。' }]
+    workflow: [{ icon: '⚡', title: 'Offline 粗剪', desc: '根据背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。' }],
+    password: ''
   }
   tempTagInput.value = ''
   isModalOpen.value = true

@@ -24,6 +24,7 @@ export async function getD1Database(event: H3Event) {
           description TEXT,
           longDescription TEXT,
           workflow TEXT,
+          password TEXT,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS site_config (
@@ -44,6 +45,12 @@ export async function getD1Database(event: H3Event) {
           ts DATETIME DEFAULT CURRENT_TIMESTAMP
         );
       `)
+      // Try to alter table in case the schema already existed without the password column
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN password TEXT;`)
+      } catch (e) {
+        // Ignore errors if the column already exists
+      }
       isDbInitialized = true
     } catch (err) {
       console.error('D1 auto-initialization failed:', err)
@@ -143,6 +150,7 @@ function stringifyYaml(data: any): string {
   lines.push(`longDescription: "${(data.longDescription || '').replace(/"/g, '\\"')}"`)
   lines.push(`image: "${(data.image || '').replace(/"/g, '\\"')}"`)
   lines.push(`videoUrl: "${(data.videoUrl || '').replace(/"/g, '\\"')}"`)
+  lines.push(`password: "${(data.password || '').replace(/"/g, '\\"')}"`)
   
   if (Array.isArray(data.tags)) {
     lines.push('tags:')
@@ -211,8 +219,8 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
     }
 
     await db.prepare(`
-      INSERT INTO projects (slug, title, image, videoUrl, software, tags, featured, description, longDescription, workflow)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO projects (slug, title, image, videoUrl, software, tags, featured, description, longDescription, workflow, password)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       body.slug,
       body.title,
@@ -223,7 +231,8 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
       body.featured ? 1 : 0,
       body.description || '',
       body.longDescription || '',
-      JSON.stringify(body.workflow || [])
+      JSON.stringify(body.workflow || []),
+      body.password || ''
     ).run()
     return
   }
@@ -252,7 +261,7 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
 
     await db.prepare(`
       UPDATE projects
-      SET title = ?, image = ?, videoUrl = ?, software = ?, tags = ?, featured = ?, description = ?, longDescription = ?, workflow = ?
+      SET title = ?, image = ?, videoUrl = ?, software = ?, tags = ?, featured = ?, description = ?, longDescription = ?, workflow = ?, password = ?
       WHERE slug = ?
     `).bind(
       body.title,
@@ -264,6 +273,7 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
       body.description || '',
       body.longDescription || '',
       JSON.stringify(body.workflow || []),
+      body.password || '',
       body.slug
     ).run()
     return

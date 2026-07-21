@@ -13,7 +13,7 @@
     "footerTagline": "基于达芬奇色彩科学规范开发"
   },
   "theme": {
-    "accentPreset": "bronze",
+    "accentPreset": "blue",
     "glassBlur": "md",
     "showOrbs": true,
     "showFilmGrain": true

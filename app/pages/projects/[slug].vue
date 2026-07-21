@@ -3,7 +3,7 @@
     <div class="max-w-4xl mx-auto space-y-12">
 
       <!-- Back button -->
-      <div class="reveal">
+      <div v-if="!project || isUnlocked" class="reveal">
         <NuxtLink
           to="/projects"
           class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4"
@@ -15,8 +15,49 @@
         </NuxtLink>
       </div>
 
+      <!-- Password Protection Lock Screen -->
+      <div v-if="project && !isUnlocked" class="max-w-md mx-auto py-16 text-center space-y-6 reveal">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm"
+             style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
+          🔐
+        </div>
+        <div class="space-y-2">
+          <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-1)">该作品受访问密码保护</h1>
+          <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
+            此项目包含未公开内容、商业合作机密或受到 NDA 限制。<br>
+            请输入客户专属授权密码以解锁并查看详情。
+          </p>
+        </div>
+
+        <form @submit.prevent="verifyPassword" class="space-y-4 pt-4">
+          <div class="relative">
+            <input
+              v-model="inputPassword"
+              type="password"
+              class="form-input text-center font-mono tracking-widest py-3 rounded-xl w-full"
+              placeholder="请输入密码"
+              required
+              autofocus
+            />
+          </div>
+          <button type="submit" class="btn-primary w-full justify-center py-3 text-xs font-semibold">
+            验证密码并解锁
+          </button>
+        </form>
+
+        <p v-if="passwordError" class="text-xs text-rose-500 font-semibold">
+          ❌ 密码错误，请联系作者获取专属授权密码。
+        </p>
+
+        <div class="pt-4">
+          <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-4)">
+            &larr; 返回作品集
+          </NuxtLink>
+        </div>
+      </div>
+
       <!-- Project detail -->
-      <div v-if="project" class="space-y-10">
+      <div v-else-if="project && isUnlocked" class="space-y-10">
 
         <!-- Title block -->
         <div class="space-y-4 reveal">
@@ -182,6 +223,38 @@ const blurVideoRef = ref<HTMLVideoElement | null>(null)
 
 const { data: projects } = await useFetch<any[]>('/api/projects')
 const project = computed(() => (projects.value || []).find(p => p.slug === slug))
+
+const isUnlocked = ref(false)
+const inputPassword = ref('')
+const passwordError = ref(false)
+
+const verifyPassword = () => {
+  if (inputPassword.value === project.value?.password) {
+    isUnlocked.value = true
+    passwordError.value = false
+    if (import.meta.client) {
+      sessionStorage.setItem('unlocked_' + slug, inputPassword.value)
+    }
+  } else {
+    passwordError.value = true
+    setTimeout(() => { passwordError.value = false }, 2000)
+  }
+}
+
+watch(project, (val) => {
+  if (val) {
+    if (!val.password || val.password.trim() === '') {
+      isUnlocked.value = true
+    } else {
+      if (import.meta.client) {
+        const saved = sessionStorage.getItem('unlocked_' + slug)
+        if (saved === val.password) {
+          isUnlocked.value = true
+        }
+      }
+    }
+  }
+}, { immediate: true })
 
 const syncBlurVideo = () => {
   if (!mainVideoRef.value || !blurVideoRef.value) return
