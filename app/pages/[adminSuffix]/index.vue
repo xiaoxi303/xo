@@ -1016,10 +1016,10 @@
                   <div class="space-y-1.5">
                     <label class="form-label flex items-center justify-between">
                       <span>封面图片 URL (Graded / Final Frame)</span>
-                      <span class="text-[9px] font-normal text-amber-700 font-mono">(封面图或视频 URL 任意填一个即可)</span>
+                      <span class="text-[9px] font-normal text-amber-700 font-mono">(留空则自动生成动态封面)</span>
                     </label>
                     <div class="flex gap-2">
-                      <input v-model="form.image" class="form-input font-mono flex-1" placeholder="https://... (有视频可留空)" />
+                      <input v-model="form.image" class="form-input font-mono flex-1" placeholder="https://... (留空自动生成动态封面)" />
                       <label class="btn-ghost text-xs py-2 px-4 cursor-pointer flex items-center justify-center border border-dashed rounded-xl" style="border-color: var(--color-border-2); background: transparent;">
                         <span>📤 上传</span>
                         <input type="file" accept="image/*" class="hidden" @change="uploadProjectCover" />
@@ -1036,9 +1036,9 @@
                   <div class="space-y-1.5">
                     <label class="form-label flex items-center justify-between">
                       <span>视频 MP4 URL</span>
-                      <span class="text-[9px] font-normal text-amber-700 font-mono">(可选，留空则展示静态/艺术海报)</span>
+                      <span class="text-[9px] font-normal text-amber-700 font-mono">(可选，作品详情页播放器使用)</span>
                     </label>
-                    <input v-model="form.videoUrl" class="form-input font-mono" placeholder="https://...mp4 (只有图片可留空)" />
+                    <input v-model="form.videoUrl" class="form-input font-mono" placeholder="https://...mp4 (用于作品展示播放)" />
                   </div>
                 </div>
                 <!-- Featured & Password Protection Row -->
@@ -1178,8 +1178,7 @@
               <div class="rounded-2xl overflow-hidden" style="border: 1px dashed var(--color-border-2)">
                 <BentoItem :span="form.featured ? '12:6:8' : '12:6:4'" class="shadow-md">
                   <div class="h-44 relative overflow-hidden flex items-center justify-center" style="background: var(--color-bg-2)">
-                    <video v-if="form.videoUrl && isValidVideo" :src="form.videoUrl" muted autoplay loop playsinline class="w-full h-full object-cover pointer-events-none" />
-                    <img v-else-if="form.image && isValidImage" :src="form.image" class="w-full h-full object-cover" alt="" />
+                    <img v-if="form.image && isValidImage" :src="form.image" class="w-full h-full object-cover" alt="" />
                     <DefaultArtPoster
                       v-else
                       :title="form.title || '创意视频'"
@@ -1464,7 +1463,6 @@ const form = ref<any>({
 const featuredCount = computed(() => projectsList.value.filter(p => p.featured).length)
 const lockedProjects = computed(() => (projectsList.value || []).filter((p: any) => p.password && p.password.trim() !== ''))
 const isValidImage = computed(() => form.value.image && /^https?:\/\/.*?\.(jpg|jpeg|png|webp|avif|gif)/i.test(form.value.image))
-const isValidVideo = computed(() => form.value.videoUrl && /^https?:\/\/.*?\.(mp4|mov|avi|m3u8|webm)/i.test(form.value.videoUrl))
 
 // ── Chart computed helpers ────────────────────────────────────────────
 const chartMaxY = computed(() => {
