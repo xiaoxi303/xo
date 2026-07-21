@@ -43,7 +43,10 @@
     </div>
 
     <!-- 3. Config Panel (Authenticated) -->
-    <div v-else class="max-w-6xl mx-auto space-y-8">
+    <div v-else :class="showLivePreview ? 'max-w-[1700px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8' : 'max-w-6xl mx-auto space-y-8'">
+
+      <!-- Left Edit Column -->
+      <div class="space-y-8 min-w-0">
 
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -52,7 +55,7 @@
           <h1 class="font-display text-3xl font-bold tracking-tight" style="color: var(--color-ink-1)">配置工作台</h1>
           <p class="text-xs font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">Xo Studio · Site-Wide Configuration Panel</p>
         </div>
-        <!-- Tabs & Logout -->
+        <!-- Tabs & Actions -->
         <div class="flex flex-wrap items-center gap-3 self-start md:self-auto">
           <div class="flex items-center gap-1 p-1 rounded-xl"
                style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18);">
@@ -73,6 +76,18 @@
               <span>{{ t.icon }}</span>{{ t.label }}
             </button>
           </div>
+          <button @click="showLivePreview = !showLivePreview"
+                  :class="[
+                    'px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200',
+                    showLivePreview
+                      ? 'bg-amber-700 text-white border border-amber-800 shadow-sm'
+                      : 'hover:text-amber-700'
+                  ]"
+                  :style="showLivePreview
+                    ? {}
+                    : { color: 'var(--color-ink-4)', border: '1px solid var(--color-border-2)', background: 'transparent' }">
+            {{ showLivePreview ? '关闭双屏' : '👁️ 双屏预览' }}
+          </button>
           <button @click="handleLogout" class="px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 hover:text-rose-500 hover:border-rose-500/30"
                   style="color: var(--color-ink-4); border: 1px solid var(--color-border-2); background: transparent;">
             安全退出
@@ -727,7 +742,156 @@
           </div>
         </div>
 
+        <!-- ===== TAB 5: ADVANCED & PLAYGROUND ===== -->
+        <div v-if="activeTab === 'advanced'" class="space-y-8">
+          <!-- Save Top Bar -->
+          <div class="flex items-center justify-between p-6 glass-card">
+            <div>
+              <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">高级设置 & 主题玩法</h2>
+              <p class="text-xs font-mono mt-0.5" style="color: var(--color-ink-5)">调节品牌视觉主题、开启顶栏通知广播、备份导出全站 JSON 数据以及一键应用预设身份。</p>
+            </div>
+            <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5">保存高级配置</button>
+          </div>
+
+          <!-- 1. Theme Aesthetics Tuner -->
+          <div class="glass-card p-8 space-y-6">
+            <div class="border-b pb-4" style="border-color: var(--color-border)">
+              <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🎨 全站主色调与视觉氛围调校</h3>
+              <p class="text-xs mt-1" style="color: var(--color-ink-4)">一键切换网站品牌主调颜色与背景材质图层。</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- Accent Preset Select -->
+              <div class="space-y-2">
+                <label class="form-label">品牌主色调预设 (Accent Theme)</label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <button
+                    v-for="preset in accentOptions"
+                    :key="preset.value"
+                    type="button"
+                    @click="siteConfig.theme.accentPreset = preset.value"
+                    :class="[
+                      'p-3 rounded-xl border text-xs font-semibold flex items-center gap-2.5 transition-all',
+                      siteConfig.theme?.accentPreset === preset.value
+                        ? 'bg-white shadow-sm border-black/20 ring-2 ring-black/10'
+                        : 'bg-black/[0.02] border-black/[0.06] hover:bg-white/60'
+                    ]"
+                  >
+                    <span class="w-4 h-4 rounded-full flex-shrink-0 shadow-inner" :style="{ background: preset.color }" />
+                    <span style="color: var(--color-ink-1)">{{ preset.label }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Atmosphere Toggles -->
+              <div class="space-y-2">
+                <label class="form-label">背景光雾与质感图层</label>
+                <div class="p-4 rounded-xl space-y-3" style="background: rgba(0,0,0,0.02); border: 1px solid var(--color-border)">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-xs font-medium" style="color: var(--color-ink-2)">动态背景光雾 (Atmosphere Orbs)</span>
+                    <input type="checkbox" v-model="siteConfig.theme.showOrbs" class="w-4 h-4 accent-amber-700 cursor-pointer" />
+                  </label>
+                  <div class="h-px bg-black/[0.05]" />
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-xs font-medium" style="color: var(--color-ink-2)">电影级胶片颗粒感 (Film Grain Overlay)</span>
+                    <input type="checkbox" v-model="siteConfig.theme.showFilmGrain" class="w-4 h-4 accent-amber-700 cursor-pointer" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Broadcast Announcement Banner -->
+          <div class="glass-card p-8 space-y-6">
+            <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
+              <div>
+                <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">📢 顶栏全局广播通知条</h3>
+                <p class="text-xs mt-1" style="color: var(--color-ink-4)">在全站顶部呈现醒目的档期预订、最新动态或重大消息。</p>
+              </div>
+              <label class="flex items-center gap-2 cursor-pointer bg-black/[0.03] px-3.5 py-1.5 rounded-full border border-black/10">
+                <span class="text-xs font-bold font-mono" style="color: var(--color-ink-2)">开启广播条</span>
+                <input type="checkbox" v-model="siteConfig.announcement.enabled" class="w-4 h-4 accent-amber-700 cursor-pointer" />
+              </label>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-4" :class="{ 'opacity-50 pointer-events-none': !siteConfig.announcement?.enabled }">
+              <div class="space-y-1 md:col-span-1">
+                <label class="form-label">徽章标签 (Badge Text)</label>
+                <input v-model="siteConfig.announcement.badge" class="form-input font-mono uppercase" placeholder="NOTICE / HOT" />
+              </div>
+              <div class="space-y-1 md:col-span-2">
+                <label class="form-label">广播内容 (Announcement Message)</label>
+                <input v-model="siteConfig.announcement.text" class="form-input" placeholder="例如：🎬 2026 年下半年商业 TVC 档期与电影 DI 调色开放预订中" />
+              </div>
+              <div class="space-y-1 md:col-span-3">
+                <label class="form-label">跳转链接 (Link URL)</label>
+                <input v-model="siteConfig.announcement.link" class="form-input font-mono text-xs" placeholder="mailto:hello@xo.dev 或 https://..." />
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. One-Click Backup & Restore Sandbox -->
+          <div class="glass-card p-8 space-y-6">
+            <div class="border-b pb-4" style="border-color: var(--color-border)">
+              <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">💾 全站配置 JSON 沙盒备份 (Backup & Restore)</h3>
+              <p class="text-xs mt-1" style="color: var(--color-ink-4)">一键导出当前站点的全部设置 JSON 备份，或从备份文件快速还原全站设置。</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4">
+              <button type="button" @click="exportBackup" class="btn-bronze px-5 py-2.5 rounded-xl text-xs font-bold font-mono inline-flex items-center gap-2 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5e12 9-9-9m9 9a9 9 0 01-9-9" /></svg>
+                导出全站 JSON 备份文件
+              </button>
+
+              <label class="px-5 py-2.5 rounded-xl text-xs font-bold font-mono inline-flex items-center gap-2 border border-black/15 hover:bg-black/5 cursor-pointer transition-all" style="color: var(--color-ink-1)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                导入 JSON 恢复全站配置
+                <input type="file" accept=".json" @change="importBackup" class="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <!-- 4. Preset Persona Templates -->
+          <div class="glass-card p-8 space-y-6">
+            <div class="border-b pb-4" style="border-color: var(--color-border)">
+              <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">⚡ 快捷身份模板预填 (Persona Templates)</h3>
+              <p class="text-xs mt-1" style="color: var(--color-ink-4)">一键应用预设的大佬个人身份模板，快速体验不同视效领域的全套文案与标签。</p>
+            </div>
+
+            <div class="grid sm:grid-cols-3 gap-4">
+              <button
+                v-for="preset in personaPresets"
+                :key="preset.id"
+                type="button"
+                @click="applyPersona(preset)"
+                class="p-5 rounded-2xl border text-left space-y-2 hover:border-black/20 hover:shadow-md transition-all group"
+                style="background: rgba(255,255,255,0.7); border: 1px solid var(--color-border)"
+              >
+                <span class="text-2xl block mb-1">{{ preset.emoji }}</span>
+                <h4 class="font-display font-bold text-sm text-amber-900 group-hover:text-amber-700 transition-colors">{{ preset.title }}</h4>
+                <p class="text-xs line-clamp-2" style="color: var(--color-ink-4)">{{ preset.desc }}</p>
+                <span class="inline-block text-[10px] font-mono font-semibold uppercase text-amber-700 pt-1">点击套用预设 &rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+      </div>
+
+      <!-- Right Live Preview Drawer Column (When Double-Screen Active) -->
+      <div v-if="showLivePreview" class="relative sticky top-6 h-[calc(100vh-80px)] rounded-2xl overflow-hidden shadow-2xl border border-black/10 flex flex-col z-20" style="background: var(--glass-bg)">
+        <div class="h-10 px-4 flex items-center justify-between border-b flex-shrink-0" style="background: rgba(0,0,0,0.03); border-color: var(--color-border)">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <span class="text-[10px] font-mono ml-2 opacity-60">实时全双屏渲染画布 (Live Canvas)</span>
+          </div>
+          <button type="button" @click="refreshPreview" class="text-[10px] font-mono hover:underline opacity-80" style="color: var(--color-ink-1)">🔄 刷新预览</button>
+        </div>
+        <iframe ref="previewIframe" src="/" class="w-full flex-1 border-none" />
+      </div>
+
     </div>
 
     <!-- Sliding Drawer Modal (For Projects) -->
@@ -936,7 +1100,154 @@ const tabs = [
   { label: '首页配置', value: 'home', icon: '🏠' },
   { label: '个人履历', value: 'about', icon: '🙋' },
   { label: '站点信息', value: 'siteinfo', icon: '🌐' },
+  { label: '高级设置', value: 'advanced', icon: '🎨' }
 ]
+
+const showLivePreview = ref(false)
+const previewIframe = ref<HTMLIFrameElement | null>(null)
+const refreshPreview = () => {
+  if (previewIframe.value) {
+    previewIframe.value.src = previewIframe.value.src
+  }
+}
+
+const accentOptions = [
+  { label: '古铜哑金', value: 'bronze', color: '#b45309' },
+  { label: '翡翠松绿', value: 'emerald', color: '#059669' },
+  { label: '湛蓝深海', value: 'blue', color: '#2563eb' },
+  { label: '紫罗兰影', value: 'violet', color: '#7c3aed' },
+  { label: '玄武暗炭', value: 'slate', color: '#27272a' }
+]
+
+const personaPresets = [
+  {
+    id: 'colorist',
+    emoji: '🎨',
+    title: '电影级 DI 调色总监',
+    desc: '主打高精色彩科学（ACES / DaVinci Resolve）、胶片质感及大片视觉张力。',
+    home: {
+      heroTitle1: '用色彩',
+      heroTitle2: '唤醒情绪',
+      heroTitle3: '与视觉',
+      heroSub: '资深 DI 调色总监。深耕达芬奇色彩科学规范与 ACES 协作流，主导过多部院线电影、高端汽车 TVC 的调色美学搭建。',
+      skillsTags: ['Resolve', 'Color Grading', 'ACES Workflow', 'Film Emulation', 'HDR Mastering'],
+      heroTechStack: ['DaVinci Resolve', 'ACES workflow', 'Color Management', 'HDR Grading']
+    },
+    about: {
+      role: '电影后期调色指导 & 达芬奇认证调色师',
+      bio: '你好，我是 Xo，一名追求极致色彩科学与情绪传递的调色师。拥有 5 年高规项目调色经验，曾为多个豪车品牌、院线电影提供后期调色与画面风格定制方案。',
+      bioSub: '色彩不仅是亮度和色相的堆叠，更是镜头之下不可分割的情感催化剂。我专注于搭建完美的色彩管线，实现从监视器到最终发行的最高保真度呈现。',
+      skills: [
+        { name: 'Color Grading', level: 98 },
+        { name: 'Color Science', level: 95 },
+        { name: 'HDR Calibration', level: 90 },
+        { name: 'VFX Conform', level: 85 }
+      ]
+    }
+  },
+  {
+    id: 'editor',
+    emoji: '📹',
+    title: 'TVC 商业广告剪辑指导',
+    desc: '重节拍、极强节奏感、新潮转场、蒙太奇风格，主攻数码新品、运动潮流类商业短片。',
+    home: {
+      heroTitle1: '用镜头',
+      heroTitle2: '剪刻节奏',
+      heroTitle3: '与潮流',
+      heroSub: '新锐商业视频剪辑指导。擅长重节拍、创意转场与赛博朋克风蒙太奇，为顶级数码大厂、潮流街头品牌打造过数十支百万级播放爆款短片。',
+      skillsTags: ['Premiere Pro', 'Speed Ramp', 'Sound Design', 'Hip-Hop Beat', 'Match Cut'],
+      heroTechStack: ['Pr / Resolve', 'Logic Pro Foley', 'Kinetic Typography', 'Sound Design']
+    },
+    about: {
+      role: '商业广告剪辑指导 & 声画设计总监',
+      bio: '你好，我是 Xo，一名专注于将潮流节奏与叙事冲突完美融合的剪辑指导。主导过近百支商业 TVC 的精剪与音效微调，擅长通过非线性蒙太奇捕获年轻一代的注意力。',
+      bioSub: '剪辑是重组时空的魔术。在适当的时刻切准拍子，搭配拟真的声音微雕，能让一块平面的屏幕迸发出三维的空间深度和窒息的节奏感。',
+      skills: [
+        { name: 'Video Editing', level: 98 },
+        { name: 'Sound Foley', level: 90 },
+        { name: 'Speed Ramping', level: 95 },
+        { name: 'Creative Montages', level: 92 }
+      ]
+    }
+  },
+  {
+    id: 'vfx',
+    emoji: '✨',
+    title: '三维动效与 VFX 特效师',
+    desc: '主攻 Cinema 4D、Octane / Redshift 渲染、超现实科技感产品动效以及高维视觉包装。',
+    home: {
+      heroTitle1: '构建',
+      heroTitle2: '超现实',
+      heroTitle3: '数字维度',
+      heroSub: '高级三维动效设计师 & VFX 合成师。主攻 C4D 三维数字资产建模、光影物理渲染与超强未来科技感创意包装，实现天马行空的想象落地。',
+      skillsTags: ['Cinema 4D', 'Octane Render', 'After Effects', 'Particle Physics', '3D Modeling'],
+      heroTechStack: ['C4D / Octane', 'After Effects VFX', 'Redshift Rendering', 'Compositing']
+    },
+    about: {
+      role: '三维视觉包装总监 & 创意 CG 特效师',
+      bio: '你好，我是 Xo，一名热衷于探索虚拟光影边界的三维动效设计师。精通三维硬表面建模、动力学模拟与复杂后期通道合成，擅长用数字艺术重组未来的可能性。',
+      bioSub: '从无到有地渲染出一个发光的元宇宙世界是最令人兴奋的事。用写实的光栅折射、精细的表面材质和超现实 the 物理粒子，搭建极致的科技美学空间。',
+      skills: [
+        { name: '3D CGI Modeling', level: 95 },
+        { name: 'Physically Rendering', level: 92 },
+        { name: 'VFX Compositing', level: 90 },
+        { name: 'Dynamics Physics', level: 88 }
+      ]
+    }
+  }
+]
+
+const applyPersona = (preset: any) => {
+  if (confirm(`确定要套用“${preset.title}”的模板预设吗？这将覆盖您当前的部分首页和个人履历信息（未保存至服务器前不会写入物理文件）。`)) {
+    siteConfig.value.home.heroTitle1 = preset.home.heroTitle1
+    siteConfig.value.home.heroTitle2 = preset.home.heroTitle2
+    siteConfig.value.home.heroTitle3 = preset.home.heroTitle3
+    siteConfig.value.home.heroSub = preset.home.heroSub
+    siteConfig.value.about.role = preset.about.role
+    siteConfig.value.about.bio = preset.about.bio
+    siteConfig.value.about.bioSub = preset.about.bioSub
+    siteConfig.value.about.skills = JSON.parse(JSON.stringify(preset.about.skills))
+    siteConfig.value.home.skillsTags = [...preset.home.skillsTags]
+    siteConfig.value.home.heroTechStack = [...preset.home.heroTechStack]
+  }
+}
+
+const exportBackup = () => {
+  const data = {
+    siteConfig: siteConfig.value,
+    timestamp: new Date().toISOString()
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `xo-studio-backup-${new Date().toISOString().slice(0, 10)}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const importBackup = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  if (!input.files || input.files.length === 0) return
+  const file = input.files[0]
+  const reader = new FileReader()
+  reader.onload = async (e) => {
+    try {
+      const data = JSON.parse(e.target?.result as string)
+      if (data && data.siteConfig) {
+        if (confirm('解析备份成功！确定要将备份数据导入并覆盖当前全站配置吗？（点击保存后才会永久存盘）')) {
+          siteConfig.value = data.siteConfig
+          alert('配置已导入，请点击页面顶部的“保存配置”按钮以永久写入服务器！')
+        }
+      } else {
+        alert('无效的备份文件：未包含 siteConfig 节点。')
+      }
+    } catch (err) {
+      alert('解析 JSON 备份文件失败，请检查文件格式。')
+    }
+  }
+  reader.readAsText(file)
+}
 
 const systemStatus = ref<any>({
   engine: 'Local File System',
@@ -960,6 +1271,12 @@ const siteConfig = ref<any>({
     brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z',
     contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
     seoTitle: '', seoDescription: '', footerTagline: ''
+  },
+  theme: {
+    accentPreset: 'bronze', glassBlur: 'md', showOrbs: true, showFilmGrain: true
+  },
+  announcement: {
+    enabled: true, text: '', link: '', badge: 'NOTICE'
   },
   home: {
     heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '',
@@ -1036,14 +1353,23 @@ const sparkPath = computed(() => {
 const fetchProjects = async () => { projectsList.value = await $fetch('/api/projects') as any[] }
 const fetchSiteConfig = async () => {
   const data = await $fetch('/api/site-config') as any
-  // Merge defaults so new siteInfo node always exists
   if (!data.siteInfo) data.siteInfo = {}
+  if (!data.theme) data.theme = {}
+  if (!data.announcement) data.announcement = {}
   siteConfig.value = {
     siteInfo: {
       brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z',
       contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
       seoTitle: '', seoDescription: '', footerTagline: '基于达芬奇色彩科学规范开发',
       ...data.siteInfo
+    },
+    theme: {
+      accentPreset: 'bronze', glassBlur: 'md', showOrbs: true, showFilmGrain: true,
+      ...data.theme
+    },
+    announcement: {
+      enabled: true, text: '', link: '', badge: 'NOTICE',
+      ...data.announcement
     },
     home: { 
       heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '', 
@@ -1125,6 +1451,9 @@ const saveSiteConfig = async () => {
   try {
     await $fetch('/api/site-config', { method: 'PUT', body: siteConfig.value })
     alert('🎉 配置保存成功！')
+    if (showLivePreview.value) {
+      setTimeout(refreshPreview, 300)
+    }
   } catch (e: any) { alert(e.statusMessage || '保存失败。') }
 }
 

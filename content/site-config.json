@@ -12,6 +12,18 @@
     "seoDescription": "专注于 TVC 广告、品牌形象宣传片、科技感产品动效包装，以及高画质纪录片的后期全流程开发。",
     "footerTagline": "基于达芬奇色彩科学规范开发"
   },
+  "theme": {
+    "accentPreset": "bronze",
+    "glassBlur": "md",
+    "showOrbs": true,
+    "showFilmGrain": true
+  },
+  "announcement": {
+    "enabled": true,
+    "text": "🎬 2026 年下半年商业 TVC 档期与电影 DI 调色开放预订中",
+    "link": "mailto:hello@xo.dev",
+    "badge": "NOTICE"
+  },
   "home": {
     "heroTitle1": "用剪辑",
     "heroTitle2": "重塑时间",
