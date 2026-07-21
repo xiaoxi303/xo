@@ -2,8 +2,8 @@
   <div class="min-h-screen pt-28 pb-24 px-6">
     <div class="max-w-4xl mx-auto space-y-12">
 
-      <!-- Back button -->
-      <div v-if="!project || isUnlocked" class="reveal">
+      <!-- Back button — always visible -->
+      <div class="reveal">
         <NuxtLink
           to="/projects"
           class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4"
@@ -16,21 +16,21 @@
       </div>
 
       <!-- Password Protection Lock Screen -->
-      <div v-if="project && !isUnlocked" class="max-w-md mx-auto py-16 text-center space-y-6 reveal">
-        <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm"
-             style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
-          🔐
-        </div>
-        <div class="space-y-2">
-          <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-1)">该作品受访问密码保护</h1>
-          <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
-            此项目包含未公开内容、商业合作机密或受到 NDA 限制。<br>
-            请输入客户专属授权密码以解锁并查看详情。
-          </p>
-        </div>
+      <Transition name="fade">
+        <div v-if="project && !isUnlocked" class="max-w-md mx-auto py-16 text-center space-y-6">
+          <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm"
+               style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
+            🔐
+          </div>
+          <div class="space-y-2">
+            <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-1)">该作品受访问密码保护</h1>
+            <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
+              此项目包含未公开内容、商业合作机密或受到 NDA 限制。<br>
+              请输入客户专属授权密码以解锁并查看详情。
+            </p>
+          </div>
 
-        <form @submit.prevent="verifyPassword" class="space-y-4 pt-4">
-          <div class="relative">
+          <form @submit.prevent="verifyPassword" class="space-y-4 pt-4">
             <input
               v-model="inputPassword"
               type="password"
@@ -39,227 +39,250 @@
               required
               autofocus
             />
-          </div>
-          <button type="submit" class="btn-primary w-full justify-center py-3 text-xs font-semibold">
-            验证密码并解锁
-          </button>
-        </form>
+            <button type="submit" class="btn-primary w-full justify-center py-3 text-xs font-semibold">
+              验证密码并解锁
+            </button>
+          </form>
 
-        <p v-if="passwordError" class="text-xs text-rose-500 font-semibold">
-          ❌ 密码错误，请联系作者获取专属授权密码。
-        </p>
-
-        <div class="pt-4">
-          <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-4)">
-            &larr; 返回作品集
-          </NuxtLink>
-        </div>
-      </div>
-
-      <!-- Project detail -->
-      <div v-else-if="project && isUnlocked" class="space-y-10">
-
-        <!-- Title block -->
-        <div class="space-y-4 reveal">
-          <div class="flex flex-wrap gap-2">
-            <span v-for="tag in project.tags" :key="tag" class="badge">{{ tag }}</span>
-          </div>
-          <h1 class="font-display text-4xl lg:text-5xl font-bold tracking-tight leading-tight"
-              style="color: var(--color-ink-1)">
-            {{ project.title }}
-          </h1>
-          <p class="text-sm font-mono" style="color: var(--color-ink-5)">
-            发布日期：{{ project.releaseYear || '2026' }} 年 · 后期规格：{{ project.postSpecs || '4K 60FPS HDR' }}
+          <p v-if="passwordError" class="text-xs text-rose-500 font-semibold">
+            ❌ 密码错误，请联系作者获取专属授权密码。
           </p>
-        </div>
 
-        <!-- Ambilight Video Player -->
-        <div class="ambilight-container reveal">
-          <!-- Ambient backdrop blur video -->
-          <video
-            ref="blurVideoRef"
-            :src="project.videoUrl"
-            muted loop playsinline
-            class="ambilight-shadow"
-          />
-          <!-- Foreground main player -->
-          <video
-            ref="mainVideoRef"
-            :src="project.videoUrl"
-            :poster="project.image"
-            controls autoplay muted playsinline
-            class="w-full h-full object-cover relative z-10 glass-card overflow-hidden"
-            @loadedmetadata="syncBlurVideo"
-          />
+          <div class="pt-4">
+            <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-4)">
+              &larr; 返回作品集
+            </NuxtLink>
+          </div>
         </div>
+      </Transition>
 
-        <!-- Interactive LUT Grade Comparison Slider -->
-        <div v-if="project.imageBefore" class="space-y-4 reveal">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
-              <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">🎥 影视调色前后对比 (LOG 原片 vs 最终调色)</h2>
+      <!-- Project detail — only show when unlocked -->
+      <Transition name="fade">
+        <div v-if="project && isUnlocked" class="space-y-10">
+
+          <!-- Title block -->
+          <div class="space-y-4 reveal">
+            <div class="flex flex-wrap gap-2">
+              <span v-for="tag in project.tags" :key="tag" class="badge">{{ tag }}</span>
             </div>
-            <span class="text-[10px] font-mono" style="color: var(--color-ink-5)">左右滑动滑块对比色彩空间映射差异</span>
+            <h1 class="font-display text-4xl lg:text-5xl font-bold tracking-tight leading-tight"
+                style="color: var(--color-ink-1)">
+              {{ project.title }}
+            </h1>
+            <p class="text-sm font-mono" style="color: var(--color-ink-5)">
+              发布日期：{{ project.releaseYear || '2026' }} 年 · 后期规格：{{ project.postSpecs || '4K 60FPS HDR' }}
+            </p>
           </div>
 
-          <div
-            class="relative w-full aspect-video rounded-2xl overflow-hidden glass-card select-none cursor-ew-resize"
-            @mousemove="handleSliderMove"
-            @touchmove="handleSliderMove"
-            ref="sliderContainerRef"
-          >
-            <!-- Before Image (Log / Raw) -->
-            <img
-              :src="project.imageBefore"
-              alt="Before grading"
-              class="absolute inset-0 w-full h-full object-cover"
-              draggable="false"
-            />
-            <div class="absolute bottom-4 left-4 z-20 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-black/60 text-white backdrop-blur-sm border border-white/10 uppercase tracking-widest">
-              LOG 原片
+          <!-- Media block: video player OR cover image fallback -->
+          <div class="reveal">
+            <!-- If has videoUrl: show ambilight video player -->
+            <div v-if="project.videoUrl && project.videoUrl.trim()" class="ambilight-container">
+              <!-- Ambient backdrop blur video -->
+              <video
+                ref="blurVideoRef"
+                :src="project.videoUrl"
+                muted loop playsinline
+                class="ambilight-shadow"
+              />
+              <!-- Foreground main player -->
+              <video
+                ref="mainVideoRef"
+                :src="project.videoUrl"
+                :poster="project.image"
+                controls autoplay muted playsinline
+                class="w-full rounded-2xl overflow-hidden relative z-10"
+                style="max-height: 520px; object-fit: cover; background: #000;"
+                @loadedmetadata="syncBlurVideo"
+              />
             </div>
 
-            <!-- After Image Container (Graded / Final) -->
-            <div
-              class="absolute inset-y-0 left-0 right-0 overflow-hidden"
-              :style="{ width: sliderPosition + '%' }"
-            >
+            <!-- If no videoUrl but has image: show cover image -->
+            <div v-else-if="project.image" class="relative rounded-2xl overflow-hidden glass-card" style="max-height: 520px;">
               <img
                 :src="project.image"
-                alt="After grading"
-                class="absolute inset-0 w-full h-full object-cover max-w-none"
-                :style="{ width: containerWidth + 'px' }"
+                :alt="project.title"
+                class="w-full h-auto object-cover"
+                style="max-height: 520px; display: block;"
+              />
+              <!-- No-video badge -->
+              <div class="absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-black/40 text-white backdrop-blur-sm">
+                🖼️ 静帧作品
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive LUT Grade Comparison Slider (only if imageBefore is set) -->
+          <div v-if="project.imageBefore && project.imageBefore.trim()" class="space-y-4 reveal">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-3">
+                <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
+                <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">🎥 影视调色前后对比</h2>
+              </div>
+              <span class="text-[10px] font-mono" style="color: var(--color-ink-5)">← 左右拖动对比调色前后 →</span>
+            </div>
+
+            <div
+              class="relative w-full overflow-hidden rounded-2xl glass-card select-none cursor-ew-resize"
+              style="aspect-ratio: 16/9;"
+              @mousedown="sliderDragging = true"
+              @mouseup="sliderDragging = false"
+              @mouseleave="sliderDragging = false"
+              @mousemove="handleSliderMove"
+              @touchstart.prevent="sliderDragging = true"
+              @touchend="sliderDragging = false"
+              @touchmove.prevent="handleSliderMove"
+              ref="sliderContainerRef"
+            >
+              <!-- Before Image (Log / Raw) -->
+              <img
+                :src="project.imageBefore"
+                alt="Before grading"
+                class="absolute inset-0 w-full h-full object-cover"
                 draggable="false"
               />
-              <div class="absolute bottom-4 right-4 z-20 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-[#b45309]/80 text-white backdrop-blur-sm border border-amber-500/20 uppercase tracking-widest">
-                Graded 调色后
-              </div>
-            </div>
-
-            <!-- Slider Handle Bar -->
-            <div
-              class="absolute inset-y-0 z-30 w-[2px] bg-white pointer-events-none shadow-[0_0_10px_rgba(0,0,0,0.5)] flex items-center justify-center"
-              :style="{ left: sliderPosition + '%' }"
-            >
-              <div class="w-8 h-8 rounded-full bg-white text-black shadow-lg flex items-center justify-center border border-black/10 text-xs font-bold font-mono">
-                ↔
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Content grid -->
-        <div class="grid md:grid-cols-3 gap-8 items-start reveal">
-
-          <!-- Left: About + Workflow -->
-          <div class="md:col-span-2 space-y-6">
-
-            <!-- Project overview card -->
-            <div class="glass-card p-8 space-y-5">
-              <div class="flex items-center gap-3">
-                <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
-                <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">项目概述</h2>
-              </div>
-              <p class="leading-relaxed text-[0.92rem]" style="color: var(--color-ink-2)">
-                {{ project.description }}
-              </p>
-              <p class="leading-relaxed text-sm" style="color: var(--color-ink-4)">
-                {{ project.longDescription }}
-              </p>
-            </div>
-
-            <!-- Workflow pipeline card -->
-            <div class="glass-card p-8 space-y-6">
-              <div class="flex items-center gap-3">
-                <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
-                <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">幕后制作工作流 (Pipeline)</h2>
+              <div class="absolute bottom-4 left-4 z-20 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-black/60 text-white backdrop-blur-sm border border-white/10 uppercase tracking-widest">
+                LOG 原片
               </div>
 
-              <div class="space-y-0" style="border-top: 1px solid var(--color-border);">
-                <div
-                  v-for="flow in project.workflow"
-                  :key="flow.title"
-                  class="py-5 space-y-2"
-                  style="border-bottom: 1px solid var(--color-border);"
-                >
-                  <div class="flex items-center gap-3">
-                    <span class="text-xl flex-shrink-0">{{ flow.icon }}</span>
-                    <h3 class="font-semibold text-sm" style="color: var(--color-ink-1)">{{ flow.title }}</h3>
-                  </div>
-                  <p class="text-sm leading-relaxed pl-9" style="color: var(--color-ink-4)">{{ flow.desc }}</p>
+              <!-- After Image Container (Graded / Final) -->
+              <div
+                class="absolute inset-y-0 left-0 overflow-hidden"
+                :style="{ width: sliderPosition + '%' }"
+              >
+                <img
+                  :src="project.image"
+                  alt="After grading"
+                  class="absolute inset-0 h-full object-cover"
+                  :style="{ width: containerWidth + 'px', maxWidth: 'none' }"
+                  draggable="false"
+                />
+                <div class="absolute bottom-4 right-4 z-20 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-[#b45309]/80 text-white backdrop-blur-sm border border-amber-500/20 uppercase tracking-widest">
+                  Graded 调色后
                 </div>
+              </div>
+
+              <!-- Slider Handle -->
+              <div
+                class="absolute inset-y-0 z-30 flex items-center justify-center pointer-events-none"
+                :style="{ left: 'calc(' + sliderPosition + '% - 1px)' }"
+              >
+                <div class="w-[2px] h-full bg-white shadow-[0_0_10px_rgba(0,0,0,0.6)]" />
+                <div class="absolute w-9 h-9 rounded-full bg-white text-black shadow-lg flex items-center justify-center border border-black/10 text-sm font-bold">↔</div>
               </div>
             </div>
           </div>
 
-          <!-- Right: Specs + CTA -->
-          <div class="space-y-6">
+          <!-- Content grid -->
+          <div class="grid md:grid-cols-3 gap-8 items-start reveal">
 
-            <!-- DI Console Specs card -->
-            <div class="glass-card p-6 space-y-5 relative overflow-hidden">
-              <!-- Top accent line — bronze gold -->
-              <div class="absolute top-0 inset-x-0 h-[2px] rounded-t-[inherit]"
-                   style="background: linear-gradient(90deg, transparent, var(--color-bronze), transparent)" />
+            <!-- Left: About + Workflow -->
+            <div class="md:col-span-2 space-y-6">
 
-              <div class="flex items-center justify-between pt-1">
-                <h2 class="font-display text-sm font-bold uppercase tracking-wider"
-                    style="color: var(--color-ink-1)">DI Console Specs</h2>
-                <div class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full animate-pulse"
-                        style="background: #16a34a" />
-                  <span class="text-[10px] uppercase font-mono" style="color: var(--color-ink-5)">Graded</span>
+              <!-- Project overview card -->
+              <div class="glass-card p-8 space-y-5">
+                <div class="flex items-center gap-3">
+                  <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
+                  <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">项目概述</h2>
                 </div>
-              </div>
-
-              <div class="space-y-0 font-mono text-xs" style="border-top: 1px solid var(--color-border);">
-                <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                  <span style="color: var(--color-ink-4)">后期导演 (Director)</span>
-                  <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.director || 'Xo' }}</span>
-                </div>
-                <div v-if="project.software?.[0]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                  <span style="color: var(--color-ink-4)">剪辑软件 (NLE)</span>
-                  <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.software[0] }}</span>
-                </div>
-                <div v-if="project.software?.[1]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                  <span style="color: var(--color-ink-4)">色彩分级 (DI)</span>
-                  <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.software[1] }}</span>
-                </div>
-                <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                  <span style="color: var(--color-ink-4)">交付格式</span>
-                  <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.deliverFormat || 'ProRes 422 HQ' }}</span>
-                </div>
-                <div class="flex justify-between py-3">
-                  <span style="color: var(--color-ink-4)">声音编码</span>
-                  <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.audioFormat || '24-bit 48kHz' }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- CTA card -->
-            <div class="glass-card p-6 space-y-4 overflow-hidden relative">
-              <!-- Warm amber glow top-right -->
-              <div class="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
-                   style="background: radial-gradient(circle, rgba(180,83,9,0.12) 0%, transparent 70%)" />
-              <div class="space-y-1 relative z-10">
-                <h3 class="font-display text-base font-semibold" style="color: var(--color-ink-1)">
-                  需要同类视频制作？
-                </h3>
-                <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
-                  我支持从视频分镜、后期精剪、调色降噪到动效合成的全流程定制服务。
+                <p class="leading-relaxed text-[0.92rem]" style="color: var(--color-ink-2)">
+                  {{ project.description }}
+                </p>
+                <p v-if="project.longDescription" class="leading-relaxed text-sm" style="color: var(--color-ink-4)">
+                  {{ project.longDescription }}
                 </p>
               </div>
-              <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-primary w-full justify-center text-xs py-2.5 relative z-10">
-                发起项目咨询
-              </a>
+
+              <!-- Workflow pipeline card -->
+              <div v-if="project.workflow && project.workflow.length" class="glass-card p-8 space-y-6">
+                <div class="flex items-center gap-3">
+                  <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
+                  <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">幕后制作工作流 (Pipeline)</h2>
+                </div>
+
+                <div class="space-y-0" style="border-top: 1px solid var(--color-border);">
+                  <div
+                    v-for="flow in project.workflow"
+                    :key="flow.title"
+                    class="py-5 space-y-2"
+                    style="border-bottom: 1px solid var(--color-border);"
+                  >
+                    <div class="flex items-center gap-3">
+                      <span class="text-xl flex-shrink-0">{{ flow.icon }}</span>
+                      <h3 class="font-semibold text-sm" style="color: var(--color-ink-1)">{{ flow.title }}</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed pl-9" style="color: var(--color-ink-4)">{{ flow.desc }}</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
+            <!-- Right: Specs + CTA -->
+            <div class="space-y-6">
+
+              <!-- DI Console Specs card -->
+              <div class="glass-card p-6 space-y-5 relative overflow-hidden">
+                <!-- Top accent line -->
+                <div class="absolute top-0 inset-x-0 h-[2px] rounded-t-[inherit]"
+                     style="background: linear-gradient(90deg, transparent, var(--color-bronze), transparent)" />
+
+                <div class="flex items-center justify-between pt-1">
+                  <h2 class="font-display text-sm font-bold uppercase tracking-wider"
+                      style="color: var(--color-ink-1)">DI Console Specs</h2>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full animate-pulse" style="background: #16a34a" />
+                    <span class="text-[10px] uppercase font-mono" style="color: var(--color-ink-5)">Graded</span>
+                  </div>
+                </div>
+
+                <div class="space-y-0 font-mono text-xs" style="border-top: 1px solid var(--color-border);">
+                  <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
+                    <span style="color: var(--color-ink-4)">后期导演 (Director)</span>
+                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.director || 'Xo' }}</span>
+                  </div>
+                  <div v-if="project.software?.[0]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
+                    <span style="color: var(--color-ink-4)">剪辑软件 (NLE)</span>
+                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.software[0] }}</span>
+                  </div>
+                  <div v-if="project.software?.[1]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
+                    <span style="color: var(--color-ink-4)">色彩分级 (DI)</span>
+                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.software[1] }}</span>
+                  </div>
+                  <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
+                    <span style="color: var(--color-ink-4)">交付格式</span>
+                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.deliverFormat || 'ProRes 422 HQ' }}</span>
+                  </div>
+                  <div class="flex justify-between py-3">
+                    <span style="color: var(--color-ink-4)">声音编码</span>
+                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.audioFormat || '24-bit 48kHz' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CTA card -->
+              <div class="glass-card p-6 space-y-4 overflow-hidden relative">
+                <div class="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
+                     style="background: radial-gradient(circle, rgba(180,83,9,0.12) 0%, transparent 70%)" />
+                <div class="space-y-1 relative z-10">
+                  <h3 class="font-display text-base font-semibold" style="color: var(--color-ink-1)">
+                    需要同类视频制作？
+                  </h3>
+                  <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
+                    我支持从视频分镜、后期精剪、调色降噪到动效合成的全流程定制服务。
+                  </p>
+                </div>
+                <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-primary w-full justify-center text-xs py-2.5 relative z-10">
+                  发起项目咨询
+                </a>
+              </div>
+
+            </div>
           </div>
         </div>
-      </div>
+      </Transition>
 
       <!-- Not found state -->
-      <div v-else class="text-center py-20 space-y-4 reveal">
+      <div v-if="!project" class="text-center py-20 space-y-4 reveal">
         <p class="text-5xl">🎞️</p>
         <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-1)">未找到该作品</h1>
         <p style="color: var(--color-ink-4)">请返回作品集重新选择。</p>
@@ -285,31 +308,35 @@ const isUnlocked = ref(false)
 const inputPassword = ref('')
 const passwordError = ref(false)
 
-const verifyPassword = () => {
+const verifyPassword = async () => {
   if (inputPassword.value === project.value?.password) {
     isUnlocked.value = true
     passwordError.value = false
     if (import.meta.client) {
       sessionStorage.setItem('unlocked_' + slug, inputPassword.value)
     }
+    // Re-run reveal animations after unlock
+    await nextTick()
+    initReveal()
   } else {
     passwordError.value = true
     setTimeout(() => { passwordError.value = false }, 2000)
   }
 }
 
-watch(project, (val) => {
+// Auto-unlock on load based on saved session or no password set
+watch(project, async (val) => {
   if (val) {
     if (!val.password || val.password.trim() === '') {
       isUnlocked.value = true
-    } else {
-      if (import.meta.client) {
-        const saved = sessionStorage.getItem('unlocked_' + slug)
-        if (saved === val.password) {
-          isUnlocked.value = true
-        }
+    } else if (import.meta.client) {
+      const saved = sessionStorage.getItem('unlocked_' + slug)
+      if (saved === val.password) {
+        isUnlocked.value = true
       }
     }
+    await nextTick()
+    initReveal()
   }
 }, { immediate: true })
 
@@ -317,25 +344,27 @@ watch(project, (val) => {
 const sliderContainerRef = ref<HTMLElement | null>(null)
 const sliderPosition = ref(50)
 const containerWidth = ref(800)
+const sliderDragging = ref(false)
 
 const handleSliderMove = (e: MouseEvent | TouchEvent) => {
   if (!sliderContainerRef.value) return
+  // Only drag on mousedown held or touch
+  if (e instanceof MouseEvent && !sliderDragging.value) return
   const rect = sliderContainerRef.value.getBoundingClientRect()
   containerWidth.value = rect.width
   let clientX = 0
   if (e instanceof MouseEvent) {
     clientX = e.clientX
-  } else if (e.touches && e.touches[0]) {
+  } else if (e instanceof TouchEvent && e.touches?.[0]) {
     clientX = e.touches[0].clientX
   }
   const x = clientX - rect.left
-  let percentage = (x / rect.width) * 100
-  if (percentage < 0) percentage = 0
-  if (percentage > 100) percentage = 100
-  sliderPosition.value = percentage
+  let pct = (x / rect.width) * 100
+  sliderPosition.value = Math.max(0, Math.min(100, pct))
 }
 
 if (import.meta.client) {
+  window.addEventListener('mouseup', () => { sliderDragging.value = false })
   window.addEventListener('resize', () => {
     if (sliderContainerRef.value) {
       containerWidth.value = sliderContainerRef.value.getBoundingClientRect().width
@@ -347,7 +376,8 @@ const syncBlurVideo = () => {
   if (!mainVideoRef.value || !blurVideoRef.value) return
   const main = mainVideoRef.value
   const blur = blurVideoRef.value
-  main.addEventListener('play', () => blur.play())
+  blur.currentTime = main.currentTime
+  main.addEventListener('play', () => { blur.play().catch(() => {}) })
   main.addEventListener('pause', () => blur.pause())
   main.addEventListener('seeking', () => { blur.currentTime = main.currentTime })
   main.addEventListener('timeupdate', () => {
@@ -363,13 +393,52 @@ useHead({
 })
 
 let observer: IntersectionObserver | null = null
-onMounted(async () => {
-  await nextTick()
+
+const initReveal = () => {
+  if (!import.meta.client) return
+  if (observer) observer.disconnect()
   observer = new IntersectionObserver(
     (entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view') }) },
-    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    { threshold: 0.05, rootMargin: '0px 0px -30px 0px' }
   )
   document.querySelectorAll('.reveal').forEach(el => observer?.observe(el))
+}
+
+onMounted(async () => {
+  await nextTick()
+  initReveal()
 })
 onBeforeUnmount(() => { if (observer) observer.disconnect() })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.ambilight-container {
+  position: relative;
+  border-radius: 1rem;
+  overflow: visible;
+}
+
+.ambilight-shadow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 1rem;
+  filter: blur(40px) saturate(1.5) brightness(0.7);
+  transform: translateY(12px) scale(1.04);
+  z-index: 0;
+  opacity: 0.65;
+  pointer-events: none;
+}
+</style>
