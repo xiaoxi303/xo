@@ -50,7 +50,27 @@
             ❌ {{ passwordError }}
           </p>
 
-          <div class="pt-4">
+          <div class="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-semibold">
+            <NuxtLink
+              :to="`/projects/${slug}/get`"
+              class="hover:opacity-80 transition-opacity underline text-amber-700 flex items-center gap-1"
+            >
+              🔗 在线直接获取密码 (去获取密码)
+            </NuxtLink>
+            
+            <span class="text-slate-300 hidden sm:inline">|</span>
+            
+            <button
+              type="button"
+              @click="openRequestModal"
+              class="hover:opacity-80 transition-opacity underline"
+              style="color: var(--color-ink-3)"
+            >
+              📨 填写表单手动申请
+            </button>
+          </div>
+
+          <div class="pt-4 border-t border-black/[0.05]">
             <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-4)">
               &larr; 返回作品集
             </NuxtLink>
@@ -302,6 +322,71 @@
       </div>
 
     </div>
+
+    <!-- Request Password Modal -->
+    <Transition name="fade">
+      <div v-if="isRequestModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="closeRequestModal" />
+        <div
+          class="relative w-full max-w-md p-6 rounded-2xl shadow-2xl space-y-4"
+          style="background: var(--color-bg); border: 1px solid var(--color-border); max-width: 400px;"
+        >
+          <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--color-border)">
+            <h3 class="font-display font-bold text-base" style="color: var(--color-ink-1)">申请专属授权密码</h3>
+            <button @click="closeRequestModal" class="text-slate-400 hover:text-slate-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div v-if="requestSuccess" class="text-center py-6 space-y-3">
+            <span class="text-3xl block">📨</span>
+            <h4 class="font-bold text-sm text-emerald-600">申请提交成功！</h4>
+            <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
+              您的申请已成功发送至后台。主理人收到后会通过您的联系方式与您联系并提供密码。
+            </p>
+            <button @click="closeRequestModal" class="btn-ghost text-xs py-2 px-4 mt-2">关闭窗口</button>
+          </div>
+
+          <form v-else @submit.prevent="submitRequest" class="space-y-4">
+            <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
+              请填写您的基本信息，主理人审核后将通过您留下的联系方式（微信/邮箱）发送该作品的解锁密码。
+            </p>
+
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold uppercase tracking-wider block" style="color: var(--color-ink-3)">您的姓名 / 机构名称</label>
+              <input
+                v-model="requestForm.clientName"
+                required
+                class="form-input text-xs w-full py-2.5 px-3 rounded-xl"
+                placeholder="例如: 某某导演 / 某某广告公司"
+              />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold uppercase tracking-wider block" style="color: var(--color-ink-3)">您的联系方式 (微信 / 邮箱)</label>
+              <input
+                v-model="requestForm.contact"
+                required
+                class="form-input text-xs w-full py-2.5 px-3 rounded-xl"
+                placeholder="例如: 微信号: xx_123 或 xx@email.com"
+              />
+            </div>
+
+            <div class="pt-2">
+              <button
+                type="submit"
+                class="btn-primary w-full justify-center py-2.5 text-xs font-semibold"
+                :disabled="requestSubmitting"
+              >
+                {{ requestSubmitting ? '正在提交...' : '提交授权申请' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -354,6 +439,45 @@ const verifyPassword = async () => {
     setTimeout(() => { passwordError.value = '' }, 2500)
   } finally {
     passwordLoading.value = false
+  }
+}
+
+const isRequestModalOpen = ref(false)
+const requestSubmitting = ref(false)
+const requestSuccess = ref(false)
+const requestForm = ref({
+  clientName: '',
+  contact: ''
+})
+
+const openRequestModal = () => {
+  isRequestModalOpen.value = true
+  requestSuccess.value = false
+  requestForm.value.clientName = ''
+  requestForm.value.contact = ''
+}
+
+const closeRequestModal = () => {
+  isRequestModalOpen.value = false
+}
+
+const submitRequest = async () => {
+  requestSubmitting.value = true
+  try {
+    await $fetch('/api/password-requests', {
+      method: 'POST',
+      body: {
+        clientName: requestForm.value.clientName,
+        contact: requestForm.value.contact,
+        projectSlug: slug,
+        projectTitle: project.value?.title || slug
+      }
+    })
+    requestSuccess.value = true
+  } catch (err: any) {
+    alert(err.data?.statusMessage || '提交申请失败，请稍后重试。')
+  } finally {
+    requestSubmitting.value = false
   }
 }
 

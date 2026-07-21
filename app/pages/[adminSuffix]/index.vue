@@ -49,36 +49,40 @@
       <div class="space-y-8 min-w-0">
 
       <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="space-y-1">
-          <p class="section-label">Admin</p>
-          <h1 class="font-display text-3xl font-bold tracking-tight" style="color: var(--color-ink-1)">配置工作台</h1>
-          <p class="text-xs font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">Xo Studio · Site-Wide Configuration Panel</p>
+      <div class="space-y-1 pb-4 border-b border-black/[0.05]">
+        <p class="section-label">Admin</p>
+        <h1 class="font-display text-3xl font-bold tracking-tight" style="color: var(--color-ink-1)">配置工作台</h1>
+        <p class="text-xs font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">Xo Studio · Site-Wide Configuration Panel</p>
+      </div>
+
+      <!-- Navigation & Action Row -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+        <!-- Tabs Menu (Horizontal Scrollable Capsule) -->
+        <div class="flex items-center gap-1 p-1 rounded-xl overflow-x-auto max-w-full whitespace-nowrap scrollbar-none"
+             style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: none; -ms-overflow-style: none;">
+          <button
+            v-for="t in tabs"
+            :key="t.value"
+            @click="activeTab = t.value"
+            :class="[
+              'px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap flex-shrink-0',
+              activeTab === t.value
+                ? 'bg-white shadow-sm font-bold'
+                : 'hover:opacity-80'
+            ]"
+            :style="activeTab === t.value
+              ? { color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.25)' }
+              : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
+          >
+            <span>{{ t.icon }}</span>{{ t.label }}
+          </button>
         </div>
-        <!-- Tabs & Actions -->
-        <div class="flex flex-wrap items-center gap-3 self-start md:self-auto">
-          <div class="flex items-center gap-1 p-1 rounded-xl"
-               style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18);">
-            <button
-              v-for="t in tabs"
-              :key="t.value"
-              @click="activeTab = t.value"
-              :class="[
-                'px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5',
-                activeTab === t.value
-                  ? 'bg-white shadow-sm font-bold'
-                  : 'hover:opacity-80'
-              ]"
-              :style="activeTab === t.value
-                ? { color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.25)' }
-                : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
-            >
-              <span>{{ t.icon }}</span>{{ t.label }}
-            </button>
-          </div>
+
+        <!-- Right Side Quick Actions -->
+        <div class="flex items-center gap-3 flex-shrink-0 self-end lg:self-auto">
           <button @click="showLivePreview = !showLivePreview"
                   :class="[
-                    'px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200',
+                    'px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 flex-shrink-0',
                     showLivePreview
                       ? 'bg-amber-700 text-white border border-amber-800 shadow-sm'
                       : 'hover:text-amber-700'
@@ -88,7 +92,7 @@
                     : { color: 'var(--color-ink-4)', border: '1px solid var(--color-border-2)', background: 'transparent' }">
             {{ showLivePreview ? '关闭双屏' : '👁️ 双屏预览' }}
           </button>
-          <button @click="handleLogout" class="px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 hover:text-rose-500 hover:border-rose-500/30"
+          <button @click="handleLogout" class="px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 hover:text-rose-500 hover:border-rose-500/30 flex-shrink-0"
                   style="color: var(--color-ink-4); border: 1px solid var(--color-border-2); background: transparent;">
             安全退出
           </button>
@@ -309,6 +313,131 @@
           </div>
         </div>
 
+
+        <!-- ===== TAB 1.5: PASSWORD REQUESTS ===== -->
+        <div v-if="activeTab === 'requests'" class="space-y-6">
+          <div class="glass-card p-6 flex items-center justify-between">
+            <div class="space-y-1">
+              <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">密码获取申请</span>
+              <div class="text-2xl font-display font-bold" style="color: var(--color-ink-1)">
+                {{ passwordRequests.length }} <span class="text-sm font-normal" style="color: var(--color-ink-5)">条记录</span>
+              </div>
+            </div>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: var(--color-bronze-bg)">🔑</div>
+          </div>
+
+          <div class="glass-card overflow-hidden">
+            <div class="p-6 border-b" style="border-color: var(--color-border)">
+              <h3 class="font-display font-bold text-sm" style="color: var(--color-ink-1)">申请列表</h3>
+              <p class="text-xs mt-1" style="color: var(--color-ink-4)">这里展示了访客在前台申请获取作品密码的联系方式，您可以直接在此查看并联系他们提供密码。</p>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="text-[10px] font-mono uppercase tracking-wider border-b" style="color: var(--color-ink-4); border-color: var(--color-border); background: rgba(0,0,0,0.01)">
+                    <th class="py-3.5 px-6 font-semibold">客户姓名 / 机构</th>
+                    <th class="py-3.5 px-6 font-semibold">联系方式 (微信/邮箱)</th>
+                    <th class="py-3.5 px-6 font-semibold">申请解锁作品</th>
+                    <th class="py-3.5 px-6 font-semibold">申请时间</th>
+                    <th class="py-3.5 px-6 font-semibold text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y text-xs" style="divide-color: var(--color-border)">
+                  <tr v-if="passwordRequests.length === 0">
+                    <td colspan="5" class="py-12 text-center" style="color: var(--color-ink-5)">
+                      <span class="text-2xl block mb-2">📥</span>
+                      暂无专属授权密码申请记录。
+                    </td>
+                  </tr>
+                  <tr v-for="r in passwordRequests" :key="r.id" class="hover:bg-black/[0.01] transition-colors">
+                    <td class="py-4 px-6 font-bold" style="color: var(--color-ink-1)">{{ r.clientName }}</td>
+                    <td class="py-4 px-6 font-mono" style="color: var(--color-ink-2)">{{ r.contact }}</td>
+                    <td class="py-4 px-6">
+                      <span class="font-semibold" style="color: var(--color-ink-3)">{{ r.projectTitle }}</span>
+                      <span class="block text-[10px] font-mono opacity-50">/projects/{{ r.projectSlug }}</span>
+                    </td>
+                    <td class="py-4 px-6" style="color: var(--color-ink-4)">
+                      {{ new Date(r.createdAt).toLocaleString('zh-CN', { hour12: false }) }}
+                    </td>
+                    <td class="py-4 px-6 text-right space-x-2">
+                      <button
+                        type="button"
+                        @click="deletePasswordRequest(r.id)"
+                        class="text-rose-500 hover:text-rose-400 font-bold hover:underline"
+                      >
+                        删除
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== TAB 1.6: REGISTERED USERS ===== -->
+        <div v-if="activeTab === 'users'" class="space-y-6">
+          <div class="glass-card p-6 flex items-center justify-between">
+            <div class="space-y-1">
+              <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">注册客户账号</span>
+              <div class="text-2xl font-display font-bold" style="color: var(--color-ink-1)">
+                {{ registeredUsers.length }} <span class="text-sm font-normal" style="color: var(--color-ink-5)">个账号</span>
+              </div>
+            </div>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: var(--color-bronze-bg)">👥</div>
+          </div>
+
+          <div class="glass-card overflow-hidden">
+            <div class="p-6 border-b" style="border-color: var(--color-border)">
+              <h3 class="font-display font-bold text-sm" style="color: var(--color-ink-1)">注册客户列表</h3>
+              <p class="text-xs mt-1" style="color: var(--color-ink-4)">以下是所有在前台注册了客户账号的用户，您可以为他们发放专属的加密作品授权密码。</p>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="text-[10px] font-mono uppercase tracking-wider border-b" style="color: var(--color-ink-4); border-color: var(--color-border); background: rgba(0,0,0,0.01)">
+                    <th class="py-3.5 px-6 font-semibold">客户用户名</th>
+                    <th class="py-3.5 px-6 font-semibold">电子邮箱</th>
+                    <th class="py-3.5 px-6 font-semibold">角色级别</th>
+                    <th class="py-3.5 px-6 font-semibold">注册时间</th>
+                    <th class="py-3.5 px-6 font-semibold text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y text-xs" style="divide-color: var(--color-border)">
+                  <tr v-if="registeredUsers.length === 0">
+                    <td colspan="5" class="py-12 text-center" style="color: var(--color-ink-5)">
+                      <span class="text-2xl block mb-2">👥</span>
+                      暂无注册客户账号。
+                    </td>
+                  </tr>
+                  <tr v-for="u in registeredUsers" :key="u.id" class="hover:bg-black/[0.01] transition-colors">
+                    <td class="py-4 px-6 font-bold" style="color: var(--color-ink-1)">{{ u.username }}</td>
+                    <td class="py-4 px-6 font-mono" style="color: var(--color-ink-2)">{{ u.email || '—' }}</td>
+                    <td class="py-4 px-6">
+                      <span class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-amber-700/5 text-amber-800 border border-amber-700/10">
+                        {{ u.role }}
+                      </span>
+                    </td>
+                    <td class="py-4 px-6" style="color: var(--color-ink-4)">
+                      {{ new Date(u.createdAt).toLocaleString('zh-CN', { hour12: false }) }}
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                      <button
+                        type="button"
+                        @click="deleteUser(u.id)"
+                        class="text-rose-500 hover:text-rose-400 font-bold hover:underline"
+                      >
+                        注销账号
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
         <!-- ===== TAB 1: PROJECTS ===== -->
         <div v-if="activeTab === 'projects'" class="space-y-6">
@@ -688,6 +817,28 @@
                   <div class="space-y-1.5">
                     <label class="form-label">联系邮箱</label>
                     <input v-model="siteConfig.siteInfo.contactEmail" class="form-input font-mono" type="email" placeholder="hello@xo.dev" />
+                  </div>
+                </div>
+                
+                <div class="space-y-1.5 pt-2">
+                  <label class="form-label flex justify-between">
+                    <span>个人头像图片 (Avatar Image)</span>
+                    <span class="text-[9px] text-amber-700 font-bold">支持链接地址或本地设备上传</span>
+                  </label>
+                  <div class="flex gap-2">
+                    <input v-model="siteConfig.siteInfo.avatar" class="form-input font-mono flex-1 text-xs" placeholder="https://... 或上传本地文件" />
+                    <label class="btn-ghost text-xs py-2 px-4 cursor-pointer flex items-center justify-center border border-dashed rounded-xl flex-shrink-0" style="border-color: var(--color-border-2); background: transparent;">
+                      <span>📤 上传</span>
+                      <input type="file" accept="image/*" class="hidden" @change="uploadAvatarFile" />
+                    </label>
+                  </div>
+                  <!-- Avatar Preview -->
+                  <div v-if="siteConfig.siteInfo.avatar" class="flex items-center gap-3 pt-2">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-black/10 flex-shrink-0">
+                      <img :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" />
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400">预览当前头像</span>
+                    <button type="button" @click="siteConfig.siteInfo.avatar = ''" class="text-[10px] font-bold text-rose-500 hover:underline ml-auto">清除头像</button>
                   </div>
                 </div>
               </div>
@@ -1212,6 +1363,13 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  validate: (route) => {
+    const staticPages = ['login', 'register', 'about', 'projects']
+    return !staticPages.includes(route.params.adminSuffix as string)
+  }
+})
+
 // ── Route guard: validate that the current URL suffix matches the configured admin path ──
 const route = useRoute()
 const router = useRouter()
@@ -1252,6 +1410,8 @@ const activeTab = ref('analytics')
 const tabs = [
   { label: '数据看板', value: 'analytics', icon: '📊' },
   { label: '作品管理', value: 'projects', icon: '🎥' },
+  { label: '授权申请', value: 'requests', icon: '🔑' },
+  { label: '用户管理', value: 'users', icon: '👥' },
   { label: '首页配置', value: 'home', icon: '🏠' },
   { label: '个人履历', value: 'about', icon: '🙋' },
   { label: '站点信息', value: 'siteinfo', icon: '🌐' },
@@ -1423,7 +1583,7 @@ const systemStatus = ref<any>({
 const projectsList = ref<any[]>([])
 const siteConfig = useState<any>('site-config', () => ({
   siteInfo: {
-    brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z',
+    brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
     contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
     seoTitle: '', seoDescription: '', footerTagline: ''
   },
@@ -1519,6 +1679,32 @@ const sparkFillPath = computed(() => {
 })
 
 const fetchProjects = async () => { projectsList.value = await $fetch('/api/admin/projects') as any[] }
+const passwordRequests = ref<any[]>([])
+const fetchPasswordRequests = async () => {
+  try {
+    passwordRequests.value = await $fetch('/api/password-requests') as any[]
+  } catch (err) {
+    console.error('Failed to fetch password requests:', err)
+  }
+}
+const registeredUsers = ref<any[]>([])
+const fetchUsers = async () => {
+  try {
+    registeredUsers.value = await $fetch('/api/admin/users') as any[]
+  } catch (err) {
+    console.error('Failed to fetch registered users:', err)
+  }
+}
+const deleteUser = async (id: number | string) => {
+  if (!confirm('确认要删除该注册用户账号吗？')) return
+  try {
+    await $fetch(`/api/admin/users?id=${id}`, { method: 'DELETE' })
+    await fetchUsers()
+  } catch (err: any) {
+    alert(err.statusMessage || '删除用户失败。')
+  }
+}
+
 const fetchSiteConfig = async () => {
   const data = await $fetch('/api/site-config') as any
   if (!data.siteInfo) data.siteInfo = {}
@@ -1526,7 +1712,7 @@ const fetchSiteConfig = async () => {
   if (!data.announcement) data.announcement = {}
   siteConfig.value = {
     siteInfo: {
-      brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z',
+      brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
       contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
       seoTitle: '', seoDescription: '', footerTagline: '基于达芬奇色彩科学规范开发',
       ...data.siteInfo
@@ -1572,7 +1758,7 @@ const checkAuth = async () => {
     const user = await $fetch('/api/auth/me') as any
     if (user && user.username) {
       // Pre-load all data before revealing the panel — prevents blank screen on refresh
-      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus()])
+      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus(), fetchPasswordRequests(), fetchUsers()])
       await nextTick()
       isLoggedIn.value = true
     }
@@ -1593,7 +1779,7 @@ const handleLogin = async () => {
     }) as any
     if (res.success) {
       // Fetch all data FIRST, then reveal the panel — prevents blank screen
-      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus()])
+      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus(), fetchPasswordRequests(), fetchUsers()])
       await nextTick()
       isLoggedIn.value = true
       loginForm.value = { username: '', password: '' }
@@ -1738,6 +1924,22 @@ const uploadHeroPoster = async (e: Event) => {
   }
 }
 
+const uploadAvatarFile = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  
+  try {
+    const url = await uploadFile(file)
+    if (!siteConfig.value.siteInfo) siteConfig.value.siteInfo = {}
+    siteConfig.value.siteInfo.avatar = url
+  } catch (err: any) {
+    alert(err.data?.statusMessage || err.statusMessage || '头像图片上传失败，请重试。')
+  } finally {
+    target.value = ''
+  }
+}
+
 const addExperience = () => { siteConfig.value.about.experiences.push({ role: '', company: '', period: '', desc: '', tags: [] }) }
 const removeExperience = (idx: number) => { siteConfig.value.about.experiences.splice(idx, 1) }
 const addExperienceTag = (idx: number) => {
@@ -1820,6 +2022,10 @@ const deleteProject = async (slug: string) => {
 </script>
 
 <style scoped>
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .popover-enter-active, .popover-leave-active {
   transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }

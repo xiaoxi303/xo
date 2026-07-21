@@ -48,6 +48,29 @@
       </div>
     </Transition>
 
+    <!-- Client Portal Floating Pill (Bottom-Right) — hidden on admin pages -->
+    <div
+      v-if="!isAdminPage"
+      class="fixed bottom-6 right-6 z-[50] rounded-full px-4 py-2 border flex items-center gap-2.5 transition-all duration-350 backdrop-blur-xl hover:scale-105 active:scale-95"
+      style="background: rgba(252, 248, 242, 0.88); border-color: rgba(200, 185, 160, 0.25);"
+    >
+      <span class="text-xs">🔑</span>
+      <div v-if="clientLoggedIn" class="flex items-center gap-2 text-[10px] font-sans">
+        <span class="font-bold text-slate-700">Hi, {{ clientName }}</span>
+        <span class="text-slate-300">|</span>
+        <button
+          type="button"
+          @click="handleClientLogout"
+          class="font-semibold text-slate-500 hover:text-rose-500 transition-colors hover:underline"
+        >
+          退出
+        </button>
+      </div>
+      <div v-else class="flex items-center text-[10px] font-sans font-semibold">
+        <NuxtLink to="/login" class="text-slate-600 hover:text-amber-700 transition-colors">客户登录</NuxtLink>
+      </div>
+    </div>
+
     <!-- Premium Warm Atmosphere Background -->
     <div v-if="showOrbs" class="bg-orbs">
       <div class="bg-orb bg-orb-1" />
@@ -202,7 +225,36 @@ const toggleMusic = () => {
   }
 }
 
+const clientLoggedIn = ref(false)
+const clientName = ref('')
+
+const checkClientSession = async () => {
+  try {
+    const res = await $fetch<any>('/api/auth/client-me')
+    if (res.loggedIn) {
+      clientLoggedIn.value = true
+      clientName.value = res.username
+    } else {
+      clientLoggedIn.value = false
+    }
+  } catch (e) {
+    clientLoggedIn.value = false
+  }
+}
+
+const handleClientLogout = async () => {
+  if (!confirm('确认要退出客户账号吗？')) return
+  try {
+    await $fetch('/api/auth/client-logout', { method: 'POST' })
+    clientLoggedIn.value = false
+    clientName.value = ''
+    const router = useRouter()
+    router.push('/')
+  } catch (e) {}
+}
+
 onMounted(() => {
+  checkClientSession()
   if (import.meta.client && !preloaderDone.value && !isAdminPage.value) {
     document.body.style.overflow = 'hidden'
   }

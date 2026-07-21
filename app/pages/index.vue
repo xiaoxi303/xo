@@ -155,8 +155,10 @@
           <BentoItem span="12:6:4" to="/about" class="reveal">
             <div class="p-8 h-full flex flex-col justify-between space-y-6 relative overflow-hidden group">
               <div class="space-y-4">
-                <div class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-amber-100 to-amber-400 flex items-center justify-center text-slate-800 font-display font-bold text-xl shadow-sm border border-white">
-                  Z
+                <div class="relative w-14 h-14 rounded-full overflow-hidden flex items-center justify-center text-slate-800 font-display font-bold text-xl shadow-sm border border-white"
+                     style="background: linear-gradient(135deg, rgba(217,119,6,0.15), rgba(180,83,9,0.25))">
+                  <img v-if="siteConfig?.siteInfo?.avatar" :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" alt="" />
+                  <span v-else>{{ siteConfig?.siteInfo?.ownerInitial || 'X' }}</span>
                 </div>
                 <div class="space-y-0.5">
                   <h3 class="font-display font-bold text-slate-900 text-xl">{{ siteConfig?.home?.profileCardTitle || 'Xo' }}</h3>

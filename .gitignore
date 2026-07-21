@@ -43,3 +43,15 @@ content/projects/
 
 # Page-view analytics counter (server-local)
 content/page-views.json
+
+# Client password authorization requests (server-local)
+content/password-requests.json
+
+# Registered clients data (server-local)
+content/users.json
+
+# Locally uploaded files (media/avatars)
+public/uploads/
+
+
+

@@ -13,7 +13,7 @@ import { getRuntimeDataPath } from './storage'
 export const ADMIN_USERNAME = 'admin'
 export const ADMIN_PASSWORD_HASH = hashPassword('xiaoxi') // default password
 
-function hashPassword(plain: string): string {
+export function hashPassword(plain: string): string {
   // SHA-256 with a fixed site salt for production hardening
   return createHash('sha256').update(`xo-studio:${plain}`).digest('hex')
 }
@@ -113,6 +113,8 @@ export function destroySession(token: string): void {
 // Cookie helpers
 // ───────────────────────────────────────────────
 export const SESSION_COOKIE = 'xo_admin_session'
+export const CLIENT_SESSION_COOKIE = 'xo_client_session'
+
 export const SESSION_COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',

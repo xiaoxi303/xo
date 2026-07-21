@@ -11,9 +11,12 @@
       :class="[
         'transition-all duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1) flex items-center justify-between',
         isScrolled
-          ? 'w-[90%] max-w-[620px] h-14 px-6 rounded-full bg-[#fbfbfa]/90 backdrop-blur-xl border border-black/[0.06] shadow-[0_8px_32px_rgba(80,60,30,0.08)]'
+          ? 'w-[90%] max-w-[620px] h-14 px-6 rounded-full backdrop-blur-xl border shadow-[0_8px_32px_rgba(80,60,30,0.08)]'
           : 'w-full max-w-6xl h-20 px-6 bg-transparent border-b border-transparent'
       ]"
+      :style="isScrolled
+        ? { background: 'rgba(252, 248, 242, 0.62)', borderColor: 'rgba(200, 185, 160, 0.3)' }
+        : {}"
     >
       <!-- Brand Logo -->
       <NuxtLink

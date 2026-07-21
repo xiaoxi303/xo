@@ -9,8 +9,10 @@
         <div class="flex-shrink-0">
           <div class="relative">
             <div class="absolute -inset-3 rounded-full bg-gradient-to-br from-amber-500/5 to-slate-500/5 blur-lg pointer-events-none" />
-            <div class="relative w-28 h-28 rounded-full bg-gradient-to-br from-amber-100 via-slate-100 to-amber-200 flex items-center justify-center text-slate-850 font-display font-bold text-4xl shadow-sm border border-white">
-              {{ siteConfig?.siteInfo?.ownerInitial || 'Z' }}
+            <div class="relative w-28 h-28 rounded-full overflow-hidden flex items-center justify-center text-slate-850 font-display font-bold text-4xl shadow-sm border border-white"
+                 style="background: linear-gradient(135deg, rgba(217,119,6,0.15), rgba(180,83,9,0.25))">
+              <img v-if="siteConfig?.siteInfo?.avatar" :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" alt="" />
+              <span v-else>{{ siteConfig?.siteInfo?.ownerInitial || 'X' }}</span>
             </div>
           </div>
         </div>

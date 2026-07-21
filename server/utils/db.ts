@@ -51,6 +51,23 @@ export async function getD1Database(event: H3Event) {
           meta TEXT,
           ts DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+        CREATE TABLE IF NOT EXISTS password_requests (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          clientName TEXT NOT NULL,
+          contact TEXT NOT NULL,
+          projectSlug TEXT NOT NULL,
+          projectTitle TEXT NOT NULL,
+          status TEXT DEFAULT 'pending',
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE NOT NULL,
+          email TEXT,
+          password TEXT NOT NULL,
+          role TEXT DEFAULT 'client',
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
       `)
       // Try to alter table in case the schema already existed without the password and imageBefore columns
       try {
@@ -545,4 +562,146 @@ export async function dbSaveSiteConfig(event: H3Event, config: any): Promise<voi
   const dir = path.dirname(configPath)
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8')
+}
+
+export async function dbGetPasswordRequests(event: H3Event): Promise<any[]> {
+  const db = await getD1Database(event)
+  if (db) {
+    const { results } = await db.prepare('SELECT * FROM password_requests ORDER BY createdAt DESC').all()
+    return results
+  }
+  
+  // Local fallback JSON file
+  const requestsPath = getRuntimeDataPath('password-requests.json')
+  if (!fs.existsSync(requestsPath)) return []
+  try {
+    const raw = fs.readFileSync(requestsPath, 'utf-8')
+    return JSON.parse(raw)
+  } catch (e) {
+    return []
+  }
+}
+
+export async function dbCreatePasswordRequest(event: H3Event, data: any): Promise<void> {
+  const db = await getD1Database(event)
+  if (db) {
+    await db.prepare(`
+      INSERT INTO password_requests (clientName, contact, projectSlug, projectTitle)
+      VALUES (?, ?, ?, ?)
+    `).bind(data.clientName, data.contact, data.projectSlug, data.projectTitle).run()
+    return
+  }
+
+  // Local fallback JSON file
+  const requestsPath = getRuntimeDataPath('password-requests.json')
+  let requests = []
+  if (fs.existsSync(requestsPath)) {
+    try {
+      requests = JSON.parse(fs.readFileSync(requestsPath, 'utf-8'))
+    } catch (e) {}
+  }
+  const newRequest = {
+    id: Date.now(),
+    clientName: data.clientName,
+    contact: data.contact,
+    projectSlug: data.projectSlug,
+    projectTitle: data.projectTitle,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  }
+  requests.unshift(newRequest)
+  fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2), 'utf-8')
+}
+
+export async function dbDeletePasswordRequest(event: H3Event, id: number | string): Promise<void> {
+  const db = await getD1Database(event)
+  if (db) {
+    await db.prepare('DELETE FROM password_requests WHERE id = ?').bind(id).run()
+    return
+  }
+
+  // Local fallback JSON file
+  const requestsPath = getRuntimeDataPath('password-requests.json')
+  if (!fs.existsSync(requestsPath)) return
+  try {
+    let requests = JSON.parse(fs.readFileSync(requestsPath, 'utf-8'))
+    requests = requests.filter((r: any) => String(r.id) !== String(id))
+    fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2), 'utf-8')
+  } catch (e) {}
+}
+
+export async function dbGetUsers(event: H3Event): Promise<any[]> {
+  const db = await getD1Database(event)
+  if (db) {
+    const { results } = await db.prepare('SELECT id, username, email, role, createdAt FROM users ORDER BY createdAt DESC').all()
+    return results
+  }
+
+  // Local fallback JSON file
+  const usersPath = getRuntimeDataPath('users.json')
+  if (!fs.existsSync(usersPath)) return []
+  try {
+    const raw = fs.readFileSync(usersPath, 'utf-8')
+    const users = JSON.parse(raw)
+    // Strip passwords for safety in query list
+    return users.map(({ password, ...rest }: any) => rest)
+  } catch (e) {
+    return []
+  }
+}
+
+export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
+  const db = await getD1Database(event)
+  if (db) {
+    // Check duplicate
+    const duplicate = await db.prepare('SELECT id FROM users WHERE username = ?').bind(data.username).first()
+    if (duplicate) {
+      throw createError({ statusCode: 409, statusMessage: '用户名已被注册。' })
+    }
+    await db.prepare(`
+      INSERT INTO users (username, email, password, role)
+      VALUES (?, ?, ?, ?)
+    `).bind(data.username, data.email, data.password, data.role || 'client').run()
+    return
+  }
+
+  // Local fallback JSON file
+  const usersPath = getRuntimeDataPath('users.json')
+  let users = []
+  if (fs.existsSync(usersPath)) {
+    try {
+      users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+    } catch (e) {}
+  }
+  const duplicate = users.find((u: any) => u.username === data.username)
+  if (duplicate) {
+    throw createError({ statusCode: 409, statusMessage: '用户名已被注册。' })
+  }
+  const newUser = {
+    id: Date.now(),
+    username: data.username,
+    email: data.email,
+    password: data.password,
+    role: data.role || 'client',
+    createdAt: new Date().toISOString()
+  }
+  users.unshift(newUser)
+  fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+}
+
+export async function dbDeleteUser(event: H3Event, id: number | string): Promise<void> {
+  const db = await getD1Database(event)
+  if (db) {
+    await db.prepare('DELETE FROM users WHERE id = ?').bind(id).run()
+    return
+  }
+
+  // Local fallback JSON file
+  const usersPath = getRuntimeDataPath('users.json')
+  if (!fs.existsSync(usersPath)) return
+  try {
+    let users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+    users = users.filter((u: any) => String(u.id) !== String(id))
+    fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+  } catch (e) {}
 }
