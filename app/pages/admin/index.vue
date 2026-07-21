@@ -860,6 +860,28 @@
             </div>
           </div>
 
+          <!-- 3. Ambient Music Player Configuration -->
+          <div class="glass-card p-8 space-y-6" v-if="siteConfig.music">
+            <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
+              <div>
+                <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🎵 律动背景音乐播放器 (Ambient Soundscape Player)</h3>
+                <p class="text-xs mt-1" style="color: var(--color-ink-4)">为您的影视剪辑作品集配置轻奢悠闲的氛围环境背景音乐。</p>
+              </div>
+              <label class="flex items-center gap-2 cursor-pointer bg-black/[0.03] px-3.5 py-1.5 rounded-full border border-black/10">
+                <span class="text-xs font-bold font-mono" style="color: var(--color-ink-2)">启用音乐播放器</span>
+                <input type="checkbox" v-model="siteConfig.music.enabled" class="w-4 h-4 accent-amber-700 cursor-pointer" />
+              </label>
+            </div>
+
+            <div class="space-y-1.5" :class="{ 'opacity-50 pointer-events-none': !siteConfig.music.enabled }">
+              <label class="form-label flex justify-between">
+                <span>背景音乐 MP3 链接地址 (Soundtrack MP3 URL)</span>
+                <span class="text-[9px] text-[#b45309] font-bold">请填入高品质 MP3/AAC 格式直链</span>
+              </label>
+              <input v-model="siteConfig.music.url" class="form-input font-mono text-xs" placeholder="https://..." />
+            </div>
+          </div>
+
           <!-- 3. One-Click Backup & Restore Sandbox -->
           <div class="glass-card p-8 space-y-6">
             <div class="border-b pb-4" style="border-color: var(--color-border)">
@@ -958,7 +980,7 @@
                 </div>
                 <div class="space-y-4">
                   <div class="space-y-1.5">
-                    <label class="form-label">封面图片 URL</label>
+                    <label class="form-label">封面图片 URL (Graded / Final Frame)</label>
                     <div class="flex gap-2">
                       <input v-model="form.image" required class="form-input font-mono flex-1" placeholder="https://..." />
                       <label class="btn-ghost text-xs py-2 px-4 cursor-pointer flex items-center justify-center border border-dashed rounded-xl" style="border-color: var(--color-border-2); background: transparent;">
@@ -966,6 +988,13 @@
                         <input type="file" accept="image/*" class="hidden" @change="uploadProjectCover" />
                       </label>
                     </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label flex items-center justify-between">
+                      <span>调色前对比原片 URL (Log / Rec709 Before Frame)</span>
+                      <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">(可选，启用前后滑块对比)</span>
+                    </label>
+                    <input v-model="form.imageBefore" class="form-input font-mono" placeholder="https://... (不开启请留空)" />
                   </div>
                   <div class="space-y-1.5">
                     <label class="form-label">视频 MP4 URL</label>
@@ -1315,6 +1344,9 @@ const siteConfig = useState<any>('site-config', () => ({
   announcement: {
     enabled: true, text: '', link: '', badge: 'NOTICE'
   },
+  music: {
+    enabled: true, url: ''
+  },
   home: {
     heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '',
     statValue1: '', statLabel1: '', statValue2: '', statLabel2: '',
@@ -1335,7 +1367,7 @@ const tempExpInputs = ref<Record<number, string>>({})
 const submitButtonRef = ref<HTMLButtonElement | null>(null)
 
 const form = ref<any>({
-  slug: '', title: '', image: '', videoUrl: '', software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: ''
+  slug: '', title: '', image: '', imageBefore: '', videoUrl: '', software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: ''
 })
 
 const featuredCount = computed(() => projectsList.value.filter(p => p.featured).length)
@@ -1417,6 +1449,10 @@ const fetchSiteConfig = async () => {
     announcement: {
       enabled: true, text: '', link: '', badge: 'NOTICE',
       ...data.announcement
+    },
+    music: {
+      enabled: true, url: 'https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3',
+      ...data.music
     },
     home: { 
       heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '', 
@@ -1633,7 +1669,7 @@ const toggleSoftware = (soft: string) => {
 const openCreateModal = () => {
   isEditing.value = false
   form.value = {
-    slug: '', title: '', image: '', videoUrl: '', software: ['Premiere Pro', 'DaVinci Resolve'],
+    slug: '', title: '', image: '', imageBefore: '', videoUrl: '', software: ['Premiere Pro', 'DaVinci Resolve'],
     tags: ['剪辑节奏', '达芬奇调色'], featured: false, description: '', longDescription: '',
     workflow: [{ icon: '⚡', title: 'Offline 粗剪', desc: '根据背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。' }],
     password: ''

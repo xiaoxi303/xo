@@ -17,6 +17,7 @@ export async function getD1Database(event: H3Event) {
           slug TEXT PRIMARY KEY,
           title TEXT NOT NULL,
           image TEXT,
+          imageBefore TEXT,
           videoUrl TEXT,
           software TEXT,
           tags TEXT,
@@ -45,12 +46,13 @@ export async function getD1Database(event: H3Event) {
           ts DATETIME DEFAULT CURRENT_TIMESTAMP
         );
       `)
-      // Try to alter table in case the schema already existed without the password column
+      // Try to alter table in case the schema already existed without the password and imageBefore columns
       try {
         await db.exec(`ALTER TABLE projects ADD COLUMN password TEXT;`)
-      } catch (e) {
-        // Ignore errors if the column already exists
-      }
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN imageBefore TEXT;`)
+      } catch (e) {}
       isDbInitialized = true
     } catch (err) {
       console.error('D1 auto-initialization failed:', err)
@@ -151,6 +153,7 @@ function stringifyYaml(data: any): string {
   lines.push(`image: "${(data.image || '').replace(/"/g, '\\"')}"`)
   lines.push(`videoUrl: "${(data.videoUrl || '').replace(/"/g, '\\"')}"`)
   lines.push(`password: "${(data.password || '').replace(/"/g, '\\"')}"`)
+  lines.push(`imageBefore: "${(data.imageBefore || '').replace(/"/g, '\\"')}"`)
   
   if (Array.isArray(data.tags)) {
     lines.push('tags:')
@@ -219,12 +222,13 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
     }
 
     await db.prepare(`
-      INSERT INTO projects (slug, title, image, videoUrl, software, tags, featured, description, longDescription, workflow, password)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO projects (slug, title, image, imageBefore, videoUrl, software, tags, featured, description, longDescription, workflow, password)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       body.slug,
       body.title,
       body.image || '',
+      body.imageBefore || '',
       body.videoUrl || '',
       JSON.stringify(body.software || []),
       JSON.stringify(body.tags || []),
@@ -261,11 +265,12 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
 
     await db.prepare(`
       UPDATE projects
-      SET title = ?, image = ?, videoUrl = ?, software = ?, tags = ?, featured = ?, description = ?, longDescription = ?, workflow = ?, password = ?
+      SET title = ?, image = ?, imageBefore = ?, videoUrl = ?, software = ?, tags = ?, featured = ?, description = ?, longDescription = ?, workflow = ?, password = ?
       WHERE slug = ?
     `).bind(
       body.title,
       body.image || '',
+      body.imageBefore || '',
       body.videoUrl || '',
       JSON.stringify(body.software || []),
       JSON.stringify(body.tags || []),
@@ -333,6 +338,10 @@ const defaultConfig = {
     text: "🎬 2026 年下下来商业 TVC 档期与电影 DI 调色开放预订中",
     link: "mailto:hello@xo.dev",
     badge: "NOTICE"
+  },
+  music: {
+    enabled: true,
+    url: "https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3"
   },
   home: {
     heroTitle1: "用剪辑",

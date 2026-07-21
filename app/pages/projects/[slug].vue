@@ -93,6 +93,62 @@
           />
         </div>
 
+        <!-- Interactive LUT Grade Comparison Slider -->
+        <div v-if="project.imageBefore" class="space-y-4 reveal">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
+              <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">🎥 影视调色前后对比 (LOG 原片 vs 最终调色)</h2>
+            </div>
+            <span class="text-[10px] font-mono" style="color: var(--color-ink-5)">左右滑动滑块对比色彩空间映射差异</span>
+          </div>
+
+          <div
+            class="relative w-full aspect-video rounded-2xl overflow-hidden glass-card select-none cursor-ew-resize"
+            @mousemove="handleSliderMove"
+            @touchmove="handleSliderMove"
+            ref="sliderContainerRef"
+          >
+            <!-- Before Image (Log / Raw) -->
+            <img
+              :src="project.imageBefore"
+              alt="Before grading"
+              class="absolute inset-0 w-full h-full object-cover"
+              draggable="false"
+            />
+            <div class="absolute bottom-4 left-4 z-20 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-black/60 text-white backdrop-blur-sm border border-white/10 uppercase tracking-widest">
+              LOG 原片
+            </div>
+
+            <!-- After Image Container (Graded / Final) -->
+            <div
+              class="absolute inset-y-0 left-0 right-0 overflow-hidden"
+              :style="{ width: sliderPosition + '%' }"
+            >
+              <img
+                :src="project.image"
+                alt="After grading"
+                class="absolute inset-0 w-full h-full object-cover max-w-none"
+                :style="{ width: containerWidth + 'px' }"
+                draggable="false"
+              />
+              <div class="absolute bottom-4 right-4 z-20 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-[#b45309]/80 text-white backdrop-blur-sm border border-amber-500/20 uppercase tracking-widest">
+                Graded 调色后
+              </div>
+            </div>
+
+            <!-- Slider Handle Bar -->
+            <div
+              class="absolute inset-y-0 z-30 w-[2px] bg-white pointer-events-none shadow-[0_0_10px_rgba(0,0,0,0.5)] flex items-center justify-center"
+              :style="{ left: sliderPosition + '%' }"
+            >
+              <div class="w-8 h-8 rounded-full bg-white text-black shadow-lg flex items-center justify-center border border-black/10 text-xs font-bold font-mono">
+                ↔
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Content grid -->
         <div class="grid md:grid-cols-3 gap-8 items-start reveal">
 
@@ -255,6 +311,36 @@ watch(project, (val) => {
     }
   }
 }, { immediate: true })
+
+// Image LUT slider logic
+const sliderContainerRef = ref<HTMLElement | null>(null)
+const sliderPosition = ref(50)
+const containerWidth = ref(800)
+
+const handleSliderMove = (e: MouseEvent | TouchEvent) => {
+  if (!sliderContainerRef.value) return
+  const rect = sliderContainerRef.value.getBoundingClientRect()
+  containerWidth.value = rect.width
+  let clientX = 0
+  if (e instanceof MouseEvent) {
+    clientX = e.clientX
+  } else if (e.touches && e.touches[0]) {
+    clientX = e.touches[0].clientX
+  }
+  const x = clientX - rect.left
+  let percentage = (x / rect.width) * 100
+  if (percentage < 0) percentage = 0
+  if (percentage > 100) percentage = 100
+  sliderPosition.value = percentage
+}
+
+if (import.meta.client) {
+  window.addEventListener('resize', () => {
+    if (sliderContainerRef.value) {
+      containerWidth.value = sliderContainerRef.value.getBoundingClientRect().width
+    }
+  })
+}
 
 const syncBlurVideo = () => {
   if (!mainVideoRef.value || !blurVideoRef.value) return

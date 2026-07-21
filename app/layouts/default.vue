@@ -54,6 +54,53 @@
       <div class="bg-orb bg-orb-4" />
     </div>
 
+    <!-- Floating Ambient Soundscape Player (Bottom-Right Premium Capsule) -->
+    <div
+      v-if="musicEnabled"
+      class="fixed bottom-6 right-6 z-[60] rounded-full px-4 py-2.5 shadow-[0_8px_30px_rgba(80,60,30,0.08)] border flex items-center gap-3 transition-all duration-300 backdrop-blur-xl"
+      style="background: rgba(252, 248, 242, 0.9); border-color: rgba(200, 185, 160, 0.25);"
+    >
+      <!-- Audio Beat visualizer (dancing bar micro-animation) -->
+      <div class="flex items-end gap-[2px] h-3.5 w-4 cursor-pointer" @click="toggleMusic">
+        <span
+          v-for="bar in 4"
+          :key="bar"
+          class="w-[2px] bg-[#b45309] rounded-full transition-all duration-300"
+          :class="isPlaying ? 'animate-beat-bar' : 'h-[3px]'"
+          :style="{
+            animationDelay: `${bar * 0.15}s`
+          }"
+        />
+      </div>
+
+      <!-- Music Info -->
+      <div class="flex flex-col select-none cursor-pointer" @click="toggleMusic">
+        <span class="text-[9px] font-mono font-bold tracking-wider" style="color: var(--color-ink-3)">AMBIENT AUDIO</span>
+        <span class="text-[9px] font-bold truncate max-w-[80px]" style="color: var(--color-ink-5)">{{ isPlaying ? '播放中' : '已静音' }}</span>
+      </div>
+
+      <!-- Play/Mute Button -->
+      <button
+        type="button"
+        @click="toggleMusic"
+        class="w-6 h-6 rounded-full flex items-center justify-center bg-[#b45309]/10 hover:bg-[#b45309]/20 transition-all text-[#b45309]"
+      >
+        <svg v-if="isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
+          <path d="M5.75 3a.75.75 0 01.75.75v12.5a.75.75 0 01-1.5 0V3.75A.75.75 0 015.75 3zm5 0a.75.75 0 01.75.75v12.5a.75.75 0 01-1.5 0V3.75A.75.75 0 0110.75 3z" />
+        </svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
+          <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.324-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+        </svg>
+      </button>
+
+      <!-- Hidden Audio element -->
+      <audio
+        ref="audioRef"
+        :src="musicUrl"
+        loop
+      />
+    </div>
+
     <!-- Navbar -->
     <AppNavbar />
 
@@ -118,6 +165,27 @@ watch(showFilmGrain, (val) => {
     else document.body.classList.remove('no-grain')
   }
 }, { immediate: true })
+
+// Ambient Soundscape Player States & Logic
+const isPlaying = ref(false)
+const audioRef = ref<HTMLAudioElement | null>(null)
+
+const musicEnabled = computed(() => siteConfig.value?.music?.enabled ?? true)
+const musicUrl = computed(() => siteConfig.value?.music?.url || 'https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3')
+
+const toggleMusic = () => {
+  if (!audioRef.value) return
+  if (isPlaying.value) {
+    audioRef.value.pause()
+    isPlaying.value = false
+  } else {
+    audioRef.value.play().then(() => {
+      isPlaying.value = true
+    }).catch(err => {
+      console.warn('Audio playback was prevented, requires user interaction first', err)
+    })
+  }
+}
 </script>
 
 <style scoped>
@@ -131,5 +199,14 @@ watch(showFilmGrain, (val) => {
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(16px) scale(0.95);
+}
+
+/* Soundscape visualizer beat animation */
+@keyframes beat-bar {
+  0%, 100% { height: 3px; }
+  50% { height: 14px; }
+}
+.animate-beat-bar {
+  animation: beat-bar 0.8s ease-in-out infinite alternate;
 }
 </style>
