@@ -1,5 +1,7 @@
-import { dbGetProjectsRaw, dbGetProjectPassword, dbCreatePasswordRequest } from '../../../utils/db'
+import { dbGetProjectsRaw, dbGetProjectPassword, dbCreatePasswordRequest, getD1Database } from '../../../utils/db'
+import { getRuntimeDataPath } from '../../../utils/storage'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../../utils/auth'
+import fs from 'node:fs'
 
 export default defineEventHandler(async (event) => {
   // 1. Authenticate client session
@@ -13,8 +15,6 @@ export default defineEventHandler(async (event) => {
   }
 
   // 2. Fetch client user details to check status and allowed project permissions
-  const { getD1Database, getRuntimeDataPath } = await import('../../../utils/db')
-  const fs = await import('node:fs')
   let clientUser: any = null
   const db = await getD1Database(event)
   if (db) {
