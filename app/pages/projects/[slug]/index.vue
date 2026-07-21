@@ -98,7 +98,7 @@
 
           <!-- Media block: video player OR cover image fallback -->
           <div class="reveal">
-            <!-- If has videoUrl: show ambilight video player -->
+            <!-- If has videoUrl: show custom premium player with ambilight -->
             <div v-if="activeVideoUrl" class="space-y-3">
               <div class="ambilight-container">
                 <!-- Ambient backdrop blur video -->
@@ -109,17 +109,147 @@
                   muted loop playsinline
                   class="ambilight-shadow"
                 />
-                <!-- Foreground main player -->
-                <video
-                  ref="mainVideoRef"
-                  :key="`main-${activeVideoUrl}`"
-                  :src="activeVideoUrl"
-                  :poster="project.image"
-                  controls autoplay muted playsinline
-                  class="w-full rounded-2xl overflow-hidden relative z-10"
-                  style="max-height: 520px; object-fit: cover; background: #000;"
-                  @loadedmetadata="syncBlurVideo"
-                />
+                
+                <!-- Custom Premium Player Container -->
+                <div 
+                  ref="playerContainerRef" 
+                  class="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-black border border-black/10 select-none z-10 aspect-video max-h-[520px]"
+                  @mousemove="resetControlsTimer"
+                  @mouseleave="showControls = false"
+                  @contextmenu.prevent
+                >
+                  <!-- Main Video Element -->
+                  <video
+                    ref="mainVideoRef"
+                    :key="`main-${activeVideoUrl}`"
+                    :src="activeVideoUrl"
+                    :poster="project.image"
+                    autoplay muted playsinline
+                    class="w-full h-full block cursor-pointer"
+                    :style="{ maxHeight: isFullscreen ? 'none' : '520px', height: isFullscreen ? '100%' : '100%', objectFit: 'cover', background: '#000' }"
+                    @loadedmetadata="onVideoLoaded"
+                    @timeupdate="onTimeUpdate"
+                    @play="onPlay"
+                    @pause="onPause"
+                    @click="togglePlay"
+                  />
+
+                  <!-- Centered Big Play Button Indicator -->
+                  <div 
+                    class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300 z-20"
+                    :class="{ 'opacity-0 scale-95': isPlaying, 'opacity-100 scale-100': !isPlaying }"
+                  >
+                    <button 
+                      type="button"
+                      class="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-2xl pointer-events-auto transform transition-transform hover:scale-105 active:scale-95"
+                      @click="togglePlay"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 ml-1 text-amber-500">
+                        <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <!-- Custom Bottom Controls (Glassmorphism Overlay) -->
+                  <div 
+                    class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/85 via-black/45 to-transparent transition-all duration-300 transform flex flex-col justify-end pointer-events-auto z-20"
+                    :class="{ 'opacity-100 translate-y-0': showControls, 'opacity-0 translate-y-2 pointer-events-none': !showControls }"
+                  >
+                    <!-- Scrub Progress Bar -->
+                    <div 
+                      class="relative h-1 w-full bg-white/20 rounded-full cursor-pointer group/progress mb-3.5 transition-all hover:h-1.5"
+                      @mousedown="startScrub"
+                      ref="progressTrackRef"
+                    >
+                      <!-- Progress Fill -->
+                      <div 
+                        class="absolute top-0 left-0 h-full bg-amber-600 rounded-full"
+                        :style="{ width: (currentTime / (duration || 1)) * 100 + '%' }"
+                      />
+                      <!-- Progress Thumb Knob -->
+                      <div 
+                        class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border border-amber-600 shadow-md scale-0 group-hover/progress:scale-100 transition-transform"
+                        :style="{ left: 'calc(' + (currentTime / (duration || 1)) * 100 + '% - 6px)' }"
+                      />
+                    </div>
+
+                    <!-- Bottom Controls Buttons row -->
+                    <div class="flex items-center justify-between text-white text-xs select-none">
+                      <div class="flex items-center gap-4">
+                        <!-- Play/Pause toggle -->
+                        <button type="button" @click="togglePlay" class="hover:text-amber-500 transition-colors">
+                          <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-white">
+                            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                          </svg>
+                          <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-white">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 7.75a.75.75 0 01.75-.75h.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-.5a.75.75 0 01-.75-.75v-4.5zm5 0a.75.75 0 01.75-.75h.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-.5a.75.75 0 01-.75-.75v-4.5z" clip-rule="evenodd" />
+                          </svg>
+                        </button>
+
+                        <!-- Timeline Time counter -->
+                        <span class="font-mono text-[11px] text-gray-300">
+                          {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+                        </span>
+
+                        <!-- Volume with Slider -->
+                        <div class="flex items-center gap-1.5 group/volume ml-1">
+                          <button type="button" @click="toggleMute" class="hover:text-amber-500 transition-colors">
+                            <svg v-if="isMuted || volume === 0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                              <path d="M9.547 3.062A.75.75 0 0110 3.75v12.5a.75.75 0 01-1.264.546L5.203 13H3.25A1.25 1.25 0 012 11.75v-3.5A1.25 1.25 0 013.25 7h1.953l3.533-3.296a.75.75 0 01.811-.064zM16.28 7.22a.75.75 0 10-1.06 1.06L16.44 9.5l-1.22 1.22a.75.75 0 101.06 1.06l1.22-1.22 1.22 1.22a.75.75 0 101.06-1.06L18.56 9.5l1.22-1.22a.75.75 0 00-1.06-1.06l-1.22 1.22-1.22-1.22z" />
+                            </svg>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                              <path d="M10 3.75a.75.75 0 00-1.264-.546L5.203 6.5H3.25A1.25 1.25 0 002 7.75v4.5A1.25 1.25 0 003.25 13.5h1.953l3.533 3.296A.75.75 0 0010 16.25V3.75zM13 10a2.5 2.5 0 00-1.5-2.288v4.576A2.5 2.5 0 0013 10zM15.5 10a5 5 0 00-3-4.578v9.156A5 5 0 0015.5 10z" />
+                            </svg>
+                          </button>
+                          <input 
+                            type="range" 
+                            min="0" max="1" step="0.05" 
+                            :value="isMuted ? 0 : volume"
+                            @input="e => setVolume(Number((e.target as HTMLInputElement).value))"
+                            class="volume-slider w-0 opacity-0 pointer-events-none group-hover/volume:w-16 group-hover/volume:opacity-100 group-hover/volume:pointer-events-auto cursor-pointer transition-all duration-300"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-4">
+                        <!-- Speed selector popover cycle -->
+                        <div class="relative group/speed">
+                          <button type="button" class="font-mono text-[9px] font-bold border border-white/30 rounded px-1.5 py-0.5 hover:border-amber-500 hover:text-amber-500 transition-colors uppercase">
+                            {{ playbackRate.toFixed(2) }}x
+                          </button>
+                          <div class="absolute bottom-full right-0 mb-2 bg-black/90 border border-white/10 rounded-xl py-1 shadow-2xl min-w-[70px] opacity-0 translate-y-1 pointer-events-none group-hover/speed:opacity-100 group-hover/speed:translate-y-0 group-hover/speed:pointer-events-auto transition-all duration-200">
+                            <button 
+                              v-for="r in [0.5, 1.0, 1.25, 1.5, 2.0]" :key="r" 
+                              type="button" 
+                              @click="setPlaybackRate(r)"
+                              class="w-full text-center py-1.5 hover:bg-white/10 transition-colors text-[10px] font-mono"
+                              :class="{ 'text-amber-500 font-bold': playbackRate === r }"
+                            >
+                              {{ r.toFixed(2) }}x
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Picture in Picture (PiP) -->
+                        <button type="button" @click="togglePiP" class="hover:text-amber-500 transition-colors" title="画中画">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                            <path fill-rule="evenodd" d="M2 3.75A1.75 1.75 0 013.75 2h12.5A1.75 1.75 0 0118 3.75v12.5A1.75 1.75 0 0116.25 18H3.75A1.75 1.75 0 012 16.25V3.75zM3.5 8v8.25c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V8h-13zm11 2.25a.75.75 0 00-1.5 0v3.5a.75.75 0 001.5 0v-3.5z" clip-rule="evenodd" />
+                          </svg>
+                        </button>
+
+                        <!-- Fullscreen Toggle -->
+                        <button type="button" @click="toggleFullscreen" class="hover:text-amber-500 transition-colors">
+                          <svg v-if="!isFullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                            <path d="M3.25 4A.75.75 0 014 3.25h3.5a.75.75 0 010 1.5H5v2.5a.75.75 0 01-1.5 0v-3.5zM12.5 3.25a.75.75 0 01.75-.75h3.5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0V5h-2.75a.75.75 0 01-.75-.75zM3.25 12.5a.75.75 0 01.75.75V15h2.75a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75v-3.5a.75.75 0 01.75-.75zM16.75 12.5a.75.75 0 01.75.75v3.5a.75.75 0 01-.75.75h-3.5a.75.75 0 010-1.5H15v-2.5a.75.75 0 01.75-.75z" />
+                          </svg>
+                          <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                            <path d="M5.5 3.5a.75.75 0 01.75.75v2.25H8.5a.75.75 0 010 1.5H5.5a.75.75 0 01-.75-.75v-3.5a.75.75 0 01.75-.75zM14.5 3.5a.75.75 0 01.75.75v3.5a.75.75 0 01-.75.75h-3a.75.75 0 010-1.5h2.25V4.25a.75.75 0 01.75-.75zM5.5 11.5a.75.75 0 01.75.75v2.25H8.5a.75.75 0 010 1.5H5.5a.75.75 0 01-.75-.75v-3.5a.75.75 0 01.75-.75zM14.5 11.5a.75.75 0 01.75.75v3.5a.75.75 0 01-.75.75h-3a.75.75 0 010-1.5h2.25V12.25a.75.75 0 01.75-.75z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div
@@ -581,8 +711,145 @@ const syncBlurVideo = () => {
   })
 }
 
+// --- Premium Custom Video Player Controls State & Logic ---
+const isPlaying = ref(false)
+const currentTime = ref(0)
+const duration = ref(0)
+const volume = ref(1.0)
+const isMuted = ref(false)
+const playbackRate = ref(1.0)
+const isFullscreen = ref(false)
+const showControls = ref(true)
+const isDraggingScrub = ref(false)
+
+const progressTrackRef = ref<HTMLElement | null>(null)
+const playerContainerRef = ref<HTMLElement | null>(null)
+
+const onVideoLoaded = () => {
+  if (mainVideoRef.value) {
+    duration.value = mainVideoRef.value.duration
+  }
+  syncBlurVideo()
+}
+
+const onTimeUpdate = () => {
+  if (mainVideoRef.value && !isDraggingScrub.value) {
+    currentTime.value = mainVideoRef.value.currentTime
+  }
+}
+
+const onPlay = () => {
+  isPlaying.value = true
+  resetControlsTimer()
+}
+
+const onPause = () => {
+  isPlaying.value = false
+  showControls.value = true
+  if (controlsTimeout) clearTimeout(controlsTimeout)
+}
+
+const togglePlay = () => {
+  if (!mainVideoRef.value) return
+  if (isPlaying.value) {
+    mainVideoRef.value.pause()
+  } else {
+    mainVideoRef.value.play().catch(() => {})
+  }
+}
+
+const toggleMute = () => {
+  if (!mainVideoRef.value) return
+  isMuted.value = !isMuted.value
+  mainVideoRef.value.muted = isMuted.value
+}
+
+const setVolume = (val: number) => {
+  volume.value = val
+  isMuted.value = val === 0
+  if (mainVideoRef.value) {
+    mainVideoRef.value.volume = val
+    mainVideoRef.value.muted = val === 0
+  }
+}
+
+const setPlaybackRate = (rate: number) => {
+  playbackRate.value = rate
+  if (mainVideoRef.value) mainVideoRef.value.playbackRate = rate
+  if (blurVideoRef.value) blurVideoRef.value.playbackRate = rate
+}
+
+const toggleFullscreen = () => {
+  if (!playerContainerRef.value) return
+  if (!document.fullscreenElement) {
+    playerContainerRef.value.requestFullscreen().catch(() => {})
+    isFullscreen.value = true
+  } else {
+    document.exitFullscreen().catch(() => {})
+    isFullscreen.value = false
+  }
+}
+
+const togglePiP = async () => {
+  if (!mainVideoRef.value) return
+  try {
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture()
+    } else {
+      await mainVideoRef.value.requestPictureInPicture()
+    }
+  } catch (e) {
+    console.error('PiP error:', e)
+  }
+}
+
+const startScrub = (e: MouseEvent) => {
+  isDraggingScrub.value = true
+  scrub(e)
+  if (import.meta.client) {
+    window.addEventListener('mousemove', scrub)
+    window.addEventListener('mouseup', stopScrub)
+  }
+}
+
+const scrub = (e: MouseEvent) => {
+  if (!mainVideoRef.value || !progressTrackRef.value) return
+  const rect = progressTrackRef.value.getBoundingClientRect()
+  const pos = (e.clientX - rect.left) / rect.width
+  const clamped = Math.max(0, Math.min(1, pos))
+  currentTime.value = clamped * duration.value
+  mainVideoRef.value.currentTime = currentTime.value
+}
+
+const stopScrub = () => {
+  isDraggingScrub.value = false
+  if (import.meta.client) {
+    window.removeEventListener('mousemove', scrub)
+    window.removeEventListener('mouseup', stopScrub)
+  }
+  resetControlsTimer()
+}
+
+let controlsTimeout: NodeJS.Timeout | null = null
+const resetControlsTimer = () => {
+  showControls.value = true
+  if (controlsTimeout) clearTimeout(controlsTimeout)
+  if (isPlaying.value && !isDraggingScrub.value) {
+    controlsTimeout = setTimeout(() => {
+      showControls.value = false
+    }, 2500)
+  }
+}
+
+const formatTime = (seconds: number) => {
+  if (isNaN(seconds) || seconds === Infinity) return '00:00'
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+}
+
 useHead({
-  title: () => project.value ? `${project.value.title} — xo.dev` : '作品详情 — xo.dev',
+  title: () => project.value ? `${project.value.title} — Xo Studio` : '作品详情 — Xo Studio',
   meta: [{ name: 'description', content: () => project.value ? project.value.description : '作品详情页' }]
 })
 
@@ -598,9 +865,18 @@ const initReveal = () => {
   document.querySelectorAll('.reveal').forEach(el => observer?.observe(el))
 }
 
+const handleFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
 onMounted(async () => {
   await nextTick()
   initReveal()
+
+  if (import.meta.client) {
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+  }
 
   // Track client-side page visit for project clicks heat ranking
   if (import.meta.client && project.value) {
@@ -613,7 +889,14 @@ onMounted(async () => {
     }).catch(() => {})
   }
 })
-onBeforeUnmount(() => { if (observer) observer.disconnect() })
+
+onBeforeUnmount(() => {
+  if (observer) observer.disconnect()
+  if (import.meta.client) {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+  }
+})
 </script>
 
 <style scoped>
@@ -645,5 +928,48 @@ onBeforeUnmount(() => { if (observer) observer.disconnect() })
   z-index: 0;
   opacity: 0.65;
   pointer-events: none;
+}
+
+/* Custom range slider styling */
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.25) !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+  outline: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: #f59e0b !important; /* amber-500 */
+  cursor: pointer;
+  border: none !important;
+  transition: transform 0.15s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.3);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: #f59e0b !important;
+  cursor: pointer;
+  border: none !important;
+  transition: transform 0.15s ease;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+  transform: scale(1.3);
 }
 </style>
