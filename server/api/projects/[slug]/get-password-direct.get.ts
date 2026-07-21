@@ -61,7 +61,28 @@ export default defineEventHandler(async (event) => {
   const projectTitle = project ? project.title : slug
 
   // 4. Extract client IP and short User-Agent details
-  const ip = getRequestIP(event, { xForwardedFor: true }) || '未知 IP'
+  let ip = ''
+  const cfConnectingIp = getHeader(event, 'cf-connecting-ip')
+  const xRealIp = getHeader(event, 'x-real-ip')
+  const xForwardedFor = getHeader(event, 'x-forwarded-for')
+  
+  if (cfConnectingIp) {
+    ip = cfConnectingIp.trim()
+  } else if (xRealIp) {
+    ip = xRealIp.trim()
+  } else if (xForwardedFor) {
+    const parts = xForwardedFor.split(',')
+    ip = parts[0]?.trim() || ''
+  }
+  
+  if (!ip) {
+    ip = getRequestIP(event, { xForwardedFor: true }) || '未知 IP'
+  }
+  
+  if (ip === '::1' || ip === '::ffff:127.0.0.1') {
+    ip = '127.0.0.1'
+  }
+
   const userAgent = getHeader(event, 'user-agent') || ''
   let device = 'PC'
   if (/mobile/i.test(userAgent)) device = '移动端'
