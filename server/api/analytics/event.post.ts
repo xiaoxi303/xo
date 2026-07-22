@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import { getRuntimeDataPath } from '../../utils/storage'
 import { readBody, readRawBody, defineEventHandler } from 'h3'
 import { broadcastAnalyticsChange } from '../../utils/broadcaster'
+import { recordProjectHeat } from '../../utils/analytics-store'
 
 export default defineEventHandler(async (event) => {
   let body: any = null
@@ -36,8 +37,11 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+import { recordProjectHeat } from '../../utils/analytics-store'
+
   if (targetSlug) {
     targetSlug = targetSlug.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+    recordProjectHeat(targetSlug, 1)
   }
 
   const today = new Date().toISOString().slice(0, 10)

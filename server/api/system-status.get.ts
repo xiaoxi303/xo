@@ -4,6 +4,7 @@ import os from 'node:os'
 import { execSync } from 'node:child_process'
 import { getRuntimeDataPath } from '../utils/storage'
 import { setResponseHeader } from 'h3'
+import { getProjectHeatMap } from '../utils/analytics-store'
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
@@ -227,6 +228,14 @@ export default defineEventHandler(async (event) => {
         addProjectCount(slug, 1)
       }
     })
+  }
+
+  // Merge unified project heat map for 100% real-time data sync
+  const unifiedHeat = getProjectHeatMap()
+  for (const [sKey, hCount] of Object.entries(unifiedHeat)) {
+    if (sKey && sKey !== 'get') {
+      addProjectCount(sKey, Number(hCount || 0))
+    }
   }
 
   // Map all existing projects so every project appears in the heat map ranking

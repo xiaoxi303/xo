@@ -53,5 +53,10 @@
     "event": "project_click",
     "meta": "{\"slug\":\"ai-3412\",\"title\":\"AI作品\"}",
     "ts": "2026-07-22T14:32:36.101Z"
+  },
+  {
+    "event": "project_click",
+    "meta": "{\"slug\":\"ai-3412\",\"title\":\"AI作品\"}",
+    "ts": "2026-07-22T14:34:47.215Z"
   }
 ]
