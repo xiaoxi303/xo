@@ -897,6 +897,8 @@ const formatTime = (seconds: number) => {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
+let heartbeatTimer: any = null
+
 useHead({
   title: () => project.value ? `${project.value.title} — Xo Studio` : '作品详情 — Xo Studio',
   meta: [{ name: 'description', content: () => project.value ? project.value.description : '作品详情页' }]
@@ -937,6 +939,11 @@ onMounted(async () => {
 
     // Automatically record project visit on client mount
     recordProjectClick()
+
+    // Heartbeat watching pulse: automatically updates heat ranking every 8 seconds while visitor stays on page
+    heartbeatTimer = setInterval(() => {
+      recordProjectClick()
+    }, 8000)
   }
 })
 
@@ -950,6 +957,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  if (heartbeatTimer) clearInterval(heartbeatTimer)
   if (observer) observer.disconnect()
   if (import.meta.client) {
     document.removeEventListener('fullscreenchange', handleFullscreenChange)
