@@ -49,43 +49,73 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
 
     // High-end luxury styled HTML template matching the website theme
     const html = `
-      <div style="background-color: #fbfbfa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; text-align: center; color: #2d2f34;">
-        <div style="max-w: 520px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eaeaea; border-radius: 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); overflow: hidden; text-align: left;">
+      <div style="background-color: #f7f6f3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 50px 20px; color: #2d2f34; line-height: 1.6;">
+        <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; border: 1px solid #e9e8e3; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03); overflow: hidden;">
           
-          <!-- Header -->
-          <div style="background-color: #121316; padding: 30px; text-align: center;">
-            <h1 style="color: #ffffff; margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 22px; font-weight: normal; letter-spacing: 0.05em;">Xo Studio</h1>
-            <p style="color: #b45309; margin: 5px 0 0 0; font-family: monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em;">Exclusive Clip Authorization</p>
+          <!-- Elegant Header Accent -->
+          <div style="height: 6px; background: linear-gradient(90deg, #d97706, #b45309, #d97706);"></div>
+          
+          <div style="padding: 40px 40px 30px 40px; text-align: center; border-bottom: 1px solid #f3f2ee;">
+            <!-- Brand Logo (High-end Typography Monogram) -->
+            <div style="font-family: 'Times New Roman', Georgia, serif; font-size: 44px; font-weight: 300; font-style: italic; color: #121316; letter-spacing: 0.05em; margin-bottom: 6px; line-height: 1; text-align: center;">Xo</div>
+            <h1 style="color: #121316; margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: normal; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase;">Xo Studio</h1>
+            <p style="color: #b45309; margin: 6px 0 0 0; font-family: monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: bold;">Exclusive Clip Authorization</p>
+            <div style="width: 24px; height: 1.5px; background-color: #b45309; margin: 20px auto 0 auto; opacity: 0.6;"></div>
           </div>
 
-          <!-- Body -->
-          <div style="padding: 40px 30px;">
-            <p style="font-size: 14px; line-height: 1.6; margin-top: 0; color: #52525b;">您好，</p>
-            <p style="font-size: 14px; line-height: 1.6; color: #2d2f34;">您申请观摩的作品 <b>《${request.projectTitle}》</b> 授权申请已通过审核，访问密码及直接观看入口如下：</p>
+          <!-- Body Content -->
+          <div style="padding: 40px 40px;">
+            <p style="font-size: 15px; margin-top: 0; color: #121316; font-weight: 600;">尊敬的访客：</p>
+            <p style="font-size: 14px; color: #5e6066; margin-bottom: 24px;">您好！您申请观摩的作品已通过我们的系统授权审核。相关访问凭证如下：</p>
             
-            <!-- Password Display Box -->
-            <div style="background-color: #fcf6e8; border: 1px dashed rgba(180, 83, 9, 0.2); border-radius: 12px; padding: 20px; text-align: center; margin: 25px 0;">
-              <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #b45309; display: block; margin-bottom: 5px;">作品访问密码</span>
-              <strong style="font-size: 24px; font-family: monospace; color: #121316; letter-spacing: 0.05em;">${password || '公开访问（无密码）'}</strong>
+            <!-- Metadata Info list -->
+            <div style="background-color: #fcfcfa; border-radius: 16px; padding: 20px; border: 1px solid #efeee9; margin-bottom: 30px;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr>
+                  <td style="color: #8c8e94; padding: 6px 0; width: 30%;">申请作品</td>
+                  <td style="color: #121316; padding: 6px 0; font-weight: 600;">《${request.projectTitle}》</td>
+                </tr>
+                <tr>
+                  <td style="color: #8c8e94; padding: 6px 0;">申请通道</td>
+                  <td style="color: #121316; padding: 6px 0;">${request.clientName || '外部访客申请'}</td>
+                </tr>
+                <tr>
+                  <td style="color: #8c8e94; padding: 6px 0;">授权状态</td>
+                  <td style="color: #16a34a; padding: 6px 0; font-weight: bold;">🟢 已通过 (Approved)</td>
+                </tr>
+              </table>
             </div>
 
-            <!-- CTA Button -->
-            <div style="text-align: center; margin: 30px 0 10px 0;">
-              <a href="${projectUrl}" target="_blank" style="background-color: #b45309; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 600; padding: 12px 30px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(180, 83, 9, 0.2); transition: background-color 0.2s;">
-                立即访问作品页
+            <!-- Password Card (Ticket design) -->
+            <div style="background: #fdfbf7; border: 1.5px dashed #d97706; border-radius: 16px; padding: 30px 24px; text-align: center; margin: 30px 0; box-shadow: 0 4px 12px rgba(180, 83, 9, 0.02);">
+              <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #b45309; font-weight: bold; display: block; margin-bottom: 12px;">作品访问密码 / PASSWORD</span>
+              <strong style="font-size: 32px; font-family: 'Courier New', Courier, monospace; color: #121316; letter-spacing: 0.2em; text-shadow: 0 1px 1px rgba(0,0,0,0.05); display: inline-block; padding-left: 0.2em;">${password || '公开访问（无密码）'}</strong>
+            </div>
+
+            <!-- CTA Call to action -->
+            <div style="text-align: center; margin: 35px 0 15px 0;">
+              <a href="${projectUrl}" target="_blank" style="background: linear-gradient(135deg, #c27a3d, #b45309); color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 600; padding: 14px 45px; border-radius: 12px; display: inline-block; box-shadow: 0 6px 20px rgba(180, 83, 9, 0.25); letter-spacing: 0.05em;">
+                立即访问作品页 &rarr;
               </a>
             </div>
 
-            <p style="font-size: 11px; line-height: 1.6; color: #a1a1aa; margin-top: 30px; border-top: 1px solid #eaeaea; padding-top: 20px; text-align: center;">
-              本邮件由 Xo Studio 系统自动发送，请勿直接回复。<br>
-              如有疑问，请通过微信号或网站公布的联系邮箱联系主理人。
+            <!-- Note / Disclaimer -->
+            <div style="margin-top: 35px; border-top: 1px solid #f3f2ee; padding-top: 25px; text-align: center;">
+              <p style="font-size: 11px; line-height: 1.6; color: #8c8e94; margin: 0;">
+                本邮件由 Xo Studio 授权中心自动发送，请勿直接回复。<br>
+                如在使用过程中遇到任何问题，请通过微信或官方网站公布的邮箱联系主理人。
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Footer Area -->
+          <div style="background-color: #121316; padding: 20px; text-align: center;">
+            <p style="font-size: 9px; color: #8c8e94; margin: 0; font-family: monospace; text-transform: uppercase; letter-spacing: 0.12em;">
+              © ${new Date().getFullYear()} Xo Studio · All rights reserved
             </p>
           </div>
 
         </div>
-        <p style="font-size: 10px; color: #a1a1aa; margin-top: 20px; text-align: center; font-family: monospace;">
-          © ${new Date().getFullYear()} Xo Studio · All rights reserved
-        </p>
       </div>
     `
 

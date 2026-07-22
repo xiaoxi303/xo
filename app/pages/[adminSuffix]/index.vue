@@ -977,23 +977,73 @@
 
               <!-- Social Links -->
               <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">社交媒体链接</h3>
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">社交媒体链接</h3>
+                  <button type="button" @click="addSocialSlot" class="text-[10px] font-bold font-mono text-amber-700 hover:underline">
+                    ＋ 添加社交平台
+                  </button>
+                </div>
+                
                 <div class="space-y-3">
-                  <div class="space-y-1.5">
-                    <label class="form-label">🎬 Vimeo 频道 URL</label>
-                    <input v-model="siteConfig.siteInfo.vimeoUrl" class="form-input font-mono" type="url" placeholder="https://vimeo.com/..." />
-                  </div>
-                  <div class="space-y-1.5">
-                    <label class="form-label">🐙 GitHub URL</label>
-                    <input v-model="siteConfig.siteInfo.githubUrl" class="form-input font-mono" type="url" placeholder="https://github.com/..." />
-                  </div>
-                  <div class="space-y-1.5">
-                    <label class="form-label">𝕏 Twitter / X URL</label>
-                    <input v-model="siteConfig.siteInfo.twitterUrl" class="form-input font-mono" type="url" placeholder="https://twitter.com/..." />
-                  </div>
-                  <div class="space-y-1.5">
-                    <label class="form-label">💼 LinkedIn URL</label>
-                    <input v-model="siteConfig.siteInfo.linkedinUrl" class="form-input font-mono" type="url" placeholder="https://linkedin.com/in/..." />
+                  <div v-for="(slot, index) in socialSlots" :key="index" class="flex gap-2.5 items-center">
+                    <!-- Custom simulated dropdown -->
+                    <div class="relative social-dropdown-container flex-shrink-0">
+                      <button 
+                        type="button"
+                        @click.stop="toggleSocialDropdown(index)"
+                        class="form-input text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-between gap-1.5 cursor-pointer bg-black/[0.01] hover:bg-black/[0.03] transition-colors border border-black/10 select-none text-left"
+                        style="width: 130px; height: 38px; color: var(--color-ink-1);"
+                      >
+                        <span class="flex items-center gap-1.5">
+                          <span>{{ getPlatformInfo(slot.platform).icon }}</span>
+                          <span>{{ getPlatformInfo(slot.platform).label }}</span>
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 opacity-60 flex-shrink-0">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </button>
+                      
+                      <!-- Floating dropdown options -->
+                      <transition name="dropdown-fade">
+                        <div 
+                          v-if="openDropdownIndex === index"
+                          class="absolute left-0 mt-1.5 rounded-2xl border border-black/[0.08] shadow-xl py-1.5 z-50 overflow-hidden"
+                          style="width: 140px; background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);"
+                        >
+                          <button
+                            v-for="opt in platformOptions"
+                            :key="opt.value"
+                            type="button"
+                            @click="selectSocialPlatform(index, opt.value)"
+                            class="w-full px-3.5 py-2 text-left text-xs font-medium flex items-center gap-2 hover:bg-amber-700/5 hover:text-amber-800 transition-colors border-none outline-none cursor-pointer"
+                            :style="slot.platform === opt.value ? 'color: var(--color-bronze); font-weight: 600; background: rgba(180, 83, 9, 0.04);' : 'color: var(--color-ink-2);'"
+                          >
+                            <span class="text-sm select-none">{{ opt.icon }}</span>
+                            <span>{{ opt.label }}</span>
+                          </button>
+                        </div>
+                      </transition>
+                    </div>
+                    
+                    <!-- Input field -->
+                    <input 
+                      v-model="slot.value" 
+                      @input="handleSocialSlotChange"
+                      class="form-input font-mono text-xs flex-1"
+                      :placeholder="getPlatformInfo(slot.platform).placeholder" 
+                    />
+                    
+                    <!-- Delete button -->
+                    <button 
+                      type="button" 
+                      @click="removeSocialSlot(index)" 
+                      class="p-2.5 rounded-xl border border-black/5 hover:bg-rose-500/10 hover:text-rose-600 transition-colors flex-shrink-0 cursor-pointer"
+                      style="color: var(--color-ink-4);"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1863,6 +1913,7 @@ const importBackup = (event: Event) => {
       if (data && data.siteConfig) {
         if (confirm('解析备份成功！确定要将备份数据导入并覆盖当前全站配置吗？（点击保存后才会永久存盘）')) {
           siteConfig.value = data.siteConfig
+          initSocialSlots()
           alert('配置已导入，请点击页面顶部的“保存配置”按钮以永久写入服务器！')
         }
       } else {
@@ -1896,6 +1947,7 @@ const siteConfig = useState<any>('site-config', () => ({
   siteInfo: {
     brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
     contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
+    bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
     seoTitle: '', seoDescription: '', footerTagline: ''
   },
   theme: {
@@ -2107,6 +2159,7 @@ const fetchSiteConfig = async () => {
     siteInfo: {
       brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
       contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
+      bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
       seoTitle: '', seoDescription: '', footerTagline: '基于达芬奇色彩科学规范开发',
       ...data.siteInfo
     },
@@ -2148,6 +2201,126 @@ const fetchSiteConfig = async () => {
       ...data.emailSettings
     }
   }
+  initSocialSlots()
+}
+
+// Dynamic Social Slots configuration helpers
+const socialSlots = ref<{ platform: string; value: string }[]>([])
+
+const platformOptions = [
+  { value: 'vimeo', label: 'Vimeo', icon: '🎬', placeholder: 'https://vimeo.com/your-channel' },
+  { value: 'bilibili', label: 'Bilibili', icon: '📺', placeholder: 'https://space.bilibili.com/your-uid' },
+  { value: 'youtube', label: 'YouTube', icon: '🎥', placeholder: 'https://youtube.com/@your-channel' },
+  { value: 'github', label: 'GitHub', icon: '🐙', placeholder: 'https://github.com/your-username' },
+  { value: 'twitter', label: 'Twitter / X', icon: '𝕏', placeholder: 'https://twitter.com/your-username' },
+  { value: 'instagram', label: 'Instagram', icon: '📸', placeholder: 'https://instagram.com/your-username' },
+  { value: 'linkedin', label: 'LinkedIn', icon: '💼', placeholder: 'https://linkedin.com/in/your-username' },
+  { value: 'whatsapp', label: 'WhatsApp', icon: '💬', placeholder: '例如: +86188xxxxxxxx' },
+  { value: 'wechat', label: '微信 ID', icon: '💬', placeholder: '例如: wx_123456 (点击自动复制)' },
+]
+
+const getPlatformInfo = (platform: string) => {
+  return platformOptions.find(o => o.value === platform) || { value: 'other', label: '自定义', icon: '🔗', placeholder: '请输入链接' }
+}
+
+const initSocialSlots = () => {
+  const info = siteConfig.value?.siteInfo || {}
+  const slots: { platform: string; value: string }[] = []
+  
+  const mapping: { [key: string]: keyof typeof info } = {
+    vimeo: 'vimeoUrl',
+    bilibili: 'bilibiliUrl',
+    youtube: 'youtubeUrl',
+    github: 'githubUrl',
+    twitter: 'twitterUrl',
+    instagram: 'instagramUrl',
+    linkedin: 'linkedinUrl',
+    whatsapp: 'whatsappNumber',
+    wechat: 'wechatId'
+  }
+  
+  Object.keys(mapping).forEach(platform => {
+    const field = mapping[platform]
+    const val = info[field]
+    if (val !== undefined && val !== null && val !== '') {
+      slots.push({ platform, value: String(val) })
+    }
+  })
+  
+  if (slots.length === 0) {
+    slots.push({ platform: 'vimeo', value: '' })
+    slots.push({ platform: 'github', value: '' })
+    slots.push({ platform: 'twitter', value: '' })
+    slots.push({ platform: 'linkedin', value: '' })
+  }
+  
+  socialSlots.value = slots
+}
+
+const handleSocialSlotChange = () => {
+  const info = siteConfig.value?.siteInfo
+  if (!info) return
+  
+  info.vimeoUrl = ''
+  info.bilibiliUrl = ''
+  info.youtubeUrl = ''
+  info.githubUrl = ''
+  info.twitterUrl = ''
+  info.instagramUrl = ''
+  info.linkedinUrl = ''
+  info.whatsappNumber = ''
+  info.wechatId = ''
+  
+  const mapping: { [key: string]: string } = {
+    vimeo: 'vimeoUrl',
+    bilibili: 'bilibiliUrl',
+    youtube: 'youtubeUrl',
+    github: 'githubUrl',
+    twitter: 'twitterUrl',
+    instagram: 'instagramUrl',
+    linkedin: 'linkedinUrl',
+    whatsapp: 'whatsappNumber',
+    wechat: 'wechatId'
+  }
+  
+  socialSlots.value.forEach(slot => {
+    const field = mapping[slot.platform]
+    if (field) {
+      info[field] = (slot.value || '').trim()
+    }
+  })
+}
+
+const addSocialSlot = () => {
+  socialSlots.value.push({ platform: 'vimeo', value: '' })
+  handleSocialSlotChange()
+}
+
+const removeSocialSlot = (index: number) => {
+  socialSlots.value.splice(index, 1)
+  handleSocialSlotChange()
+}
+
+// Custom simulated dropdown states & handlers
+const openDropdownIndex = ref<number | null>(null)
+
+const toggleSocialDropdown = (index: number) => {
+  openDropdownIndex.value = openDropdownIndex.value === index ? null : index
+}
+
+const selectSocialPlatform = (index: number, platform: string) => {
+  socialSlots.value[index].platform = platform
+  openDropdownIndex.value = null
+  handleSocialSlotChange()
+}
+
+if (import.meta.client) {
+  window.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement
+    if (!target.closest('.social-dropdown-container')) {
+      openDropdownIndex.value = null
+    }
+  })
 }
 
 const fetchSystemStatus = async () => {
@@ -2494,6 +2667,14 @@ const copyShareText = (r: any) => {
 .popover-enter-from, .popover-leave-to {
   opacity: 0;
   transform: translateY(-8px) scale(0.95);
+}
+
+.dropdown-fade-enter-active, .dropdown-fade-leave-active {
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dropdown-fade-enter-from, .dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
 }
 
 .drawer-enter-active, .drawer-leave-active { transition: opacity 0.4s ease; }
