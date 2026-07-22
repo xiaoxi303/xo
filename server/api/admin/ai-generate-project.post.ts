@@ -16,36 +16,65 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '请输入影片名称或灵感描述。' })
   }
 
-  // 1. Try real external AI LLM Model API call if configured
-  try {
-    const siteConfig = await dbGetSiteConfig(event)
-    const aiSettings = siteConfig?.aiSettings || {}
+  // 1. Fetch site config and check for configured external AI Model API settings
+  const siteConfig = await dbGetSiteConfig(event)
+  const aiSettings = siteConfig?.aiSettings || {}
 
-    if (aiSettings.provider && aiSettings.provider !== 'builtin' && aiSettings.apiKey && aiSettings.apiKey.trim()) {
-      let endpoint = (aiSettings.apiEndpoint || 'https://api.deepseek.com/v1').trim()
-      if (endpoint.endsWith('/')) endpoint = endpoint.slice(0, -1)
-      if (!endpoint.endsWith('/chat/completions')) {
-        endpoint = `${endpoint}/chat/completions`
-      }
+  const isExternalAiConfigured =
+    aiSettings.provider &&
+    aiSettings.provider !== 'builtin' &&
+    aiSettings.apiKey &&
+    aiSettings.apiKey.trim().length > 0
 
-      const modelName = (aiSettings.modelName || 'deepseek-chat').trim()
+  if (isExternalAiConfigured) {
+    let endpoint = (aiSettings.apiEndpoint || '').trim()
 
-      const systemPrompt = `你是一个专业顶级影视剪辑师、调色师与 Quiet Luxury 视觉总监。
-请根据用户输入的作品题材/影片名称或创意描述（如"保时捷 911 概念广告"、"AIGC 视频 Sora 极奢风"），为作品集撰写大刊级的全套资料。
+    // Smart default endpoints for known providers if left blank or simple
+    if (!endpoint || endpoint === 'https://api.deepseek.com/v1') {
+      if (aiSettings.provider === 'deepseek') endpoint = 'https://api.deepseek.com/v1'
+      else if (aiSettings.provider === 'openai') endpoint = 'https://api.openai.com/v1'
+      else if (aiSettings.provider === 'gemini') endpoint = 'https://generativelanguage.googleapis.com/v1beta/openai/'
+      else endpoint = 'https://api.deepseek.com/v1'
+    }
+
+    if (endpoint.endsWith('/')) endpoint = endpoint.slice(0, -1)
+    if (!endpoint.endsWith('/chat/completions')) {
+      endpoint = `${endpoint}/chat/completions`
+    }
+
+    const modelName = (aiSettings.modelName || (aiSettings.provider === 'openai' ? 'gpt-4o-mini' : 'deepseek-chat')).trim()
+
+    const systemPrompt = `你是一个专业顶级影视剪辑师、调色师与 Quiet Luxury 视觉总监。
+请根据用户输入的作品题材/影片名称或创意描述（如"保时捷 911 概念广告"、"信息流爆款短视频"、"AIGC 视频 Sora"），为作品集撰写大刊级的全套深度案例资料。
 要求输出纯 JSON 格式（不要在 JSON 外包裹任何 markdown 代码块或解释），严格包含以下 key：
-- title: 顶级大片风格标题（如 "PORSCHE 911 · 概念商业大片"）
-- slug: 纯英文短横杠唯一 URL slug（如 "porsche-911-commercial"）
+- title: 顶级大片风格标题（如 "信息流 · 爆款视效剪辑大片" 或 "PORSCHE 911 · 概念商业大片"）
+- slug: 纯英文短横杠唯一 URL slug（如 "feed-video-commercial"）
 - description: 1 句精美 Quiet Luxury 优雅总结
 - longDescription: 深度案例剖析 Markdown，必须包含：
-  ### 01. 视觉语言与调色科学 (Color Science)
-  ### 02. 剪辑节奏与镜头语言 (Editing Rhythm)
+  ### 01. 视觉语言与调色科学 (Color Science & Vision)
+  ### 02. 剪辑节奏与镜头语言 (Editing Rhythm & Pacing)
   ### 03. 声音设计与情感沉浸 (Sound Engineering)
-- postSpecs: 后期技术规格（如 "4K 60FPS HDR" 或 "DCI 4K 24FPS" 或 "4K 60FPS AI Upscaled"）
-- deliverFormat: 交付格式（如 "ProRes 4444 XQ / Rec.709" 或 "ProRes RAW / ACES 1.3"）
+- postSpecs: 后期技术规格（如 "4K 60FPS Vertical 9:16" 或 "4K 60FPS HDR" 或 "DCI 4K 24FPS"）
+- deliverFormat: 交付格式（如 "ProRes 422 HQ / Rec.709" 或 "ProRes RAW / ACES 1.3"）
 - audioFormat: 音频规格（如 "24-bit 96kHz Spatial Audio"）
-- software: 数组，包含使用的软件（如 ["DaVinci Resolve", "Premiere Pro", "即梦 AI", "Runway Gen-3", "ComfyUI", "Cinema 4D"]）
-- tags: 数组，4-6 个精致标签（如 ["商业广告", "AIGC", "卡点剪辑", "暗金调色"]）
+- software: 数组，包含使用的软件（如 ["DaVinci Resolve", "Premiere Pro", "即梦 AI", "Runway Gen-3", "After Effects"]）
+- tags: 数组，4-6 个精致标签（如 ["信息流", "商业广告", "AIGC", "卡点剪辑", "暗金调色"]）
 - workflow: 数组，3 个阶段对象 [{ "phase": "Phase 01", "title": "阶段1标题", "desc": "阶段1细节" }, { "phase": "Phase 02", "title": "阶段2标题", "desc": "阶段2细节" }, { "phase": "Phase 03", "title": "阶段3标题", "desc": "阶段3细节" }]`
+
+    try {
+      const requestPayload: any = {
+        model: modelName,
+        temperature: 0.7,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `作品名称/灵感描述：${prompt}` }
+        ]
+      }
+
+      // Add response_format json_object for supported models
+      if (aiSettings.provider === 'deepseek' || aiSettings.provider === 'openai') {
+        requestPayload.response_format = { type: 'json_object' }
+      }
 
       const aiRes: any = await $fetch(endpoint, {
         method: 'POST',
@@ -53,37 +82,37 @@ export default defineEventHandler(async (event) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${aiSettings.apiKey.trim()}`
         },
-        body: {
-          model: modelName,
-          temperature: 0.7,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `作品名称/灵感描述：${prompt}` }
-          ]
-        },
-        timeout: 20000
+        body: requestPayload,
+        timeout: 30000
       })
 
       if (aiRes && aiRes.choices && aiRes.choices[0]?.message?.content) {
         let rawContent = aiRes.choices[0].message.content.trim()
-        rawContent = rawContent.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim()
         
-        try {
-          const parsed = JSON.parse(rawContent)
-          if (parsed.title && parsed.description) {
-            return {
-              success: true,
-              data: parsed,
-              source: `real_model_${aiSettings.provider}`
-            }
+        // Extract JSON string safely between first { and last }
+        const firstBrace = rawContent.indexOf('{')
+        const lastBrace = rawContent.lastIndexOf('}')
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          rawContent = rawContent.substring(firstBrace, lastBrace + 1)
+        }
+
+        const parsed = JSON.parse(rawContent)
+        if (parsed.title && parsed.description) {
+          return {
+            success: true,
+            data: parsed,
+            source: `real_model_${aiSettings.provider}`
           }
-        } catch (jsonErr) {
-          console.warn('Failed to parse external AI JSON, falling back to built-in generator:', jsonErr)
         }
       }
+    } catch (extErr: any) {
+      const errMsg = extErr.data?.error?.message || extErr.data?.message || extErr.message || '网络无法连接到大模型 Endpoint'
+      console.error(`External AI API call to ${aiSettings.provider} failed:`, errMsg)
+      throw createError({
+        statusCode: 502,
+        statusMessage: `调用 ${aiSettings.provider.toUpperCase()} 大模型 API 失败: ${errMsg}。请检查站点设置中的 API Key、Base Endpoint 或 Model ID。`
+      })
     }
-  } catch (extErr) {
-    console.error('External AI API call failed, falling back to built-in generator:', extErr)
   }
 
   // 2. Built-in Dynamic Quiet Luxury AI Generator (Fallback / Default)
@@ -118,7 +147,9 @@ export default defineEventHandler(async (event) => {
   if (pLower.includes('fcp') || pLower.includes('final cut')) detectedSoftware.push('FCPX')
 
   let category = 'general'
-  if (pLower.includes('ai') || pLower.includes('aigc') || pLower.includes('sora') || pLower.includes('runway') || pLower.includes('comfyui') || pLower.includes('即梦') || pLower.includes('生成') || pLower.includes('扩散')) {
+  if (pLower.includes('信息流') || pLower.includes('短视频') || pLower.includes('信息') || pLower.includes('千川') || pLower.includes('抖音') || pLower.includes('小红书') || pLower.includes('带货') || pLower.includes('电商')) {
+    category = 'social_feed'
+  } else if (pLower.includes('ai') || pLower.includes('aigc') || pLower.includes('sora') || pLower.includes('runway') || pLower.includes('comfyui') || pLower.includes('即梦') || pLower.includes('生成') || pLower.includes('扩散')) {
     category = 'ai_video'
   } else if (pLower.includes('车') || pLower.includes('保时捷') || pLower.includes('奔驰') || pLower.includes('宝马') || pLower.includes('奥迪') || pLower.includes('法拉利') || pLower.includes('高奢') || pLower.includes('汽车')) {
     category = 'automotive'
@@ -149,6 +180,29 @@ export default defineEventHandler(async (event) => {
   let workflow: { phase: string; title: string; desc: string }[] = []
 
   switch (category) {
+    case 'social_feed':
+      title = `${cleanName} · 信息流爆款视效大片`
+      description = `专注于 ${cleanName} 高传播语境，结合千川前 3 秒黄金卡点钩子与达芬奇 DI 通透调色，打造强爆发力传播作品。`
+      postSpecs = '4K 60FPS Vertical 9:16'
+      deliverFormat = 'ProRes 422 HQ / Rec.709'
+      audioFormat = '24-bit 48kHz Stereo'
+      software = Array.from(new Set([...detectedSoftware, 'Premiere Pro', 'DaVinci Resolve', 'After Effects']))
+      tags = ['信息流', '短视频', cleanName, '黄金3秒钩子', '高转化率', '卡点剪辑']
+      longDescription = `### 01. 信息流黄金前 3 秒视觉钩子 (Hook Mechanics - ${cleanName})
+针对《${cleanName}》的传播诉求，在开头 3 秒内置入高频爆点与反常识视觉元素。毫秒级卡点切割结合强视觉冲击，瞬间拉满用户完播率与转化率。
+
+### 02. 视听卡点与高爆发传播节奏 (Pacing & Conversion)
+运用快节奏镜剪与无缝跳切，将产品卖点/核心悬念融入背景音轨强拍。兼顾叙事连贯性与短视频高留存率。
+
+### 03. DI 达芬奇通透调色与花字视觉包装 (Color Science & Motion Graphics)
+在 DaVinci Resolve 中校准高亮通透的肤色与产品固有色，叠加高质感动态花字与音效强调，确保在手机端大屏展现极致视觉冲击。`
+      workflow = [
+        { phase: 'Phase 01', title: '黄金前 3 秒 Hook 剪辑与前置视觉卡位', desc: `梳理《${cleanName}》核心爆点与视听痛点，前置黄金 3 秒高能镜头奠定高完播率。` },
+        { phase: 'Phase 02', title: 'DI 达芬奇高饱通透调校与花字包装', desc: `增强手机大屏色彩对比度与皮肤透亮感，嵌入高辨识度花字与爆音音效。` },
+        { phase: 'Phase 03', title: '4K 9:16 / 16:9 多平台 Master 交付', desc: `导出适应抖音、千川、小红书与微信视频号的无损高清全平台发布版本。` }
+      ]
+      break
+
     case 'ai_video':
       title = `${cleanName} · AIGC 神经生成视觉大片`
       description = `融合 ${prompt} 核心灵感与神经网络 Latent 潜空间扩散，以 Quiet Luxury 美学重构 ${cleanName} 的先锋光影景象。`
@@ -357,25 +411,25 @@ export default defineEventHandler(async (event) => {
       break
 
     default:
-      title = `${cleanName} · 概念视听作品`
-      description = `针对《${cleanName}》打造的 Quiet Luxury 高奢剪辑与达芬奇 DI 色彩解构作品。`
+      title = `${cleanName} · 视觉概念大片`
+      description = `针对《${cleanName}》精心锤炼的 Quiet Luxury 高奢剪辑与达芬奇 DI 色彩解构作品。`
       postSpecs = '4K 60FPS HDR'
       deliverFormat = 'ProRes 4444 XQ / Rec.709'
       audioFormat = '24-bit 48kHz Uncompressed'
       software = Array.from(new Set([...detectedSoftware, 'DaVinci Resolve', 'Premiere Pro', 'After Effects']))
       tags = ['剪辑节奏', cleanName, '达芬奇调色', '高光细节', '商业级交付']
       longDescription = `### 01. 镜头语言与节奏编排 (${cleanName})
-基于《${cleanName}》的核心表达，梳理高帧率镜头与故事主线的切分卡位。
+基于《${cleanName}》的核心表达与视听脉络，梳理高帧率镜头与故事主线的切分卡位。
 
-### 02. DI 达芬奇色彩科学 (Color Science)
-采用工业级色彩管理，呈现通透自然的暗部细节与柔润高光。
+### 02. DI 达芬奇色彩科学 (Color Science - ${cleanName})
+采用工业级色彩管理规范，呈现通透自然的暗部细节与柔润高光。
 
 ### 03. 声音设计与交付规格 (Sound & Master)
 匹配无损声轨与 ProRes 商业公映级文件，确保全平台展现顶级视听质感。`
       workflow = [
-        { phase: 'Phase 01', title: 'Offline 粗剪与节奏搭建', desc: `根据《${cleanName}》背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。` },
-        { phase: 'Phase 02', title: 'DI 达芬奇 Log 灰片调色与匹配', desc: `运用工业色彩管理规范，完成高光压制、暗部解调与肤色分离。` },
-        { phase: 'Phase 03', title: '4K Master 商业级交付与分发', desc: `合成三维包装与母带声音压限，导出 ProRes 商业公映级文件。` }
+        { phase: 'Phase 01', title: `Offline 粗剪与《${cleanName}》节奏搭建`, desc: `根据《${cleanName}》背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。` },
+        { phase: 'Phase 02', title: `DI 达芬奇 Log 灰片调色与《${cleanName}》色彩匹配`, desc: `运用工业色彩管理规范，完成高光压制、暗部解调与肤色分离。` },
+        { phase: 'Phase 03', title: `4K Master 商业级交付与《${cleanName}》分发`, desc: `合成三维包装与母带声音压限，导出 ProRes 商业公映级文件。` }
       ]
       break
   }

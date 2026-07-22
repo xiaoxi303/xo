@@ -2998,7 +2998,12 @@ const handleAiAutoFill = async () => {
       if (Array.isArray(d.workflow) && d.workflow.length) {
         form.value.workflow = JSON.parse(JSON.stringify(d.workflow))
       }
-      alert('✨ AI 已成功为您生成并自动填充全套大刊级作品资料！您可以在表单中查阅与微调。')
+      if (res.source && res.source.startsWith('real_model')) {
+        const providerName = res.source.replace('real_model_', '').toUpperCase()
+        alert(`🤖 真实 ${providerName} 大模型在线推理成功！已为您实时撰写并自动填充全套大刊级资料！`)
+      } else {
+        alert('✨ 已通过内置高奢 AI 引擎为您自动填充全套作品资料！\n\n💡 提示：如需使用 DeepSeek / OpenAI 真实在线大模型，请在【站点设置】中配置 API Key、确认 API Provider 不是“内置”，并点击右上角【保存配置】存盘。')
+      }
     }
   } catch (err: any) {
     alert(err.data?.statusMessage || 'AI 生成资料失败，请稍后重试。')
