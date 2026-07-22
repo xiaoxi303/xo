@@ -828,15 +828,15 @@ export async function dbUpdateUser(event: H3Event, id: number | string, data: an
     if (data.password) {
       await db.prepare(`
         UPDATE users 
-        SET email = ?, role = ?, allowedProjects = ?, password = ?
+        SET email = ?, role = ?, allowedProjects = ?, password = ?, isWhitelisted = ?, isBlacklisted = ?
         WHERE id = ?
-      `).bind(data.email, data.role, data.allowedProjects || '', data.password, id).run()
+      `).bind(data.email, data.role, data.allowedProjects || '', data.password, data.isWhitelisted ? 1 : 0, data.isBlacklisted ? 1 : 0, id).run()
     } else {
       await db.prepare(`
         UPDATE users 
-        SET email = ?, role = ?, allowedProjects = ?
+        SET email = ?, role = ?, allowedProjects = ?, isWhitelisted = ?, isBlacklisted = ?
         WHERE id = ?
-      `).bind(data.email, data.role, data.allowedProjects || '', id).run()
+      `).bind(data.email, data.role, data.allowedProjects || '', data.isWhitelisted ? 1 : 0, data.isBlacklisted ? 1 : 0, id).run()
     }
     return
   }
@@ -852,10 +852,106 @@ export async function dbUpdateUser(event: H3Event, id: number | string, data: an
       users[idx].wechat = data.wechat || ''
       users[idx].role = data.role
       users[idx].allowedProjects = data.allowedProjects || ''
+      if (data.isWhitelisted !== undefined) users[idx].isWhitelisted = !!data.isWhitelisted
+      if (data.isBlacklisted !== undefined) users[idx].isBlacklisted = !!data.isBlacklisted
       if (data.password) {
         users[idx].password = data.password
       }
       fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
     }
   } catch (e) {}
+}
+
+// Blacklist & Whitelist Management Helpers
+export async function dbGetBlacklist(event: H3Event): Promise<any[]> {
+  const blacklistPath = getRuntimeDataPath('blacklist.json')
+  if (!fs.existsSync(blacklistPath)) return []
+  try {
+    return JSON.parse(fs.readFileSync(blacklistPath, 'utf-8'))
+  } catch (e) {
+    return []
+  }
+}
+
+export async function dbAddBlacklist(event: H3Event, item: { type?: string; value: string; reason?: string }): Promise<void> {
+  const blacklistPath = getRuntimeDataPath('blacklist.json')
+  let list = await dbGetBlacklist(event)
+  const val = item.value.trim()
+  if (!val) return
+  const exists = list.find((b: any) => b.value.toLowerCase() === val.toLowerCase())
+  if (!exists) {
+    list.unshift({
+      id: Date.now(),
+      type: item.type || 'contact',
+      value: val,
+      reason: item.reason || '管理员手动拉黑',
+      createdAt: new Date().toISOString()
+    })
+    const dir = path.dirname(blacklistPath)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(blacklistPath, JSON.stringify(list, null, 2), 'utf-8')
+  }
+}
+
+export async function dbRemoveBlacklist(event: H3Event, value: string): Promise<void> {
+  const blacklistPath = getRuntimeDataPath('blacklist.json')
+  let list = await dbGetBlacklist(event)
+  const val = value.trim().toLowerCase()
+  list = list.filter((b: any) => (b.value || '').toLowerCase() !== val)
+  const dir = path.dirname(blacklistPath)
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(blacklistPath, JSON.stringify(list, null, 2), 'utf-8')
+}
+
+export async function dbCheckRateLimitAndBlacklist(event: H3Event, params: { username?: string; contact?: string; ip?: string }): Promise<{ isWhitelisted: boolean; isBlacklisted: boolean; isAutoBlacklisted?: boolean; reason: string }> {
+  const { username = '', contact = '', ip = '' } = params
+
+  // 1. Check registered user whitelist / blacklist
+  if (username) {
+    const users = await dbGetUsers(event)
+    const u = users.find((user: any) => user.username === username)
+    if (u) {
+      if (u.isWhitelisted) {
+        return { isWhitelisted: true, isBlacklisted: false, reason: '白名单客户豁免防刷保护' }
+      }
+      if (u.isBlacklisted) {
+        return { isWhitelisted: false, isBlacklisted: true, reason: '客户账号已被拉黑' }
+      }
+    }
+  }
+
+  // 2. Check blacklist.json
+  const blacklist = await dbGetBlacklist(event)
+  const targets = [username, contact, ip].filter(Boolean).map(s => s.toLowerCase())
+  
+  for (const b of blacklist) {
+    const bVal = (b.value || '').toLowerCase()
+    if (bVal && targets.some(t => t.includes(bVal) || bVal.includes(t))) {
+      return { isWhitelisted: false, isBlacklisted: true, reason: b.reason || '已在黑名单记录中' }
+    }
+  }
+
+  // 3. Rate limiting check (past 10 minutes, >= 3 requests)
+  const requests = await dbGetPasswordRequests(event)
+  const tenMinsAgo = Date.now() - 10 * 60 * 1000
+
+  const recent = requests.filter((r: any) => {
+    const reqTime = new Date(r.createdAt || 0).getTime()
+    if (reqTime < tenMinsAgo) return false
+    
+    if (username && r.clientUsername === username) return true
+    if (contact && r.contact && r.contact.includes(contact)) return true
+    if (ip && r.contact && r.contact.includes(ip)) return true
+    return false
+  })
+
+  if (recent.length >= 3) {
+    // Auto-blacklist
+    const autoVal = username || contact || ip || 'unknown'
+    const reason = '频繁申请密码防刷保护机制触发，系统自动拉黑'
+    await dbAddBlacklist(event, { type: 'auto', value: autoVal, reason })
+    return { isWhitelisted: false, isBlacklisted: true, isAutoBlacklisted: true, reason }
+  }
+
+  return { isWhitelisted: false, isBlacklisted: false, reason: '' }
 }

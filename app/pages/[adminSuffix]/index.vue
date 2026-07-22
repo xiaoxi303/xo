@@ -368,9 +368,10 @@
                       {{ new Date(r.createdAt).toLocaleString('zh-CN', { hour12: false }) }}
                     </td>
                     <td class="py-4 px-6">
-                      <span v-if="r.status === 'approved'" class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-700">🟢 已通过</span>
+                      <span v-if="r.status === 'approved'" class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-700">🟢 已通过 (自动授权)</span>
+                      <span v-else-if="r.isBlacklisted || r.isAutoBlacklisted" class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-700">🔴 待审核 (防刷/黑名单)</span>
                       <span v-else-if="r.status === 'rejected'" class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-700">🔴 已拒绝</span>
-                      <span v-else class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-700">🟡 审核中</span>
+                      <span v-else class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-700">🟡 待手动审核</span>
                     </td>
                     <td class="py-4 px-6 text-right space-x-3">
                       <button
@@ -399,8 +400,15 @@
                       </button>
                       <button
                         type="button"
+                        @click="toggleBlacklistRequestContact(r)"
+                        :class="r.isBlacklisted || r.isAutoBlacklisted ? 'text-emerald-600 font-bold hover:underline' : 'text-rose-500 font-bold hover:underline'"
+                      >
+                        {{ r.isBlacklisted || r.isAutoBlacklisted ? '✅ 解除拉黑' : '🚫 拉黑该联系人' }}
+                      </button>
+                      <button
+                        type="button"
                         @click="deletePasswordRequest(r.id)"
-                        class="text-rose-500 hover:text-rose-400 font-bold hover:underline"
+                        class="text-slate-400 hover:text-rose-400 font-medium hover:underline"
                       >
                         删除
                       </button>
@@ -438,13 +446,14 @@
                     <th class="py-3.5 px-6 font-semibold">电子邮箱</th>
                     <th class="py-3.5 px-6 font-semibold">微信号</th>
                     <th class="py-3.5 px-6 font-semibold">角色级别</th>
+                    <th class="py-3.5 px-6 font-semibold">风控模式</th>
                     <th class="py-3.5 px-6 font-semibold">注册时间</th>
                     <th class="py-3.5 px-6 font-semibold text-right">操作</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y text-xs" style="divide-color: var(--color-border)">
                   <tr v-if="registeredUsers.length === 0">
-                    <td colspan="6" class="py-12 text-center" style="color: var(--color-ink-5)">
+                    <td colspan="7" class="py-12 text-center" style="color: var(--color-ink-5)">
                       <span class="text-2xl block mb-2">👥</span>
                       暂无注册客户账号。
                     </td>
@@ -458,21 +467,46 @@
                         {{ u.role }}
                       </span>
                     </td>
+                    <td class="py-4 px-6">
+                      <span v-if="u.isWhitelisted" class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 border border-amber-500/30 text-amber-800 flex items-center gap-1 w-max">
+                        ⭐ 白名单 (防刷豁免)
+                      </span>
+                      <span v-else-if="u.isBlacklisted" class="px-2 py-0.5 rounded text-[9px] font-bold bg-rose-500/10 border border-rose-500/30 text-rose-700 flex items-center gap-1 w-max">
+                        🚫 已拉黑 (手动审核)
+                      </span>
+                      <span v-else class="px-2 py-0.5 rounded text-[9px] font-medium bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1 w-max">
+                        🟢 正常
+                      </span>
+                    </td>
                     <td class="py-4 px-6" style="color: var(--color-ink-4)">
                       {{ new Date(u.createdAt).toLocaleString('zh-CN', { hour12: false }) }}
                     </td>
-                    <td class="py-4 px-6 text-right space-x-3.5">
+                    <td class="py-4 px-6 text-right space-x-3">
+                      <button
+                        type="button"
+                        @click="toggleUserWhitelist(u)"
+                        class="text-amber-700 hover:text-amber-800 font-bold hover:underline"
+                      >
+                        {{ u.isWhitelisted ? '取消白名单' : '⭐ 设为白名单' }}
+                      </button>
+                      <button
+                        type="button"
+                        @click="toggleUserBlacklist(u)"
+                        :class="u.isBlacklisted ? 'text-emerald-600 font-bold hover:underline' : 'text-rose-500 font-bold hover:underline'"
+                      >
+                        {{ u.isBlacklisted ? '✅ 解除拉黑' : '🚫 拉黑用户' }}
+                      </button>
                       <button
                         type="button"
                         @click="openEditUserModal(u)"
-                        class="text-amber-700 hover:text-amber-800 font-bold hover:underline"
+                        class="text-slate-600 hover:text-slate-900 font-medium hover:underline"
                       >
-                        编辑权限
+                        权限
                       </button>
                       <button
                         type="button"
                         @click="deleteUser(u.id)"
-                        class="text-rose-500 hover:text-rose-400 font-bold hover:underline"
+                        class="text-slate-400 hover:text-rose-400 font-medium hover:underline"
                       >
                         注销
                       </button>
@@ -2147,6 +2181,74 @@ const deleteUser = async (id: number | string) => {
     await fetchUsers()
   } catch (err: any) {
     alert(err.statusMessage || '删除用户失败。')
+  }
+}
+
+const toggleBlacklistRequestContact = async (r: any) => {
+  const isCurrentlyBlocked = r.isBlacklisted || r.isAutoBlacklisted
+  const target = r.contact || r.clientUsername || r.clientName
+  const actionText = isCurrentlyBlocked ? '解除拉黑' : '拉黑防刷'
+  
+  if (!confirm(`确认要对【${target}】执行【${actionText}】操作吗？`)) return
+  
+  try {
+    await $fetch('/api/admin/blacklist', {
+      method: 'POST',
+      body: {
+        action: isCurrentlyBlocked ? 'remove' : 'add',
+        value: target,
+        type: 'contact',
+        reason: '管理员手动操作'
+      }
+    })
+    await fetchPasswordRequests()
+    alert(`已成功对【${target}】执行 ${actionText}！`)
+  } catch (err: any) {
+    alert(err.statusMessage || '操作失败。')
+  }
+}
+
+const toggleUserWhitelist = async (u: any) => {
+  const nextVal = !u.isWhitelisted
+  const actionText = nextVal ? '设置白名单（永不上锁防刷）' : '取消白名单'
+  if (!confirm(`确认要将客户【${u.username}】${actionText}吗？`)) return
+  try {
+    await $fetch('/api/admin/users', {
+      method: 'PUT',
+      body: {
+        id: u.id,
+        email: u.email,
+        wechat: u.wechat,
+        role: u.role,
+        allowedProjects: u.allowedProjects,
+        isWhitelisted: nextVal
+      }
+    })
+    await fetchUsers()
+  } catch (err: any) {
+    alert(err.statusMessage || '更新白名单状态失败。')
+  }
+}
+
+const toggleUserBlacklist = async (u: any) => {
+  const nextVal = !u.isBlacklisted
+  const actionText = nextVal ? '拉黑用户（申请需手动审核）' : '解除拉黑'
+  if (!confirm(`确认要将客户【${u.username}】${actionText}吗？`)) return
+  try {
+    await $fetch('/api/admin/users', {
+      method: 'PUT',
+      body: {
+        id: u.id,
+        email: u.email,
+        wechat: u.wechat,
+        role: u.role,
+        allowedProjects: u.allowedProjects,
+        isBlacklisted: nextVal
+      }
+    })
+    await fetchUsers()
+  } catch (err: any) {
+    alert(err.statusMessage || '更新拉黑状态失败。')
   }
 }
 

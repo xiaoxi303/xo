@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  const { id, email, role, allowedProjects, password, wechat } = body || {}
+  const { id, email, role, allowedProjects, password, wechat, isWhitelisted, isBlacklisted } = body || {}
 
   if (!id) {
     throw createError({
@@ -22,7 +22,9 @@ export default defineEventHandler(async (event) => {
     email: email ? email.trim() : '',
     wechat: wechat ? wechat.trim() : '',
     role: role || 'client',
-    allowedProjects: allowedProjects || ''
+    allowedProjects: allowedProjects || '',
+    isWhitelisted: isWhitelisted !== undefined ? !!isWhitelisted : undefined,
+    isBlacklisted: isBlacklisted !== undefined ? !!isBlacklisted : undefined
   }
 
   if (password && password.trim()) {
