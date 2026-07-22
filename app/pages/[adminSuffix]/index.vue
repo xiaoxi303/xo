@@ -1426,9 +1426,43 @@
             </button>
           </div>
 
-          <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
             <!-- Form -->
             <div class="flex-1 p-6 overflow-y-auto space-y-6" style="background: rgba(0,0,0,0.01); border-right: 1px solid var(--color-border)">
+              
+              <!-- ✨ AI Magic Auto-Fill Bar (带有微光流效) -->
+              <div class="ai-shimmer-card p-4 rounded-2xl relative overflow-hidden mb-6 select-none" style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(245, 158, 11, 0.03)); border: 1px solid rgba(217, 119, 6, 0.25);">
+                <div class="ai-shimmer-stream" />
+                <div class="relative z-10 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base animate-pulse">✨</span>
+                      <span class="font-display font-bold text-xs tracking-wide text-amber-800 uppercase">AI Magic Auto-Fill 智能一键生成</span>
+                      <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-700/10 text-amber-800 border border-amber-700/20">AIGC 剪辑/调色/规格全套生成</span>
+                    </div>
+                    <span class="text-[10px] font-mono text-amber-800/60 hidden sm:inline">支持广告/电影/MV/AI视频/科技/纪录片</span>
+                  </div>
+
+                  <div class="flex gap-2">
+                    <input
+                      v-model="aiPromptInput"
+                      type="text"
+                      placeholder="输入影片名称或简述（如：保时捷 911 概念商业广告、AI视频Sora生成短片、极简时尚MV）"
+                      class="form-input text-xs flex-1 bg-white/80 backdrop-blur-sm border-amber-600/20 focus:border-amber-600 focus:ring-amber-500/20"
+                      @keydown.enter.prevent="handleAiAutoFill"
+                    />
+                    <button
+                      type="button"
+                      @click="handleAiAutoFill"
+                      :disabled="aiGenerating"
+                      class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 active:scale-95 transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50"
+                    >
+                      <span v-if="aiGenerating" class="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      <span v-else>✨ AI 智能生成</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <form @submit.prevent="saveProject" class="space-y-6">
                 <div class="grid sm:grid-cols-2 gap-4">
                   <div class="space-y-1.5">
@@ -2666,8 +2700,55 @@ const toggleSoftware = (soft: string) => {
   else form.value.software.push(soft)
 }
 
+const aiPromptInput = ref('')
+const aiGenerating = ref(false)
+
+const handleAiAutoFill = async () => {
+  const prompt = aiPromptInput.value.trim()
+  if (!prompt) {
+    alert('请先输入影片名称或一句话简述（例如：保时捷 911 概念商业广告 或 AI视频Sora生成短片）。')
+    return
+  }
+
+  aiGenerating.value = true
+  try {
+    const res = await $fetch<any>('/api/admin/ai-generate-project', {
+      method: 'POST',
+      body: { prompt }
+    })
+
+    if (res.success && res.data) {
+      const d = res.data
+      form.value.title = d.title || form.value.title
+      if (!isEditing.value || !form.value.slug) {
+        form.value.slug = d.slug || form.value.slug
+      }
+      form.value.description = d.description || ''
+      form.value.longDescription = d.longDescription || ''
+      form.value.postSpecs = d.postSpecs || ''
+      form.value.deliverFormat = d.deliverFormat || ''
+      form.value.audioFormat = d.audioFormat || ''
+      if (Array.isArray(d.software) && d.software.length) {
+        form.value.software = [...d.software]
+      }
+      if (Array.isArray(d.tags) && d.tags.length) {
+        form.value.tags = [...d.tags]
+      }
+      if (Array.isArray(d.workflow) && d.workflow.length) {
+        form.value.workflow = JSON.parse(JSON.stringify(d.workflow))
+      }
+      alert('✨ AI 已成功为您生成并自动填充全套大刊级作品资料！您可以在表单中查阅与微调。')
+    }
+  } catch (err: any) {
+    alert(err.data?.statusMessage || 'AI 生成资料失败，请稍后重试。')
+  } finally {
+    aiGenerating.value = false
+  }
+}
+
 const openCreateModal = () => {
   isEditing.value = false
+  aiPromptInput.value = ''
   form.value = {
     slug: '', title: '', image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: ['Premiere Pro', 'DaVinci Resolve'],
     tags: ['剪辑节奏', '达芬奇调色'], featured: false, description: '', longDescription: '',
@@ -2805,4 +2886,29 @@ input[type="range"]::-webkit-slider-thumb {
   transition: transform 0.1s ease;
 }
 input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+.ai-shimmer-card {
+  position: relative;
+}
+.ai-shimmer-stream {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(251, 191, 36, 0.25) 50%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  animation: aiShimmer 3.5s infinite;
+  pointer-events: none;
+}
+@keyframes aiShimmer {
+  0% { left: -100%; }
+  35% { left: 200%; }
+  100% { left: 200%; }
+}
 </style>
