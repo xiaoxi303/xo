@@ -1169,6 +1169,71 @@
                 </div>
                 <p v-else class="text-[10px] text-slate-400 leading-relaxed">启用后，当管理员在后台审批通过申请，系统会自动向申请者的邮箱发送包含密码和观看链接的通知邮件。客户走直接自动通道获取密码时，也会收到密码备份通知。</p>
               </div>
+
+              <!-- AI Model API Settings Card (支持对接真实大模型) -->
+              <div class="glass-card p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg">🤖</span>
+                    <div>
+                      <h3 class="font-display font-bold text-sm" style="color: var(--color-ink-1)">AI 大模型 API 对接</h3>
+                      <p class="text-[11px]" style="color: var(--color-ink-5)">支持接入 DeepSeek、OpenAI、Gemini 或自定义中转 API，为【✨ AI 智能生成】提供真实 LLM 大模型推理</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-700/10 text-amber-800 border border-amber-700/20">内置/Key双引擎</span>
+                </div>
+
+                <div class="space-y-4 pt-2">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                      <label class="form-label">模型服务商 (AI Provider)</label>
+                      <select v-model="siteConfig.aiSettings.provider" class="form-input text-xs">
+                        <option value="builtin">内置高奢解说引擎 (无需 API Key 秒级生成)</option>
+                        <option value="deepseek">DeepSeek 官方 API (推荐)</option>
+                        <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+                        <option value="gemini">Google Gemini API</option>
+                        <option value="custom">自定义 OpenAI 兼容中转 API</option>
+                      </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label class="form-label">模型名称 (Model ID)</label>
+                      <input
+                        v-model="siteConfig.aiSettings.modelName"
+                        class="form-input font-mono text-xs"
+                        placeholder="deepseek-chat 或 gpt-4o-mini"
+                      />
+                    </div>
+                  </div>
+
+                  <div v-if="siteConfig.aiSettings?.provider !== 'builtin'" class="space-y-4 pt-1">
+                    <div class="space-y-1.5">
+                      <label class="form-label flex items-center justify-between">
+                        <span>API Base Endpoint (接口地址)</span>
+                        <span class="text-[9px] font-mono text-amber-700">默认: https://api.deepseek.com/v1</span>
+                      </label>
+                      <input
+                        v-model="siteConfig.aiSettings.apiEndpoint"
+                        class="form-input font-mono text-xs"
+                        placeholder="https://api.deepseek.com/v1"
+                      />
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label class="form-label flex items-center justify-between">
+                        <span>API Key (密钥)</span>
+                        <span class="text-[9px] font-mono opacity-60">格式: sk-xxxxxxxxxxxx</span>
+                      </label>
+                      <input
+                        v-model="siteConfig.aiSettings.apiKey"
+                        type="password"
+                        class="form-input font-mono text-xs"
+                        placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2340,6 +2405,13 @@ const fetchSiteConfig = async () => {
       senderName: 'Xo Studio',
       senderEmail: '',
       ...data.emailSettings
+    },
+    aiSettings: {
+      provider: 'builtin',
+      apiKey: '',
+      apiEndpoint: 'https://api.deepseek.com/v1',
+      modelName: 'deepseek-chat',
+      ...data.aiSettings
     }
   }
   initSocialSlots()

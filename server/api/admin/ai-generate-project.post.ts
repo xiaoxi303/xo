@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody, createError, getCookie } from 'h3'
 import { validateSession, SESSION_COOKIE } from '../../utils/auth'
+import { dbGetSiteConfig } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
   // Authentication check (admin session only)
@@ -15,15 +16,84 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '请输入影片名称或灵感描述。' })
   }
 
+  // 1. Try real external AI LLM Model API call if configured
+  try {
+    const siteConfig = await dbGetSiteConfig(event)
+    const aiSettings = siteConfig?.aiSettings || {}
+
+    if (aiSettings.provider && aiSettings.provider !== 'builtin' && aiSettings.apiKey && aiSettings.apiKey.trim()) {
+      let endpoint = (aiSettings.apiEndpoint || 'https://api.deepseek.com/v1').trim()
+      if (endpoint.endsWith('/')) endpoint = endpoint.slice(0, -1)
+      if (!endpoint.endsWith('/chat/completions')) {
+        endpoint = `${endpoint}/chat/completions`
+      }
+
+      const modelName = (aiSettings.modelName || 'deepseek-chat').trim()
+
+      const systemPrompt = `你是一个专业顶级影视剪辑师、调色师与 Quiet Luxury 视觉总监。
+请根据用户输入的作品题材/影片名称或创意描述（如"保时捷 911 概念广告"、"AIGC 视频 Sora 极奢风"），为作品集撰写大刊级的全套资料。
+要求输出纯 JSON 格式（不要在 JSON 外包裹任何 markdown 代码块或解释），严格包含以下 key：
+- title: 顶级大片风格标题（如 "PORSCHE 911 · 概念商业大片"）
+- slug: 纯英文短横杠唯一 URL slug（如 "porsche-911-commercial"）
+- description: 1 句精美 Quiet Luxury 优雅总结
+- longDescription: 深度案例剖析 Markdown，必须包含：
+  ### 01. 视觉语言与调色科学 (Color Science)
+  ### 02. 剪辑节奏与镜头语言 (Editing Rhythm)
+  ### 03. 声音设计与情感沉浸 (Sound Engineering)
+- postSpecs: 后期技术规格（如 "4K 60FPS HDR" 或 "DCI 4K 24FPS" 或 "4K 60FPS AI Upscaled"）
+- deliverFormat: 交付格式（如 "ProRes 4444 XQ / Rec.709" 或 "ProRes RAW / ACES 1.3"）
+- audioFormat: 音频规格（如 "24-bit 96kHz Spatial Audio"）
+- software: 数组，包含使用的软件（如 ["DaVinci Resolve", "Premiere Pro", "即梦 AI", "Runway Gen-3", "ComfyUI", "Cinema 4D"]）
+- tags: 数组，4-6 个精致标签（如 ["商业广告", "AIGC", "卡点剪辑", "暗金调色"]）
+- workflow: 数组，3 个阶段对象 [{ "phase": "Phase 01", "title": "阶段1标题", "desc": "阶段1细节" }, { "phase": "Phase 02", "title": "阶段2标题", "desc": "阶段2细节" }, { "phase": "Phase 03", "title": "阶段3标题", "desc": "阶段3细节" }]`
+
+      const aiRes: any = await $fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${aiSettings.apiKey.trim()}`
+        },
+        body: {
+          model: modelName,
+          temperature: 0.7,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `作品名称/灵感描述：${prompt}` }
+          ]
+        },
+        timeout: 20000
+      })
+
+      if (aiRes && aiRes.choices && aiRes.choices[0]?.message?.content) {
+        let rawContent = aiRes.choices[0].message.content.trim()
+        rawContent = rawContent.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim()
+        
+        try {
+          const parsed = JSON.parse(rawContent)
+          if (parsed.title && parsed.description) {
+            return {
+              success: true,
+              data: parsed,
+              source: `real_model_${aiSettings.provider}`
+            }
+          }
+        } catch (jsonErr) {
+          console.warn('Failed to parse external AI JSON, falling back to built-in generator:', jsonErr)
+        }
+      }
+    }
+  } catch (extErr) {
+    console.error('External AI API call failed, falling back to built-in generator:', extErr)
+  }
+
+  // 2. Built-in Dynamic Quiet Luxury AI Generator (Fallback / Default)
   const pLower = prompt.toLowerCase()
 
-  // Clean prompt for naming
   let cleanName = prompt
     .replace(/(商业广告|概念片|宣传片|短片|MV|视频|生成|AI|纪录片|TVC|大片|作品|剪辑|调色)/gi, '')
     .trim()
   if (!cleanName) cleanName = prompt
 
-  // Pinyin/English slug conversion helper
   let slug = prompt
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '-')
@@ -33,7 +103,6 @@ export default defineEventHandler(async (event) => {
     slug = `project-${Date.now().toString(36)}`
   }
 
-  // Detect specific software mentioned in prompt
   const detectedSoftware: string[] = []
   if (pLower.includes('即梦')) detectedSoftware.push('即梦 AI')
   if (pLower.includes('runway')) detectedSoftware.push('Runway Gen-3')
@@ -48,7 +117,6 @@ export default defineEventHandler(async (event) => {
   if (pLower.includes('davinci') || pLower.includes('达芬奇')) detectedSoftware.push('DaVinci Resolve')
   if (pLower.includes('fcp') || pLower.includes('final cut')) detectedSoftware.push('FCPX')
 
-  // Determine category & dynamic preset attributes
   let category = 'general'
   if (pLower.includes('ai') || pLower.includes('aigc') || pLower.includes('sora') || pLower.includes('runway') || pLower.includes('comfyui') || pLower.includes('即梦') || pLower.includes('生成') || pLower.includes('扩散')) {
     category = 'ai_video'
@@ -90,7 +158,7 @@ export default defineEventHandler(async (event) => {
       software = Array.from(new Set([...detectedSoftware, '即梦 AI', 'Runway Gen-3', 'ComfyUI', 'DaVinci Resolve', 'After Effects']))
       tags = ['AIGC', 'AI生成视频', '扩散模型', cleanName, '神经渲染', '未来科技']
       longDescription = `### 01. AIGC 提示词蒸馏与 Latent 潜空间生成 (${cleanName})
-针对《${cleanName}》的视觉内核，运用神经网络视频扩散模型（包含 ComfyUI / Runway Gen-3 / 即梦 AI），蒸馏高维意向提示词。通过运动矢量控制与种子节点锁定，生成具有微妙光影脉冲与流体质感的元素材。
+针对《${cleanName}》的视觉内核，运用神经网络视频扩散模型（包含 ComfyUI / Runway Gen-3 / 即梦 AI），蒸馏高维意向提示词。通过 Latent 空间高阶插帧与运动矢量控制，保留极致微妙的微光流变与质感颗粒。
 
 ### 02. DI 达芬奇超分重构与电影级调色 (Color Science & Refinement)
 将 AI 生成的数字动态视频引入 DaVinci Resolve 19 达芬奇 Neural Engine 执行 4K AI 降噪与超分重构。匹配 ACES 1.3 工业级色彩管理，将 AIGC 的数字冷感转化为古典胶片般细腻肉感的高光与透亮肤色。
@@ -123,7 +191,7 @@ export default defineEventHandler(async (event) => {
       workflow = [
         { phase: 'Phase 01', title: 'Offline 粗剪与引擎声轨精准卡点', desc: `根据《${cleanName}》发动机震浪与音效波形卡位，奠定震撼利落的剪辑基调。` },
         { phase: 'Phase 02', title: 'DI 达芬奇暗金色调与漆面光泽重构', desc: `压制高光反射，分离车漆单色相，打造极致暗奢的玄武金质感。` },
-        { phase: 'Phase 03', title: '5.1 环绕声混音与 4K ProRes 4444 交付', desc: `整合引擎原声采样与母带压限，完成全球公映级 Master 导出。` }
+        { phase: 'Phase 03', title: '5.1 环绕声混音与 4K ProRes 4444 交付', desc: `整合引擎原声采样与母带压限，完成全局公映级 Master 导出。` }
       ]
       break
 
@@ -325,6 +393,7 @@ export default defineEventHandler(async (event) => {
       software,
       tags,
       workflow
-    }
+    },
+    source: 'builtin_luxury_engine'
   }
 })
