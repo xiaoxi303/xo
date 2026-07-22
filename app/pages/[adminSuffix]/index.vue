@@ -2097,7 +2097,11 @@ const saveUser = async () => {
     alert(err.data?.statusMessage || '保存用户信息失败。')
   }
 }
-const softwareList = ['Premiere Pro', 'DaVinci Resolve', 'After Effects', 'Cinema 4D', 'Logic Pro', 'FCPX', 'Redshift', 'Octane']
+const softwareList = [
+  'Premiere Pro', 'DaVinci Resolve', 'After Effects', 'Cinema 4D',
+  '即梦 AI', 'Runway Gen-3', 'Luma Dream Machine', '可灵 AI', 'ComfyUI', 'Midjourney', 'Sora',
+  'Logic Pro', 'FCPX', 'Redshift', 'Octane', 'Stable Diffusion', 'Blender'
+]
 const tempTagInput = ref('')
 const tempSkillsTagInput = ref('')
 const tempHeroTechInput = ref('')

@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
       postSpecs = '4K 60FPS AI Upscaled'
       deliverFormat = 'ProRes 4444 / Neural Latent Color'
       audioFormat = '24-bit 96kHz Spatial Audio'
-      software = ['DaVinci Resolve', 'After Effects', 'Premiere Pro']
+      software = ['即梦 AI', 'Runway Gen-3', 'ComfyUI', 'DaVinci Resolve', 'After Effects']
       tags = ['AIGC', 'AI生成视频', '扩散模型', '神经渲染', '未来科技']
       longDescription = `### 01. AIGC 提示词与潜空间生成 (Prompt & Neural Latent)
 运用 ComfyUI 节点链与 Sora / Runway Gen-3 视频扩散模型，针对影片视效张力进行多维度提示词蒸馏。通过 Latent 空间高阶插帧与运动矢量控制，保留极致微妙的微光流变与质感颗粒。
