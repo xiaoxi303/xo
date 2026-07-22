@@ -264,7 +264,7 @@
               </div>
               <div class="space-y-3.5">
                 <template v-if="systemStatus.projectClicks?.length">
-                  <div v-for="(p, i) in systemStatus.projectClicks" :key="p.slug" class="space-y-1">
+                  <div v-for="(p, i) in systemStatus.projectClicks" :key="p.slug + '-' + p.clicks" class="space-y-1">
                     <div class="flex justify-between text-xs items-center">
                       <div class="flex items-center gap-2 truncate max-w-[220px]">
                         <span class="font-mono font-bold text-[9px] px-1.5 py-0.5 rounded bg-amber-700/10 text-amber-800 border border-amber-700/20 flex-shrink-0">TOP {{ i + 1 }}</span>
@@ -2783,7 +2783,8 @@ if (import.meta.client) {
 
 const fetchSystemStatus = async () => {
   try {
-    systemStatus.value = await $fetch('/api/system-status?t=' + Date.now()) as any
+    const res = await $fetch('/api/system-status?t=' + Date.now()) as any
+    systemStatus.value = { ...res }
   } catch (e) {
     console.error('Failed to fetch system status:', e)
   }

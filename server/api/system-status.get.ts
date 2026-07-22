@@ -3,8 +3,10 @@ import fs from 'node:fs'
 import os from 'node:os'
 import { execSync } from 'node:child_process'
 import { getRuntimeDataPath } from '../utils/storage'
+import { setResponseHeader } from 'h3'
 
 export default defineEventHandler(async (event) => {
+  setResponseHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
   const startTime = Date.now()
   const db = await getD1Database(event)
   const isD1 = !!db
