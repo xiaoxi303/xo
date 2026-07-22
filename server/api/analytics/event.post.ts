@@ -37,8 +37,6 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-import { recordProjectHeat } from '../../utils/analytics-store'
-
   if (targetSlug) {
     targetSlug = targetSlug.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
     recordProjectHeat(targetSlug, 1)
