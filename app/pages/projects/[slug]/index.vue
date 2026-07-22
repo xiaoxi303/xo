@@ -124,7 +124,8 @@
                     :key="`main-${activeVideoUrl}`"
                     :src="activeVideoUrl"
                     :poster="project.image"
-                    autoplay muted playsinline
+                    :muted="isMuted"
+                    playsinline
                     class="w-full h-full block cursor-pointer"
                     :style="{ maxHeight: isFullscreen ? 'none' : '520px', height: isFullscreen ? '100%' : '100%', objectFit: 'cover', background: '#000' }"
                     @loadedmetadata="onVideoLoaded"
@@ -759,6 +760,8 @@ const playerContainerRef = ref<HTMLElement | null>(null)
 const onVideoLoaded = () => {
   if (mainVideoRef.value) {
     duration.value = mainVideoRef.value.duration
+    mainVideoRef.value.volume = volume.value
+    mainVideoRef.value.muted = isMuted.value
   }
   syncBlurVideo()
 }
@@ -785,7 +788,22 @@ const togglePlay = () => {
   if (isPlaying.value) {
     mainVideoRef.value.pause()
   } else {
-    mainVideoRef.value.play().catch(() => {})
+    // User interaction! Ensure sound is enabled
+    isMuted.value = false
+    mainVideoRef.value.muted = false
+    if (volume.value === 0) volume.value = 0.8
+    mainVideoRef.value.volume = volume.value
+
+    mainVideoRef.value.play().then(() => {
+      isPlaying.value = true
+    }).catch((err) => {
+      console.warn('Autoplay with audio blocked by browser policy, falling back to muted play:', err)
+      if (mainVideoRef.value) {
+        mainVideoRef.value.muted = true
+        isMuted.value = true
+        mainVideoRef.value.play().catch(() => {})
+      }
+    })
   }
 }
 

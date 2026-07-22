@@ -55,7 +55,7 @@
             @click="trackProjectClick(project)"
           >
             <!-- Media area -->
-            <div :class="['relative overflow-hidden', project.featured ? 'h-80' : 'h-52']">
+            <div :class="['relative overflow-hidden', project.featured ? 'h-80' : 'h-60']">
               <MediaImage
                 :src="project.image"
                 :alt="project.title"

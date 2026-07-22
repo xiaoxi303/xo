@@ -1354,12 +1354,12 @@
             </div>
           </div>
 
-          <!-- 2. Broadcast Announcement Banner -->
+          <!-- 2. Broadcast Announcement Banner Sandbox -->
           <div class="glass-card p-8 space-y-6">
             <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
               <div>
-                <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">📢 顶栏全局广播通知条</h3>
-                <p class="text-xs mt-1" style="color: var(--color-ink-4)">在全站顶部呈现醒目的档期预订、最新动态或重大消息。</p>
+                <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">📢 顶栏与全局广播通知条</h3>
+                <p class="text-xs mt-1" style="color: var(--color-ink-4)">在全站顶栏跑马灯或左下角浮动胶囊中呈现象征档期预订或重大公告消息。</p>
               </div>
               <label class="flex items-center gap-2 cursor-pointer bg-black/[0.03] px-3.5 py-1.5 rounded-full border border-black/10">
                 <span class="text-xs font-bold font-mono" style="color: var(--color-ink-2)">开启广播条</span>
@@ -1367,18 +1367,54 @@
               </label>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-4" :class="{ 'opacity-50 pointer-events-none': !siteConfig.announcement?.enabled }">
-              <div class="space-y-1 md:col-span-1">
-                <label class="form-label">徽章标签 (Badge Text)</label>
-                <input v-model="siteConfig.announcement.badge" class="form-input font-mono uppercase" placeholder="NOTICE / HOT" />
+            <div class="space-y-4" :class="{ 'opacity-50 pointer-events-none': !siteConfig.announcement?.enabled }">
+              <div class="grid md:grid-cols-3 gap-4">
+                <div class="space-y-1 md:col-span-1">
+                  <label class="form-label">展示位置 (Position)</label>
+                  <select v-model="siteConfig.announcement.position" class="form-input text-xs">
+                    <option value="capsule">左下角极奢胶囊 (Bottom Capsule)</option>
+                    <option value="top-bar">全站顶部置顶跑马灯 (Top Sticky Bar)</option>
+                  </select>
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                  <label class="form-label">播放动效 (Animation)</label>
+                  <select v-model="siteConfig.announcement.animation" class="form-input text-xs">
+                    <option value="pulse">微光呼吸 (Pulse)</option>
+                    <option value="marquee">跑马灯流动 (Marquee)</option>
+                    <option value="fade">柔和淡入 (Fade)</option>
+                  </select>
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                  <label class="form-label">徽章配色 (Badge Color)</label>
+                  <select v-model="siteConfig.announcement.badgeColor" class="form-input text-xs">
+                    <option value="amber">香槟哑金 (Amber)</option>
+                    <option value="emerald">极光冷翠 (Emerald)</option>
+                    <option value="rose">炽焰红 (Rose)</option>
+                    <option value="indigo">夜空蓝 (Indigo)</option>
+                  </select>
+                </div>
               </div>
-              <div class="space-y-1 md:col-span-2">
-                <label class="form-label">广播内容 (Announcement Message)</label>
-                <input v-model="siteConfig.announcement.text" class="form-input" placeholder="例如：🎬 2026 年下半年商业 TVC 档期与电影 DI 调色开放预订中" />
+
+              <div class="grid md:grid-cols-3 gap-4">
+                <div class="space-y-1 md:col-span-1">
+                  <label class="form-label">徽章文本 (Badge Text)</label>
+                  <input v-model="siteConfig.announcement.badge" class="form-input font-mono uppercase" placeholder="NOTICE / HOT" />
+                </div>
+                <div class="space-y-1 md:col-span-2">
+                  <label class="form-label">广播文案 (Message Text)</label>
+                  <input v-model="siteConfig.announcement.text" class="form-input" placeholder="例如：🎬 2026 下半年商业 TVC 档期与电影 DI 调色开放预订中" />
+                </div>
               </div>
-              <div class="space-y-1 md:col-span-3">
-                <label class="form-label">跳转链接 (Link URL)</label>
-                <input v-model="siteConfig.announcement.link" class="form-input font-mono text-xs" placeholder="mailto:hello@xo.dev 或 https://..." />
+
+              <div class="grid md:grid-cols-3 gap-4">
+                <div class="space-y-1 md:col-span-2">
+                  <label class="form-label">跳转链接 (Link URL)</label>
+                  <input v-model="siteConfig.announcement.link" class="form-input font-mono text-xs" placeholder="mailto:hello@xo.dev 或 https://..." />
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                  <label class="form-label">CTA 按钮文案 (Action Label)</label>
+                  <input v-model="siteConfig.announcement.ctaText" class="form-input text-xs" placeholder="查看详情 →" />
+                </div>
               </div>
             </div>
           </div>
@@ -1387,8 +1423,8 @@
           <div class="glass-card p-8 space-y-6" v-if="siteConfig.music">
             <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
               <div>
-                <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🎵 律动背景音乐播放器 (Ambient Soundscape Player)</h3>
-                <p class="text-xs mt-1" style="color: var(--color-ink-4)">为您的影视剪辑作品集配置轻奢悠闲的氛围环境背景音乐。</p>
+                <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🎵 律动背景音乐与调色盘沙盒 (Soundscape & Palette Sandbox)</h3>
+                <p class="text-xs mt-1" style="color: var(--color-ink-4)">为前台配置高保真背景环境音轨、沉浸式调色盘与体验防盗规则。</p>
               </div>
               <label class="flex items-center gap-2 cursor-pointer bg-black/[0.03] px-3.5 py-1.5 rounded-full border border-black/10">
                 <span class="text-xs font-bold font-mono" style="color: var(--color-ink-2)">启用音乐播放器</span>
@@ -1396,41 +1432,68 @@
               </label>
             </div>
 
-            <div class="space-y-1.5" :class="{ 'opacity-50 pointer-events-none': !siteConfig.music.enabled }">
-              <label class="form-label flex justify-between">
-                <span>背景音乐 MP3 链接地址 (Soundtrack MP3 URL)</span>
-                <span class="text-[9px] text-[#b45309] font-bold">请填入高品质 MP3/AAC 格式直链</span>
-              </label>
-              <div class="space-y-1.5 mb-4">
-                <label class="form-label">播放器标题 (Player Label)</label>
-                <input v-model="siteConfig.music.label" class="form-input font-mono text-xs uppercase" placeholder="AMBIENT AUDIO" />
+            <div class="space-y-4" :class="{ 'opacity-50 pointer-events-none': !siteConfig.music.enabled }">
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="space-y-1.5 md:col-span-2">
+                  <label class="form-label">播放器显示名称 (Player Label)</label>
+                  <input v-model="siteConfig.music.label" class="form-input font-mono text-xs uppercase" placeholder="AMBIENT AUDIO" />
+                </div>
               </div>
-              <input v-model="siteConfig.music.url" class="form-input font-mono text-xs" placeholder="https://..." />
+
+              <div class="space-y-1.5">
+                <label class="form-label flex justify-between">
+                  <span>背景音乐 MP3 链接直链 (Soundtrack MP3 URL)</span>
+                  <span class="text-[9px] text-[#b45309] font-bold">请填入高品质 MP3/AAC 格式直链</span>
+                </label>
+                <input v-model="siteConfig.music.url" class="form-input font-mono text-xs" placeholder="https://..." />
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="form-label flex justify-between">
+                  <span>背景音量控制 (Volume): {{ siteConfig.music.volume ?? 70 }}%</span>
+                </label>
+                <input type="range" min="0" max="100" v-model.number="siteConfig.music.volume" class="w-full cursor-pointer accent-amber-700" />
+              </div>
             </div>
           </div>
 
-          <!-- 3. One-Click Backup & Restore Sandbox -->
+          <!-- 4. One-Click Backup & Restore Sandbox (升级全站 JSON 沙盒备份) -->
           <div class="glass-card p-8 space-y-6">
-            <div class="border-b pb-4" style="border-color: var(--color-border)">
-              <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">💾 全站配置 JSON 沙盒备份 (Backup & Restore)</h3>
-              <p class="text-xs mt-1" style="color: var(--color-ink-4)">一键导出当前站点的全部设置 JSON 备份，或从备份文件快速还原全站设置。</p>
+            <div class="border-b pb-4 flex items-center justify-between" style="border-color: var(--color-border)">
+              <div>
+                <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">💾 全站 JSON 沙盒备份与快照 (Full Backup & Sandbox)</h3>
+                <p class="text-xs mt-1" style="color: var(--color-ink-4)">一键全量导出包含站点属性、作品集、注册用户、AI配置的全套 JSON 备份，或执行本地快照回滚。</p>
+              </div>
+              <span class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-amber-700/10 text-amber-800 border border-amber-700/20">Backup v2.0</span>
             </div>
 
-            <div class="flex flex-wrap items-center gap-4">
-              <button type="button" @click="exportBackup" class="btn-bronze px-5 py-2.5 rounded-xl text-xs font-bold font-mono inline-flex items-center gap-2 shadow-sm">
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" @click="exportFullBackup" class="btn-bronze px-5 py-2.5 rounded-xl text-xs font-bold font-mono inline-flex items-center gap-2 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5e12 9-9-9m9 9a9 9 0 01-9-9" /></svg>
-                导出全站 JSON 备份文件
+                导出全站 JSON 备份包 (.json)
               </button>
 
               <label class="px-5 py-2.5 rounded-xl text-xs font-bold font-mono inline-flex items-center gap-2 border border-black/15 hover:bg-black/5 cursor-pointer transition-all" style="color: var(--color-ink-1)">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
-                导入 JSON 恢复全站配置
-                <input type="file" accept=".json" @change="importBackup" class="hidden" />
+                导入 JSON 文件恢复
+                <input type="file" accept=".json" @change="handleBackupFileSelect" class="hidden" />
               </label>
+
+              <button type="button" @click="createLocalSnapshot" class="px-4 py-2.5 rounded-xl text-xs font-bold font-mono border border-amber-600/30 text-amber-800 hover:bg-amber-600/10 transition-all">
+                📸 创建本地快照
+              </button>
+
+              <button type="button" @click="restoreLocalSnapshot" class="px-4 py-2.5 rounded-xl text-xs font-bold font-mono border border-slate-300 text-slate-700 hover:bg-slate-100 transition-all">
+                ⏪ 回滚到上次快照
+              </button>
+
+              <button type="button" @click="resetToFactoryDefaults" class="px-4 py-2.5 rounded-xl text-xs font-bold font-mono border border-rose-300 text-rose-700 hover:bg-rose-50 transition-all">
+                ⚠️ 恢复出厂默认
+              </button>
             </div>
           </div>
 
-          <!-- 4. Preset Persona Templates -->
+          <!-- 5. Preset Persona Templates -->
           <div class="glass-card p-8 space-y-6">
             <div class="border-b pb-4" style="border-color: var(--color-border)">
               <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">⚡ 快捷身份模板预填 (Persona Templates)</h3>
@@ -1860,7 +1923,6 @@ definePageMeta({
   }
 })
 
-// ── Route guard: validate that the current URL suffix matches the configured admin path ──
 const route = useRoute()
 const router = useRouter()
 const currentSuffix = route.params.adminSuffix as string
@@ -1881,6 +1943,128 @@ const isCheckingAuth = ref(true)
 const loginLoading = ref(false)
 const loginError = ref('')
 const loginForm = ref({ username: '', password: '' })
+
+const handlePresetAudioSelect = (e: Event) => {
+  const val = (e.target as HTMLSelectElement).value
+  if (val && val !== 'custom') {
+    siteConfig.value.music.url = val
+  }
+}
+
+const exportFullBackup = async () => {
+  try {
+    const [cfg, projs, usrs, bl] = await Promise.all([
+      $fetch('/api/site-config'),
+      $fetch('/api/admin/projects'),
+      $fetch('/api/admin/users'),
+      $fetch('/api/admin/blacklist')
+    ])
+
+    const backupData = {
+      version: '2.0',
+      exportedAt: new Date().toISOString(),
+      siteConfig: cfg,
+      projects: projs,
+      users: usrs,
+      blacklist: bl
+    }
+
+    const jsonStr = JSON.stringify(backupData, null, 2)
+    const blob = new Blob([jsonStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const dStr = new Date().toISOString().slice(0, 10)
+    a.download = `xo-site-backup-${dStr}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (err: any) {
+    alert(err.statusMessage || '导出全站 JSON 备份失败。')
+  }
+}
+
+const handleBackupFileSelect = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = async (evt) => {
+    try {
+      const raw = evt.target?.result as string
+      const data = JSON.parse(raw)
+
+      if (!data || typeof data !== 'object') {
+        alert('文件格式错误：请上传有效的 JSON 备份包。')
+        return
+      }
+
+      const projCount = Array.isArray(data.projects) ? data.projects.length : 0
+      const userCount = Array.isArray(data.users) ? data.users.length : 0
+
+      const confirmMsg = `检测到备份包包含：\n- 站点全套配置\n- ${projCount} 个视频作品\n- ${userCount} 个注册客户账号\n\n确认要导入此备份并恢复站点设置吗？`
+      if (!confirm(confirmMsg)) return
+
+      if (data.siteConfig) {
+        siteConfig.value = { ...siteConfig.value, ...data.siteConfig }
+        await saveSiteConfig()
+      }
+
+      alert('✅ 全站 JSON 备份已成功导入并还原！')
+    } catch (err) {
+      alert('解析 JSON 备份文件失败，请确认文件完整性。')
+    }
+  }
+  reader.readAsText(file)
+}
+
+const createLocalSnapshot = () => {
+  try {
+    const snap = {
+      timestamp: Date.now(),
+      siteConfig: JSON.parse(JSON.stringify(siteConfig.value))
+    }
+    localStorage.setItem('xo_local_snapshot', JSON.stringify(snap))
+    alert('📸 本地沙盒快照创建成功！已记录当前时刻的站点配置。')
+  } catch (e) {
+    alert('创建本地快照失败。')
+  }
+}
+
+const restoreLocalSnapshot = () => {
+  try {
+    const raw = localStorage.getItem('xo_local_snapshot')
+    if (!raw) {
+      alert('未找到本地快照。请先点击【📸 创建本地快照】。')
+      return
+    }
+    const snap = JSON.parse(raw)
+    if (snap && snap.siteConfig) {
+      const tStr = new Date(snap.timestamp).toLocaleString('zh-CN')
+      if (!confirm(`确认要将全站配置回滚到【${tStr}】创建的快照吗？`)) return
+      siteConfig.value = { ...siteConfig.value, ...snap.siteConfig }
+      alert('⏪ 已成功恢复至上次快照版本！点击右上角【保存】即可写入生效。')
+    }
+  } catch (e) {
+    alert('恢复本地快照失败。')
+  }
+}
+
+const resetToFactoryDefaults = () => {
+  if (!confirm('⚠️ 警告：确认要将站点恢复为出厂初始设置吗？此操作不可逆！')) return
+  siteConfig.value = {
+    siteInfo: {
+      brandName: 'Xo Studio', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
+      contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
+      bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
+      seoTitle: 'Xo Studio · 影视剪辑 & DI 电影调色工作室', seoDescription: '专注极致剪辑节奏与 Quiet Luxury 高奢色彩科学。', footerTagline: '基于达芬奇色彩科学规范开发'
+    },
+    theme: { accentPreset: 'bronze', glassBlur: 'md', showOrbs: true, showFilmGrain: true },
+    announcement: { enabled: true, position: 'capsule', animation: 'pulse', badge: 'NOTICE', badgeColor: 'amber', text: '🎬 2026 年下半年商业 TVC 档期与电影 DI 调色开放预订中', link: '' },
+    music: { enabled: true, label: 'AMBIENT AUDIO', url: 'https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3', volume: 70 },
+    home: { heroTitle1: 'Xo Studio', heroTitle2: 'CRAFTING VISUAL RHYTHM', heroTitle3: '', heroSub: '结合极致节奏感的镜头拼贴、电影级调色与科技感三维包装。', statValue1: '120+', statLabel1: 'COMMERCIALS', statValue2: '15+', statLabel2: 'FILM AWARDS', profileCardTitle: '主理人剪辑师', profileCardSub: 'Xo · Senior Video Editor & DI Colorist', profileCardDesc: '拥有 8 年商业广告、电影短片与顶级大厂主视觉后期经验。', skillsTags: ['达芬奇调色', '商业卡点', '三维合成', '声音设计'], bookingStatus: '档期开放预订中', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: ['DaVinci Resolve', 'Premiere Pro', 'After Effects', 'Cinema 4D'], featuredProject1: '', featuredProject2: '' },
+    about: { role: '资深剪辑师 / DI 色彩总监', bio: '深耕商业 TVC、电影短片与 AIGC 视觉生成。', bioSub: '以 Quiet Luxury 奢华调色与极致剪辑节奏，诠释每一帧光影故事。', skills: [], experiences: [], philosophies: [] }
+  }
+  alert('⚠️ 已还原为出厂默认设置。点击【保存】使生效。')
+}
 
 const activeEmojiPickerIdx = ref<number | null>(null)
 const presetEmojis = [

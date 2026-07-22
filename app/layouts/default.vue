@@ -2,14 +2,57 @@
   <div>
     <AppPreloader v-if="!preloaderDone && !isAdminPage" @complete="onPreloaderComplete" />
 
-    <!-- Floating Announcement Banner (Bottom-Left Premium Capsule) -->
+    <!-- 1. Top Sticky Bar Announcement (顶部置顶模式) -->
+    <Transition name="fade">
+      <div
+        v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isAdminPage"
+        class="fixed top-0 inset-x-0 z-[100] py-2 px-4 shadow-md border-b flex items-center justify-between text-xs font-sans backdrop-blur-md transition-all"
+        :class="getTopBarBgClass(announcement?.badgeColor)"
+      >
+        <div class="max-w-6xl mx-auto flex-1 flex items-center justify-center gap-3 overflow-hidden px-2">
+          <!-- Badge -->
+          <span class="text-[9px] font-bold font-mono uppercase px-2 py-0.5 rounded-full tracking-wider border flex-shrink-0" :class="getBadgeClass(announcement?.badgeColor)">
+            {{ announcement.badge || 'BROADCAST' }}
+          </span>
+
+          <!-- Text (marquee or static) -->
+          <div class="overflow-hidden relative max-w-full">
+            <p :class="announcement.animation === 'marquee' ? 'animate-marquee whitespace-nowrap' : 'line-clamp-1'" class="font-medium text-xs">
+              {{ announcement.text }}
+            </p>
+          </div>
+
+          <!-- Link -->
+          <a
+            v-if="announcement.link"
+            :href="announcement.link"
+            class="text-[11px] font-bold hover:underline flex items-center gap-1 flex-shrink-0 opacity-90 hover:opacity-100 transition-opacity"
+          >
+            {{ announcement.ctaText || '查看详情 →' }}
+          </a>
+        </div>
+
+        <!-- Close -->
+        <button
+          type="button"
+          @click="dismissBanner"
+          class="opacity-60 hover:opacity-100 transition-opacity p-1 ml-2 flex-shrink-0"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </Transition>
+
+    <!-- 2. Floating Capsule Announcement (Bottom-Left 胶囊模式) -->
     <Transition name="slide-up">
       <div
-        v-if="announcement?.enabled && announcement?.text && showBanner"
+        v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position !== 'top-bar' && !isAdminPage"
         class="fixed bottom-6 left-6 z-[60] max-w-sm rounded-2xl p-4 shadow-[0_12px_40px_rgba(80,60,30,0.12)] border flex items-start gap-3.5 transition-all duration-500 backdrop-blur-xl"
-        style="background: rgba(252, 248, 242, 0.92); border-color: rgba(200, 185, 160, 0.35);"
+        style="background: rgba(252, 248, 242, 0.94); border-color: rgba(200, 185, 160, 0.35);"
       >
-        <!-- Pulse Indicator Dot -->
+        <!-- Indicator Dot -->
         <span class="flex h-2 w-2 mt-1.5 relative flex-shrink-0">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background-color: var(--color-brand-accent)"></span>
           <span class="relative inline-flex rounded-full h-2 w-2" style="background-color: var(--color-brand-accent)"></span>
@@ -18,7 +61,7 @@
         <!-- Content -->
         <div class="flex-1 space-y-1.5 pr-2">
           <div class="flex items-center gap-1.5">
-            <span class="text-[9px] font-bold tracking-widest font-mono uppercase" style="color: var(--color-brand-accent)">
+            <span class="text-[9px] font-bold tracking-widest font-mono uppercase px-2 py-0.5 rounded-full border" :class="getBadgeClass(announcement?.badgeColor)">
               {{ announcement.badge || 'BROADCAST' }}
             </span>
           </div>
@@ -31,14 +74,14 @@
             class="inline-block text-[10px] font-bold hover:opacity-80 transition-opacity underline"
             style="color: var(--color-brand-accent)"
           >
-            查看详情 &rarr;
+            {{ announcement.ctaText || '查看详情 →' }}
           </a>
         </div>
 
         <!-- Close Button -->
         <button
           type="button"
-          @click="showBanner = false"
+          @click="dismissBanner"
           class="text-black/30 hover:text-black/70 transition-colors flex-shrink-0"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
@@ -48,10 +91,10 @@
       </div>
     </Transition>
 
-    <!-- Client Portal Floating Pill (Bottom-Right) — hidden on admin pages -->
+    <!-- Client Portal Floating Pill (Bottom-Right) -->
     <div
       v-if="!isAdminPage"
-      class="fixed bottom-6 right-6 z-[50] rounded-full px-4 py-2 border flex items-center gap-2.5 transition-all duration-350 backdrop-blur-xl hover:scale-105 active:scale-95"
+      class="fixed bottom-6 right-6 z-[50] rounded-full px-4 py-2 border flex items-center gap-2.5 transition-all duration-350 backdrop-blur-xl hover:scale-105 active:scale-95 shadow-md"
       style="background: rgba(252, 248, 242, 0.88); border-color: rgba(200, 185, 160, 0.25);"
     >
       <span class="text-xs">🔑</span>
@@ -88,62 +131,47 @@
       class="fixed bottom-4 z-[60] rounded-full px-4 py-2.5 shadow-[0_8px_30px_rgba(80,60,30,0.08)] border flex items-center gap-3 transition-all duration-300 backdrop-blur-xl"
       style="left: 50%; transform: translateX(-50%); background: rgba(252, 248, 242, 0.9); border-color: rgba(200, 185, 160, 0.25);"
     >
-      <!-- Audio Beat visualizer (dancing bar micro-animation) -->
+      <!-- Audio Beat visualizer -->
       <div class="flex items-end gap-[2px] h-3.5 w-4 cursor-pointer" @click="toggleMusic">
         <span
           v-for="bar in 4"
           :key="bar"
           class="w-[2px] bg-[#b45309] rounded-full transition-all duration-300"
           :class="isPlaying ? 'animate-beat-bar' : 'h-[3px]'"
-          :style="{
-            animationDelay: `${bar * 0.15}s`
-          }"
+          :style="{ animationDelay: `${bar * 0.15}s` }"
         />
       </div>
 
-      <!-- Music Info -->
-      <div class="flex flex-col select-none cursor-pointer" @click="toggleMusic">
-        <span class="text-[9px] font-mono font-bold tracking-wider" style="color: var(--color-ink-3)">{{ musicLabel }}</span>
-        <span class="text-[9px] font-bold truncate max-w-[80px]" style="color: var(--color-ink-5)">{{ isPlaying ? '播放中' : '已静音' }}</span>
+      <div class="flex items-center gap-2 cursor-pointer" @click="toggleMusic">
+        <span class="text-[10px] font-mono font-bold tracking-wider text-[#b45309] uppercase select-none">
+          {{ musicLabel }}
+        </span>
+        <span class="text-[9px] font-mono text-slate-400">
+          {{ isPlaying ? 'PLAYING' : 'PAUSED' }}
+        </span>
       </div>
 
-      <!-- Play/Mute Button -->
-      <button
-        type="button"
-        @click="toggleMusic"
-        class="w-6 h-6 rounded-full flex items-center justify-center bg-[#b45309]/10 hover:bg-[#b45309]/20 transition-all text-[#b45309]"
-      >
-        <svg v-if="isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
-          <path d="M5.75 3a.75.75 0 01.75.75v12.5a.75.75 0 01-1.5 0V3.75A.75.75 0 015.75 3zm5 0a.75.75 0 01.75.75v12.5a.75.75 0 01-1.5 0V3.75A.75.75 0 0110.75 3z" />
-        </svg>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
-          <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.324-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-        </svg>
-      </button>
-
-      <!-- Hidden Audio element -->
       <audio
         ref="audioRef"
         :src="musicUrl"
         loop
+        preload="auto"
       />
     </div>
 
-    <!-- Navbar — hidden on admin pages -->
-    <AppNavbar v-if="!isAdminPage" />
-
-    <!-- Page content -->
-    <main class="relative z-10">
-      <slot />
-    </main>
-
-    <!-- Footer — hidden on admin pages -->
-    <AppFooter v-if="!isAdminPage" />
+    <!-- Main Layout Content Slot -->
+    <div :class="{'pt-10': announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isAdminPage}">
+      <AppNavbar v-if="!isAdminPage" />
+      <main>
+        <slot />
+      </main>
+      <AppFooter v-if="!isAdminPage" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const preloaderDone = useState('preloader-done', () => false)
+const preloaderDone = ref(false)
 
 const onPreloaderComplete = () => {
   preloaderDone.value = true
@@ -152,29 +180,64 @@ const onPreloaderComplete = () => {
   }
 }
 
-const { data: initialSiteConfig } = await useFetch<any>('/api/site-config')
-const siteConfig = useState<any>('site-config', () => initialSiteConfig.value)
-
-watch(initialSiteConfig, (val) => {
-  if (val && !siteConfig.value) siteConfig.value = val
-}, { immediate: true })
+const { data: siteConfigData } = await useFetch('/api/site-config')
+const siteConfig = useState('site-config', () => siteConfigData.value)
 
 const showBanner = ref(true)
 
-// Dynamic accent color presets mapping
+const dismissBanner = () => {
+  showBanner.value = false
+  if (import.meta.client) {
+    try {
+      localStorage.setItem('xo_announcement_dismissed', Date.now().toString())
+    } catch (e) {}
+  }
+}
+
+const checkBannerDismissal = () => {
+  if (import.meta.client) {
+    try {
+      const dismissed = localStorage.getItem('xo_announcement_dismissed')
+      if (dismissed) {
+        const timestamp = parseInt(dismissed, 10)
+        // 24 hours dismissal window
+        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+          showBanner.value = false
+        }
+      }
+    } catch (e) {}
+  }
+}
+
 const accentColors = {
   bronze: { primary: '#b45309', primaryRgb: '180, 83, 9', hover: '#92400e' },
+  gold: { primary: '#d97706', primaryRgb: '217, 119, 6', hover: '#b45309' },
   emerald: { primary: '#059669', primaryRgb: '5, 150, 105', hover: '#047857' },
-  blue: { primary: '#2563eb', primaryRgb: '37, 99, 235', hover: '#1d4ed8' },
-  violet: { primary: '#7c3aed', primaryRgb: '124, 58, 237', hover: '#6d28d9' },
   slate: { primary: '#27272a', primaryRgb: '39, 39, 42', hover: '#18181b' }
 }
 
 const showOrbs = computed(() => siteConfig.value?.theme?.showOrbs ?? true)
 const showFilmGrain = computed(() => siteConfig.value?.theme?.showFilmGrain ?? true)
 const announcement = computed(() => siteConfig.value?.announcement)
-
 const preset = computed(() => siteConfig.value?.theme?.accentPreset || 'bronze')
+
+const getBadgeClass = (color?: string) => {
+  switch (color) {
+    case 'emerald': return 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
+    case 'rose': return 'bg-rose-500/10 text-rose-700 border-rose-500/20'
+    case 'indigo': return 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20'
+    default: return 'bg-amber-600/10 text-amber-800 border-amber-600/20'
+  }
+}
+
+const getTopBarBgClass = (color?: string) => {
+  switch (color) {
+    case 'emerald': return 'bg-emerald-950/90 border-emerald-800/40 text-emerald-100'
+    case 'rose': return 'bg-rose-950/90 border-rose-800/40 text-rose-100'
+    case 'indigo': return 'bg-indigo-950/90 border-indigo-800/40 text-indigo-100'
+    default: return 'bg-[#181614]/95 border-amber-900/30 text-amber-100'
+  }
+}
 
 watch(preset, (val) => {
   const ac = accentColors[val as keyof typeof accentColors] || accentColors.bronze
@@ -203,9 +266,15 @@ watch(showFilmGrain, (val) => {
   }
 }, { immediate: true })
 
-// Hide player and footer/navbar on admin pages
+// Hide player and footer/navbar only on actual admin pages
 const route = useRoute()
-const isAdminPage = computed(() => !!route.params.adminSuffix)
+const configuredAdminPath = computed(() => siteConfig.value?.admin?.adminPath || 'admin')
+
+const isAdminPage = computed(() => {
+  const path = (route.path || '').replace(/^\/|\/$/g, '')
+  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\/$/g, '')
+  return path === adminPath || path.startsWith(`${adminPath}/`)
+})
 
 // Ambient Soundscape Player States & Logic
 const isPlaying = ref(false)
@@ -214,9 +283,17 @@ const audioRef = ref<HTMLAudioElement | null>(null)
 const musicEnabled = computed(() => siteConfig.value?.music?.enabled ?? true)
 const musicUrl = computed(() => siteConfig.value?.music?.url || 'https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3')
 const musicLabel = computed(() => siteConfig.value?.music?.label || 'AMBIENT AUDIO')
+const musicVolume = computed(() => siteConfig.value?.music?.volume ?? 70)
+
+watch(musicVolume, (val) => {
+  if (audioRef.value) {
+    audioRef.value.volume = Math.max(0, Math.min(1, val / 100))
+  }
+}, { immediate: true })
 
 const toggleMusic = () => {
   if (!audioRef.value) return
+  audioRef.value.volume = Math.max(0, Math.min(1, musicVolume.value / 100))
   if (isPlaying.value) {
     audioRef.value.pause()
     isPlaying.value = false
@@ -224,7 +301,7 @@ const toggleMusic = () => {
     audioRef.value.play().then(() => {
       isPlaying.value = true
     }).catch(err => {
-      console.warn('Audio playback was prevented, requires user interaction first', err)
+      console.warn('Audio playback requires user interaction', err)
     })
   }
 }
@@ -259,6 +336,7 @@ const handleClientLogout = async () => {
 
 onMounted(() => {
   checkClientSession()
+  checkBannerDismissal()
   if (import.meta.client && !preloaderDone.value && !isAdminPage.value) {
     document.body.style.overflow = 'hidden'
   }
@@ -282,6 +360,22 @@ onBeforeUnmount(() => {
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(16px) scale(0.95);
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 18s linear infinite;
 }
 
 /* Soundscape visualizer beat animation */
