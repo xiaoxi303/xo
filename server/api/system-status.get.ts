@@ -169,31 +169,15 @@ export default defineEventHandler(async (event) => {
   const projects = await dbGetProjectsRaw(event).catch(() => [])
   const projectTitles = new Map(projects.map((p: any) => [p.slug, p.title || p.slug]))
 
-  // ── Project engagement ranking: real project detail views plus click events ──
-  let projectClicks: { slug: string; title: string; clicks: number }[] = []
-  const projectCounts: Record<string, number> = {}
-
-  const addProjectCount = (slug: string, count: number) => {
-    if (!slug) return
-    projectCounts[slug] = (projectCounts[slug] || 0) + count
-  }
-
+  // ── Project engagement ranking: robust monotonic heat calculation ──
+  const viewCounts: Record<string, number> = {}
   if (db) {
     const viewRows = await db.prepare(
       `SELECT path, SUM(count) as cnt FROM page_views WHERE path LIKE '/projects/%' GROUP BY path`
     ).all()
     ;((viewRows.results || []) as any[]).forEach((r: any) => {
       const slug = String(r.path || '').replace(/^\/projects\//, '').split('/')[0]
-      addProjectCount(slug, Number(r.cnt || 0))
-    })
-
-    const clickRows = await db.prepare(
-      `SELECT meta, COUNT(*) as cnt FROM analytics_events WHERE event = 'project_click' GROUP BY meta ORDER BY cnt DESC LIMIT 4`
-    ).all()
-    ;((clickRows.results || []) as any[]).forEach((r: any) => {
-      let slug = r.meta || ''
-      try { const parsed = JSON.parse(r.meta); slug = parsed.slug } catch {}
-      addProjectCount(slug, Number(r.cnt || 0))
+      if (slug && slug !== 'get') viewCounts[slug] = (viewCounts[slug] || 0) + Number(r.cnt || 0)
     })
   } else {
     const statsFile = getRuntimeDataPath('page-views.json')
@@ -205,47 +189,54 @@ export default defineEventHandler(async (event) => {
           const rawSlug = pathKey.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
           if (!rawSlug || rawSlug === 'get') continue
           const views = Object.values(stats[pathKey] || {}).reduce((sum: number, n: any) => sum + Number(n || 0), 0)
-          addProjectCount(rawSlug, views)
+          viewCounts[rawSlug] = (viewCounts[rawSlug] || 0) + views
         }
       } catch {}
     }
+  }
 
+  const clickCounts: Record<string, number> = {}
+  if (db) {
+    const clickRows = await db.prepare(
+      `SELECT meta, COUNT(*) as cnt FROM analytics_events WHERE event = 'project_click' GROUP BY meta`
+    ).all()
+    ;((clickRows.results || []) as any[]).forEach((r: any) => {
+      let slug = r.meta || ''
+      try { const parsed = JSON.parse(r.meta); slug = parsed.slug } catch {}
+      if (slug && slug !== 'get') clickCounts[slug] = (clickCounts[slug] || 0) + Number(r.cnt || 0)
+    })
+  } else {
     const clickEvents = localEvents.filter(e => e && e.event === 'project_click')
     clickEvents.forEach(e => {
-      const meta = e.meta || ''
       let slug = ''
-      if (typeof meta === 'object' && meta !== null) {
-        slug = (meta as any).slug || ''
-      } else if (typeof meta === 'string') {
-        try {
-          const parsed = JSON.parse(meta)
-          slug = parsed.slug || meta
-        } catch {
-          slug = meta
-        }
+      if (typeof e.meta === 'object' && e.meta !== null) {
+        slug = (e.meta as any).slug || ''
+      } else if (typeof e.meta === 'string') {
+        try { const parsed = JSON.parse(e.meta); slug = parsed.slug || e.meta } catch { slug = e.meta }
       }
-      if (slug && slug !== 'get') {
-        addProjectCount(slug, 1)
-      }
+      if (slug && slug !== 'get') clickCounts[slug] = (clickCounts[slug] || 0) + 1
     })
   }
 
-  // Merge unified project heat map for 100% real-time data sync
   const unifiedHeat = getProjectHeatMap()
-  for (const [sKey, hCount] of Object.entries(unifiedHeat)) {
-    if (sKey && sKey !== 'get') {
-      addProjectCount(sKey, Number(hCount || 0))
-    }
+  const projectCounts: Record<string, number> = {}
+
+  const allKnownSlugs = new Set([
+    ...Array.from(projectTitles.keys()),
+    ...Object.keys(viewCounts),
+    ...Object.keys(clickCounts),
+    ...Object.keys(unifiedHeat)
+  ])
+
+  for (const slug of Array.from(allKnownSlugs)) {
+    if (!slug || slug === 'get') continue
+    const v = viewCounts[slug] || 0
+    const c = clickCounts[slug] || 0
+    const h = Number(unifiedHeat[slug] || 0)
+    projectCounts[slug] = Math.max(h, v + c)
   }
 
-  // Map all existing projects so every project appears in the heat map ranking
-  const allProjectSlugs = Array.from(projectTitles.keys())
-  for (const slug of allProjectSlugs) {
-    if (projectCounts[slug] === undefined) {
-      projectCounts[slug] = 0
-    }
-  }
-
+  let projectClicks: { slug: string; title: string; clicks: number }[] = []
   projectClicks = Object.entries(projectCounts)
     .map(([slug, clicks]) => ({ slug, title: String(projectTitles.get(slug) || slug), clicks }))
     .filter(p => p.slug)
