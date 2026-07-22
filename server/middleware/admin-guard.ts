@@ -10,6 +10,11 @@ export default defineEventHandler((event) => {
   const url = getRequestURL(event)
   const method = event.method
 
+  // Exclude public client-facing endpoints under /api/projects
+  if (url.pathname.includes('/unlock') || url.pathname.includes('/get-password-direct')) {
+    return
+  }
+
   // Only guard mutating methods on admin-sensitive routes
   const isAdminRoute =
     url.pathname.startsWith('/api/projects') ||
