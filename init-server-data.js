@@ -97,7 +97,8 @@ if (!fs.existsSync(configPath)) {
       smtpSecure: true,
       smtpUser: "",
       smtpPass: "",
-      senderName: "Xo Studio"
+      senderName: "Xo Studio",
+      senderEmail: ""
     }
   }
   fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), 'utf-8')

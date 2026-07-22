@@ -90,7 +90,7 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
     `
 
     await transporter.sendMail({
-      from: `"${senderName}" <${emailSettings.smtpUser}>`,
+      from: `"${senderName}" <${emailSettings.senderEmail || emailSettings.smtpUser}>`,
       to: toEmail,
       subject,
       html

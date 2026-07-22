@@ -584,6 +584,16 @@ const defaultConfig = {
     username: "admin",
     passwordHash: "06bff6534b63ba2a13c446d41a36c52c9269fefb68cf96fbec792ddfac25e44b",
     adminPath: "admin"
+  },
+  emailSettings: {
+    enabled: false,
+    smtpHost: "smtp.qq.com",
+    smtpPort: 465,
+    smtpSecure: true,
+    smtpUser: "",
+    smtpPass: "",
+    senderName: "Xo Studio",
+    senderEmail: ""
   }
 }
 
@@ -613,8 +623,11 @@ export async function dbGetSiteConfig(event: H3Event): Promise<any> {
           smtpSecure: true,
           smtpUser: '',
           smtpPass: '',
-          senderName: 'Xo Studio'
+          senderName: 'Xo Studio',
+          senderEmail: ''
         }
+      } else if (parsed.emailSettings.senderEmail === undefined) {
+        parsed.emailSettings.senderEmail = ''
       }
       return parsed
     } else {

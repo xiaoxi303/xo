@@ -1067,6 +1067,12 @@
                   </div>
 
                   <div class="space-y-1.5">
+                    <label class="form-label">展示发件邮箱 (Sender Email)</label>
+                    <input v-model="siteConfig.emailSettings.senderEmail" class="form-input font-mono" placeholder="例如: noreply@xoxox.bond (留空则默认使用账户)" />
+                    <p class="text-[9px] text-slate-400">如果是 QQ/163 邮箱请留空；如果是 Resend 自建域名邮箱，请务必填写您的域名邮箱地址（如 noreply@xoxox.bond）。</p>
+                  </div>
+
+                  <div class="space-y-1.5">
                     <label class="form-label">SMTP 授权码/密码 (SMTP Pass)</label>
                     <input v-model="siteConfig.emailSettings.smtpPass" type="password" class="form-input font-mono" placeholder="密码/授权码" />
                     <p class="text-[9px] text-slate-400">请使用网易或QQ邮箱的“客户端授权密码/授权码”，非邮箱登录密码。</p>
@@ -1917,7 +1923,8 @@ const siteConfig = useState<any>('site-config', () => ({
     smtpSecure: true,
     smtpUser: '',
     smtpPass: '',
-    senderName: 'Xo Studio'
+    senderName: 'Xo Studio',
+    senderEmail: ''
   }
 }))
 
@@ -2137,6 +2144,7 @@ const fetchSiteConfig = async () => {
       smtpUser: '',
       smtpPass: '',
       senderName: 'Xo Studio',
+      senderEmail: '',
       ...data.emailSettings
     }
   }
