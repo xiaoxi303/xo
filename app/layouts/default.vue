@@ -56,7 +56,10 @@
     >
       <span class="text-xs">🔑</span>
       <div v-if="clientLoggedIn" class="flex items-center gap-2 text-[10px] font-sans">
-        <span class="font-bold text-slate-700">Hi, {{ clientName }}</span>
+        <NuxtLink to="/client" class="font-bold text-slate-700 hover:text-amber-700 transition-colors flex items-center gap-1" title="进入客户中心">
+          Hi, {{ clientName }}
+          <span class="text-[9px] px-1 bg-amber-600/10 text-amber-700 rounded-sm font-semibold">控制中心</span>
+        </NuxtLink>
         <span class="text-slate-300">|</span>
         <button
           type="button"

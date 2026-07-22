@@ -1,4 +1,5 @@
 import { dbCreatePasswordRequest } from '../utils/db'
+import { validateSession, CLIENT_SESSION_COOKIE } from '../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -10,8 +11,21 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Retrieve client username if logged in
+  const token = getCookie(event, CLIENT_SESSION_COOKIE)
+  let clientUsername = ''
+  if (token) {
+    const session = validateSession(token)
+    if (session) {
+      clientUsername = session.username
+    }
+  }
+
   try {
-    await dbCreatePasswordRequest(event, body)
+    await dbCreatePasswordRequest(event, {
+      ...body,
+      clientUsername
+    })
     return { success: true }
   } catch (error) {
     console.error('Failed to create password request:', error)

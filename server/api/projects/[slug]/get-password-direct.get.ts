@@ -88,12 +88,27 @@ export default defineEventHandler(async (event) => {
   if (/mobile/i.test(userAgent)) device = '移动端'
   else if (/ipad/i.test(userAgent)) device = 'iPad'
 
-  // Log this direct access request to the database/json file
-  await dbCreatePasswordRequest(event, {
+  // 5. Log this direct access request with complete client metadata (WeChat, Email, IP)
+  const contactDetails = []
+  if (clientUser?.wechat) contactDetails.push(`微信: ${clientUser.wechat}`)
+  if (clientUser?.email) contactDetails.push(`邮箱: ${clientUser.email}`)
+  contactDetails.push(`IP: ${ip} (${device})`)
+  
+  const reqObj = {
     clientName: `直接在线获取 (账号: ${session.username})`,
-    contact: `IP: ${ip} (${device})`,
+    contact: contactDetails.join(' | '),
     projectSlug: slug,
-    projectTitle: projectTitle
+    projectTitle: projectTitle,
+    clientUsername: session.username,
+    status: 'approved'
+  }
+
+  await dbCreatePasswordRequest(event, reqObj)
+
+  // Send automatic receipt email in the background
+  const { sendApprovalEmail } = await import('../../../utils/email')
+  sendApprovalEmail(event, reqObj).catch(err => {
+    console.error('Background direct receipt email failed:', err)
   })
 
   // Return the actual password to the client

@@ -340,12 +340,13 @@
                     <th class="py-3.5 px-6 font-semibold">联系方式 (微信/邮箱)</th>
                     <th class="py-3.5 px-6 font-semibold">申请解锁作品</th>
                     <th class="py-3.5 px-6 font-semibold">申请时间</th>
+                    <th class="py-3.5 px-6 font-semibold">审核状态</th>
                     <th class="py-3.5 px-6 font-semibold text-right">操作</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y text-xs" style="divide-color: var(--color-border)">
                   <tr v-if="passwordRequests.length === 0">
-                    <td colspan="5" class="py-12 text-center" style="color: var(--color-ink-5)">
+                    <td colspan="6" class="py-12 text-center" style="color: var(--color-ink-5)">
                       <span class="text-2xl block mb-2">📥</span>
                       暂无专属授权密码申请记录。
                     </td>
@@ -356,11 +357,46 @@
                     <td class="py-4 px-6">
                       <span class="font-semibold" style="color: var(--color-ink-3)">{{ r.projectTitle }}</span>
                       <span class="block text-[10px] font-mono opacity-50">/projects/{{ r.projectSlug }}</span>
+                      <div v-if="r.reason" class="mt-1.5 text-[10px] leading-relaxed p-2 rounded-lg border border-black/[0.04] bg-black/[0.01]" style="color: var(--color-ink-3)">
+                        <span class="font-bold text-amber-700">申请理由：</span>{{ r.reason }}
+                      </div>
+                      <div class="mt-1.5 text-[10px] font-mono" style="color: var(--color-ink-5)">
+                        解锁密码：<span class="font-bold text-amber-800 bg-amber-600/10 px-1.5 py-0.5 rounded">{{ getProjectPassword(r.projectSlug) || '未设置密码/免费公开' }}</span>
+                      </div>
                     </td>
                     <td class="py-4 px-6" style="color: var(--color-ink-4)">
                       {{ new Date(r.createdAt).toLocaleString('zh-CN', { hour12: false }) }}
                     </td>
-                    <td class="py-4 px-6 text-right space-x-2">
+                    <td class="py-4 px-6">
+                      <span v-if="r.status === 'approved'" class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-700">🟢 已通过</span>
+                      <span v-else-if="r.status === 'rejected'" class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-700">🔴 已拒绝</span>
+                      <span v-else class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-700">🟡 审核中</span>
+                    </td>
+                    <td class="py-4 px-6 text-right space-x-3">
+                      <button
+                        v-if="!r.status || r.status === 'pending'"
+                        type="button"
+                        @click="updateRequestStatus(r.id, 'approved')"
+                        class="text-emerald-600 hover:text-emerald-500 font-bold hover:underline"
+                      >
+                        通过
+                      </button>
+                      <button
+                        v-if="!r.status || r.status === 'pending'"
+                        type="button"
+                        @click="updateRequestStatus(r.id, 'rejected')"
+                        class="text-amber-700 hover:text-amber-850 font-bold hover:underline"
+                      >
+                        拒绝
+                      </button>
+                      <button
+                        v-if="r.status === 'approved'"
+                        type="button"
+                        @click="copyShareText(r)"
+                        class="text-emerald-600 hover:text-emerald-500 font-bold hover:underline"
+                      >
+                        📋 复制通知模板
+                      </button>
                       <button
                         type="button"
                         @click="deletePasswordRequest(r.id)"
@@ -400,6 +436,7 @@
                   <tr class="text-[10px] font-mono uppercase tracking-wider border-b" style="color: var(--color-ink-4); border-color: var(--color-border); background: rgba(0,0,0,0.01)">
                     <th class="py-3.5 px-6 font-semibold">客户用户名</th>
                     <th class="py-3.5 px-6 font-semibold">电子邮箱</th>
+                    <th class="py-3.5 px-6 font-semibold">微信号</th>
                     <th class="py-3.5 px-6 font-semibold">角色级别</th>
                     <th class="py-3.5 px-6 font-semibold">注册时间</th>
                     <th class="py-3.5 px-6 font-semibold text-right">操作</th>
@@ -407,7 +444,7 @@
                 </thead>
                 <tbody class="divide-y text-xs" style="divide-color: var(--color-border)">
                   <tr v-if="registeredUsers.length === 0">
-                    <td colspan="5" class="py-12 text-center" style="color: var(--color-ink-5)">
+                    <td colspan="6" class="py-12 text-center" style="color: var(--color-ink-5)">
                       <span class="text-2xl block mb-2">👥</span>
                       暂无注册客户账号。
                     </td>
@@ -415,6 +452,7 @@
                   <tr v-for="u in registeredUsers" :key="u.id" class="hover:bg-black/[0.01] transition-colors">
                     <td class="py-4 px-6 font-bold" style="color: var(--color-ink-1)">{{ u.username }}</td>
                     <td class="py-4 px-6 font-mono" style="color: var(--color-ink-2)">{{ u.email || '—' }}</td>
+                    <td class="py-4 px-6 font-mono" style="color: var(--color-ink-2)">{{ u.wechat || '—' }}</td>
                     <td class="py-4 px-6">
                       <span class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-amber-700/5 text-amber-800 border border-amber-700/10">
                         {{ u.role }}
@@ -686,6 +724,23 @@
                          class="flex-1 bg-transparent border-none text-xs focus:outline-none min-w-[120px]"
                          style="color: var(--color-ink-1)" />
                 </div>
+              </div>
+
+              <!-- Collaborative Brands Tags -->
+              <div class="space-y-2 pt-4" style="border-top: 1px solid var(--color-border)">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">合作与联合制作品牌 (Collaborative Brands)</h3>
+                <div class="flex flex-wrap gap-1.5 p-2 rounded-xl min-h-[42px] items-center"
+                     style="background: rgba(255,255,255,0.8); border: 1px solid var(--color-border-2)">
+                  <span v-for="tag in siteConfig.home.collaborativeBrands" :key="tag" class="badge inline-flex items-center gap-1">
+                    {{ tag }}
+                    <button type="button" @click="removeBrandTag(tag)" class="ml-1 opacity-60 hover:opacity-100 font-bold text-xs">×</button>
+                  </span>
+                  <input v-model="tempBrandInput" @keydown.enter.prevent="addBrandTag" @keydown.comma.prevent="addBrandTag"
+                         placeholder="输入后回车添加品牌名称"
+                         class="flex-1 bg-transparent border-none text-xs focus:outline-none min-w-[120px]"
+                         style="color: var(--color-ink-1)" />
+                </div>
+                <p class="text-[9px] text-slate-400 font-mono">输入公司、客户或制作品牌名称（例如：DJI、腾讯视频、比亚迪）并按下回车或逗号键添加，它们将在前台首页滚动跑马灯展示。</p>
               </div>
             </div>
             <!-- Preview -->
@@ -972,6 +1027,57 @@
                   <p class="text-[11px]" style="color: #006621">{{ siteConfig.siteInfo.contactEmail || 'xo.dev' }}</p>
                   <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">{{ siteConfig.siteInfo.seoDescription || '网站描述...' }}</p>
                 </div>
+              </div>
+
+              <!-- Email Notification Settings -->
+              <div class="glass-card p-6 space-y-4 mt-6">
+                <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border)">
+                  <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">✉️ 邮件通知设置 (SMTP)</h3>
+                  <!-- Bulletproof Dropdown Selector -->
+                  <select 
+                    v-model="siteConfig.emailSettings.enabled" 
+                    class="text-xs font-mono py-1 px-2.5 rounded-lg border border-black/10 bg-white"
+                    style="color: var(--color-ink-1); outline: none;"
+                  >
+                    <option :value="false">❌ 已关闭</option>
+                    <option :value="true">🟢 已开启</option>
+                  </select>
+                </div>
+
+                <div v-if="siteConfig.emailSettings?.enabled" class="space-y-3.5 text-xs">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                      <label class="form-label">SMTP 服务器主机</label>
+                      <input v-model="siteConfig.emailSettings.smtpHost" class="form-input font-mono" placeholder="smtp.qq.com" />
+                    </div>
+                    <div class="space-y-1.5">
+                      <label class="form-label">SMTP 端口</label>
+                      <input v-model="siteConfig.emailSettings.smtpPort" type="number" class="form-input font-mono" placeholder="465" />
+                    </div>
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label class="form-label">发件人昵称 (Sender Name)</label>
+                    <input v-model="siteConfig.emailSettings.senderName" class="form-input" placeholder="Xo Studio" />
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label class="form-label">发件邮箱账户 (SMTP User)</label>
+                    <input v-model="siteConfig.emailSettings.smtpUser" class="form-input font-mono" placeholder="your-email@qq.com" />
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label class="form-label">SMTP 授权码/密码 (SMTP Pass)</label>
+                    <input v-model="siteConfig.emailSettings.smtpPass" type="password" class="form-input font-mono" placeholder="密码/授权码" />
+                    <p class="text-[9px] text-slate-400">请使用网易或QQ邮箱的“客户端授权密码/授权码”，非邮箱登录密码。</p>
+                  </div>
+
+                  <div class="flex items-center gap-2 pt-1.5">
+                    <input type="checkbox" id="smtp-secure-check" v-model="siteConfig.emailSettings.smtpSecure" class="rounded border-gray-300 text-amber-700 focus:ring-amber-500" />
+                    <label for="smtp-secure-check" class="text-[10px] font-bold select-none cursor-pointer" style="color: var(--color-ink-3)">启用 SSL 安全链接 (默认启用)</label>
+                  </div>
+                </div>
+                <p v-else class="text-[10px] text-slate-400 leading-relaxed">启用后，当管理员在后台审批通过申请，系统会自动向申请者的邮箱发送包含密码和观看链接的通知邮件。客户走直接自动通道获取密码时，也会收到密码备份通知。</p>
               </div>
             </div>
           </div>
@@ -1501,6 +1607,11 @@
               </div>
 
               <div class="space-y-1.5">
+                <label class="form-label">微信号</label>
+                <input v-model="userForm.wechat" type="text" class="form-input font-mono" placeholder="wechat_123" />
+              </div>
+
+              <div class="space-y-1.5">
                 <label class="form-label">账号角色 / 状态</label>
                 <select v-model="userForm.role" class="form-input">
                   <option value="client">🟢 client (普通客户账号)</option>
@@ -1795,10 +1906,19 @@ const siteConfig = useState<any>('site-config', () => ({
     statValue1: '', statLabel1: '', statValue2: '', statLabel2: '',
     profileCardTitle: '', profileCardSub: '', profileCardDesc: '',
     skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: [],
-    featuredProject1: '', featuredProject2: ''
+    featuredProject1: '', featuredProject2: '', collaborativeBrands: []
   },
   about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [] },
-  admin: { username: 'admin', adminPath: 'admin' }
+  admin: { username: 'admin', adminPath: 'admin' },
+  emailSettings: {
+    enabled: false,
+    smtpHost: 'smtp.qq.com',
+    smtpPort: 465,
+    smtpSecure: true,
+    smtpUser: '',
+    smtpPass: '',
+    senderName: 'Xo Studio'
+  }
 }))
 
 const isModalOpen = ref(false)
@@ -1810,6 +1930,7 @@ const userForm = ref({
   id: '',
   username: '',
   email: '',
+  wechat: '',
   role: 'client',
   password: '',
   allowedProjects: ''
@@ -1820,6 +1941,7 @@ const openEditUserModal = (u: any) => {
     id: u.id,
     username: u.username,
     email: u.email || '',
+    wechat: u.wechat || '',
     role: u.role || 'client',
     password: '',
     allowedProjects: u.allowedProjects || ''
@@ -2006,6 +2128,16 @@ const fetchSiteConfig = async () => {
       username: 'admin',
       adminPath: 'admin',
       ...data.admin
+    },
+    emailSettings: {
+      enabled: false,
+      smtpHost: 'smtp.qq.com',
+      smtpPort: 465,
+      smtpSecure: true,
+      smtpUser: '',
+      smtpPass: '',
+      senderName: 'Xo Studio',
+      ...data.emailSettings
     }
   }
 }
@@ -2131,6 +2263,19 @@ const addHeroTechTag = () => {
 const removeHeroTechTag = (tag: string) => {
   if (siteConfig.value.home.heroTechStack) {
     siteConfig.value.home.heroTechStack = siteConfig.value.home.heroTechStack.filter((t: string) => t !== tag)
+  }
+}
+
+const tempBrandInput = ref('')
+const addBrandTag = () => {
+  const val = tempBrandInput.value.replace(/[,，;；]/g, '').trim()
+  if (!siteConfig.value.home.collaborativeBrands) siteConfig.value.home.collaborativeBrands = []
+  if (val && !siteConfig.value.home.collaborativeBrands.includes(val)) siteConfig.value.home.collaborativeBrands.push(val)
+  tempBrandInput.value = ''
+}
+const removeBrandTag = (tag: string) => {
+  if (siteConfig.value.home.collaborativeBrands) {
+    siteConfig.value.home.collaborativeBrands = siteConfig.value.home.collaborativeBrands.filter((t: string) => t !== tag)
   }
 }
 
@@ -2286,6 +2431,47 @@ const deleteProject = async (slug: string) => {
     await $fetch(`/api/projects?slug=${slug}`, { method: 'DELETE' })
     await fetchProjects()
   } catch (e: any) { alert(e.statusMessage || '删除失败。') }
+}
+const deletePasswordRequest = async (id: number | string) => {
+  if (!confirm('确认要删除这条授权申请记录吗？')) return
+  try {
+    await $fetch(`/api/password-requests?id=${id}`, { method: 'DELETE' })
+    const requests = await $fetch('/api/password-requests?t=' + Date.now()) as any[]
+    passwordRequests.value = requests
+  } catch (e: any) {
+    alert(e.statusMessage || '删除失败。')
+  }
+}
+const updateRequestStatus = async (id: number | string, status: 'approved' | 'rejected') => {
+  const actionName = status === 'approved' ? '审核通过' : '审核拒绝'
+  if (!confirm(`确认将该条授权申请标记为【${actionName}】吗？`)) return
+  try {
+    await $fetch('/api/password-requests', {
+      method: 'PUT',
+      body: { id, status }
+    })
+    const requests = await $fetch('/api/password-requests?t=' + Date.now()) as any[]
+    passwordRequests.value = requests
+  } catch (e: any) {
+    alert(e.statusMessage || '审批操作失败。')
+  }
+}
+const getProjectPassword = (slug: string) => {
+  const p = projectsList.value?.find((x: any) => x.slug === slug)
+  return p ? p.password : ''
+}
+const copyShareText = (r: any) => {
+  const pwd = getProjectPassword(r.projectSlug)
+  const host = window.location.origin
+  const shareText = `您好！您申请观摩的作品《${r.projectTitle}》已审核通过。\n访问密码：${pwd || '无'}\n直接观看链接：${host}/projects/${r.projectSlug}\n期待与您的进一步合作！`
+  
+  if (import.meta.client) {
+    navigator.clipboard.writeText(shareText).then(() => {
+      alert('通知模板已成功复制到剪贴板，您可以直接粘贴并发送给客户！')
+    }).catch(() => {
+      alert('复制失败，请手动通过浏览器接口进行拷贝。')
+    })
+  }
 }
 </script>
 

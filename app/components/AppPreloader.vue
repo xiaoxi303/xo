@@ -22,17 +22,20 @@
       >
         <circle cx="50" cy="50" r="46" class="outer-ring" stroke-dasharray="290" stroke-dashoffset="290" />
         
+        <!-- Optimized Symmetric Outer Blades -->
         <path d="M 50 4  L 20 40" class="blade-line" />
         <path d="M 96 50 L 60 20" class="blade-line" />
         <path d="M 50 96 L 80 60" class="blade-line" />
         <path d="M 4  50 L 40 80" class="blade-line" />
         
+        <!-- Optimized Symmetric Inner Blades (Corrected coordinate alignment typos) -->
         <path d="M 20 40 L 40 30" class="blade-line" />
-        <path d="M 60 20 L 70 50" class="blade-line" />
+        <path d="M 60 20 L 70 40" class="blade-line" />
         <path d="M 80 60 L 60 70" class="blade-line" />
-        <path d="M 40 80 L 30 50" class="blade-line" />
+        <path d="M 40 80 L 30 60" class="blade-line" />
 
-        <polygon points="40,30 70,50 60,70 30,50" class="iris-polygon" fill="rgba(180, 83, 9, 0.08)" />
+        <!-- Perfectly Symmetric Iris Polygon -->
+        <polygon points="40,30 70,40 60,70 30,60" class="iris-polygon" fill="rgba(180, 83, 9, 0.08)" />
       </svg>
 
       <!-- Soft amber light halo -->
@@ -225,8 +228,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .blade-line {
-  stroke-dasharray: 80;
-  stroke-dashoffset: 80;
+  stroke-dasharray: 55;
+  stroke-dashoffset: 55;
   animation: draw-blade 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   animation-delay: 0.1s;
   opacity: 0.85;

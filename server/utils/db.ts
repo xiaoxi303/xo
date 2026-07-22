@@ -604,7 +604,19 @@ export async function dbGetSiteConfig(event: H3Event): Promise<any> {
   try {
     if (fs.existsSync(configPath)) {
       const data = fs.readFileSync(configPath, 'utf-8')
-      return JSON.parse(data)
+      const parsed = JSON.parse(data)
+      if (!parsed.emailSettings) {
+        parsed.emailSettings = {
+          enabled: false,
+          smtpHost: 'smtp.qq.com',
+          smtpPort: 465,
+          smtpSecure: true,
+          smtpUser: '',
+          smtpPass: '',
+          senderName: 'Xo Studio'
+        }
+      }
+      return parsed
     } else {
       const dir = path.dirname(configPath)
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
@@ -653,9 +665,9 @@ export async function dbCreatePasswordRequest(event: H3Event, data: any): Promis
   const db = await getD1Database(event)
   if (db) {
     await db.prepare(`
-      INSERT INTO password_requests (clientName, contact, projectSlug, projectTitle)
-      VALUES (?, ?, ?, ?)
-    `).bind(data.clientName, data.contact, data.projectSlug, data.projectTitle).run()
+      INSERT INTO password_requests (clientName, contact, projectSlug, projectTitle, status, reason)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(data.clientName, data.contact, data.projectSlug, data.projectTitle, data.status || 'pending', data.reason || '').run()
     return
   }
 
@@ -673,11 +685,33 @@ export async function dbCreatePasswordRequest(event: H3Event, data: any): Promis
     contact: data.contact,
     projectSlug: data.projectSlug,
     projectTitle: data.projectTitle,
-    status: 'pending',
+    status: data.status || 'pending',
+    clientUsername: data.clientUsername || '',
+    reason: data.reason || '',
     createdAt: new Date().toISOString()
   }
   requests.unshift(newRequest)
   fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2), 'utf-8')
+}
+
+export async function dbUpdatePasswordRequestStatus(event: H3Event, id: number | string, status: string): Promise<void> {
+  const db = await getD1Database(event)
+  if (db) {
+    await db.prepare('UPDATE password_requests SET status = ? WHERE id = ?').bind(status, id).run()
+    return
+  }
+
+  // Local fallback JSON file
+  const requestsPath = getRuntimeDataPath('password-requests.json')
+  if (!fs.existsSync(requestsPath)) return
+  try {
+    const requests = JSON.parse(fs.readFileSync(requestsPath, 'utf-8'))
+    const idx = requests.findIndex((r: any) => String(r.id) === String(id))
+    if (idx !== -1) {
+      requests[idx].status = status
+      fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2), 'utf-8')
+    }
+  } catch (e) {}
 }
 
 export async function dbDeletePasswordRequest(event: H3Event, id: number | string): Promise<void> {
@@ -748,6 +782,7 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
     id: Date.now(),
     username: data.username,
     email: data.email,
+    wechat: data.wechat || '',
     password: data.password,
     role: data.role || 'client',
     allowedProjects: '',
@@ -801,6 +836,7 @@ export async function dbUpdateUser(event: H3Event, id: number | string, data: an
     const idx = users.findIndex((u: any) => String(u.id) === String(id))
     if (idx !== -1) {
       users[idx].email = data.email
+      users[idx].wechat = data.wechat || ''
       users[idx].role = data.role
       users[idx].allowedProjects = data.allowedProjects || ''
       if (data.password) {

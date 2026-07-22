@@ -105,12 +105,12 @@ const handleLogin = async () => {
     })
     
     if (res.success) {
-      // Redirect to homepage or previous page
-      router.push('/')
+      // Redirect to client portal
+      router.push('/client')
       // Trigger a window refresh to update client portal state
       if (import.meta.client) {
         setTimeout(() => {
-          window.location.href = '/'
+          window.location.href = '/client'
         }, 100)
       }
     }

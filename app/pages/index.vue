@@ -101,6 +101,27 @@
       </div>
     </section>
 
+    <!-- ===== COOPERATIVE BRANDS (Cinematic Ribbon) ===== -->
+    <section v-if="siteConfig?.home?.collaborativeBrands?.length" class="py-10 border-y border-black/[0.04] bg-black/[0.01] overflow-hidden select-none reveal">
+      <div class="max-w-6xl mx-auto px-6 mb-4">
+        <p class="section-label text-center">Collaborative Brands & Agencies · 合作与联合制作品牌</p>
+      </div>
+      <!-- Seamless Scrolling Wrapper -->
+      <div class="relative w-full flex overflow-x-hidden">
+        <!-- Dual panels to create seamless infinite scroll -->
+        <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-medium tracking-wide uppercase" style="color: var(--color-ink-3)">
+          <span v-for="(brand, idx) in siteConfig.home.collaborativeBrands" :key="'b1-' + idx" class="flex items-center gap-2">
+            <span class="text-[#b45309] text-xs">✦</span> {{ brand }}
+          </span>
+        </div>
+        <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-medium tracking-wide uppercase ml-16" style="color: var(--color-ink-3)" aria-hidden="true">
+          <span v-for="(brand, idx) in siteConfig.home.collaborativeBrands" :key="'b2-' + idx" class="flex items-center gap-2">
+            <span class="text-[#b45309] text-xs">✦</span> {{ brand }}
+          </span>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== BENTO GRID SECTION (Light Glass Tiles) ===== -->
     <section id="bento-section" class="relative py-20 px-6">
       <div class="max-w-6xl mx-auto space-y-12 relative z-10">
@@ -374,3 +395,17 @@ const trackEvent = (eventName: string, meta: any) => {
   $fetch('/api/analytics/event', { method: 'POST', body: { event: eventName, meta } }).catch(() => {})
 }
 </script>
+
+<style scoped>
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 30s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+</style>

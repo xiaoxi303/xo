@@ -89,6 +89,15 @@ if (!fs.existsSync(configPath)) {
       username: "admin",
       passwordHash: "06bff6534b63ba2a13c446d41a36c52c9269fefb68cf96fbec792ddfac25e44b",
       adminPath: "admin"
+    },
+    emailSettings: {
+      enabled: false,
+      smtpHost: "smtp.qq.com",
+      smtpPort: 465,
+      smtpSecure: true,
+      smtpUser: "",
+      smtpPass: "",
+      senderName: "Xo Studio"
     }
   }
   fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), 'utf-8')

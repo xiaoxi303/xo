@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  const { id, email, role, allowedProjects, password } = body || {}
+  const { id, email, role, allowedProjects, password, wechat } = body || {}
 
   if (!id) {
     throw createError({
@@ -20,6 +20,7 @@ export default defineEventHandler(async (event) => {
 
   const updateData: any = {
     email: email ? email.trim() : '',
+    wechat: wechat ? wechat.trim() : '',
     role: role || 'client',
     allowedProjects: allowedProjects || ''
   }

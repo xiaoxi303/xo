@@ -27,12 +27,23 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const email = body.email ? body.email.trim() : ''
+  const wechat = body.wechat ? body.wechat.trim() : ''
+
+  if (!email && !wechat) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: '邮箱和微信号必须选择填写一项以完成注册。'
+    })
+  }
+
   const hashedPassword = hashPassword(password)
 
   try {
     await dbCreateUser(event, {
       username,
-      email: body.email ? body.email.trim() : '',
+      email,
+      wechat,
       password: hashedPassword,
       role: 'client'
     })

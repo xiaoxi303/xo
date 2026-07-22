@@ -32,8 +32,8 @@
           现在您可以联系管理员获取专属访问密码，直接解锁受 NDA 保护的商业项目。
         </p>
         <div class="pt-4">
-          <NuxtLink to="/" class="btn-primary inline-flex py-2.5 px-6 text-xs justify-center font-semibold">
-            返回首页
+          <NuxtLink to="/login" class="btn-primary inline-flex py-2.5 px-6 text-xs justify-center font-semibold">
+            立即登录客户中心
           </NuxtLink>
         </div>
       </div>
@@ -58,13 +58,29 @@
           />
         </div>
 
+        <!-- Contact details: WeChat or Email required -->
         <div class="space-y-1">
-          <label class="text-[10px] font-bold uppercase tracking-wider block" style="color: var(--color-ink-3)">电子邮箱 (选填)</label>
+          <label class="text-[10px] font-bold uppercase tracking-wider block text-amber-800" style="color: var(--color-bronze)">
+            电子邮箱 (邮箱与微信必填一项)
+          </label>
           <input
             v-model="form.email"
             type="email"
             class="form-input text-xs w-full py-2.5 px-3 rounded-xl"
             placeholder="例如: client@company.com"
+            :disabled="loading"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase tracking-wider block text-amber-800" style="color: var(--color-bronze)">
+            微信号 (邮箱与微信必填一项)
+          </label>
+          <input
+            v-model="form.wechat"
+            type="text"
+            class="form-input text-xs w-full py-2.5 px-3 rounded-xl"
+            placeholder="例如: wechat_123"
             :disabled="loading"
           />
         </div>
@@ -120,6 +136,7 @@
 const form = ref({
   username: '',
   email: '',
+  wechat: '',
   password: '',
   confirmPassword: ''
 })
@@ -136,6 +153,11 @@ useHead({
 const handleRegister = async () => {
   error.value = ''
   
+  if (!form.value.email.trim() && !form.value.wechat.trim()) {
+    error.value = '邮箱与微信号必须选择填写一项，以便主理人与您联系。'
+    return
+  }
+  
   if (form.value.password !== form.value.confirmPassword) {
     error.value = '两次输入的密码不一致。'
     return
@@ -149,6 +171,7 @@ const handleRegister = async () => {
       body: {
         username: form.value.username,
         email: form.value.email,
+        wechat: form.value.wechat,
         password: form.value.password
       }
     })

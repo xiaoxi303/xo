@@ -530,6 +530,17 @@
               />
             </div>
 
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold uppercase tracking-wider block" style="color: var(--color-ink-3)">申请原因 / 观摩用途</label>
+              <textarea
+                v-model="requestForm.reason"
+                required
+                rows="3"
+                class="form-input text-xs w-full py-2 px-3 rounded-xl resize-none"
+                placeholder="例如：观摩调色流程学习、商业项目提案参考等..."
+              />
+            </div>
+
             <div class="pt-2">
               <button
                 type="submit"
@@ -630,14 +641,33 @@ const requestSubmitting = ref(false)
 const requestSuccess = ref(false)
 const requestForm = ref({
   clientName: '',
-  contact: ''
+  contact: '',
+  reason: ''
 })
 
-const openRequestModal = () => {
+const openRequestModal = async () => {
   isRequestModalOpen.value = true
   requestSuccess.value = false
   requestForm.value.clientName = ''
   requestForm.value.contact = ''
+  requestForm.value.reason = ''
+
+  // Auto-fill client details if logged in
+  try {
+    const sessionRes = await $fetch<any>('/api/auth/client-me')
+    if (sessionRes?.loggedIn) {
+      const dashboard = await $fetch<any>('/api/client/dashboard?t=' + Date.now())
+      if (dashboard?.profile) {
+        requestForm.value.clientName = dashboard.profile.nickname || dashboard.profile.username || ''
+        const contactInfoList = []
+        if (dashboard.profile.wechat) contactInfoList.push(`微信: ${dashboard.profile.wechat}`)
+        if (dashboard.profile.email) contactInfoList.push(`邮箱: ${dashboard.profile.email}`)
+        requestForm.value.contact = contactInfoList.join(' | ') || ''
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to auto-fill client details, falling back to empty form:', e)
+  }
 }
 
 const closeRequestModal = () => {
@@ -652,6 +682,7 @@ const submitRequest = async () => {
       body: {
         clientName: requestForm.value.clientName,
         contact: requestForm.value.contact,
+        reason: requestForm.value.reason,
         projectSlug: slug,
         projectTitle: project.value?.title || slug
       }
