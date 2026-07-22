@@ -9,16 +9,7 @@ export function recordProjectClickEvent(slug: string, title?: string) {
     meta: JSON.stringify({ slug: cleanSlug, title: title || cleanSlug })
   })
 
-  // 1. Primary: W3C Beacon API (guaranteed not aborted by page transitions or link clicks)
-  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-    try {
-      const blob = new Blob([payload], { type: 'application/json' })
-      const ok = navigator.sendBeacon('/api/analytics/event', blob)
-      if (ok) return
-    } catch {}
-  }
-
-  // 2. Fallback: Fetch API with keepalive: true (survives component unmount & SPA navigation)
+  // 1. Send via fetch with keepalive: true FIRST (ensures Content-Type: application/json)
   try {
     fetch('/api/analytics/event', {
       method: 'POST',
@@ -27,4 +18,12 @@ export function recordProjectClickEvent(slug: string, title?: string) {
       keepalive: true
     }).catch(() => {})
   } catch {}
+
+  // 2. Also send via sendBeacon as guaranteed background backup
+  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    try {
+      const blob = new Blob([payload], { type: 'application/json' })
+      navigator.sendBeacon('/api/analytics/event', blob)
+    } catch {}
+  }
 }

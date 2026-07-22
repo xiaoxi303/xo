@@ -2,11 +2,24 @@ import { getD1Database } from '../../utils/db'
 import fs from 'node:fs'
 import { getRuntimeDataPath } from '../../utils/storage'
 
+import { readBody, readRawBody, createError, defineEventHandler } from 'h3'
+
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  let body: any = null
+  try {
+    body = await readBody(event)
+  } catch {}
+
+  if (!body || typeof body !== 'object') {
+    try {
+      const raw = await readRawBody(event, 'utf-8')
+      if (raw) body = JSON.parse(raw)
+    } catch {}
+  }
+
   const { event: eventName, meta } = body || {}
 
-  if (!eventName) throw createError({ statusCode: 400, statusMessage: 'Missing event name' })
+  if (!eventName) return { ok: false, message: 'Missing event name' }
 
   const db = await getD1Database(event)
   const metaStr = typeof meta === 'string' ? meta : JSON.stringify(meta || {})
