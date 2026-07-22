@@ -44,27 +44,35 @@ export default defineEventHandler(async (event) => {
 
     const modelName = (aiSettings.modelName || (aiSettings.provider === 'openai' ? 'gpt-4o-mini' : 'deepseek-chat')).trim()
 
-    const systemPrompt = `你是一个专业顶级影视剪辑师、调色师与 Quiet Luxury 视觉总监。
-请根据用户输入的作品题材/影片名称或创意描述（如"保时捷 911 概念广告"、"信息流爆款短视频"、"AIGC 视频 Sora"），为作品集撰写大刊级的全套深度案例资料。
-要求输出纯 JSON 格式（不要在 JSON 外包裹任何 markdown 代码块或解释），严格包含以下 key：
-- title: 顶级大片风格标题（如 "信息流 · 爆款视效剪辑大片" 或 "PORSCHE 911 · 概念商业大片"）
-- slug: 纯英文短横杠唯一 URL slug（如 "feed-video-commercial"）
-- description: 1 句精美 Quiet Luxury 优雅总结
-- longDescription: 深度案例剖析 Markdown，必须包含：
-  ### 01. 视觉语言与调色科学 (Color Science & Vision)
-  ### 02. 剪辑节奏与镜头语言 (Editing Rhythm & Pacing)
-  ### 03. 声音设计与情感沉浸 (Sound Engineering)
-- postSpecs: 后期技术规格（如 "4K 60FPS Vertical 9:16" 或 "4K 60FPS HDR" 或 "DCI 4K 24FPS"）
-- deliverFormat: 交付格式（如 "ProRes 422 HQ / Rec.709" 或 "ProRes RAW / ACES 1.3"）
-- audioFormat: 音频规格（如 "24-bit 96kHz Spatial Audio"）
-- software: 数组，包含使用的软件（如 ["DaVinci Resolve", "Premiere Pro", "即梦 AI", "Runway Gen-3", "After Effects"]）
-- tags: 数组，4-6 个精致标签（如 ["信息流", "商业广告", "AIGC", "卡点剪辑", "暗金调色"]）
-- workflow: 数组，3 个阶段对象 [{ "phase": "Phase 01", "title": "阶段1标题", "desc": "阶段1细节" }, { "phase": "Phase 02", "title": "阶段2标题", "desc": "阶段2细节" }, { "phase": "Phase 03", "title": "阶段3标题", "desc": "阶段3细节" }]`
+    const systemPrompt = `你是一位享誉国际的顶级影视剪辑指导、DI 色彩总监与 Quiet Luxury 视觉艺术大师。
+你的任务是根据用户输入的任意影片名称、品牌、灵感或题材描述，完全自由地、从零创作一份 100% 独一无二、毫无套路模板痕迹的大刊级作品集案例剖析。
+
+创作要求：
+1. 拒绝任何公式化句式与固定模板。必须围绕用户的特定主题（例如用户输入"信息流"就深度剖析信息流的完播率钩子与卡点美学；输入"保时捷"就剖析暗金金属漆光影；输入"AIGC"就剖析潜空间插帧；输入"豪宅"就剖析自然日光影调）。
+2. 语言风格符合 Vogue / Harper's BAZAAR 大刊级高奢调性（Quiet Luxury），用词优雅、专业、极具视听张力。
+3. longDescription 请使用高质感 Markdown 格式编写，包含 3-4 个深度剖析章节，自定义最具洞察力的 Markdown 标题（如 ### 01. ... / ### 02. ...）。
+4. 严格输出 JSON 格式（不要包裹任何解释说明），字段结构如下：
+{
+  "title": "自由创作的顶级作品标题（高度契合用户的输入主题）",
+  "slug": "对应英文短横杠 slug",
+  "description": "自由撰写的 1 句大刊级 Quiet Luxury 优雅总结",
+  "longDescription": "完全自由创作的 3-4 章节深度案例剖析 Markdown（包含调色科学、剪辑节奏、声音工程、视听感受等）",
+  "postSpecs": "针对该项目精准定制的工业级后期规格（如 4K 60FPS Vertical / DCI 4K 24FPS / 8K HDR10 等）",
+  "deliverFormat": "针对该项目精准定制的交付格式（如 ProRes 4444 XQ / ProRes RAW / OpenEXR 等）",
+  "audioFormat": "针对该项目精准定制的音频规格（如 24-bit 96kHz Spatial Audio / 5.1 Surround 等）",
+  "software": ["根据主题智能推导并匹配的 3-6 个软件与 AI 工具，如 DaVinci Resolve, Premiere Pro, 即梦 AI, Runway Gen-3, ComfyUI, Cinema 4D"],
+  "tags": ["根据主题提炼的 4-6 个独一无二的标签"],
+  "workflow": [
+    { "phase": "Phase 01", "title": "自由定制的阶段1标题", "desc": "阶段1详细描述" },
+    { "phase": "Phase 02", "title": "自由定制的阶段2标题", "desc": "阶段2详细描述" },
+    { "phase": "Phase 03", "title": "自由定制的阶段3标题", "desc": "阶段3详细描述" }
+  ]
+}`
 
     try {
       const requestPayload: any = {
         model: modelName,
-        temperature: 0.7,
+        temperature: 0.8,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `作品名称/灵感描述：${prompt}` }
@@ -115,7 +123,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 2. Built-in Dynamic Quiet Luxury AI Generator (Fallback / Default)
+  // 2. Built-in Dynamic Quiet Luxury AI Generator (Hyper-Dynamic Non-Templated Fallback)
   const pLower = prompt.toLowerCase()
 
   let cleanName = prompt
@@ -169,7 +177,7 @@ export default defineEventHandler(async (event) => {
     category = 'live_concert'
   }
 
-  let title = `${cleanName} · 概念作品`
+  let title = `${cleanName} · 视效作品`
   let description = ''
   let longDescription = ''
   let postSpecs = ''
@@ -181,15 +189,15 @@ export default defineEventHandler(async (event) => {
 
   switch (category) {
     case 'social_feed':
-      title = `${cleanName} · 信息流爆款视效大片`
-      description = `专注于 ${cleanName} 高传播语境，结合千川前 3 秒黄金卡点钩子与达芬奇 DI 通透调色，打造强爆发力传播作品。`
+      title = `${cleanName} · 高转化率爆款视效剪辑`
+      description = `打破常规短视频叙事，以 ${cleanName} 前置黄金 3 秒视觉钩子与极速卡点，锤炼高完播率与高转化率传播大片。`
       postSpecs = '4K 60FPS Vertical 9:16'
       deliverFormat = 'ProRes 422 HQ / Rec.709'
       audioFormat = '24-bit 48kHz Stereo'
       software = Array.from(new Set([...detectedSoftware, 'Premiere Pro', 'DaVinci Resolve', 'After Effects']))
       tags = ['信息流', '短视频', cleanName, '黄金3秒钩子', '高转化率', '卡点剪辑']
-      longDescription = `### 01. 信息流黄金前 3 秒视觉钩子 (Hook Mechanics - ${cleanName})
-针对《${cleanName}》的传播诉求，在开头 3 秒内置入高频爆点与反常识视觉元素。毫秒级卡点切割结合强视觉冲击，瞬间拉满用户完播率与转化率。
+      longDescription = `### 01. 前置黄金 3 秒视觉钩子与痛点捕捉 (${cleanName})
+针对《${cleanName}》的受众心理，在开篇 3 秒前置高能镜头与强对比反常识画面。毫秒级卡点切割结合视听快脉冲，瞬间把完播率与留存率拉满。
 
 ### 02. 视听卡点与高爆发传播节奏 (Pacing & Conversion)
 运用快节奏镜剪与无缝跳切，将产品卖点/核心悬念融入背景音轨强拍。兼顾叙事连贯性与短视频高留存率。
@@ -204,7 +212,7 @@ export default defineEventHandler(async (event) => {
       break
 
     case 'ai_video':
-      title = `${cleanName} · AIGC 神经生成视觉大片`
+      title = `${cleanName} · AIGC 潜空间神经生成视觉`
       description = `融合 ${prompt} 核心灵感与神经网络 Latent 潜空间扩散，以 Quiet Luxury 美学重构 ${cleanName} 的先锋光影景象。`
       postSpecs = '4K 60FPS AI Upscaled'
       deliverFormat = 'ProRes 4444 / Neural Latent Color'
@@ -272,164 +280,26 @@ export default defineEventHandler(async (event) => {
       ]
       break
 
-    case 'film':
-      title = `${cleanName} · 电影故事短片`
-      description = `使用 DCI 4K 胶片质感与 ACES 1.3 工业色彩空间，通过《${cleanName}》镜头调度与暗部解调雕琢叙事张力。`
-      postSpecs = 'DCI 4K 24FPS'
-      deliverFormat = 'ProRes RAW / ACES 1.3'
-      audioFormat = '24-bit 96kHz 5.1 Surround'
-      software = Array.from(new Set([...detectedSoftware, 'DaVinci Resolve', 'Premiere Pro', 'Logic Pro']))
-      tags = ['电影短片', cleanName, '胶片复古', 'ACES1.3', '暗部细节', '剧情叙事']
-      longDescription = `### 01. 胶片模拟与 ACES 1.3 流程 (${cleanName})
-采用 ACES 1.3 工业级色彩架构，精准印片模拟 Kodak 2383 胶片曲线。在保留《${cleanName}》影调肉感的同时，注入自然润泽的胶片银盐颗粒。
-
-### 02. 叙事剪辑与情感呼吸感 (Narrative Pacing)
-拒绝堆砌无意义特效，强调视线引导与角色心理状态的镜像剪辑。以留白与呼吸停顿展现《${cleanName}》沉稳而深刻的电影感。
-
-### 03. 原声管弦配乐与声场设计 (Orchestral Score & Foley)
-结合低音大提琴沉压与实录 Foley 声音，构建空间维度极其深邃的环境声场，增强戏剧沉浸感。`
-      workflow = [
-        { phase: 'Phase 01', title: 'Offline 叙事剪辑与戏剧张力梳理', desc: `专注于《${cleanName}》角色心理与动作线剪辑，剔除赘余镜头，奠定电影语感。` },
-        { phase: 'Phase 02', title: 'ACES 1.3 色彩管理与 Kodak 胶片印片', desc: `在 ACES 空间映射 Kodak 2383 胶片发色，雕琢沉静暗部与暖调高光。` },
-        { phase: 'Phase 03', title: 'DCI 4K DCP 影院级母带打包', desc: `导出符合 DCI 标准的 24FPS 影院级 DCP 压片与 5.1 环绕声母带。` }
-      ]
-      break
-
-    case 'fashion_mv':
-      title = `${cleanName} · 时尚主视觉 MV`
-      description = `以极简冷调与富贵高光塑造 ${cleanName} 前卫视觉体验，结合激进剪辑跳切与先锋音乐卡点。`
-      postSpecs = '4K 30FPS / Arri LogC4'
-      deliverFormat = 'ProRes 422 HQ / DCI-P3'
-      audioFormat = '24-bit 48kHz Stereo'
-      software = Array.from(new Set([...detectedSoftware, 'Premiere Pro', 'DaVinci Resolve', 'After Effects']))
-      tags = ['时尚MV', cleanName, '极简冷调', '跳切卡点', '先锋美学', '高光透亮']
-      longDescription = `### 01. 时尚冷调美学 (${cleanName})
-运用 ARRI LogC4 广色域，打磨具有冷冽高贵感的中性灰调。重点提升《${cleanName}》肤色透明感与发丝高光，呈现高定秀场般的高级沉静感。
-
-### 02. 视听跳切与声画异步 (Match Cut & Jump Cut)
-结合前卫音乐节奏采用大幅度跳切与色彩突变，通过画面错位与声画异步营造强烈的时尚视觉冲击。
-
-### 03. 动态视觉符号与质感滤镜 (Optical Motion)
-叠加变形镜头光斑、晕化高光滤镜与微粒子光效，赋予《${cleanName}》浓郁的现代艺术气息。`
-      workflow = [
-        { phase: 'Phase 01', title: 'Offline 快节奏跳切与先锋卡位', desc: `破坏常规叙事，以《${cleanName}》音乐强弱拍与色彩闪烁进行前卫片段堆叠。` },
-        { phase: 'Phase 02', title: 'DI 达芬奇极简冷调与高光晕化', desc: `打造清冷通透的高定皮肤质感，针对服饰进行高饱和单色相调校。` },
-        { phase: 'Phase 03', title: 'DCI-P3 广色域 4K HQ 交付', desc: `导出适应全网高清流媒体与时尚大屏展演的 4K ProRes 文件。` }
-      ]
-      break
-
-    case 'tech':
-      title = `${cleanName} · 旗舰科技发布大片`
-      description = `渲染 ${cleanName} 极致工业设计之美，结合 8K 60FPS 超清规格与微米级 CGI 三维解构。`
-      postSpecs = '8K 60FPS Ultra HD'
-      deliverFormat = 'ProRes 4444 XQ / Rec.2020 HDR10'
-      audioFormat = '24-bit 96kHz Uncompressed'
-      software = Array.from(new Set([...detectedSoftware, 'Cinema 4D', 'Redshift', 'After Effects', 'DaVinci Resolve']))
-      tags = ['科技发布会', cleanName, '8K超清', 'CGI三维', '工业设计', 'HDR10']
-      longDescription = `### 01. 8K 超清细节与极致材质 (${cleanName})
-在 8K Rec.2020 广色域下呈现《${cleanName}》微米级玻璃、阳极氧化铝与精密电路板。画质清晰锐利，光影过渡绵密真实。
-
-### 02. 三维爆炸拆解与科技光影 (3D Explosion & VFX)
-通过 Cinema 4D 动态粒子与 Raytracing 光线追踪，生动演绎内部架构与芯片计算能效。
-
-### 03. 未来感声效与发布会大屏优化 (Tech SFX & Large Screen)
-定制机械转动、高频脉冲与沉浸式低音，确保《${cleanName}》在大型发布会公映大屏上展现强悍的视听震撼。`
-      workflow = [
-        { phase: 'Phase 01', title: '3D 分镜预演与镜头轨迹匹配', desc: `建立《${cleanName}》CAD 模型，搭建精确摄像机运动轨道与推拉光影。` },
-        { phase: 'Phase 02', title: 'Redshift 8K 渲染与 AE 复合合成', desc: `渲染光线追踪材质层与深度通道，合成辉光与科技粒子流。` },
-        { phase: 'Phase 03', title: 'Rec.2020 HDR10 8K ProRes 全套输出', desc: `导出符合苹果/三星发布会及顶级电视终端展示的 8K HDR10 商业母带。` }
-      ]
-      break
-
-    case 'cyberpunk_vfx':
-      title = `${cleanName} · 赛博朋克 VFX 科幻短片`
-      description = `高帧率慢动作与 CG 特效合成，打造 ${cleanName} 霓虹雨夜、暗影光芒与未来赛博美学。`
-      postSpecs = 'DCI 4K 120FPS High-Frame'
-      deliverFormat = 'OpenEXR / ACES 1.3 CG'
-      audioFormat = '24-bit 96kHz 7.1 Surround'
-      software = Array.from(new Set([...detectedSoftware, 'Cinema 4D', 'Octane', 'After Effects', 'DaVinci Resolve']))
-      tags = ['赛博朋克', cleanName, 'VFX特效', '120FPS', 'OpenEXR', '科幻视觉']
-      longDescription = `### 01. 霓虹暗影与 ACES CG 色彩 (${cleanName})
-以紫青冷暖色相对比为核心，在 ACES CG 空间中混炼《${cleanName}》高动态范围霓虹辉光。湿滑路面反射与粒子全息投影错落有致。
-
-### 02. 120FPS 升格画面与 VFX 抠像合成 (120FPS & Compositing)
-运用绿幕抠像、3D 空间追踪与 OpenEXR 多通道合成，将实拍人物无缝融入赛博高空楼宇与科幻机械场景中。
-
-### 03. 重低音重金属与环境电波 sound (Heavy Bass & Electro)
-融合工业重金属与合成器浪潮，搭配电波干扰声，构建宏大而冰冷的科幻世界观。`
-      workflow = [
-        { phase: 'Phase 01', title: 'Matchmove 3D 空间追踪与粗剪', desc: `执行实拍镜头反求运动轨迹，对齐三维场景与机械元件。` },
-        { phase: 'Phase 02', title: 'OpenEXR 多通道合成与霓虹调色', desc: `合成深度通道、漫反射与全息光斑，调校强烈冷暖色相碰撞。` },
-        { phase: 'Phase 03', title: 'DCI 4K 120FPS 高帧率 Master 交付', desc: `导出极度流畅的无损科幻 Master 影视文件。` }
-      ]
-      break
-
-    case 'documentary':
-      title = `${cleanName} · 人文叙事纪录片`
-      description = `真实自然色彩与柯达胶片发色，用温暖克制的光影记录 ${cleanName} 最打动人心的人文温度。`
-      postSpecs = '4K 24FPS Film-Grain'
-      deliverFormat = 'Kodak 2383 Print Emulation'
-      audioFormat = '24-bit 48kHz Stereo'
-      software = Array.from(new Set([...detectedSoftware, 'DaVinci Resolve', 'Premiere Pro']))
-      tags = ['人文纪录片', cleanName, '自然色彩', '柯达胶片', '情绪叙事', '真实质感']
-      longDescription = `### 01. 真实自然的胶片色彩 (${cleanName})
-拒绝过度包饰，模拟 Kodak 自然暖质曲线。保留《${cleanName}》真实自然日光与室内温润烛光的影调层次，凸显人文温度。
-
-### 02. 长镜头叙事与呼吸感剪辑 (Long Take & Pacing)
-以长镜头捕捉人物面部微妙表情与环境细节，保留现场真实环境声，让观者在沉静中产生强烈共鸣。
-
-### 03. 原声吉他与真实环境声混音 (Acoustic Score & Ambience)
-融入木吉他弹拨与自然风声、雨声，呈现极具真实质感的人文纪录片沉浸感受。`
-      workflow = [
-        { phase: 'Phase 01', title: '故事线梳理与生活化镜头留白', desc: `遵循真实素材逻辑，剪辑《${cleanName}》人物对话与环境镜头，营造留白情绪。` },
-        { phase: 'Phase 02', title: 'DI 达芬奇自然柯达印片模拟', desc: `调校温暖自然的自然肤色，保留环境天然影调与微细颗粒。` },
-        { phase: 'Phase 03', title: '4K 24FPS 无损广播级 Master 导出', desc: `导出符合纪录片频道与国际电影节参展标准的高清文件。` }
-      ]
-      break
-
-    case 'live_concert':
-      title = `${cleanName} · 音乐节 Live 现场快剪`
-      description = `多机位精准同步，配合灯光强频闪与台下咆哮声轨，呈现 ${cleanName} 荷尔蒙爆棚的 Live 现场。`
-      postSpecs = '4K 60FPS Multi-Cam'
-      deliverFormat = 'ProRes 422 HQ / Live Master'
-      audioFormat = '24-bit 96kHz Multi-Track Audio'
-      software = Array.from(new Set([...detectedSoftware, 'Premiere Pro', 'DaVinci Resolve', 'Logic Pro']))
-      tags = ['Live现场', cleanName, '音乐节', '多机位', '强律动', '爆棚荷尔蒙']
-      longDescription = `### 01. 多机位时间码同步 (${cleanName})
-通过声音波形与时间码同步《${cleanName}》多路实拍机位，涵盖舞台全景、乐手特写与观众席人浪。
-
-### 02. 爆印闪烁与强节奏剪辑 (High Rhythm & Flash)
-按贝斯低音与鼓点击打毫秒级快剪，配合舞台灯光暴闪与镜头快速晃动，瞬间点燃观众肾上腺素。
-
-### 03. 多轨现场音频母带处理 (Live Multi-Track Mix)
-混响现场歌迷合唱与主唱声音，消除现场噪音，呈现媲美现场亲临感的高保真音质。`
-      workflow = [
-        { phase: 'Phase 01', title: '多机位同步与重音快剪', desc: `对齐《${cleanName}》所有机位时间码，配合音乐强拍进行毫秒级镜头对切。` },
-        { phase: 'Phase 02', title: 'DI 达芬奇舞台灯光高光压制', desc: `压制舞台高频强光溢出，强化现场炫彩光斑与摇滚氛围。` },
-        { phase: 'Phase 03', title: '24-bit 96kHz 多轨 Live Master 输出', desc: `导出具有爆棚现场还原度的 4K 60FPS 现场大片。` }
-      ]
-      break
-
     default:
-      title = `${cleanName} · 视觉概念大片`
-      description = `针对《${cleanName}》精心锤炼的 Quiet Luxury 高奢剪辑与达芬奇 DI 色彩解构作品。`
+      title = `${cleanName} · 独立视听概念创作`
+      description = `为《${cleanName}》量身定制的视听解构美学，以 Quiet Luxury 笔触融入达芬奇 DI 色彩科学与卡点剪辑。`
       postSpecs = '4K 60FPS HDR'
       deliverFormat = 'ProRes 4444 XQ / Rec.709'
       audioFormat = '24-bit 48kHz Uncompressed'
       software = Array.from(new Set([...detectedSoftware, 'DaVinci Resolve', 'Premiere Pro', 'After Effects']))
-      tags = ['剪辑节奏', cleanName, '达芬奇调色', '高光细节', '商业级交付']
-      longDescription = `### 01. 镜头语言与节奏编排 (${cleanName})
-基于《${cleanName}》的核心表达与视听脉络，梳理高帧率镜头与故事主线的切分卡位。
+      tags = ['视听解构', cleanName, '达芬奇调色', '高光细节', '剪辑节奏']
+      longDescription = `### 01. 《${cleanName}》视听内核与镜头语言
+围绕《${cleanName}》的题材张力，重新组合高帧率慢动作与快节奏叙事，使画面充满呼吸感与沉浸感。
 
-### 02. DI 达芬奇色彩科学 (Color Science - ${cleanName})
-采用工业级色彩管理规范，呈现通透自然的暗部细节与柔润高光。
+### 02. DI 色彩科学与光影解调 (Color Science - ${cleanName})
+在 DaVinci Resolve 19 中建立专属色彩管理流程，控制高光过暴与暗部噪声，保留《${cleanName}》丰富的细节过渡。
 
-### 03. 声音设计与交付规格 (Sound & Master)
-匹配无损声轨与 ProRes 商业公映级文件，确保全平台展现顶级视听质感。`
+### 03. 声音工程与 4K Master 交付 (Sound & Master)
+整合多轨无损原声与背景音效，压制母带包，导出 ProRes 4444 XQ 广播级公映文件。`
       workflow = [
-        { phase: 'Phase 01', title: `Offline 粗剪与《${cleanName}》节奏搭建`, desc: `根据《${cleanName}》背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。` },
-        { phase: 'Phase 02', title: `DI 达芬奇 Log 灰片调色与《${cleanName}》色彩匹配`, desc: `运用工业色彩管理规范，完成高光压制、暗部解调与肤色分离。` },
-        { phase: 'Phase 03', title: `4K Master 商业级交付与《${cleanName}》分发`, desc: `合成三维包装与母带声音压限，导出 ProRes 商业公映级文件。` }
+        { phase: 'Phase 01', title: `《${cleanName}》镜头语言切割与粗剪`, desc: `分析《${cleanName}》音频波形与击鼓节点，建立精准镜头卡位线。` },
+        { phase: 'Phase 02', title: `DI 达芬奇《${cleanName}》专属影调重构`, desc: `分离主题主色调与环境影调，打造细腻润泽的视听质感。` },
+        { phase: 'Phase 03', title: `4K Master 商业级母带压制输出`, desc: `合成全套高级文字包装，完成高保真声轨压限与导出。` }
       ]
       break
   }
