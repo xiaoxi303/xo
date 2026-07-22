@@ -918,20 +918,13 @@ const handleFullscreenChange = () => {
   isFullscreen.value = !!document.fullscreenElement
 }
 
+import { recordProjectClickEvent } from '~/utils/analytics'
+
 const recordProjectClick = (targetSlug?: string) => {
   if (!import.meta.client) return
   const currentSlug = targetSlug || (route.params.slug as string) || slug
   if (!currentSlug) return
-
-  $fetch('/api/analytics/event', {
-    method: 'POST',
-    body: {
-      event: 'project_click',
-      meta: JSON.stringify({ slug: currentSlug, title: project.value?.title || currentSlug })
-    }
-  }).catch(err => {
-    console.warn('Analytics event error:', err)
-  })
+  recordProjectClickEvent(currentSlug, project.value?.title)
 }
 
 onMounted(async () => {
