@@ -918,6 +918,22 @@ const handleFullscreenChange = () => {
   isFullscreen.value = !!document.fullscreenElement
 }
 
+const recordProjectClick = (targetSlug?: string) => {
+  if (!import.meta.client) return
+  const currentSlug = targetSlug || (route.params.slug as string) || slug
+  if (!currentSlug) return
+
+  $fetch('/api/analytics/event', {
+    method: 'POST',
+    body: {
+      event: 'project_click',
+      meta: JSON.stringify({ slug: currentSlug, title: project.value?.title || currentSlug })
+    }
+  }).catch(err => {
+    console.warn('Analytics event error:', err)
+  })
+}
+
 onMounted(async () => {
   await nextTick()
   initReveal()
@@ -926,18 +942,19 @@ onMounted(async () => {
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
 
-    // Unconditionally record project visit on client mount
-    $fetch('/api/analytics/event', {
-      method: 'POST',
-      body: {
-        event: 'project_click',
-        meta: JSON.stringify({ slug, title: project.value?.title || slug })
-      }
-    }).catch(err => {
-      console.warn('Analytics event error:', err)
-    })
+    // Automatically record project visit on client mount
+    recordProjectClick()
   }
 })
+
+watch(
+  () => route.params.slug,
+  (newSlug, oldSlug) => {
+    if (newSlug && newSlug !== oldSlug && import.meta.client) {
+      recordProjectClick(newSlug as string)
+    }
+  }
+)
 
 onBeforeUnmount(() => {
   if (observer) observer.disconnect()
