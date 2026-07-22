@@ -67,9 +67,12 @@
             v-model="form.email"
             type="email"
             class="form-input text-xs w-full py-2.5 px-3 rounded-xl"
-            placeholder="例如: client@company.com"
+            placeholder="例如: client@gmail.com"
             :disabled="loading"
           />
+          <p class="text-[9px] text-slate-400 mt-1 font-mono leading-normal">
+            💡 仅支持常用后缀（如 QQ、网易 163/126、Gmail、Outlook、iCloud 等）
+          </p>
         </div>
 
         <div class="space-y-1">
@@ -158,6 +161,27 @@ const handleRegister = async () => {
     return
   }
   
+  if (form.value.email.trim()) {
+    const ALLOWED_EMAIL_DOMAINS = [
+      'qq.com', 'vip.qq.com', 'foxmail.com',
+      '163.com', '126.com', 'yeah.net',
+      'gmail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
+      'icloud.com', 'yahoo.com', 'sohu.com', 'sina.com', 'sina.cn',
+      'aliyun.com', '139.com', '189.com', 'wo.cn'
+    ]
+    const emailTrim = form.value.email.trim()
+    const parts = emailTrim.split('@')
+    if (parts.length !== 2) {
+      error.value = '请输入有效的邮箱地址。'
+      return
+    }
+    const domain = parts[1].toLowerCase()
+    if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) {
+      error.value = '注册邮箱仅支持主流常用邮箱后缀（如 QQ、网易 163/126、Gmail、Outlook 等）。'
+      return
+    }
+  }
+
   if (form.value.password !== form.value.confirmPassword) {
     error.value = '两次输入的密码不一致。'
     return

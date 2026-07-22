@@ -1,6 +1,14 @@
 import { dbCreateUser } from '../../utils/db'
 import { hashPassword } from '../../utils/auth'
 
+const ALLOWED_EMAIL_DOMAINS = [
+  'qq.com', 'vip.qq.com', 'foxmail.com',
+  '163.com', '126.com', 'yeah.net',
+  'gmail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
+  'icloud.com', 'yahoo.com', 'sohu.com', 'sina.com', 'sina.cn',
+  'aliyun.com', '139.com', '189.com', 'wo.cn'
+]
+
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
@@ -35,6 +43,23 @@ export default defineEventHandler(async (event) => {
       statusCode: 400,
       statusMessage: '邮箱和微信号必须选择填写一项以完成注册。'
     })
+  }
+
+  if (email) {
+    const parts = email.split('@')
+    if (parts.length !== 2) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '请输入有效的邮箱地址。'
+      })
+    }
+    const domain = parts[1].toLowerCase()
+    if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '注册邮箱只支持主流常用邮箱后缀（如 QQ、网易 163/126、Gmail、Outlook 等）。'
+      })
+    }
   }
 
   const hashedPassword = hashPassword(password)
