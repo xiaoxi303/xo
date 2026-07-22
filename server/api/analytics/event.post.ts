@@ -2,6 +2,7 @@ import { getD1Database } from '../../utils/db'
 import fs from 'node:fs'
 import { getRuntimeDataPath } from '../../utils/storage'
 import { readBody, readRawBody, defineEventHandler } from 'h3'
+import { broadcastAnalyticsChange } from '../../utils/broadcaster'
 
 export default defineEventHandler(async (event) => {
   let body: any = null
@@ -74,6 +75,9 @@ export default defineEventHandler(async (event) => {
       fs.writeFileSync(statsFile, JSON.stringify(stats, null, 2))
     }
   }
+
+  // Broadcast real-time SSE push to all active admin dashboards
+  broadcastAnalyticsChange()
 
   return { ok: true }
 })

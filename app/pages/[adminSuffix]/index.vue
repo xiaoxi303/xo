@@ -2840,6 +2840,7 @@ const handleLogout = async () => {
 }
 
 let statusTimer: any = null
+let sseSource: EventSource | null = null
 
 onMounted(() => {
   checkAuth()
@@ -2850,16 +2851,30 @@ onMounted(() => {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
 
   if (import.meta.client) {
+    // Unconditional status polling every 4 seconds
     statusTimer = setInterval(() => {
       if (isLoggedIn.value) {
         fetchSystemStatus()
       }
-    }, 5000)
+    }, 4000)
+
+    // Real-time SSE push connection for zero-delay instant updates
+    try {
+      sseSource = new EventSource('/api/analytics/stream')
+      sseSource.onmessage = () => {
+        if (isLoggedIn.value) {
+          fetchSystemStatus()
+        }
+      }
+    } catch {}
   }
 })
 
 onBeforeUnmount(() => {
   if (statusTimer) clearInterval(statusTimer)
+  if (sseSource) {
+    try { sseSource.close() } catch {}
+  }
 })
 
 const adminNewPassword = ref('')
