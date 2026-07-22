@@ -201,19 +201,31 @@ export default defineEventHandler(async (event) => {
         const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
         for (const pathKey of Object.keys(stats)) {
           if (!pathKey.startsWith('/projects/')) continue
-          const slug = pathKey.replace(/^\/projects\//, '').split('/')[0]
+          const rawSlug = pathKey.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+          if (!rawSlug || rawSlug === 'get') continue
           const views = Object.values(stats[pathKey] || {}).reduce((sum: number, n: any) => sum + Number(n || 0), 0)
-          addProjectCount(slug, views)
+          addProjectCount(rawSlug, views)
         }
       } catch {}
     }
 
-    const clickEvents = localEvents.filter(e => e.event === 'project_click')
+    const clickEvents = localEvents.filter(e => e && e.event === 'project_click')
     clickEvents.forEach(e => {
       const meta = e.meta || ''
-      let slug = meta
-      try { const parsed = JSON.parse(meta); slug = parsed.slug } catch {}
-      addProjectCount(slug, 1)
+      let slug = ''
+      if (typeof meta === 'object' && meta !== null) {
+        slug = (meta as any).slug || ''
+      } else if (typeof meta === 'string') {
+        try {
+          const parsed = JSON.parse(meta)
+          slug = parsed.slug || meta
+        } catch {
+          slug = meta
+        }
+      }
+      if (slug && slug !== 'get') {
+        addProjectCount(slug, 1)
+      }
     })
   }
 
