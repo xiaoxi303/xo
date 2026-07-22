@@ -29,7 +29,7 @@
     <!-- Center Typography & Number Block -->
     <div class="relative z-10 my-auto py-1 space-y-1">
       <div class="flex items-baseline gap-3">
-        <span class="font-display font-black tracking-tighter leading-none text-neutral-900" style="font-size: clamp(2.5rem, 5vw, 4.5rem);">
+        <span class="font-display font-black tracking-tighter leading-none text-neutral-900" :style="{ fontSize: numberFontSize }">
           {{ displayIndex }}
         </span>
         <div class="space-y-0.5">
@@ -86,10 +86,22 @@ const props = withDefaults(defineProps<{
 })
 
 const displayIndex = computed(() => {
-  if (typeof props.index === 'number') {
-    return props.index < 10 ? `0${props.index}` : `${props.index}`
+  const val = props.index !== undefined && props.index !== '' ? props.index : '01'
+  if (typeof val === 'number') {
+    return val < 10 ? `0${val}` : `${val}`
   }
-  return props.index || '01'
+  const str = String(val).trim()
+  const num = parseInt(str, 10)
+  if (!isNaN(num) && String(num) === str) {
+    return num < 10 ? `0${num}` : `${num}`
+  }
+  return str || '01'
+})
+
+const numberFontSize = computed(() => {
+  const len = String(displayIndex.value || '').length
+  if (len >= 3) return 'clamp(1.8rem, 4vw, 3.2rem)'
+  return 'clamp(2.5rem, 5vw, 4.5rem)'
 })
 
 const englishSub = computed(() => {

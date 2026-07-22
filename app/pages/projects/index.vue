@@ -60,7 +60,7 @@
                 :src="project.image"
                 :alt="project.title"
                 :title="project.title"
-                :index="i + 1"
+                :index="project.displayNumber || project.sortOrder || (i + 1)"
                 :category="project.tags?.[0] || ''"
                 :description="project.description"
                 class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"

@@ -215,11 +215,19 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Map all existing projects so every project appears in the heat map ranking
+  const allProjectSlugs = Array.from(projectTitles.keys())
+  for (const slug of allProjectSlugs) {
+    if (projectCounts[slug] === undefined) {
+      projectCounts[slug] = 0
+    }
+  }
+
   projectClicks = Object.entries(projectCounts)
     .map(([slug, clicks]) => ({ slug, title: String(projectTitles.get(slug) || slug), clicks }))
-    .filter(p => p.slug && p.clicks > 0)
+    .filter(p => p.slug)
     .sort((a, b) => b.clicks - a.clicks)
-    .slice(0, 4)
+    .slice(0, 6)
 
   // ── Contact clicks ────────────────────────────────────────────────
   let contactClicks = 0

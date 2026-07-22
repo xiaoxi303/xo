@@ -91,7 +91,12 @@ const onMouseLeave = () => {
   rotateY.value = 0
 }
 
-const handleClick = () => {
+const emit = defineEmits<{
+  (e: 'click', event: MouseEvent): void
+}>()
+
+const handleClick = (e: MouseEvent) => {
+  emit('click', e)
   if (props.to) {
     navigateTo(props.to)
   }

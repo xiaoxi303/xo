@@ -329,8 +329,8 @@ export async function dbGetProjects(event: H3Event): Promise<any[]> {
 export async function dbGetProjectsRaw(event: H3Event): Promise<any[]> {
   const db = await getD1Database(event)
   if (db) {
-    const { results } = await db.prepare('SELECT * FROM projects ORDER BY featured DESC, createdAt DESC').all()
-    return results.map((row: any) => ({
+    const { results } = await db.prepare('SELECT * FROM projects ORDER BY sortOrder ASC, featured DESC, createdAt DESC').all().catch(() => ({ results: [] }))
+    const normalizedList = (results || []).map((row: any) => ({
       ...row,
       featured: Boolean(row.featured),
       videoUrls: parseJsonArray(row.videoUrls),
@@ -338,6 +338,15 @@ export async function dbGetProjectsRaw(event: H3Event): Promise<any[]> {
       tags: parseJsonArray(row.tags),
       workflow: parseJsonArray(row.workflow)
     })).map(normalizeProject)
+
+    return normalizedList.sort((a: any, b: any) => {
+      const sa = Number(a.sortOrder) || 0
+      const sb = Number(b.sortOrder) || 0
+      if (sa > 0 && sb > 0 && sa !== sb) return sa - sb
+      if (sa > 0 && sb === 0) return -1
+      if (sa === 0 && sb > 0) return 1
+      return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+    })
   }
 
   // Fallback: local markdown files
@@ -345,7 +354,44 @@ export async function dbGetProjectsRaw(event: H3Event): Promise<any[]> {
   if (!fs.existsSync(projectsDir)) return []
   const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
   const projects = files.map(file => normalizeProject(parseMarkdownFile(path.join(projectsDir, file))))
-  return projects.sort((a: any, b: any) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+  return projects.sort((a: any, b: any) => {
+    const sa = Number(a.sortOrder) || 0
+    const sb = Number(b.sortOrder) || 0
+    if (sa > 0 && sb > 0 && sa !== sb) return sa - sb
+    if (sa > 0 && sb === 0) return -1
+    if (sa === 0 && sb > 0) return 1
+    return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+  })
+}
+
+export async function dbReorderProjects(event: H3Event, slugs: string[]): Promise<void> {
+  const db = await getD1Database(event)
+  if (db) {
+    for (let i = 0; i < slugs.length; i++) {
+      const slug = slugs[i]
+      const sortOrder = i + 1
+      await db.prepare('UPDATE projects SET sortOrder = ? WHERE slug = ?').bind(sortOrder, slug).run().catch(() => {})
+    }
+  }
+
+  // Fallback: update Markdown frontmatter
+  const projectsDir = getRuntimeDataPath('projects')
+  if (fs.existsSync(projectsDir)) {
+    for (let i = 0; i < slugs.length; i++) {
+      const slug = slugs[i]
+      const sortOrder = i + 1
+      const filePath = path.join(projectsDir, `${slug.toLowerCase().replace(/[^a-z0-9-_]/g, '')}.md`)
+      if (fs.existsSync(filePath)) {
+        try {
+          const parsed = parseMarkdownFile(filePath) as any
+          parsed.sortOrder = sortOrder
+          parsed.displayNumber = parsed.displayNumber || (sortOrder < 10 ? `0${sortOrder}` : `${sortOrder}`)
+          const fileContent = `---\n${stringifyYaml(parsed)}\n---\n\n${parsed.body || ''}\n`
+          fs.writeFileSync(filePath, fileContent, 'utf-8')
+        } catch (e) {}
+      }
+    }
+  }
 }
 
 /** Server-side only: retrieve raw password for unlock verification */

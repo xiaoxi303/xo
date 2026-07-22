@@ -136,7 +136,7 @@
         <!-- Grid -->
         <BentoContainer>
           <!-- Card 1: Showcase video -->
-          <BentoItem v-if="tvcProject" span="12:12:8" :to="'/projects/' + tvcProject.slug" class="reveal">
+          <BentoItem v-if="tvcProject" span="12:12:8" :to="'/projects/' + tvcProject.slug" @click="trackProjectClick(tvcProject)" class="reveal">
             <div class="h-full flex flex-col justify-between">
               <!-- Media cover -->
               <div class="h-80 relative overflow-hidden bg-slate-900 border-b border-black/5">
@@ -339,6 +339,14 @@ const getProjectVideoUrl = (project: any) => {
 // Scroll actions
 const scrollToBento = () => {
   document.getElementById('bento-section')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+const trackProjectClick = (project: any) => {
+  if (!import.meta.client || !project?.slug) return
+  $fetch('/api/analytics/event', {
+    method: 'POST',
+    body: { event: 'project_click', meta: JSON.stringify({ slug: project.slug, title: project.title }) }
+  }).catch(() => {})
 }
 
 // Scroll reveals Entrance animations

@@ -256,17 +256,25 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- Project clicks ranking -->
             <div class="glass-card p-6 space-y-4">
-              <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">作品点击热度排行 (Top Engagement)</span>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">🔥 作品点击热度排行 (Top Engagement)</span>
+                <button @click="fetchSystemStatus" class="text-[10px] font-mono px-2 py-1 rounded bg-black/5 hover:bg-amber-600/10 hover:text-amber-800 transition-all flex items-center gap-1" style="color: var(--color-ink-4)" title="立刻刷新最新数据">
+                  <span>🔄</span> 实时刷新
+                </button>
+              </div>
               <div class="space-y-3.5">
                 <template v-if="systemStatus.projectClicks?.length">
                   <div v-for="(p, i) in systemStatus.projectClicks" :key="p.slug" class="space-y-1">
-                    <div class="flex justify-between text-xs">
-                      <span class="font-medium truncate max-w-[220px]" style="color: var(--color-ink-2)">{{ p.title || p.slug }}</span>
-                      <span class="font-mono font-bold ml-2 flex-shrink-0" style="color: var(--color-ink-4)">{{ p.clicks }} 次</span>
+                    <div class="flex justify-between text-xs items-center">
+                      <div class="flex items-center gap-2 truncate max-w-[220px]">
+                        <span class="font-mono font-bold text-[9px] px-1.5 py-0.5 rounded bg-amber-700/10 text-amber-800 border border-amber-700/20 flex-shrink-0">TOP {{ i + 1 }}</span>
+                        <span class="font-medium truncate" style="color: var(--color-ink-2)">{{ p.title || p.slug }}</span>
+                      </div>
+                      <span class="font-mono font-bold ml-2 flex-shrink-0 text-amber-800 text-xs">{{ p.clicks }} 次点击</span>
                     </div>
-                    <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: rgba(0,0,0,0.04)">
-                      <div class="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-500"
-                        :style="{ width: Math.round((p.clicks / (systemStatus.projectClicks[0].clicks || 1)) * 100) + '%' }"/>
+                    <div class="h-2 w-full rounded-full overflow-hidden" style="background: rgba(0,0,0,0.04)">
+                      <div class="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-500 transition-all duration-700"
+                        :style="{ width: Math.max(8, Math.round((p.clicks / (systemStatus.projectClicks[0].clicks || 1)) * 100)) + '%' }"/>
                     </div>
                   </div>
                 </template>
@@ -557,6 +565,9 @@
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="text-[9px] font-mono uppercase tracking-wider" style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--color-border); color: var(--color-ink-5)">
+                    <th class="py-3.5 px-4 text-center w-28 whitespace-nowrap">
+                      <span class="text-[10px] font-mono tracking-wider uppercase" style="color: var(--color-ink-5)">序号 / 排序</span>
+                    </th>
                     <th class="py-3.5 px-6">作品预览 & 标题</th>
                     <th class="py-3.5 px-6 hidden md:table-cell">链接路径</th>
                     <th class="py-3.5 px-6 hidden sm:table-cell">后期软件</th>
@@ -565,7 +576,50 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y text-xs font-sans" style="divide-color: var(--color-border)">
-                  <tr v-for="p in projectsList" :key="p.slug" class="hover:bg-black/[0.01] transition-colors group/row">
+                  <tr
+                    v-for="(p, i) in projectsList"
+                    :key="p.slug"
+                    @dragover.prevent="onDragOver(i)"
+                    @drop="onDrop"
+                    :class="[
+                      'hover:bg-amber-500/[0.04] transition-colors group/row',
+                      draggedProjectIndex === i ? 'opacity-40 bg-amber-100/50' : ''
+                    ]"
+                  >
+                    <!-- Leftmost Direct Editable Column (≡ Drag Handle ONLY + Non-Draggable Number Input) -->
+                    <td class="py-3.5 px-4 text-center">
+                      <div class="inline-flex items-center justify-center gap-1 p-1 rounded-xl bg-black/[0.02] border border-black/[0.06] group-hover/row:border-amber-600/30 group-hover/row:bg-amber-500/5 transition-all select-none">
+                        <!-- ONLY THIS HANDLE IS DRAGGABLE! -->
+                        <span
+                          draggable="true"
+                          @dragstart="onDragStart(i, $event)"
+                          class="cursor-grab active:cursor-grabbing text-slate-400 group-hover/row:text-amber-700 font-bold text-sm px-1.5 py-0.5 rounded hover:bg-amber-500/10 transition-colors"
+                          title="按住 ≡ 拖拽此行调整顺序"
+                        >
+                          ≡
+                        </span>
+
+                        <!-- INPUT BOX: EXPLICITLY NON-DRAGGABLE! -->
+                        <input
+                          type="text"
+                          draggable="false"
+                          @mousedown.stop
+                          @dragstart.prevent.stop
+                          :value="p.displayNumber || (p.sortOrder ? (p.sortOrder < 10 ? `0${p.sortOrder}` : `${p.sortOrder}`) : (i + 1 < 10 ? `0${i + 1}` : `${i + 1}`))"
+                          @change="updateProjectNumber(p, i, $event)"
+                          @keydown.enter.prevent="($event.target as HTMLElement).blur()"
+                          class="w-11 h-7 text-center font-mono font-bold text-xs rounded-md bg-white border border-amber-900/15 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 text-amber-900 shadow-2xs transition-all cursor-text"
+                          title="点击可直接输入修改序号或海报数字（如 01, 02 或 1, 2）"
+                        />
+
+                        <!-- Up/Down buttons -->
+                        <div class="flex flex-col gap-0.5 opacity-60 group-hover/row:opacity-100 transition-opacity pr-0.5" @mousedown.stop>
+                          <button type="button" @click.stop="moveProjectUp(i)" :disabled="i === 0" class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5 hover:bg-amber-100 rounded transition-all" title="向上移">▲</button>
+                          <button type="button" @click.stop="moveProjectDown(i)" :disabled="i === projectsList.length - 1" class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5 hover:bg-amber-100 rounded transition-all" title="向下移">▼</button>
+                        </div>
+                      </div>
+                    </td>
+
                     <td class="py-4 px-6 flex items-center gap-4 min-w-[260px]">
                       <div class="w-14 h-9 rounded-lg overflow-hidden flex-shrink-0" style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
                         <img :src="p.image" class="w-full h-full object-cover" alt="" />
@@ -593,7 +647,7 @@
                     </td>
                   </tr>
                   <tr v-if="projectsList.length === 0">
-                    <td colspan="5" class="py-12 text-center font-mono text-xs" style="color: var(--color-ink-5)">暂无作品，点击"录入新作品"开始添加。</td>
+                    <td colspan="6" class="py-12 text-center font-mono text-xs" style="color: var(--color-ink-5)">暂无作品，点击"录入新作品"开始添加。</td>
                   </tr>
                 </tbody>
               </table>
@@ -1593,7 +1647,7 @@
               </div>
 
               <form @submit.prevent="saveProject" class="space-y-6">
-                <div class="grid sm:grid-cols-2 gap-4">
+                <div class="grid sm:grid-cols-3 gap-4">
                   <div class="space-y-1.5">
                     <label class="form-label">唯一 ID (Slug)</label>
                     <input v-model="form.slug" :disabled="isEditing" required class="form-input font-mono" placeholder="tvc-commercial" />
@@ -1601,6 +1655,13 @@
                   <div class="space-y-1.5">
                     <label class="form-label">项目名称</label>
                     <input v-model="form.title" required class="form-input font-display font-bold" placeholder="例如：TVC 商业广告" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label flex items-center justify-between">
+                      <span>海报大字编号 (Display No.)</span>
+                      <span class="text-[9px] text-amber-700 font-mono">1 - 999 自由填写</span>
+                    </label>
+                    <input v-model="form.displayNumber" class="form-input font-mono font-bold text-amber-800 text-center" placeholder="如 01, 08, 99 (留空自动按序)" />
                   </div>
                 </div>
                 <div class="space-y-4">
@@ -2777,6 +2838,8 @@ const handleLogout = async () => {
   }
 }
 
+let statusTimer: any = null
+
 onMounted(() => {
   checkAuth()
   const observer = new IntersectionObserver(
@@ -2784,6 +2847,18 @@ onMounted(() => {
     { threshold: 0.1 }
   )
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
+
+  if (import.meta.client) {
+    statusTimer = setInterval(() => {
+      if (isLoggedIn.value) {
+        fetchSystemStatus()
+      }
+    }, 5000)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (statusTimer) clearInterval(statusTimer)
 })
 
 const adminNewPassword = ref('')
@@ -3012,11 +3087,85 @@ const handleAiAutoFill = async () => {
   }
 }
 
+// Project Reorder & Drag-and-Drop Handlers
+const draggedProjectIndex = ref<number | null>(null)
+const isReordering = ref(false)
+
+const onDragStart = (index: number, e: DragEvent) => {
+  draggedProjectIndex.value = index
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(index))
+  }
+}
+
+const onDragOver = (index: number) => {
+  if (draggedProjectIndex.value === null || draggedProjectIndex.value === index) return
+  const item = projectsList.value.splice(draggedProjectIndex.value, 1)[0]
+  projectsList.value.splice(index, 0, item)
+  draggedProjectIndex.value = index
+}
+
+const onDrop = async () => {
+  draggedProjectIndex.value = null
+  await saveReorderedProjects()
+}
+
+const moveProjectUp = async (index: number) => {
+  if (index <= 0) return
+  const item = projectsList.value.splice(index, 1)[0]
+  projectsList.value.splice(index - 1, 0, item)
+  await saveReorderedProjects()
+}
+
+const moveProjectDown = async (index: number) => {
+  if (index >= projectsList.value.length - 1) return
+  const item = projectsList.value.splice(index, 1)[0]
+  projectsList.value.splice(index + 1, 0, item)
+  await saveReorderedProjects()
+}
+
+const saveReorderedProjects = async () => {
+  isReordering.value = true
+  try {
+    const slugs = projectsList.value.map((p: any) => p.slug)
+    await $fetch('/api/admin/reorder-projects', {
+      method: 'POST',
+      body: { slugs }
+    })
+  } catch (err) {
+    console.error('Failed to save project reorder:', err)
+  } finally {
+    isReordering.value = false
+  }
+}
+
+const updateProjectNumber = async (project: any, index: number, e: Event) => {
+  const inputEl = e.target as HTMLInputElement
+  const rawVal = inputEl.value.trim()
+  if (!rawVal) return
+
+  const numVal = parseInt(rawVal, 10)
+  if (!isNaN(numVal) && numVal > 0) {
+    project.sortOrder = numVal
+    project.displayNumber = numVal < 10 ? `0${numVal}` : `${numVal}`
+  } else {
+    project.displayNumber = rawVal
+  }
+
+  try {
+    await $fetch('/api/projects', { method: 'PUT', body: project })
+    await fetchProjects()
+  } catch (err) {
+    console.error('Failed to update project number:', err)
+  }
+}
+
 const openCreateModal = () => {
   isEditing.value = false
   aiPromptInput.value = ''
   form.value = {
-    slug: '', title: '', image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: ['Premiere Pro', 'DaVinci Resolve'],
+    slug: '', title: '', displayNumber: '', sortOrder: projectsList.value.length + 1, image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: ['Premiere Pro', 'DaVinci Resolve'],
     tags: ['剪辑节奏', '达芬奇调色'], featured: false, description: '', longDescription: '',
     workflow: [{ icon: '⚡', title: 'Offline 粗剪', desc: '根据背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。' }],
     password: '',
@@ -3031,7 +3180,7 @@ const openCreateModal = () => {
 }
 const openEditModal = (project: any) => {
   isEditing.value = true
-  form.value = { ...project, software: [...(project.software || [])], tags: [...(project.tags || [])], workflow: JSON.parse(JSON.stringify(project.workflow || [])) }
+  form.value = { displayNumber: '', sortOrder: 0, ...project, software: [...(project.software || [])], tags: [...(project.tags || [])], workflow: JSON.parse(JSON.stringify(project.workflow || [])) }
   form.value.videoUrls = Array.isArray(project.videoUrls) && project.videoUrls.length ? [...project.videoUrls] : [project.videoUrl || '']
   normalizeProjectVideos()
   tempTagInput.value = ''
