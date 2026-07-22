@@ -43,5 +43,10 @@
     "event": "project_click",
     "meta": "{\"slug\":\"tk-1231\",\"title\":\"TK\"}",
     "ts": "2026-07-22T13:26:56.756Z"
+  },
+  {
+    "event": "project_click",
+    "meta": "{\"slug\":\"tvc-commercial\"}",
+    "ts": "2026-07-22T13:41:25.707Z"
   }
 ]

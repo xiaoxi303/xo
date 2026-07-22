@@ -97,6 +97,21 @@ const emit = defineEmits<{
 
 const handleClick = (e: MouseEvent) => {
   emit('click', e)
+
+  // Automatically track project click for any card linking to /projects/[slug]
+  if (import.meta.client && props.to && props.to.startsWith('/projects/')) {
+    const rawSlug = props.to.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+    if (rawSlug && rawSlug !== 'projects') {
+      $fetch('/api/analytics/event', {
+        method: 'POST',
+        body: {
+          event: 'project_click',
+          meta: JSON.stringify({ slug: rawSlug })
+        }
+      }).catch(() => {})
+    }
+  }
+
   if (props.to) {
     navigateTo(props.to)
   }
