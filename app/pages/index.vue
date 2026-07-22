@@ -341,12 +341,11 @@ const scrollToBento = () => {
   document.getElementById('bento-section')?.scrollIntoView({ behavior: 'smooth' })
 }
 
+import { recordProjectClickEvent } from '~/utils/analytics'
+
 const trackProjectClick = (project: any) => {
   if (!import.meta.client || !project?.slug) return
-  $fetch('/api/analytics/event', {
-    method: 'POST',
-    body: { event: 'project_click', meta: JSON.stringify({ slug: project.slug, title: project.title }) }
-  }).catch(() => {})
+  recordProjectClickEvent(project.slug, project.title)
 }
 
 // Scroll reveals Entrance animations
