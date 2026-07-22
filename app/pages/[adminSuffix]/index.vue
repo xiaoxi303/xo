@@ -1426,6 +1426,7 @@
             </button>
           </div>
 
+          <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
             <!-- Form -->
             <div class="flex-1 p-6 overflow-y-auto space-y-6" style="background: rgba(0,0,0,0.01); border-right: 1px solid var(--color-border)">
               
