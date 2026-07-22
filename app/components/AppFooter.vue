@@ -10,11 +10,18 @@
       <div class="flex flex-col sm:flex-row items-center justify-between gap-8">
 
         <!-- Left: Brand Block -->
-        <div class="flex items-baseline gap-1 group cursor-default">
-          <span class="font-display text-[26px] font-bold tracking-tight" style="color: var(--color-ink-1);">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</span>
-          <span class="font-display text-[26px] font-extrabold select-none" style="color: var(--color-bronze);">.</span>
-          <span class="text-[9px] font-mono font-bold tracking-[0.1em] uppercase ml-2.5"
-                style="color: var(--color-ink-4);">xo.dev · 视频剪辑与调色工作室</span>
+        <div class="flex items-center gap-3 group cursor-default">
+          <img
+            src="/logo.png"
+            alt="Xo Logo"
+            class="h-7 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+          <div class="flex items-baseline gap-1">
+            <span class="font-display text-[26px] font-bold tracking-tight" style="color: var(--color-ink-1);">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</span>
+            <span class="font-display text-[26px] font-extrabold select-none" style="color: var(--color-bronze);">.</span>
+            <span class="text-[9px] font-mono font-bold tracking-[0.1em] uppercase ml-2.5"
+                  style="color: var(--color-ink-4);">xo.dev · 视频剪辑与调色工作室</span>
+          </div>
         </div>
 
         <!-- Right: Premium borderless social buttons -->

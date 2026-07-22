@@ -21,11 +21,18 @@
       <!-- Brand Logo -->
       <NuxtLink
         to="/"
-        class="group flex items-baseline gap-1 no-underline flex-shrink-0 transition-all duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1)"
+        class="group flex items-center gap-2.5 no-underline flex-shrink-0 transition-all duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1)"
         aria-label="Xo Home"
       >
-        <span class="font-display text-[#121316] text-2xl font-bold tracking-tight">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</span>
-        <span class="font-display text-[var(--color-bronze)] text-2xl font-extrabold select-none">.</span>
+        <img
+          src="/logo.png"
+          alt="Xo Logo"
+          class="h-7 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+        />
+        <div class="flex items-baseline gap-0.5">
+          <span class="font-display text-[#121316] text-2xl font-bold tracking-tight">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</span>
+          <span class="font-display text-[var(--color-bronze)] text-2xl font-extrabold select-none">.</span>
+        </div>
       </NuxtLink>
 
       <!-- Desktop nav links -->

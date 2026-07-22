@@ -3,6 +3,15 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-07-20',
   devtools: { enabled: true },
 
+  app: {
+    head: {
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/logo.png' },
+        { rel: 'apple-touch-icon', href: '/logo.png' }
+      ]
+    }
+  },
+
   modules: [
     '@nuxt/content',
     '@nuxtjs/tailwindcss',
