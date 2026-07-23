@@ -7,7 +7,9 @@ import { setResponseHeader } from 'h3'
 import { getProjectHeatMap } from '../utils/analytics-store'
 
 export default defineEventHandler(async (event) => {
-  setResponseHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+  setResponseHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+  setResponseHeader(event, 'Pragma', 'no-cache')
+  setResponseHeader(event, 'Expires', '0')
   const startTime = Date.now()
   const db = await getD1Database(event)
   const isD1 = !!db
@@ -233,7 +235,7 @@ export default defineEventHandler(async (event) => {
     const v = viewCounts[slug] || 0
     const c = clickCounts[slug] || 0
     const h = Number(unifiedHeat[slug] || 0)
-    projectCounts[slug] = Math.max(h, v + c)
+    projectCounts[slug] = Math.max(h, v, c)
   }
 
   let projectClicks: { slug: string; title: string; clicks: number }[] = []

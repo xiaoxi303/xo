@@ -9,9 +9,11 @@ export function recordProjectClickEvent(slug: string, title?: string) {
     meta: JSON.stringify({ slug: cleanSlug, title: title || cleanSlug })
   })
 
-  // 1. Send via fetch with keepalive: true FIRST (ensures Content-Type: application/json)
+  const targetUrl = `/api/analytics/event?event=project_click&slug=${encodeURIComponent(cleanSlug)}`
+
+  // 1. Send via fetch with keepalive: true FIRST (query param + JSON body for 100% compatibility)
   try {
-    fetch('/api/analytics/event', {
+    fetch(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: payload,
@@ -23,7 +25,7 @@ export function recordProjectClickEvent(slug: string, title?: string) {
   if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
     try {
       const blob = new Blob([payload], { type: 'application/json' })
-      navigator.sendBeacon('/api/analytics/event', blob)
+      navigator.sendBeacon(targetUrl, blob)
     } catch {}
   }
 }

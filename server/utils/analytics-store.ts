@@ -8,6 +8,7 @@ export function recordProjectHeat(slug: string, count: number = 1) {
   if (!cleanSlug || cleanSlug === 'projects' || cleanSlug === 'get') return
 
   const heatFile = getRuntimeDataPath('project-heat.json')
+  const statsFile = getRuntimeDataPath('page-views.json')
   let heat: Record<string, number> = {}
 
   if (fs.existsSync(heatFile)) {
@@ -16,7 +17,19 @@ export function recordProjectHeat(slug: string, count: number = 1) {
     } catch {}
   }
 
-  heat[cleanSlug] = (heat[cleanSlug] || 0) + count
+  let currentViews = 0
+  if (fs.existsSync(statsFile)) {
+    try {
+      const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
+      const projectPath = `/projects/${cleanSlug}`
+      if (stats[projectPath]) {
+        currentViews = Object.values(stats[projectPath]).reduce((sum: number, n: any) => sum + Number(n || 0), 0)
+      }
+    } catch {}
+  }
+
+  const baseline = Math.max(heat[cleanSlug] || 0, currentViews)
+  heat[cleanSlug] = baseline + count
   fs.writeFileSync(heatFile, JSON.stringify(heat, null, 2))
 
   // Broadcast instant real-time SSE push to all open admin dashboards

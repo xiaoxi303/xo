@@ -922,12 +922,27 @@ const handleFullscreenChange = () => {
 
 import { recordProjectClickEvent } from '~/utils/analytics'
 
-const recordProjectClick = (targetSlug?: string) => {
+const recordProjectClick = async (targetSlug?: string) => {
   if (!import.meta.client) return
   const currentSlug = targetSlug || (route.params.slug as string) || slug
   if (!currentSlug) return
+
+  try {
+    await $fetch(`/api/projects/${currentSlug}/view`, { method: 'POST' })
+  } catch (e) {}
+
   recordProjectClickEvent(currentSlug, project.value?.title)
 }
+
+watch(
+  project,
+  (val) => {
+    if (val && import.meta.client) {
+      recordProjectClick()
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
   await nextTick()
@@ -940,10 +955,10 @@ onMounted(async () => {
     // Automatically record project visit on client mount
     recordProjectClick()
 
-    // Heartbeat watching pulse: automatically updates heat ranking every 8 seconds while visitor stays on page
+    // Heartbeat watching pulse: automatically updates heat ranking every 4 seconds while visitor stays on page
     heartbeatTimer = setInterval(() => {
       recordProjectClick()
-    }, 8000)
+    }, 4000)
   }
 })
 

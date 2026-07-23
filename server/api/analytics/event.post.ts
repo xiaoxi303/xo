@@ -1,7 +1,7 @@
 import { getD1Database } from '../../utils/db'
 import fs from 'node:fs'
 import { getRuntimeDataPath } from '../../utils/storage'
-import { readBody, readRawBody, defineEventHandler } from 'h3'
+import { readBody, readRawBody, getQuery, defineEventHandler } from 'h3'
 import { broadcastAnalyticsChange } from '../../utils/broadcaster'
 import { recordProjectHeat } from '../../utils/analytics-store'
 
@@ -11,16 +11,33 @@ export default defineEventHandler(async (event) => {
     body = await readBody(event)
   } catch {}
 
-  if (!body || typeof body !== 'object') {
+  if (!body || typeof body !== 'object' || !body.event) {
     try {
       const raw = await readRawBody(event, 'utf-8')
-      if (raw) body = JSON.parse(raw)
+      if (raw) {
+        try {
+          body = JSON.parse(raw)
+        } catch {
+          const query = new URLSearchParams(raw)
+          if (query.has('event')) {
+            body = { event: query.get('event'), meta: query.get('meta') || query.get('slug') }
+          }
+        }
+      }
     } catch {}
   }
 
-  const { event: eventName, meta } = body || {}
+  const queryParams = getQuery(event)
+  if (queryParams.event || queryParams.slug) {
+    body = body || {}
+    body.event = body.event || queryParams.event || 'project_click'
+    body.meta = body.meta || queryParams.meta || queryParams.slug
+  }
 
-  if (!eventName) return { ok: false, message: 'Missing event name' }
+  const { event: eventName, meta } = body || {}
+  const activeEventName = eventName || 'project_click'
+
+  if (!eventName && !meta && !queryParams.slug) return { ok: false, message: 'Missing event name or meta' }
 
   const db = await getD1Database(event)
   const metaStr = typeof meta === 'string' ? meta : JSON.stringify(meta || {})
@@ -35,6 +52,10 @@ export default defineEventHandler(async (event) => {
     } catch {
       targetSlug = meta
     }
+  }
+
+  if (!targetSlug && typeof queryParams.slug === 'string') {
+    targetSlug = queryParams.slug
   }
 
   if (targetSlug) {

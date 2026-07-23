@@ -5,10 +5,14 @@
  */
 import { dbGetProjectPassword } from '../../../utils/db'
 import { validateUnlockToken } from './unlock.post'
+import { recordProjectHeat } from '../../../utils/analytics-store'
 
 export default defineEventHandler(async (event) => {
-  const slug = getRouterParam(event, 'slug')
+  const slug = getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0]
   if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing slug.' })
+
+  // Record project heat visit instantly when entering project page in SPA or direct mode
+  recordProjectHeat(slug, 1)
 
   const storedPassword = await dbGetProjectPassword(event, slug)
 
