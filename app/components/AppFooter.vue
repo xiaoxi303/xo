@@ -12,13 +12,11 @@
         <!-- Left: Brand Block -->
         <div class="flex items-center gap-3 group cursor-default">
           <img
-            src="/logo.png"
+            src="/logo.png?v=312k_v4"
             alt="Xo Logo"
-            class="h-7 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            class="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
-          <div class="flex items-baseline gap-1">
-            <span class="font-display text-[26px] font-bold tracking-tight" style="color: var(--color-ink-1);">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</span>
-            <span class="font-display text-[26px] font-extrabold select-none" style="color: var(--color-bronze);">.</span>
+          <div class="flex items-center">
             <span class="text-[9px] font-mono font-bold tracking-[0.1em] uppercase ml-2.5"
                   style="color: var(--color-ink-4);">xo.dev · 视频剪辑与调色工作室</span>
           </div>

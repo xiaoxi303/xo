@@ -1,5 +1,7 @@
 import { H3Event } from 'h3'
 import nodemailer from 'nodemailer'
+import fs from 'node:fs'
+import path from 'node:path'
 import { dbGetSiteConfig, dbGetProjectsRaw } from './db'
 
 export function extractEmail(contact: string): string | null {
@@ -30,9 +32,9 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
     const project = projects.find(p => p.slug === request.projectSlug)
     const password = project ? project.password : ''
 
-    const host = getHeader(event, 'host') || 'localhost:3000'
-    const protocol = getHeader(event, 'x-forwarded-proto') || 'http'
-    const projectUrl = `${protocol}://${host}/projects/${request.projectSlug}`
+    const siteUrl = (config?.siteInfo?.siteUrl || 'https://xo.xoxox.bond').replace(/\/$/, '')
+    const projectUrl = `${siteUrl}/projects/${request.projectSlug}`
+    const logoImgSrc = `${siteUrl}/logo.png?v=312k_v4`
 
     const transporter = nodemailer.createTransport({
       host: emailSettings.smtpHost,
@@ -47,21 +49,6 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
     const senderName = emailSettings.senderName || 'Xo Studio'
     const subject = `【${senderName}】您申请的作品《${request.projectTitle}》授权已通过`
 
-    // Prepare logo2.png CID inline attachment for guaranteed rendering in all email clients
-    const logo2Path = path.resolve(process.cwd(), 'public', 'logo2.png')
-    const hasLogo2 = fs.existsSync(logo2Path)
-    const logoImgSrc = hasLogo2 ? 'cid:xo_logo2_attachment' : `${protocol}://${host}/logo2.png`
-
-    const attachments = hasLogo2
-      ? [
-          {
-            filename: 'logo2.png',
-            path: logo2Path,
-            cid: 'xo_logo2_attachment'
-          }
-        ]
-      : []
-
     // High-end luxury styled HTML template matching the website theme
     const html = `
       <div style="background-color: #f7f6f3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 50px 20px; color: #2d2f34; line-height: 1.6;">
@@ -71,7 +58,7 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
           <div style="height: 6px; background: linear-gradient(90deg, #d97706, #b45309, #d97706);"></div>
           
           <div style="padding: 35px 40px 25px 40px; text-align: center; border-bottom: 1px solid #f3f2ee;">
-            <!-- Brand Logo (logo2.png) -->
+            <!-- Brand Logo (logo.png) -->
             <img src="${logoImgSrc}" alt="Xo Logo" style="height: 52px; width: auto; max-width: 220px; object-fit: contain; margin: 0 auto 12px auto; display: block;" />
             <h1 style="color: #121316; margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: normal; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase;">${senderName}</h1>
             <p style="color: #b45309; margin: 6px 0 0 0; font-family: monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: bold;">Exclusive Clip Authorization</p>
@@ -138,8 +125,7 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
       from: `"${senderName}" <${emailSettings.senderEmail || emailSettings.smtpUser}>`,
       to: toEmail,
       subject,
-      html,
-      attachments
+      html
     })
 
     console.log(`Successfully sent approval email to: ${toEmail} for project: ${request.projectTitle}`)

@@ -7,8 +7,8 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       link: [
-        { rel: 'icon', type: 'image/png', href: '/logo.png' },
-        { rel: 'apple-touch-icon', href: '/logo.png' }
+        { rel: 'icon', type: 'image/png', href: '/logo.png?v=312k_v4' },
+        { rel: 'apple-touch-icon', href: '/logo.png?v=312k_v4' }
       ]
     }
   },
