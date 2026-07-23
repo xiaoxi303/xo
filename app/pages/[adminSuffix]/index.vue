@@ -2852,21 +2852,23 @@ onMounted(() => {
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
 
   if (import.meta.client) {
-    // Unconditional status polling every 4 seconds
+    // Unconditional fast status polling every 1.5 seconds for instant zero-lag updates
     statusTimer = setInterval(() => {
       if (isLoggedIn.value) {
         fetchSystemStatus()
       }
-    }, 4000)
+    }, 1500)
 
     // Real-time SSE push connection for zero-delay instant updates
     try {
       sseSource = new EventSource('/api/analytics/stream')
-      sseSource.onmessage = () => {
+      const handleUpdate = () => {
         if (isLoggedIn.value) {
           fetchSystemStatus()
         }
       }
+      sseSource.onmessage = handleUpdate
+      sseSource.addEventListener('update', handleUpdate)
     } catch {}
   }
 })

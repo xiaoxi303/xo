@@ -4,8 +4,11 @@ import { registerSSEClient, unregisterSSEClient } from '../../utils/broadcaster'
 export default defineEventHandler((event) => {
   const eventStream = createEventStream(event)
 
-  const pushFn = (data: { data: string }) => {
-    eventStream.push(data.data).catch(() => {})
+  const pushFn = (payload: any) => {
+    eventStream.push({
+      event: 'update',
+      data: JSON.stringify(payload)
+    }).catch(() => {})
   }
 
   registerSSEClient(pushFn)

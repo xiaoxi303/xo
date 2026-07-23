@@ -1,4 +1,4 @@
-type SSEPushFn = (data: { data: string }) => void
+type SSEPushFn = (data: any) => void
 const sseClients = new Set<SSEPushFn>()
 
 export function registerSSEClient(pushFn: SSEPushFn) {
@@ -10,10 +10,10 @@ export function unregisterSSEClient(pushFn: SSEPushFn) {
 }
 
 export function broadcastAnalyticsChange() {
-  const payload = JSON.stringify({ type: 'analytics_update', ts: Date.now() })
+  const payload = { type: 'analytics_update', ts: Date.now() }
   for (const pushFn of Array.from(sseClients)) {
     try {
-      pushFn({ data: payload })
+      pushFn(payload)
     } catch {
       sseClients.delete(pushFn)
     }
