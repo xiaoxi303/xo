@@ -397,3 +397,101 @@ body.no-grain::before {
   pointer-events: none;
   transform: translate3d(0, 0, 0); /* 开启硬件加速 */
 }
+
+/* ===== Global Page & Route Transition ===== */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.99);
+}
+
+/* ===== Luxury Micro-Animations & Tab Switching Transitions ===== */
+
+/* 1. Tab content slide & fade transition */
+.tab-fade-slide-enter-active {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tab-fade-slide-leave-active {
+  transition: all 0.22s cubic-bezier(0.7, 0, 0.84, 0);
+  position: absolute;
+  width: 100%;
+}
+.tab-fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+}
+.tab-fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.99);
+}
+
+/* 2. Admin panel list item enter/leave animation */
+.panel-list-enter-active, .panel-list-leave-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.panel-list-enter-from, .panel-list-leave-to {
+  opacity: 0;
+  transform: scale(0.96) translateY(10px);
+}
+.panel-list-move {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 3. Sliding tab pill active glow indicator */
+.tab-pill-active {
+  position: relative;
+}
+.tab-pill-active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--color-bronze);
+  border-radius: 9999px;
+  box-shadow: 0 0 8px rgba(180, 83, 9, 0.4);
+  animation: pill-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pill-glow {
+  0% { opacity: 0.7; transform: scaleX(0.9); }
+  100% { opacity: 1; transform: scaleX(1.05); }
+}
+
+/* 4. Pulse dot animation for real-time indicators */
+.pulse-dot {
+  position: relative;
+  display: inline-block;
+}
+.pulse-dot::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.4;
+  animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* 5. Smooth hover levitation utility */
+.hover-lift {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-3px) scale(1.005);
+  box-shadow: var(--glass-shadow-hover);
+}

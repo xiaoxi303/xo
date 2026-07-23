@@ -118,20 +118,39 @@ const englishSub = computed(() => {
   100% { transform: translateY(100%); }
 }
 .poster-scan {
-  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.03) 50%, transparent 100%);
-  animation: posterScan 6s ease-in-out infinite;
+  background: linear-gradient(180deg, transparent 0%, rgba(180,83,9,0.06) 50%, transparent 100%);
+  animation: posterScan 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 .poster-bar {
-  animation: posterPulse 4s ease-in-out infinite alternate;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  animation: posterPulse 3.5s ease-in-out infinite alternate;
+}
+.group:hover .poster-bar {
+  transform: scaleX(1.1) translateX(-2px);
 }
 .poster-bar-delay {
-  animation-delay: 1.2s;
+  animation-delay: 0.8s;
 }
 .poster-bar-slow {
-  animation-delay: 2.4s;
+  animation-delay: 1.6s;
 }
 @keyframes posterPulse {
-  0% { transform: scaleX(0.92); opacity: 0.8; }
-  100% { transform: scaleX(1.05); opacity: 1; }
+  0% { transform: scaleX(0.92); opacity: 0.85; }
+  100% { transform: scaleX(1.08); opacity: 1; }
+}
+
+.default-art-poster h3 {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+}
+.group:hover .default-art-poster h3 {
+  transform: translateX(4px);
+  color: var(--color-bronze, #b45309);
+}
+
+.default-art-poster .font-black {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .default-art-poster .font-black {
+  transform: scale(1.05) translateY(-2px);
 }
 </style>

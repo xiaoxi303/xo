@@ -1,11 +1,11 @@
 <template>
   <div>
-    <AppPreloader v-if="!preloaderDone && !isAdminPage" @complete="onPreloaderComplete" />
+    <AppPreloader v-if="!preloaderDone && !isPanelPage" @complete="onPreloaderComplete" />
 
     <!-- 1. Top Sticky Bar Announcement (顶部置顶模式) -->
     <Transition name="fade">
       <div
-        v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isAdminPage"
+        v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isPanelPage"
         class="fixed top-0 inset-x-0 z-[100] py-2 px-4 shadow-md border-b flex items-center justify-between text-xs font-sans backdrop-blur-md transition-all"
         :class="getTopBarBgClass(announcement?.badgeColor)"
       >
@@ -48,7 +48,7 @@
     <!-- 2. Floating Capsule Announcement (Bottom-Left 胶囊模式) -->
     <Transition name="slide-up">
       <div
-        v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position !== 'top-bar' && !isAdminPage"
+        v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position !== 'top-bar' && !isPanelPage"
         class="fixed bottom-6 left-6 z-[60] max-w-sm rounded-2xl p-4 shadow-[0_12px_40px_rgba(80,60,30,0.12)] border flex items-start gap-3.5 transition-all duration-500 backdrop-blur-xl"
         style="background: rgba(252, 248, 242, 0.94); border-color: rgba(200, 185, 160, 0.35);"
       >
@@ -93,7 +93,7 @@
 
     <!-- Client Portal Floating Pill (Bottom-Right) -->
     <div
-      v-if="!isAdminPage"
+      v-if="!isPanelPage"
       class="fixed bottom-6 right-6 z-[50] rounded-full px-4 py-2 border flex items-center gap-2.5 transition-all duration-350 backdrop-blur-xl hover:scale-105 active:scale-95 shadow-md"
       style="background: rgba(252, 248, 242, 0.88); border-color: rgba(200, 185, 160, 0.25);"
     >
@@ -127,7 +127,7 @@
 
     <!-- Floating Ambient Soundscape Player (Bottom-Center dock) -->
     <div
-      v-if="musicEnabled && !isAdminPage"
+      v-if="musicEnabled && !isPanelPage"
       class="fixed bottom-4 z-[60] rounded-full px-4 py-2.5 shadow-[0_8px_30px_rgba(80,60,30,0.08)] border flex items-center gap-3 transition-all duration-300 backdrop-blur-xl"
       style="left: 50%; transform: translateX(-50%); background: rgba(252, 248, 242, 0.9); border-color: rgba(200, 185, 160, 0.25);"
     >
@@ -160,12 +160,12 @@
     </div>
 
     <!-- Main Layout Content Slot -->
-    <div :class="{'pt-10': announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isAdminPage}">
-      <AppNavbar v-if="!isAdminPage" />
+    <div :class="{'pt-10': announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isPanelPage}">
+      <AppNavbar v-if="!isPanelPage" />
       <main>
         <slot />
       </main>
-      <AppFooter v-if="!isAdminPage" />
+      <AppFooter v-if="!isPanelPage" />
     </div>
   </div>
 </template>
@@ -276,6 +276,12 @@ const isAdminPage = computed(() => {
   return path === adminPath || path.startsWith(`${adminPath}/`)
 })
 
+const isPanelPage = computed(() => {
+  const path = (route.path || '').replace(/^\/|\/$/g, '')
+  const isClient = path === 'client' || path.startsWith('client/') || path === 'login' || path === 'register'
+  return isAdminPage.value || isClient
+})
+
 // Ambient Soundscape Player States & Logic
 const isPlaying = ref(false)
 const audioRef = ref<HTMLAudioElement | null>(null)
@@ -337,7 +343,7 @@ const handleClientLogout = async () => {
 onMounted(() => {
   checkClientSession()
   checkBannerDismissal()
-  if (import.meta.client && !preloaderDone.value && !isAdminPage.value) {
+  if (import.meta.client && !preloaderDone.value && !isPanelPage.value) {
     document.body.style.overflow = 'hidden'
   }
 })

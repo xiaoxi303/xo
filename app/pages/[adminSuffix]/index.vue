@@ -65,16 +65,16 @@
             :key="t.value"
             @click="activeTab = t.value"
             :class="[
-              'px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap flex-shrink-0',
+              'relative px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-300 ease-out flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 active:scale-95',
               activeTab === t.value
-                ? 'bg-white shadow-sm font-bold'
-                : 'hover:opacity-80'
+                ? 'bg-white shadow-sm font-bold scale-[1.02] tab-pill-active'
+                : 'hover:bg-black/[0.03] hover:text-[#121316]'
             ]"
             :style="activeTab === t.value
-              ? { color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.25)' }
+              ? { color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.3)' }
               : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
           >
-            <span>{{ t.icon }}</span>{{ t.label }}
+            <span class="transition-transform duration-300 hover:rotate-12">{{ t.icon }}</span>{{ t.label }}
           </button>
         </div>
 
@@ -99,11 +99,11 @@
         </div>
       </div>
 
-      <!-- Tab Content -->
+      <!-- Tab Content with Smooth Gliding Transition -->
       <div class="relative min-h-[400px]">
-
-        <!-- ===== TAB 0: ANALYTICS DASHBOARD ===== -->
-        <div v-if="activeTab === 'analytics'" class="space-y-6">
+        <Transition name="tab-fade-slide" mode="out-in">
+          <div v-if="activeTab === 'analytics'" key="analytics" class="space-y-6">
+            <!-- TAB 0: ANALYTICS DASHBOARD -->
           <!-- Header -->
           <div class="flex items-center justify-between">
             <div>
@@ -322,8 +322,8 @@
         </div>
 
 
-        <!-- ===== TAB 1.5: PASSWORD REQUESTS ===== -->
-        <div v-if="activeTab === 'requests'" class="space-y-6">
+          <div v-else-if="activeTab === 'requests'" key="requests" class="space-y-6">
+            <!-- TAB 1.5: PASSWORD REQUESTS -->
           <div class="glass-card p-6 flex items-center justify-between">
             <div class="space-y-1">
               <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">密码获取申请</span>
@@ -428,8 +428,8 @@
           </div>
         </div>
 
-        <!-- ===== TAB 1.6: REGISTERED USERS ===== -->
-        <div v-if="activeTab === 'users'" class="space-y-6">
+          <div v-else-if="activeTab === 'users'" key="users" class="space-y-6">
+            <!-- TAB 1.6: REGISTERED USERS -->
           <div class="glass-card p-6 flex items-center justify-between">
             <div class="space-y-1">
               <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">注册客户账号</span>
@@ -526,8 +526,8 @@
           </div>
         </div>
 
-        <!-- ===== TAB 1: PROJECTS ===== -->
-        <div v-if="activeTab === 'projects'" class="space-y-6">
+          <div v-else-if="activeTab === 'projects'" key="projects" class="space-y-6">
+            <!-- TAB 1: PROJECTS -->
           <!-- Stats -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div class="glass-card p-6 flex items-center justify-between">
@@ -655,8 +655,8 @@
           </div>
         </div>
 
-        <!-- ===== TAB 2: HOME HERO CONFIG ===== -->
-        <div v-if="activeTab === 'home'" class="glass-card p-8 space-y-8">
+          <div v-else-if="activeTab === 'home'" key="home" class="glass-card p-8 space-y-8">
+            <!-- TAB 2: HOME HERO CONFIG -->
           <div class="flex items-center justify-between pb-5" style="border-bottom: 1px solid var(--color-border)">
             <div>
               <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">首页 Hero 与数据看板配置</h2>
@@ -855,8 +855,8 @@
           </div>
         </div>
 
-        <!-- ===== TAB 3: ABOUT / PROFILE ===== -->
-        <div v-if="activeTab === 'about'" class="glass-card p-8 space-y-8">
+          <div v-else-if="activeTab === 'about'" key="about" class="glass-card p-8 space-y-8">
+            <!-- TAB 3: ABOUT / PROFILE -->
           <div class="flex items-center justify-between pb-5" style="border-bottom: 1px solid var(--color-border)">
             <div>
               <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">个人履历与经历年谱</h2>
@@ -1004,8 +1004,8 @@
           </div>
         </div>
 
-        <!-- ===== TAB 4: SITE INFO ===== -->
-        <div v-if="activeTab === 'siteinfo'" class="glass-card p-8 space-y-8">
+          <div v-else-if="activeTab === 'siteinfo'" key="siteinfo" class="glass-card p-8 space-y-8">
+            <!-- TAB 4: SITE INFO -->
           <div class="flex items-center justify-between pb-5" style="border-bottom: 1px solid var(--color-border)">
             <div>
               <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">站点信息 & 社交媒体</h2>
@@ -1292,8 +1292,8 @@
           </div>
         </div>
 
-        <!-- ===== TAB 5: ADVANCED & PLAYGROUND ===== -->
-        <div v-if="activeTab === 'advanced'" class="space-y-8">
+          <div v-else-if="activeTab === 'advanced'" key="advanced" class="space-y-8">
+            <!-- TAB 5: ADVANCED & PLAYGROUND -->
           <!-- Save Top Bar -->
           <div class="flex items-center justify-between p-6 glass-card">
             <div>
@@ -1571,6 +1571,7 @@
             </div>
           </div>
         </div>
+      </Transition>
       </div>
       </div>
 

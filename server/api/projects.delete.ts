@@ -12,14 +12,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = await getD1Database(event)
-  const isCloudflare = !!event.context.cloudflare
-  
-  if (!db && isCloudflare) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'For safety, deleting local Markdown is disabled in production on Cloudflare Pages.'
-    })
-  }
 
   try {
     await dbDeleteProject(event, slug)

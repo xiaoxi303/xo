@@ -18,16 +18,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check if we are running on Cloudflare with D1 database
   const db = await getD1Database(event)
-  const isCloudflare = !!event.context.cloudflare
-  
-  if (!db && isCloudflare) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'For safety, editing local Markdown is disabled in production on Cloudflare Pages.'
-    })
-  }
 
   try {
     await dbCreateProject(event, body)

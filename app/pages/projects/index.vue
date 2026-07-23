@@ -21,13 +21,13 @@
             :key="f.value"
             @click="currentFilter = f.value"
             :class="[
-              'px-4 py-2 rounded-xl text-xs font-medium tracking-wide transition-all duration-200',
+              'relative px-4 py-2 rounded-xl text-xs font-medium tracking-wide transition-all duration-300 ease-out active:scale-95',
               currentFilter === f.value
-                ? 'font-semibold shadow-sm'
-                : 'hover:opacity-80'
+                ? 'font-bold shadow-sm scale-[1.02] tab-pill-active'
+                : 'hover:bg-black/[0.03] hover:text-[#121316]'
             ]"
             :style="currentFilter === f.value
-              ? { background: 'rgba(252,248,242,0.95)', color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.25)' }
+              ? { background: 'rgba(252,248,242,0.98)', color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.3)' }
               : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
           >
             {{ f.label }}
@@ -77,11 +77,11 @@
                 </span>
               </div>
 
-              <!-- Play icon on hover -->
-              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div class="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+              <!-- Play icon on hover with spring pop & ring pulse -->
+              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <div class="w-14 h-14 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-[0_8px_30px_rgba(180,83,9,0.3)] scale-75 group-hover:scale-100 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1) border border-white/80">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                       class="w-5 h-5 ml-0.5" style="color: var(--color-ink-1)">
+                       class="w-6 h-6 ml-0.5 text-[#b45309] transition-transform duration-300 group-hover:scale-110">
                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
                   </svg>
                 </div>
@@ -122,16 +122,11 @@ useHead({
 const { data: projects } = await useFetch<any[]>('/api/projects')
 const currentFilter = ref('all')
 
-const filterProject = (project: any, filter: string) => {
-  if (filter === 'all') return true
-  return Array.isArray(project.tags) && project.tags.includes(filter)
-}
-
 const visibleFilterOpts = computed(() => {
   const list = projects.value || []
   const categories = Array.from(new Set(
-    list.flatMap((project) => Array.isArray(project.tags) ? project.tags : [])
-      .map((tag) => String(tag || '').trim())
+    list.flatMap((project: any) => Array.isArray(project.tags) ? project.tags : [])
+      .map((tag: any) => String(tag || '').trim())
       .filter(Boolean)
   ))
   return [
@@ -148,7 +143,10 @@ watch(visibleFilterOpts, (filters) => {
 
 const filteredProjects = computed(() => {
   const list = projects.value || []
-  return list.filter((project) => filterProject(project, currentFilter.value))
+  if (currentFilter.value === 'all') return list
+  return list.filter((project: any) => {
+    return Array.isArray(project.tags) && project.tags.some((t: string) => t.toLowerCase().includes(currentFilter.value.toLowerCase()) || currentFilter.value.toLowerCase().includes(t.toLowerCase()))
+  })
 })
 let observer: IntersectionObserver | null = null
 onMounted(async () => {

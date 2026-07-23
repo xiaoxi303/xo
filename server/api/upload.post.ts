@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
   } catch (err) {
     console.warn('Local filesystem is read-only. Falling back to inline base64 data URI:', err)
     
-    // Fallback: convert file data to Base64 Data URI if disk writes fail (e.g. read-only Cloudflare environment)
+    // Fallback: convert file data to Base64 Data URI if disk writes encounter permission limits
     const base64 = file.data.toString('base64')
     return { url: `data:${fileType};base64,${base64}` }
   }

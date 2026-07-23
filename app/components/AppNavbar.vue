@@ -46,18 +46,20 @@
           <NuxtLink
             :to="link.to"
             :class="[
-              'relative px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all duration-300 rounded-lg',
+              'relative px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all duration-300 rounded-lg group',
               $route.path === link.to
-                ? 'text-[#121316]'
-                : 'text-[#82848c] hover:text-[#2d2f34]'
+                ? 'text-[#121316] font-bold'
+                : 'text-[#82848c] hover:text-[#121316]'
             ]"
           >
             {{ link.label }}
-            <!-- Active underline -->
-            <span
-              v-if="$route.path === link.to"
-              class="absolute bottom-0.5 left-3.5 right-3.5 h-px bg-[var(--color-bronze)] rounded-full"
-            />
+            <!-- Active underline transition -->
+            <Transition name="nav-underline">
+              <span
+                v-if="$route.path === link.to"
+                class="absolute bottom-0.5 left-2.5 right-2.5 h-[2px] bg-[var(--color-bronze)] rounded-full shadow-[0_2px_8px_rgba(180,83,9,0.45)]"
+              />
+            </Transition>
           </NuxtLink>
         </li>
       </ul>
@@ -163,6 +165,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.nav-underline-enter-active,
+.nav-underline-leave-active {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-underline-enter-from,
+.nav-underline-leave-to {
+  opacity: 0;
+  transform: scaleX(0.2) translateY(2px);
+}
+
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
   transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);

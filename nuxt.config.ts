@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       link: [
         { rel: 'icon', type: 'image/png', href: '/logo.png' },
@@ -22,9 +23,8 @@ export default defineNuxtConfig({
     transpile: ['gsap']
   },
 
-  // @nuxt/image 配置
+  // @nuxt/image 配置 (使用服务器磁盘 IPX 高效图像处理引擎)
   image: {
-    // 本地开发使用 IPX，生产环境切换至 Cloudflare
     provider: 'ipx',
     quality: 85,
     format: ['webp', 'avif']

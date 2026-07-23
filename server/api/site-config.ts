@@ -8,12 +8,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'PUT') {
-    // Check if D1 DB binding is available on Cloudflare
     const db = await getD1Database(event)
-    const isCloudflare = !!event.context.cloudflare
-    if (!db && isCloudflare) {
-      throw createError({ statusCode: 403, statusMessage: 'Editing config is disabled in production on Cloudflare Pages without D1.' })
-    }
 
     try {
       const body = await readBody(event)

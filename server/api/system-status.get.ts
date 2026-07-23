@@ -280,7 +280,7 @@ export default defineEventHandler(async (event) => {
   }
 
   return {
-    engine: isD1 ? 'Cloudflare D1' : 'Local File System',
+    engine: isD1 ? 'SQLite D1' : 'Server Disk (JSON/File System)',
     status: 'Operational',
     latency: `${latency}ms`,
     ssl: 'Active (TLS 1.3)',

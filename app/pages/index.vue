@@ -247,6 +247,16 @@
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
                 
+                <!-- Play icon on hover with spring pop & ring pulse -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div class="w-14 h-14 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-[0_8px_30px_rgba(180,83,9,0.3)] scale-75 group-hover:scale-100 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1) border border-white/80">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                         class="w-6 h-6 ml-0.5 text-[#b45309] transition-transform duration-300 group-hover:scale-110">
+                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                    </svg>
+                  </div>
+                </div>
+
                 <!-- Absolute specs sticker -->
                 <div class="absolute top-4 left-4">
                   <span class="px-2.5 py-0.5 rounded text-[8px] bg-white/95 border border-black/5 text-slate-800 font-mono font-bold uppercase shadow-sm">ACES 色彩规范</span>
