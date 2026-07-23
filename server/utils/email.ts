@@ -47,6 +47,21 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
     const senderName = emailSettings.senderName || 'Xo Studio'
     const subject = `【${senderName}】您申请的作品《${request.projectTitle}》授权已通过`
 
+    // Prepare logo2.png CID inline attachment for guaranteed rendering in all email clients
+    const logo2Path = path.resolve(process.cwd(), 'public', 'logo2.png')
+    const hasLogo2 = fs.existsSync(logo2Path)
+    const logoImgSrc = hasLogo2 ? 'cid:xo_logo2_attachment' : `${protocol}://${host}/logo2.png`
+
+    const attachments = hasLogo2
+      ? [
+          {
+            filename: 'logo2.png',
+            path: logo2Path,
+            cid: 'xo_logo2_attachment'
+          }
+        ]
+      : []
+
     // High-end luxury styled HTML template matching the website theme
     const html = `
       <div style="background-color: #f7f6f3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 50px 20px; color: #2d2f34; line-height: 1.6;">
@@ -57,7 +72,7 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
           
           <div style="padding: 35px 40px 25px 40px; text-align: center; border-bottom: 1px solid #f3f2ee;">
             <!-- Brand Logo (logo2.png) -->
-            <img src="${protocol}://${host}/logo2.png" alt="Xo Logo" style="height: 52px; width: auto; max-width: 220px; object-fit: contain; margin: 0 auto 12px auto; display: block;" />
+            <img src="${logoImgSrc}" alt="Xo Logo" style="height: 52px; width: auto; max-width: 220px; object-fit: contain; margin: 0 auto 12px auto; display: block;" />
             <h1 style="color: #121316; margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: normal; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase;">${senderName}</h1>
             <p style="color: #b45309; margin: 6px 0 0 0; font-family: monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: bold;">Exclusive Clip Authorization</p>
             <div style="width: 24px; height: 1.5px; background-color: #b45309; margin: 18px auto 0 auto; opacity: 0.6;"></div>
@@ -123,7 +138,8 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
       from: `"${senderName}" <${emailSettings.senderEmail || emailSettings.smtpUser}>`,
       to: toEmail,
       subject,
-      html
+      html,
+      attachments
     })
 
     console.log(`Successfully sent approval email to: ${toEmail} for project: ${request.projectTitle}`)

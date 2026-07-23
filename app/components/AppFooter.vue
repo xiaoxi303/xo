@@ -12,9 +12,9 @@
         <!-- Left: Brand Block -->
         <div class="flex items-center gap-3 group cursor-default">
           <img
-            src="/logo2.png"
+            src="/logo.png"
             alt="Xo Logo"
-            class="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            class="h-7 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
           <div class="flex items-baseline gap-1">
             <span class="font-display text-[26px] font-bold tracking-tight" style="color: var(--color-ink-1);">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</span>
