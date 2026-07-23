@@ -1023,8 +1023,35 @@
               </div>
               <div class="space-y-4">
                 <div v-for="(exp, idx) in siteConfig.about.experiences" :key="idx"
-                     class="p-5 rounded-2xl space-y-4 relative shadow-sm" style="background: rgba(255,255,255,0.85); border: 1px solid var(--color-border)">
-                  <button type="button" @click="removeExperience(idx)" class="absolute top-4 right-4 text-xs font-bold font-mono text-rose-500 hover:text-rose-400">删除</button>
+                     @dragover.prevent
+                     @drop="onExpDrop(idx)"
+                     class="p-5 rounded-2xl space-y-4 relative shadow-sm transition-all duration-200 border border-amber-500/20"
+                     :class="[draggedExpIdx === idx ? 'opacity-40 border-dashed border-amber-500' : '']"
+                     style="background: rgba(255,255,255,0.92); border: 1px solid var(--color-border)">
+                  <!-- Scoped Luxury Reorder Bar (Only Handle is Draggable!) -->
+                  <div class="flex items-center justify-between border-b pb-3 border-black/10 select-none">
+                    <div class="flex items-center gap-2">
+                      <!-- Scoped Drag Handle (Only this box is draggable) -->
+                      <div 
+                        draggable="true" 
+                        @dragstart="onExpDragStart(idx)"
+                        class="w-7 h-7 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/25 flex items-center justify-center cursor-grab active:cursor-grabbing transition-all hover:scale-105 shadow-sm"
+                        title="按住此图标即可拖拽重排顺序"
+                      >
+                        <span class="text-amber-800 font-bold text-base leading-none">⠿</span>
+                      </div>
+                      <span class="text-xs font-bold font-mono text-amber-900 bg-amber-500/15 px-2.5 py-1 rounded-lg border border-amber-500/30">履历位序 #{{ idx + 1 }}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-mono font-bold">
+                      <button type="button" @click.stop="moveExperienceUp(idx)" :disabled="idx === 0" :class="[idx === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-amber-500/10 hover:text-amber-800']" class="px-2.5 py-1 rounded-lg border border-black/10 transition-all flex items-center gap-1">
+                        <span>↑</span><span>上移</span>
+                      </button>
+                      <button type="button" @click.stop="moveExperienceDown(idx)" :disabled="idx === siteConfig.about.experiences.length - 1" :class="[idx === siteConfig.about.experiences.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-amber-500/10 hover:text-amber-800']" class="px-2.5 py-1 rounded-lg border border-black/10 transition-all flex items-center gap-1">
+                        <span>↓</span><span>下移</span>
+                      </button>
+                      <button type="button" @click.stop="removeExperience(idx)" class="px-2.5 py-1 rounded-lg border border-rose-500/30 text-rose-600 bg-rose-500/5 hover:bg-rose-500/15 transition-all">删除</button>
+                    </div>
+                  </div>
                   <div class="grid sm:grid-cols-2 gap-3">
                     <div class="space-y-1">
                       <span class="text-[9px] font-mono uppercase" style="color: var(--color-ink-5)">职位</span>
@@ -3163,6 +3190,42 @@ const uploadAvatarFile = async (e: Event) => {
     alert(err.data?.statusMessage || err.statusMessage || '头像图片上传失败，请重试。')
   } finally {
     target.value = ''
+  }
+}
+
+const draggedExpIdx = ref<number | null>(null)
+
+const onExpDragStart = (idx: number) => {
+  draggedExpIdx.value = idx
+}
+
+const onExpDrop = (targetIdx: number) => {
+  if (draggedExpIdx.value === null || draggedExpIdx.value === targetIdx) return
+  const list = siteConfig.value?.about?.experiences
+  if (Array.isArray(list)) {
+    const item = list.splice(draggedExpIdx.value, 1)[0]
+    list.splice(targetIdx, 0, item)
+    showToast('✨ 履历顺序拖拽重排成功！')
+  }
+  draggedExpIdx.value = null
+}
+
+const moveExperienceUp = (idx: number) => {
+  if (idx <= 0) return
+  const list = siteConfig.value?.about?.experiences
+  if (Array.isArray(list)) {
+    const item = list.splice(idx, 1)[0]
+    list.splice(idx - 1, 0, item)
+    showToast('✨ 履历已上移！')
+  }
+}
+
+const moveExperienceDown = (idx: number) => {
+  const list = siteConfig.value?.about?.experiences
+  if (Array.isArray(list) && idx < list.length - 1) {
+    const item = list.splice(idx, 1)[0]
+    list.splice(idx + 1, 0, item)
+    showToast('✨ 履历已下移！')
   }
 }
 
