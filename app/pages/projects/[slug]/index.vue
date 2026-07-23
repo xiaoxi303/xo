@@ -129,6 +129,8 @@
                     class="w-full h-full block cursor-pointer"
                     :style="{ maxHeight: isFullscreen ? 'none' : '520px', height: isFullscreen ? '100%' : '100%', objectFit: 'cover', background: '#000' }"
                     @loadedmetadata="onVideoLoaded"
+                    @durationchange="updateDuration"
+                    @loadeddata="updateDuration"
                     @timeupdate="onTimeUpdate"
                     @play="onPlay"
                     @pause="onPause"
@@ -377,9 +379,9 @@
                 <p class="leading-relaxed text-[0.92rem]" style="color: var(--color-ink-2)">
                   {{ project.description }}
                 </p>
-                <p v-if="project.longDescription" class="leading-relaxed text-sm" style="color: var(--color-ink-4)">
+                <div v-if="project.longDescription" class="leading-relaxed text-sm whitespace-pre-wrap space-y-2 pt-2 border-t border-black/5" style="color: var(--color-ink-3)">
                   {{ project.longDescription }}
-                </p>
+                </div>
               </div>
 
               <!-- Workflow pipeline card -->
@@ -757,9 +759,15 @@ const isDraggingScrub = ref(false)
 const progressTrackRef = ref<HTMLElement | null>(null)
 const playerContainerRef = ref<HTMLElement | null>(null)
 
+const updateDuration = () => {
+  if (mainVideoRef.value && isFinite(mainVideoRef.value.duration) && mainVideoRef.value.duration > 0) {
+    duration.value = mainVideoRef.value.duration
+  }
+}
+
 const onVideoLoaded = () => {
   if (mainVideoRef.value) {
-    duration.value = mainVideoRef.value.duration
+    updateDuration()
     mainVideoRef.value.volume = volume.value
     mainVideoRef.value.muted = isMuted.value
   }
@@ -769,6 +777,9 @@ const onVideoLoaded = () => {
 const onTimeUpdate = () => {
   if (mainVideoRef.value && !isDraggingScrub.value) {
     currentTime.value = mainVideoRef.value.currentTime
+    if (!duration.value || isNaN(duration.value) || duration.value === 0) {
+      updateDuration()
+    }
   }
 }
 

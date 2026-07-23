@@ -256,7 +256,12 @@ function stringifyYaml(data: any): string {
   const lines = []
   lines.push(`title: "${(data.title || '').replace(/"/g, '\\"')}"`)
   lines.push(`description: "${(data.description || '').replace(/"/g, '\\"')}"`)
-  lines.push(`longDescription: "${(data.longDescription || '').replace(/"/g, '\\"')}"`)
+  if (data.longDescription) {
+    const indented = String(data.longDescription).split('\n').map((line: string) => `  ${line}`).join('\n')
+    lines.push(`longDescription: |-\n${indented}`)
+  } else {
+    lines.push(`longDescription: ""`)
+  }
   lines.push(`image: "${(data.image || '').replace(/"/g, '\\"')}"`)
   lines.push(`videoUrl: "${(data.videoUrl || '').replace(/"/g, '\\"')}"`)
   if (Array.isArray(data.videoUrls)) {

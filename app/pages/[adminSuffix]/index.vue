@@ -1,5 +1,70 @@
 <template>
-  <div class="min-h-screen pt-10 pb-20 px-6 font-sans">
+  <div class="min-h-screen pt-10 pb-20 px-6 font-sans relative">
+    <AdminAiCopilot />
+
+    <!-- AI Interactive Prompt Dialog: Notice Copy -->
+    <div v-if="showAiNoticeModal" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none">
+      <div class="glass-card p-6 rounded-2xl max-w-lg w-full space-y-4 border-2 border-purple-500/30 bg-white/95 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-left font-sans">
+        <div class="flex items-center justify-between border-b pb-3 border-black/10">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">📢</span>
+            <h3 class="font-bold text-sm text-[#121316]">AI 顶栏告示灵感生成器</h3>
+          </div>
+          <button type="button" @click="showAiNoticeModal = false" class="text-slate-400 hover:text-black font-bold text-sm px-2">✕</button>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <label class="font-bold text-slate-700">请输入您希望 AI 撰写的宣传方向 / 诉求：</label>
+          <textarea v-model="aiNoticePrompt" rows="3" class="form-input resize-none text-xs leading-relaxed" placeholder="例如：帮我写一句吸引 4K TVC 商业客户与 DaVinci 调色预约的告示..." />
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="text-[10px] text-slate-400 font-bold">灵感预设:</span>
+            <button type="button" @click="aiNoticePrompt = '商业 TVC 与电影 DI 调色开放预订中'" class="px-2 py-0.5 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 text-[10px] font-medium border border-purple-500/20">商业TVC预订</button>
+            <button type="button" @click="aiNoticePrompt = '新发布：TikTok 纯实拍短视频剪辑与沉浸式声效设计作品'" class="px-2 py-0.5 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 text-[10px] font-medium border border-purple-500/20">新作品上线</button>
+            <button type="button" @click="aiNoticePrompt = '2026 下半年限定折扣与 4K HDR 调色试用优惠开启'" class="px-2 py-0.5 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 text-[10px] font-medium border border-purple-500/20">限时优惠</button>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-black/10">
+          <button type="button" @click="showAiNoticeModal = false" class="px-4 py-2 rounded-xl text-xs font-bold border border-black/10 hover:bg-black/5">取消</button>
+          <button type="button" @click="confirmAiNoticeGeneration" :disabled="isAiNoticeGenerating" class="btn-primary px-5 py-2 text-xs bg-purple-600 hover:bg-purple-700 text-white font-bold flex items-center gap-1.5 rounded-xl shadow-md">
+            <span v-if="isAiNoticeGenerating" class="animate-spin">⏳</span>
+            <span>🚀 开始 AI 大模型生成</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Interactive Prompt Dialog: Soundscape Music -->
+    <div v-if="showAiMusicModal" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none">
+      <div class="glass-card p-6 rounded-2xl max-w-lg w-full space-y-4 border-2 border-purple-500/30 bg-white/95 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-left font-sans">
+        <div class="flex items-center justify-between border-b pb-3 border-black/10">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🎵</span>
+            <h3 class="font-bold text-sm text-[#121316]">AI 律动音效灵感推荐器</h3>
+          </div>
+          <button type="button" @click="showAiMusicModal = false" class="text-slate-400 hover:text-black font-bold text-sm px-2">✕</button>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <label class="font-bold text-slate-700">请输入您希望生成的背景音乐氛围 / 风格曲风：</label>
+          <textarea v-model="aiMusicPrompt" rows="3" class="form-input resize-none text-xs leading-relaxed" placeholder="例如：极具科技动感与高级沉浸氛围的赛博律动电子乐..." />
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="text-[10px] text-slate-400 font-bold">曲风预设:</span>
+            <button type="button" @click="aiMusicPrompt = '赛博朋克极速电子律动 (Cyber Pulse)'" class="px-2 py-0.5 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 text-[10px] font-medium border border-purple-500/20">赛博律动</button>
+            <button type="button" @click="aiMusicPrompt = '高级舒缓电影大刊环境音效 (Ambient Film Tone)'" class="px-2 py-0.5 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 text-[10px] font-medium border border-purple-500/20">电影大刊音效</button>
+            <button type="button" @click="aiMusicPrompt = '商业 TVC 震撼重低音防盗水印音轨'" class="px-2 py-0.5 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 text-[10px] font-medium border border-purple-500/20">TVC重低音</button>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-black/10">
+          <button type="button" @click="showAiMusicModal = false" class="px-4 py-2 rounded-xl text-xs font-bold border border-black/10 hover:bg-black/5">取消</button>
+          <button type="button" @click="confirmAiMusicGeneration" :disabled="isAiMusicGenerating" class="btn-primary px-5 py-2 text-xs bg-purple-600 hover:bg-purple-700 text-white font-bold flex items-center gap-1.5 rounded-xl shadow-md">
+            <span v-if="isAiMusicGenerating" class="animate-spin">⏳</span>
+            <span>🚀 开始 AI 大模型匹配</span>
+          </button>
+        </div>
+      </div>
+    </div>
     
     <!-- 1. Auth check loading spinner -->
     <div v-if="isCheckingAuth" class="max-w-6xl mx-auto py-32 flex flex-col items-center justify-center space-y-4">
@@ -1455,7 +1520,12 @@
                   <input v-model="siteConfig.announcement.badge" class="form-input font-mono uppercase" placeholder="NOTICE / HOT" />
                 </div>
                 <div class="space-y-1 md:col-span-2">
-                  <label class="form-label">广播文案 (Message Text)</label>
+                  <div class="flex items-center justify-between">
+                    <label class="form-label">广播文案 (Message Text)</label>
+                    <button type="button" @click.stop.prevent="openNoticeAiModal" class="text-xs font-bold text-purple-700 bg-purple-500/10 hover:bg-purple-500/20 px-2.5 py-1 rounded-lg border border-purple-500/30 flex items-center gap-1 active:scale-95 transition-all cursor-pointer">
+                      <span>✨ AI 一键撰写告示</span>
+                    </button>
+                  </div>
                   <input v-model="siteConfig.announcement.text" class="form-input" placeholder="例如：🎬 2026 下半年商业 TVC 档期与电影 DI 调色开放预订中" />
                 </div>
               </div>
@@ -1477,7 +1547,12 @@
           <div class="glass-card p-8 space-y-6" v-if="siteConfig.music">
             <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
               <div>
+                <div class="flex items-center justify-between w-full">
                 <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">🎵 律动背景音乐与调色盘沙盒 (Soundscape & Palette Sandbox)</h3>
+                <button type="button" @click.stop.prevent="openMusicAiModal" class="text-xs font-bold text-purple-700 bg-purple-500/10 hover:bg-purple-500/20 px-3 py-1 rounded-xl border border-purple-500/30 flex items-center gap-1 active:scale-95 transition-all cursor-pointer">
+                  <span>✨ AI 音频律动推荐</span>
+                </button>
+              </div>
                 <p class="text-xs mt-1" style="color: var(--color-ink-4)">为前台配置高保真背景环境音轨、沉浸式调色盘与体验防盗规则。</p>
               </div>
               <label class="flex items-center gap-2 cursor-pointer bg-black/[0.03] px-3.5 py-1.5 rounded-full border border-black/10">
@@ -1546,6 +1621,14 @@
               </button>
             </div>
           </div>
+
+          <!-- Decoupled Luxury Sub-Components -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+            <AdminStudioCounter :site-config="siteConfig" @save="saveSiteConfig" @toast="showToast" />
+            <AdminThemePalette :site-config="siteConfig" @save="saveSiteConfig" @toast="showToast" />
+          </div>
+
+          <AdminSecurityGateway />
 
           <!-- 5. Preset Persona Templates -->
           <div class="glass-card p-8 space-y-6">
@@ -1978,6 +2061,67 @@
 </template>
 
 <script setup lang="ts">
+const showAiNoticeModal = ref(false)
+const aiNoticePrompt = ref('2026 下半年商业 TVC 视觉制作与电影 DI 调色开放预订中')
+const isAiNoticeGenerating = ref(false)
+
+const showAiMusicModal = ref(false)
+const aiMusicPrompt = ref('极具科技动感与高级沉浸氛围的赛博律动电子乐')
+const isAiMusicGenerating = ref(false)
+
+const openNoticeAiModal = () => {
+  aiNoticePrompt.value = '2026 下半年商业 TVC 视觉制作与电影 DI 调色开放预订中'
+  showAiNoticeModal.value = true
+}
+
+const openMusicAiModal = () => {
+  aiMusicPrompt.value = '极具科技动感与高级沉浸氛围的赛博律动电子乐'
+  showAiMusicModal.value = true
+}
+
+const confirmAiNoticeGeneration = async () => {
+  isAiNoticeGenerating.value = true
+  try {
+    const res = await $fetch('/api/ai/assistant', {
+      method: 'POST',
+      body: { action: 'generate-notice-copy', prompt: aiNoticePrompt.value }
+    }) as any
+    if (res && res.text) {
+      if (!siteConfig.value) siteConfig.value = {}
+      if (!siteConfig.value.announcement) siteConfig.value.announcement = {}
+      siteConfig.value.announcement.text = res.text
+      if (res.badgeText) siteConfig.value.announcement.badge = res.badgeText
+      showToast('✨ AI 灵感大模型已为您生成并成功填充顶栏告示！')
+      showAiNoticeModal.value = false
+    }
+  } catch (e: any) {
+    showToast('AI 生成异常: ' + (e.message || '网络问题'))
+  } finally {
+    isAiNoticeGenerating.value = false
+  }
+}
+
+const confirmAiMusicGeneration = async () => {
+  isAiMusicGenerating.value = true
+  try {
+    const res = await $fetch('/api/ai/assistant', {
+      method: 'POST',
+      body: { action: 'recommend-soundscape', prompt: aiMusicPrompt.value }
+    }) as any
+    if (res) {
+      if (!siteConfig.value) siteConfig.value = {}
+      if (!siteConfig.value.music) siteConfig.value.music = {}
+      if (res.musicUrl) siteConfig.value.music.url = res.musicUrl
+      if (res.musicTitle) siteConfig.value.music.title = res.musicTitle
+      showToast('✨ AI 已根据您的律动诉求成功配置背景音效！')
+      showAiMusicModal.value = false
+    }
+  } catch (e: any) {
+    showToast('AI 音频推荐异常: ' + (e.message || '网络问题'))
+  } finally {
+    isAiMusicGenerating.value = false
+  }
+}
 definePageMeta({
   validate: (route) => {
     const staticPages = ['login', 'register', 'about', 'projects']
