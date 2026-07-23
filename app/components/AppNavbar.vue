@@ -25,9 +25,9 @@
         aria-label="Xo Home"
       >
         <img
-          src="/logo.png"
+          src="/logo2.png"
           alt="Xo Logo"
-          class="h-7 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+          class="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
         />
         <div class="flex items-baseline gap-0.5">
           <span class="font-display text-[#121316] text-2xl font-bold tracking-tight">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</span>
