@@ -3,7 +3,7 @@
     <div class="max-w-4xl mx-auto space-y-12">
       
       <!-- Back button -->
-      <div class="reveal">
+      <div class="">
         <NuxtLink to="/" class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
             <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/>
@@ -140,5 +140,14 @@
 <script setup lang="ts">
 useHead({
   title: '合作预约 - XO Studio'
+})
+
+// Trigger reveal animations on mount
+onMounted(() => {
+  setTimeout(() => {
+    document.querySelectorAll('.reveal').forEach(el => {
+      el.classList.add('in-view')
+    })
+  }, 100)
 })
 </script>
