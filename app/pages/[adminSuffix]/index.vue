@@ -123,14 +123,14 @@
       <!-- Navigation & Action Row -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
         <!-- Tabs Menu (Horizontal Scrollable Capsule) -->
-        <div class="flex items-center gap-1 p-1 rounded-xl overflow-x-auto max-w-full whitespace-nowrap scrollbar-none"
-             style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: none; -ms-overflow-style: none;">
+        <div class="flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap"
+             style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: thin; max-width: 100%;">
           <button
             v-for="t in tabs"
             :key="t.value"
             @click="activeTab = t.value"
             :class="[
-              'relative px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-300 ease-out flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 active:scale-95',
+              'relative px-3 py-1.5 rounded-lg text-[10px] font-semibold font-mono uppercase tracking-wider transition-all duration-300 ease-out flex items-center gap-1 whitespace-nowrap flex-shrink-0 active:scale-95',
               activeTab === t.value
                 ? 'bg-white shadow-sm font-bold scale-[1.02] tab-pill-active'
                 : 'hover:bg-black/[0.03] hover:text-[#121316]'
