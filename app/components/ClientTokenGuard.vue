@@ -49,10 +49,16 @@
           <span class="text-[10px] text-slate-400">
             过期: {{ formatTime(sess.expiresAt) }}
           </span>
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded" 
-            :class="sess.remainingSeconds > 3600 ? 'bg-emerald-500/10 text-emerald-600' : (sess.remainingSeconds > 600 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600')">
-            {{ sess.remainingSeconds > 3600 ? '🟢 正常' : (sess.remainingSeconds > 600 ? '🟡 即将过期' : '🔴 即将失效') }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded" 
+              :class="sess.remainingSeconds > 3600 ? 'bg-emerald-500/10 text-emerald-600' : (sess.remainingSeconds > 600 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600')">
+              {{ sess.remainingSeconds > 3600 ? '🟢 正常' : (sess.remainingSeconds > 600 ? '🟡 即将过期' : '🔴 即将失效') }}
+            </span>
+            <button @click="forceLogout(sess.fullToken)" 
+              class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20">
+              强制登出
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -60,7 +66,7 @@
     <!-- Summary -->
     <div v-if="sessions.length > 0" class="flex items-center justify-between pt-2 border-t border-black/[0.04]">
       <span class="text-[10px] text-slate-400">
-        共 {{ sessions.length }} 个用户已登录，倒计时结束后自动清除
+        共 {{ sessions.length }} 个用户已登录，倒计时结束后自动强制登出
       </span>
       <span class="text-[10px] font-mono text-emerald-600">
         🟢 LIVE
@@ -72,6 +78,7 @@
 <script setup lang="ts">
 interface SessionInfo {
   token: string
+  fullToken: string
   username: string
   createdAt: number
   expiresAt: number
@@ -100,6 +107,19 @@ const formatTime = (timestamp: number) => {
   })
 }
 
+const forceLogout = async (token: string) => {
+  if (!confirm('确认强制登出该用户？')) return
+  try {
+    await $fetch('/api/admin/active-sessions', { 
+      method: 'DELETE', 
+      body: { token } 
+    })
+    await refreshSessions()
+  } catch (e) {
+    alert('操作失败')
+  }
+}
+
 const refreshSessions = async () => {
   try {
     const res = await $fetch<any>('/api/admin/active-sessions')
@@ -114,18 +134,36 @@ const refreshSessions = async () => {
 }
 
 const tickCountdown = () => {
+  const expiredTokens: string[] = []
+  
   sessions.value = sessions.value
-    .map(s => ({
-      ...s,
-      remainingSeconds: Math.max(0, s.remainingSeconds - 1)
-    }))
-    .filter(s => s.remainingSeconds > 0)  // Remove expired sessions
+    .map(s => {
+      const newRemaining = Math.max(0, s.remainingSeconds - 1)
+      if (newRemaining === 0) {
+        expiredTokens.push(s.fullToken)
+      }
+      return {
+        ...s,
+        remainingSeconds: newRemaining
+      }
+    })
+    .filter(s => s.remainingSeconds > 0)
+  
+  // Force logout expired sessions
+  if (expiredTokens.length > 0) {
+    for (const token of expiredTokens) {
+      $fetch('/api/admin/active-sessions', { 
+        method: 'DELETE', 
+        body: { token } 
+      }).catch(() => {})
+    }
+  }
 }
 
 onMounted(() => {
   refreshSessions()
-  refreshTimer = setInterval(refreshSessions, 30000)  // Refresh every 30s
-  countdownTimer = setInterval(tickCountdown, 1000)     // Tick every second
+  refreshTimer = setInterval(refreshSessions, 30000)
+  countdownTimer = setInterval(tickCountdown, 1000)
 })
 
 onBeforeUnmount(() => {

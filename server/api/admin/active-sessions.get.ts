@@ -1,7 +1,8 @@
 import fs from 'node:fs'
-import { defineEventHandler, getCookie } from 'h3'
-import { SESSION_COOKIE, getSessionInfo } from '../../utils/auth'
+import { defineEventHandler, getCookie, readBody } from 'h3'
+import { SESSION_COOKIE, getSessionInfo, destroySession } from '../../utils/auth'
 import { getRuntimeDataPath } from '../../utils/storage'
+import { logSecurityEvent } from '../../utils/security-logger'
 
 export default defineEventHandler(async (event) => {
   // Check admin authentication
@@ -15,7 +16,35 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 
-  // Read all sessions from disk
+  // Handle DELETE request - force logout
+  if (event.method === 'DELETE') {
+    const body = await readBody(event)
+    const { token: targetToken } = body || {}
+    
+    if (!targetToken) {
+      throw createError({ statusCode: 400, statusMessage: 'Missing token' })
+    }
+
+    const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
+    
+    // Get session info before destroying
+    const targetSession = getSessionInfo(targetToken)
+    
+    // Destroy the session
+    destroySession(targetToken)
+    
+    // Log the force logout
+    logSecurityEvent({
+      type: 'Admin Force Logout',
+      ip,
+      action: `Admin forced logout user "${targetSession?.username || 'unknown'}"`,
+      status: 'warning'
+    })
+
+    return { success: true, message: 'Session destroyed' }
+  }
+
+  // Handle GET request - list active sessions
   const sessionsPath = getRuntimeDataPath('.sessions.json')
   let allSessions: Record<string, any> = {}
   
@@ -33,17 +62,17 @@ export default defineEventHandler(async (event) => {
   // Filter and format active client sessions (exclude admin sessions)
   const activeSessions = Object.entries(allSessions)
     .filter(([_, sess]: [string, any]) => {
-      // Only include non-admin sessions that haven't expired
       return sess.expiresAt > now && sess.username !== 'admin'
     })
-    .map(([token, sess]: [string, any]) => ({
-      token: token.slice(0, 8) + '...',  // Partial token for display
+    .map(([sessToken, sess]: [string, any]) => ({
+      token: sessToken.slice(0, 8) + '...',
+      fullToken: sessToken,
       username: sess.username,
       createdAt: sess.createdAt,
       expiresAt: sess.expiresAt,
       remainingSeconds: Math.max(0, Math.floor((sess.expiresAt - now) / 1000))
     }))
-    .sort((a: any, b: any) => a.expiresAt - b.expiresAt)  // Sort by expiration
+    .sort((a: any, b: any) => a.expiresAt - b.expiresAt)
 
   return {
     success: true,
