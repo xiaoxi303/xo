@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
           expiresAt: 0,
           remainingSeconds: 0
         },
-    totalBlocked: logs.filter((log) => log.status === 'blocked').length,
+    totalBlocked: logs.filter((log) => log.status === 'blocked' || log.status === 'warning').length,
     diskStatus: formatDiskStatus(),
     logs
   }

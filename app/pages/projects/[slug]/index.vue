@@ -116,7 +116,7 @@
                 <!-- Custom Premium Player Container -->
                 <div 
                   ref="playerContainerRef" 
-                  class="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-black select-none z-10 aspect-video max-h-[520px]" style="border: 2px solid rgba(217,119,6,0.35); box-shadow: 0 20px 50px rgba(0,0,0,0.25);"
+                  class="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-black select-none z-10 max-h-[700px]" style="border: 2px solid rgba(217,119,6,0.35); box-shadow: 0 20px 50px rgba(0,0,0,0.25); aspect-ratio: auto;"
                   @mousemove="resetControlsTimer"
                   @mouseleave="showControls = false"
                   @contextmenu.prevent
@@ -130,7 +130,7 @@
                     :muted="isMuted"
                     playsinline
                     class="w-full h-full block cursor-pointer"
-                    :style="{ maxHeight: isFullscreen ? 'none' : '520px', height: isFullscreen ? '100%' : '100%', objectFit: 'cover', background: '#000' }"
+                    :style="{ maxHeight: isFullscreen ? 'none' : '700px', height: isFullscreen ? '100%' : '100%', objectFit: 'contain', background: '#000' }"
                     @loadedmetadata="onVideoLoaded"
                     @durationchange="updateDuration"
                     @loadeddata="updateDuration"
