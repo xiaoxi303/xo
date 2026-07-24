@@ -1,8 +1,8 @@
 <template>
   <footer class="relative z-10 mt-16 pt-12 pb-12">
-    <!-- Premium thin gradient divider -->
-    <div class="max-w-6xl mx-auto px-6 mb-8">
-      <div class="h-[1px] w-full" style="background: linear-gradient(90deg, transparent, var(--color-border) 15%, var(--color-border) 85%, transparent);" />
+    <!-- Minimal divider -->
+    <div class="max-w-6xl mx-auto px-6 mb-6">
+      <div class="h-[1px] w-full opacity-30" style="background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1) 15%, rgba(0,0,0,0.1) 85%, transparent);" />
     </div>
 
     <div class="max-w-6xl mx-auto px-6">
