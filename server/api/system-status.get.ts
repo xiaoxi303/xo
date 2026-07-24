@@ -223,11 +223,27 @@ export default defineEventHandler(async (event) => {
   const unifiedHeat = getProjectHeatMap()
   const projectCounts: Record<string, number> = {}
 
+  // Also collect slugs from page-views.json that start with /projects/
+  const pageViewSlugs = new Set<string>()
+  const statsFile = getRuntimeDataPath('page-views.json')
+  if (fs.existsSync(statsFile)) {
+    try {
+      const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
+      for (const pathKey of Object.keys(stats)) {
+        if (pathKey.startsWith('/projects/')) {
+          const slug = pathKey.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+          if (slug && slug !== 'get') pageViewSlugs.add(slug)
+        }
+      }
+    } catch {}
+  }
+
   const allKnownSlugs = new Set([
     ...Array.from(projectTitles.keys()),
     ...Object.keys(viewCounts),
     ...Object.keys(clickCounts),
-    ...Object.keys(unifiedHeat)
+    ...Object.keys(unifiedHeat),
+    ...Array.from(pageViewSlugs)
   ])
 
   for (const slug of Array.from(allKnownSlugs)) {
@@ -240,7 +256,11 @@ export default defineEventHandler(async (event) => {
 
   let projectClicks: { slug: string; title: string; clicks: number }[] = []
   projectClicks = Object.entries(projectCounts)
-    .map(([slug, clicks]) => ({ slug, title: String(projectTitles.get(slug) || slug), clicks }))
+    .map(([slug, clicks]) => ({ 
+      slug, 
+      title: String(projectTitles.get(slug) || slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())), 
+      clicks 
+    }))
     .filter(p => p.slug)
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 6)
