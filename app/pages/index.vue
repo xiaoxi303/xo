@@ -49,6 +49,9 @@
               <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all" @click="trackEvent('contact_click', 'homepage')">
                 联系我 (Contact)
               </a>
+              <NuxtLink to="/booking" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all">
+                📅 合作预约 (Booking)
+              </NuxtLink>
             </div>
 
             <!-- Tech stack tag line -->

@@ -493,6 +493,61 @@
           </div>
         </div>
 
+          <!-- Bookings Tab -->
+          <div v-else-if="activeTab === 'bookings'" key="bookings" class="space-y-6">
+            <div class="glass-card p-8 space-y-6">
+              <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
+                <div>
+                  <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">\U0001f4c5 合作预约管理</h3>
+                  <p class="text-xs mt-1" style="color: var(--color-ink-4)">查看和管理客户的合作预约申请</p>
+                </div>
+                <span class="text-xs font-mono px-3 py-1 rounded-full" style="background: var(--color-accent-10); color: var(--color-accent)">共 {{ bookings.length }} 条预约</span>
+              </div>
+
+              <div v-if="bookings.length === 0" class="text-center py-12">
+                <span class="text-4xl">\U0001f4cb</span>
+                <p class="text-sm mt-3" style="color: var(--color-ink-4)">暂无预约记录</p>
+              </div>
+
+              <div v-else class="space-y-4">
+                <div v-for="b in bookings" :key="b.id" class="p-5 rounded-2xl border" style="border-color: var(--color-border); background: var(--color-bg-2)">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: var(--color-accent-10)">
+                        {{ b.serviceType === 'tvc' ? '\U0001f3ac' : b.serviceType === 'color' ? '\U0001f3a8' : b.serviceType === 'short' ? '\U0001f4f9' : b.serviceType === 'audio' ? '\U0001f3b5' : '\U0001f4c1' }}
+                      </div>
+                      <div>
+                        <span class="font-bold text-sm" style="color: var(--color-ink-1)">{{ b.name }}</span>
+                        <span class="text-xs ml-2" style="color: var(--color-ink-4)">{{ b.company || '无公司' }}</span>
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded" 
+                      :class="b.status === 'pending' ? 'bg-amber-500/10 text-amber-700' : b.status === 'approved' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-slate-100 text-slate-500'">
+                      {{ b.status === 'pending' ? '🟡 待处理' : b.status === 'approved' ? '🟢 已确认' : '⚪ 已归档' }}
+                    </span>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-3">
+                    <div><span style="color: var(--color-ink-4)">电话:</span> <span class="font-mono" style="color: var(--color-ink-1)">{{ b.phone }}</span></div>
+                    <div><span style="color: var(--color-ink-4)">邮箱:</span> <span class="font-mono" style="color: var(--color-ink-1)">{{ b.email }}</span></div>
+                    <div><span style="color: var(--color-ink-4)">预算:</span> <span style="color: var(--color-ink-1)">{{ b.budget || '未填写' }}</span></div>
+                    <div><span style="color: var(--color-ink-4)">时间:</span> <span style="color: var(--color-ink-1)">{{ b.timeline || '未填写' }}</span></div>
+                  </div>
+                  
+                  <p class="text-xs p-3 rounded-lg mb-3" style="background: var(--color-bg-1); color: var(--color-ink-2)">{{ b.description }}</p>
+                  
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px]" style="color: var(--color-ink-5)">{{ new Date(b.createdAt).toLocaleString('zh-CN') }} | IP: {{ b.ip }}</span>
+                    <div class="flex gap-2">
+                      <button v-if="b.status === 'pending'" @click="updateBookingStatus(b.id, 'approved')" class="text-[10px] px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20">✅ 确认</button>
+                      <button v-if="b.status !== 'archived'" @click="updateBookingStatus(b.id, 'archived')" class="text-[10px] px-3 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200">⚪ 归档</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div v-else-if="activeTab === 'users'" key="users" class="space-y-6">
             <!-- TAB 1.6: REGISTERED USERS -->
           <div class="glass-card p-6 flex items-center justify-between">
@@ -2694,6 +2749,20 @@ const fetchPasswordRequests = async () => {
   }
 }
 const registeredUsers = ref<any[]>([])
+const bookings = ref<any[]>([])
+const fetchBookings = async () => {
+  try {
+    const res = await $fetch('/api/admin/bookings?t=' + Date.now()) as any
+    bookings.value = res?.bookings || []
+  } catch {}
+}
+
+const updateBookingStatus = async (id: string, status: string) => {
+  // For now just update locally
+  const booking = bookings.value.find(b => b.id === id)
+  if (booking) booking.status = status
+}
+
 const fetchUsers = async () => {
   try {
     registeredUsers.value = await $fetch('/api/admin/users?t=' + Date.now()) as any[]
@@ -2973,7 +3042,7 @@ const checkAuth = async () => {
     const user = await $fetch('/api/auth/me') as any
     if (user && user.username) {
       // Pre-load all data before revealing the panel — prevents blank screen on refresh
-      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus(), fetchPasswordRequests(), fetchUsers()])
+      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus(), fetchPasswordRequests(), fetchUsers(), fetchBookings()])
       await nextTick()
       isLoggedIn.value = true
     }
@@ -2994,7 +3063,7 @@ const handleLogin = async () => {
     }) as any
     if (res.success) {
       // Fetch all data FIRST, then reveal the panel — prevents blank screen
-      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus(), fetchPasswordRequests(), fetchUsers()])
+      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus(), fetchPasswordRequests(), fetchUsers(), fetchBookings()])
       await nextTick()
       isLoggedIn.value = true
       loginForm.value = { username: '', password: '' }
