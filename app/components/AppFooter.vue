@@ -1,7 +1,7 @@
 <template>
-  <footer class="relative z-10 mt-28 pt-20 pb-16">
+  <footer class="relative z-10 mt-16 pt-12 pb-12">
     <!-- Premium thin gradient divider -->
-    <div class="max-w-6xl mx-auto px-6 mb-12">
+    <div class="max-w-6xl mx-auto px-6 mb-8">
       <div class="h-[1px] w-full" style="background: linear-gradient(90deg, transparent, var(--color-border) 15%, var(--color-border) 85%, transparent);" />
     </div>
 
