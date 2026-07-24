@@ -256,11 +256,14 @@ export default defineEventHandler(async (event) => {
 
   let projectClicks: { slug: string; title: string; clicks: number }[] = []
   projectClicks = Object.entries(projectCounts)
-    .map(([slug, clicks]) => ({ 
-      slug, 
-      title: String(projectTitles.get(slug) || slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())), 
-      clicks 
-    }))
+    .map(([slug, clicks]) => {
+      const title = projectTitles.get(slug)
+      return { 
+        slug, 
+        title: title && title !== slug ? title : slug,  // Use real title if available, otherwise slug
+        clicks 
+      }
+    })
     .filter(p => p.slug)
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 6)
