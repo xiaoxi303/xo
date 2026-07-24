@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event) || {}
   const { action, prompt, projectTitle } = body
 
-  // 1. Collect REAL system-level telemetry and metrics
+  // 1. Collect REAL system-level telemetry and metrics for prompt injection
   let projectCount = 0
   let totalVideoCount = 0
   let realFileSizeBytes = 0
@@ -50,12 +50,12 @@ export default defineEventHandler(async (event) => {
   } catch (e) {}
 
   try {
-    const logsPath = getRuntimeDataPath('security-events.json')
+    const logsPath = getRuntimeDataPath('security-logs.json')
     if (fs.existsSync(logsPath)) {
       const raw = fs.readFileSync(logsPath, 'utf-8')
       const parsed = JSON.parse(raw)
       if (Array.isArray(parsed)) {
-        totalBlockedCount = parsed.filter((l: any) => l.status && (l.status.includes('阻断') || l.status.includes('拦截'))).length
+        totalBlockedCount = parsed.filter((l: any) => l.status === 'blocked').length
       }
     }
   } catch (e) {}
@@ -72,16 +72,16 @@ export default defineEventHandler(async (event) => {
   const systemUptimeMin = Math.floor(process.uptime() / 60)
 
   // Construct System Level Prompt Context
-  const systemContextPrompt = `你是 Xo Studio 系统级核心 AI 神经元 Copilot（系统级硬件与架构掌握者）。
-当前真实的物理系统硬件与业务指标为：
-- 真实作品工程数：${projectCount} 个 (${totalVideoCount} 个视频片段)
-- 物理磁盘资产文件：${realFileCount} 个 (占用空间 ${mbSize} MB)
-- Nitro Guard 物理安全拦截：${totalBlockedCount} 次
-- 剪辑师续命咖啡存盘计数：${coffeeCount} 杯
-- Node.js 进程内存占用：${memoryUsageMB} MB, 运行时长：${systemUptimeMin} 分钟
-- 物理只读保护与 JSON 沙盒灾备：🟢 就绪就位
+  const systemContextPrompt = `你是 Xo Studio 全局智能 AI 神经元 Copilot。
+你具备全局全站数据的实时洞察能力。当前站点的真实物理物理指标为：
+- 真实作品工程：${projectCount} 个 (${totalVideoCount} 个视频片段)
+- 磁盘文件：${realFileCount} 个 (占用空间 ${mbSize} MB)
+- 安全网关物理拦截：${totalBlockedCount} 次
+- Node.js 内存占用：${memoryUsageMB} MB (运行时间 ${systemUptimeMin} 分钟)
 
-请在回答时，结合以上真实物理系统指标给用户做精细诊断与回答。不要使用抽象通用词，直接引用以上具体的系统物理数字！`
+请根据用户的【具体指令/问题】进行有针对性的聪明回答。不要总是输出固定的诊断报告！
+只有当用户显式询问“系统诊断”、“全站健康”、“服务器状态”时才列出系统健康指标。
+对于其他任何问题（例如文案优化、创意灵感、回复客户、调色建议等），请直接给出高品质的专业建议！`
 
   // Read User AI Config
   let aiSettings: any = {}
@@ -115,7 +115,7 @@ export default defineEventHandler(async (event) => {
             { role: 'user', content: userPrompt }
           ],
           temperature: 0.7,
-          max_tokens: 1200
+          max_tokens: 1500
         })
       })
 
@@ -146,20 +146,20 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       isCustomLlm: !!apiKey,
-      title: projectTitle || '极速之境：2026 全新商业概念超跑 TVC',
+      title: title,
       slug: `supercar-tvc-${Date.now().toString().slice(-4)}`,
-      description: '【AI System Magic】探索光影与流体力学极致碰撞的商业 TVC 大片，结合系统底层 DaVinci ACES 调色。',
-      longDescription: `### 01. **系统物理视听分析**\n当前底层磁盘解析包含 ${realFileCount} 个物理资产 (${mbSize} MB)，通过高清 4K RAW 进行多机位同步捕捉，车身金属光泽被赋予流线型质感。\n\n### 02. **剪辑节奏与声效协同**\n在剪辑节奏上，配合 ${totalVideoCount} 个视频片段的高频冲刺镜头，音频部分结合 24-bit 96kHz 空间立体环绕声设计，重低音引擎轰鸣极为撼人。\n\n### 03. **ACES 色彩空间与安全灾备**\n全片后期完成于 DaVinci Resolve Studio，严格遵循 ACES 1.3 工业标准，全局配置与项目存盘镜像已由 Nitro Guard 沙盒锁实时防护。`,
-      tags: ['AI系统级生成', '4K商业TVC', 'DaVinci调色', 'ACES色彩', '物理存盘防护'],
-      software: ['DaVinci Resolve', 'Premiere Pro', 'After Effects', 'Adobe Audition'],
+      description: `【AI 智能文案】探索《${title}》中镜头语言与视听节奏的极致融合。基于系统真实数据，呈现全流程 4K 电影质感。`,
+      longDescription: `### 01. **影视概念与镜头语言**\n针对《${title}》，在镜头设计上采用了大量大帧率慢动作特写，结合全站已挂载的 ${projectCount} 个作品工程的调色库逻辑，打造高奢商业质感。\n\n### 02. **剪辑节奏与声音设计**\n在剪辑上精准咬合重音节拍，声音部分采用 24-bit 96kHz 空间立体环绕声设计，重低音音浪极具震撼感。\n\n### 03. **DaVinci ACES 色彩调色**\n全片基于 DaVinci Resolve 严格遵循 ACES 1.3 工业色彩标准，确保多终端画面色域高度精准。`,
+      tags: ['AI智能文案', '4K商业TVC', 'DaVinci调色', 'ACES色彩'],
+      software: ['DaVinci Resolve', 'Premiere Pro', 'After Effects', 'Logic Pro'],
       postSpecs: '4K 60FPS HDR / ACES Color',
       deliverFormat: 'ProRes 4444 XQ',
       audioFormat: '24-bit 96kHz Spatial Audio',
       releaseYear: '2026',
       director: 'Xo',
       workflow: [
-        { icon: '⚡', title: '01. ACES 色彩空间管理', desc: '载入 DaVinci 节点架构，建立 ACEScct 颜色管理。' },
-        { icon: '🎬', title: '02. 高帧率动态剪辑合成', desc: '运用顶级剪辑逻辑控制视听呼吸。' }
+        { icon: '⚡', title: '01. ACES 色彩管理', desc: '建立 ACEScct 工业级颜色管理体系。' },
+        { icon: '🎬', title: '02. 视听重音卡点剪辑', desc: '精准控制画面镜头呼吸与情绪起伏。' }
       ]
     }
   }
@@ -167,7 +167,7 @@ export default defineEventHandler(async (event) => {
   if (action === 'copilot-command') {
     const userPrompt = (prompt || '诊断全站健康').trim()
     
-    // Call Custom LLM with System Telemetry Context!
+    // Call Custom LLM with User's Exact Prompt!
     const realCopilotReply = await callCustomLLM(
       systemContextPrompt,
       userPrompt
@@ -178,21 +178,29 @@ export default defineEventHandler(async (event) => {
         success: true,
         isCustomLlm: true,
         endpointUsed: endpoint,
-        reply: `🤖 [${modelName} 系统级 Copilot 真实响应]:\n${realCopilotReply}`
+        reply: `🤖 [${modelName} 真实 API 大模型响应]:\n${realCopilotReply}`
       }
     }
 
-    // High-precision System Telemetry Fallback Diagnostic
+    // Dynamic Intelligent Intelligence Generator (Not a static report!)
+    if (userPrompt.includes('诊断') || userPrompt.includes('健康') || userPrompt.includes('状态')) {
+      return {
+        success: true,
+        isCustomLlm: false,
+        reply: `🤖 [系统 AI Copilot 真实健康报告]:\n\n### 📊 全站硬件与系统实时指标：\n1. **🎬 作品工程**：全站挂载 **${projectCount} 个作品 (${totalVideoCount} 个视频片段)**。\n2. **💾 磁盘文件**：扫描到 **${realFileCount} 个文件 (物理占用 ${mbSize} MB)**。\n3. **🛡️ 安全阻断**：物理安全网关成功拦截 **${totalBlockedCount} 次**网络扫描/攻击。\n4. **⚡ 内存与进程**：Node 进程已运行 **${systemUptimeMin} 分钟**，内存占用 **${memoryUsageMB} MB**，处于 **🟢 极佳健康状态**！\n\n💡 *提示：您可以在后台【AI 设置】中配置自己的 OpenAI/DeepSeek API Key，以解锁多模型自由对话能力。*`
+      }
+    }
+
+    // Intelligent responses according to user prompt
     return {
       success: true,
-      isCustomLlm: !!apiKey,
-      endpointUsed: endpoint,
-      reply: `🤖 [${modelName} 系统级 Copilot 真实诊断报告]:\n\n### 📊 物理系统硬件与业务指标诊断：\n1. **🎬 真实作品数据库**：正常运转中。全站已挂载 **${projectCount} 个作品工程 (${totalVideoCount} 个视频片段)**。\n2. **💾 物理磁盘吞吐**：完美。扫描到 **${realFileCount} 个磁盘资产文件 (物理占用 ${mbSize} MB)**。\n3. **🛡️ Nitro Guard 安全网关**：极安全。物理拦截 **${totalBlockedCount} 次**非法扫描/篡改攻击。\n4. **☕ 剪辑师续命存盘**：当前持久化存盘为 **${coffeeCount} 杯**。\n5. **⚡ 内存与进程**：Node 进程已运行 **${systemUptimeMin} 分钟**，堆内存占用 **${memoryUsageMB} MB**，物理锁状态为 **🟢 物理隔离护航就位**！`
+      isCustomLlm: false,
+      reply: `🤖 [系统 AI Copilot 智能回应]:\n\n针对您提出的指令：“**${userPrompt}**”，建议您：\n1. **剪辑与文案优化**：可使用【一键 AI 文案生成】自动为您填充三段式 Markdown 专栏；\n2. **调色与后期规范**：建议在作品参数中开启 ACEScct 色彩空间规范，提升画面还原度；\n3. **系统联动**：全站已有 ${projectCount} 个工程就位，磁盘占用 ${mbSize} MB，随时可进行云端发布与管理。\n\n💡 *提示：在后台【AI 设置】中配置您的专属大模型 API Key（如 OpenAI / DeepSeek），Copilot 将使用真正大模型进行无限自由创作！*`
     }
   }
 
   return {
     success: true,
-    reply: `🤖 [${modelName} 系统级 Copilot] 全面板监控中。`
+    reply: `🤖 [AI Copilot] 随时准备为您服务。`
   }
 })

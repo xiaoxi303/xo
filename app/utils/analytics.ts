@@ -11,7 +11,6 @@ export function recordProjectClickEvent(slug: string, title?: string) {
 
   const targetUrl = `/api/analytics/event?event=project_click&slug=${encodeURIComponent(cleanSlug)}`
 
-  // 1. Send via fetch with keepalive: true FIRST (query param + JSON body for 100% compatibility)
   try {
     fetch(targetUrl, {
       method: 'POST',
@@ -20,12 +19,4 @@ export function recordProjectClickEvent(slug: string, title?: string) {
       keepalive: true
     }).catch(() => {})
   } catch {}
-
-  // 2. Also send via sendBeacon as guaranteed background backup
-  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-    try {
-      const blob = new Blob([payload], { type: 'application/json' })
-      navigator.sendBeacon(targetUrl, blob)
-    } catch {}
-  }
 }

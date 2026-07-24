@@ -87,13 +87,16 @@
             <div class="flex flex-wrap gap-2">
               <span v-for="tag in project.tags" :key="tag" class="badge">{{ tag }}</span>
             </div>
-            <h1 class="font-display text-4xl lg:text-5xl font-bold tracking-tight leading-tight"
-                style="color: var(--color-ink-1)">
+
+            <h1 class="font-display text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-slate-900">
               {{ project.title }}
             </h1>
-            <p class="text-sm font-mono" style="color: var(--color-ink-5)">
-              发布日期：{{ project.releaseYear || '2026' }} 年 · 后期规格：{{ project.postSpecs || '4K 60FPS HDR' }}
-            </p>
+
+            <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-500 pt-1">
+              <span>发布日期：{{ project.releaseYear || '2026' }} 年</span>
+              <span class="text-slate-300">·</span>
+              <span>后期规格：{{ project.postSpecs || (siteConfig?.home?.colorSpecText ? siteConfig.home.colorSpecText : '4K 60FPS HDR / ACEScct') }}</span>
+            </div>
           </div>
 
           <!-- Media block: video player OR cover image fallback -->
@@ -113,7 +116,7 @@
                 <!-- Custom Premium Player Container -->
                 <div 
                   ref="playerContainerRef" 
-                  class="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-black border border-black/10 select-none z-10 aspect-video max-h-[520px]"
+                  class="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-black select-none z-10 aspect-video max-h-[520px]" style="border: 2px solid rgba(217,119,6,0.35); box-shadow: 0 20px 50px rgba(0,0,0,0.25);"
                   @mousemove="resetControlsTimer"
                   @mouseleave="showControls = false"
                   @contextmenu.prevent
@@ -266,7 +269,7 @@
                   type="button"
                   @click="activeVideoIndex = idx"
                   :class="[
-                    'px-3 py-2 rounded-xl text-[10px] font-mono font-semibold transition-all',
+                    'px-3 py-2 rounded-xl text-[10px] font-mono font-semibold transition-all cursor-pointer',
                     activeVideoIndex === idx ? 'shadow-sm' : 'hover:opacity-80'
                   ]"
                   :style="activeVideoIndex === idx
@@ -371,38 +374,41 @@
             <div class="md:col-span-2 space-y-6">
 
               <!-- Project overview card -->
-              <div class="glass-card p-8 space-y-5">
-                <div class="flex items-center gap-3">
-                  <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
-                  <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">项目概述</h2>
+              <div class="glass-card p-8 sm:p-9 space-y-5 rounded-3xl border-2 border-black/10 shadow-2xl bg-white/90 backdrop-blur-xl hover:border-amber-500/40 transition-all duration-300">
+                <div class="flex items-center gap-3 border-b border-black/10 pb-4">
+                  <span class="w-1.5 h-6 rounded-full bg-amber-600" />
+                  <h2 class="font-display text-2xl font-bold text-slate-900">项目概述</h2>
                 </div>
-                <p class="leading-relaxed text-[0.92rem]" style="color: var(--color-ink-2)">
+                <p class="leading-relaxed text-slate-700 text-sm sm:text-base font-sans font-medium">
                   {{ project.description }}
                 </p>
-                <div v-if="project.longDescription" class="leading-relaxed text-sm whitespace-pre-wrap space-y-2 pt-2 border-t border-black/5" style="color: var(--color-ink-3)">
+                <div v-if="project.longDescription" class="leading-relaxed text-sm text-slate-600 whitespace-pre-wrap space-y-3 pt-4 border-t border-black/10 font-sans">
                   {{ project.longDescription }}
                 </div>
               </div>
 
               <!-- Workflow pipeline card -->
-              <div v-if="project.workflow && project.workflow.length" class="glass-card p-8 space-y-6">
-                <div class="flex items-center gap-3">
-                  <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
-                  <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-1)">幕后制作工作流 (Pipeline)</h2>
+              <div v-if="project.workflow && project.workflow.length" class="glass-card p-8 sm:p-9 space-y-6 rounded-3xl border-2 border-black/10 shadow-2xl bg-white/90 backdrop-blur-xl hover:border-amber-500/40 transition-all duration-300">
+                <div class="flex items-center gap-3 border-b border-black/10 pb-4">
+                  <span class="w-1.5 h-6 rounded-full bg-amber-600" />
+                  <h2 class="font-display text-2xl font-bold text-slate-900">幕后制作工作流 (Pipeline)</h2>
                 </div>
 
-                <div class="space-y-0" style="border-top: 1px solid var(--color-border);">
+                <div class="space-y-4">
                   <div
-                    v-for="flow in project.workflow"
+                    v-for="(flow, fIdx) in project.workflow"
                     :key="flow.title"
-                    class="py-5 space-y-2"
-                    style="border-bottom: 1px solid var(--color-border);"
+                    class="p-5 rounded-2xl space-y-2 transition-all hover:bg-black/[0.02]"
+                    style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.08);"
                   >
                     <div class="flex items-center gap-3">
-                      <span class="text-xl flex-shrink-0">{{ flow.icon }}</span>
-                      <h3 class="font-semibold text-sm" style="color: var(--color-ink-1)">{{ flow.title }}</h3>
+                      <div class="w-7 h-7 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-xs font-mono font-bold text-amber-800 flex-shrink-0">
+                        0{{ fIdx + 1 }}
+                      </div>
+                      <span class="text-lg flex-shrink-0">{{ flow.icon }}</span>
+                      <h3 class="font-bold text-base text-slate-900">{{ flow.title }}</h3>
                     </div>
-                    <p class="text-sm leading-relaxed pl-9" style="color: var(--color-ink-4)">{{ flow.desc }}</p>
+                    <p class="text-sm leading-relaxed pl-10 text-slate-600 font-sans">{{ flow.desc }}</p>
                   </div>
                 </div>
               </div>
@@ -412,57 +418,57 @@
             <div class="space-y-6">
 
               <!-- DI Console Specs card -->
-              <div class="glass-card p-6 space-y-5 relative overflow-hidden">
-                <!-- Top accent line -->
-                <div class="absolute top-0 inset-x-0 h-[2px] rounded-t-[inherit]"
-                     style="background: linear-gradient(90deg, transparent, var(--color-bronze), transparent)" />
+              <div class="glass-card p-7 space-y-6 relative overflow-hidden rounded-3xl border-2 border-black/10 shadow-2xl bg-white/90 backdrop-blur-xl">
+                <!-- Top luxury gold accent bar -->
+                <div class="absolute top-0 inset-x-0 h-1.5 rounded-t-[inherit]"
+                     style="background: linear-gradient(90deg, #d97706 0%, #b45309 50%, #f59e0b 100%);" />
 
-                <div class="flex items-center justify-between pt-1">
-                  <h2 class="font-display text-sm font-bold uppercase tracking-wider"
-                      style="color: var(--color-ink-1)">后期制作技术参数</h2>
-                  <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full animate-pulse" style="background: #16a34a" />
-                    <span class="text-[10px] uppercase font-mono" style="color: var(--color-ink-5)">已调色</span>
+                <div class="flex items-center justify-between pt-2">
+                  <h2 class="font-display text-base font-bold uppercase tracking-wider text-slate-900">后期制作技术参数</h2>
+                  <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full"
+                       :class="project.isGraded !== false ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-500/10 border border-slate-500/20'">
+                    <span class="w-2 h-2 rounded-full" :class="project.isGraded !== false ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'" />
+                    <span class="text-[10px] uppercase font-mono font-bold" :class="project.isGraded !== false ? 'text-emerald-800' : 'text-slate-500'">
+                      {{ project.isGraded !== false ? '已调色' : '未调色' }}
+                    </span>
                   </div>
                 </div>
 
-                <div class="space-y-0 font-mono text-xs" style="border-top: 1px solid var(--color-border);">
-                  <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                    <span style="color: var(--color-ink-4)">后期导演 (Director)</span>
-                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.director || 'Xo' }}</span>
+                <div class="space-y-0 font-mono text-xs border-t border-black/10">
+                  <div class="flex justify-between items-center py-3 border-b border-black/10">
+                    <span class="text-slate-600 font-sans font-medium">后期导演 (Director)</span>
+                    <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.director || 'Xo' }}</span>
                   </div>
-                  <div v-if="project.software?.[0]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                    <span style="color: var(--color-ink-4)">剪辑与包装软件</span>
-                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.software[0] }}</span>
+                  <div v-if="project.software?.[0]" class="flex justify-between items-center py-3 border-b border-black/10">
+                    <span class="text-slate-600 font-sans font-medium">剪辑与包装软件</span>
+                    <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.software[0] }}</span>
                   </div>
-                  <div v-if="project.software?.[1]" class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                    <span style="color: var(--color-ink-4)">色彩分级调色</span>
-                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.software[1] }}</span>
+                  <div v-if="project.software?.[1]" class="flex justify-between items-center py-3 border-b border-black/10">
+                    <span class="text-slate-600 font-sans font-medium">色彩分级调色</span>
+                    <span class="font-bold text-amber-800 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{{ project.software[1] }}</span>
                   </div>
-                  <div class="flex justify-between py-3" style="border-bottom: 1px solid var(--color-border);">
-                    <span style="color: var(--color-ink-4)">交付格式</span>
-                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.deliverFormat || 'ProRes 422 HQ' }}</span>
+                  <div class="flex justify-between items-center py-3 border-b border-black/10">
+                    <span class="text-slate-600 font-sans font-medium">交付格式</span>
+                    <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.deliverFormat || 'ProRes 422 HQ' }}</span>
                   </div>
-                  <div class="flex justify-between py-3">
-                    <span style="color: var(--color-ink-4)">声音编码</span>
-                    <span class="font-semibold" style="color: var(--color-ink-1)">{{ project.audioFormat || '24-bit 48kHz' }}</span>
+                  <div class="flex justify-between items-center py-3">
+                    <span class="text-slate-600 font-sans font-medium">声音编码</span>
+                    <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.audioFormat || '24-bit 48kHz' }}</span>
                   </div>
                 </div>
               </div>
 
               <!-- CTA card -->
-              <div class="glass-card p-6 space-y-4 overflow-hidden relative">
-                <div class="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
-                     style="background: radial-gradient(circle, rgba(180,83,9,0.12) 0%, transparent 70%)" />
-                <div class="space-y-1 relative z-10">
-                  <h3 class="font-display text-base font-semibold" style="color: var(--color-ink-1)">
+              <div class="glass-card p-7 space-y-4 overflow-hidden relative rounded-3xl border-2 border-amber-500/30 shadow-2xl bg-gradient-to-br from-white via-amber-500/5 to-white backdrop-blur-xl">
+                <div class="space-y-1.5 relative z-10">
+                  <h3 class="font-display text-lg font-bold text-slate-900">
                     需要同类视频制作？
                   </h3>
-                  <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
-                    我支持从视频分镜、后期精剪、调色降噪到动效合成的全流程定制服务。
+                  <p class="text-xs text-slate-600 leading-relaxed font-sans font-medium">
+                    支持从视频分镜、后期精剪、调色降噪到动效合成的全流程定制服务。
                   </p>
                 </div>
-                <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-primary w-full justify-center text-xs py-2.5 relative z-10">
+                <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-primary w-full justify-center text-xs py-3 relative z-10 shadow-lg hover:shadow-amber-600/30">
                   发起项目咨询
                 </a>
               </div>
@@ -908,8 +914,6 @@ const formatTime = (seconds: number) => {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
-let heartbeatTimer: any = null
-
 useHead({
   title: () => project.value ? `${project.value.title} — Xo Studio` : '作品详情 — Xo Studio',
   meta: [{ name: 'description', content: () => project.value ? project.value.description : '作品详情页' }]
@@ -931,25 +935,26 @@ const handleFullscreenChange = () => {
   isFullscreen.value = !!document.fullscreenElement
 }
 
-import { recordProjectClickEvent } from '~/utils/analytics'
+const viewedProjectSlugs = new Set<string>()
 
-const recordProjectClick = async (targetSlug?: string) => {
+const recordProjectView = async (targetSlug?: string) => {
   if (!import.meta.client) return
   const currentSlug = targetSlug || (route.params.slug as string) || slug
-  if (!currentSlug) return
+  if (!currentSlug || viewedProjectSlugs.has(currentSlug)) return
+  viewedProjectSlugs.add(currentSlug)
 
   try {
     await $fetch(`/api/projects/${currentSlug}/view`, { method: 'POST' })
-  } catch (e) {}
-
-  recordProjectClickEvent(currentSlug, project.value?.title)
+  } catch (e) {
+    viewedProjectSlugs.delete(currentSlug)
+  }
 }
 
 watch(
   project,
   (val) => {
     if (val && import.meta.client) {
-      recordProjectClick()
+      recordProjectView()
     }
   },
   { immediate: true }
@@ -963,13 +968,7 @@ onMounted(async () => {
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
 
-    // Automatically record project visit on client mount
-    recordProjectClick()
-
-    // Heartbeat watching pulse: automatically updates heat ranking every 4 seconds while visitor stays on page
-    heartbeatTimer = setInterval(() => {
-      recordProjectClick()
-    }, 4000)
+    recordProjectView()
   }
 })
 
@@ -977,13 +976,12 @@ watch(
   () => route.params.slug,
   (newSlug, oldSlug) => {
     if (newSlug && newSlug !== oldSlug && import.meta.client) {
-      recordProjectClick(newSlug as string)
+      recordProjectView(newSlug as string)
     }
   }
 )
 
 onBeforeUnmount(() => {
-  if (heartbeatTimer) clearInterval(heartbeatTimer)
   if (observer) observer.disconnect()
   if (import.meta.client) {
     document.removeEventListener('fullscreenchange', handleFullscreenChange)

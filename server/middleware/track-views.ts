@@ -1,7 +1,6 @@
 import { getD1Database } from '../utils/db'
 import fs from 'node:fs'
 import { getRuntimeDataPath } from '../utils/storage'
-import { recordProjectHeat } from '../utils/analytics-store'
 
 // Pages we want to track (skip assets, api routes, admin)
 const TRACKABLE_PATHS = ['/', '/projects', '/about']
@@ -11,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const pathname = url.pathname
 
   // Only track HTML page requests (not API, assets, etc.)
-  if (!TRACKABLE_PATHS.some(p => pathname === p || pathname.startsWith('/projects/'))) return
+  if (!TRACKABLE_PATHS.includes(pathname)) return
   if (pathname.startsWith('/api/') || pathname.startsWith('/_nuxt/') || pathname.startsWith('/uploads/')) return
 
   const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
@@ -48,12 +47,6 @@ export default defineEventHandler(async (event) => {
       fs.writeFileSync(statsFile, JSON.stringify(stats, null, 2))
     }
 
-    if (pathname.startsWith('/projects/')) {
-      const slug = pathname.replace(/^\/projects\//, '').split('/')[0]
-      if (slug && slug !== 'projects') {
-        recordProjectHeat(slug, 1)
-      }
-    }
   } catch (e) {
     // Silently swallow tracking errors — never break pages
   }

@@ -1,5 +1,7 @@
+import fs from 'node:fs'
 import { recordProjectHeat } from '../../../utils/analytics-store'
 import { getD1Database } from '../../../utils/db'
+import { getRuntimeDataPath } from '../../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0]

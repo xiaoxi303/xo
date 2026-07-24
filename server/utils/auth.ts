@@ -33,7 +33,7 @@ interface Session {
 
 type SessionStore = Record<string, Session>
 
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 // Resolve sessions file path from current working directory
 function getSessionsFilePath(): string {
@@ -100,6 +100,16 @@ export function validateSession(token: string): Session | null {
     return null
   }
   return sess
+}
+
+export function getSessionInfo(token: string): (Session & { remainingSeconds: number }) | null {
+  const session = validateSession(token)
+  if (!session) return null
+
+  return {
+    ...session,
+    remainingSeconds: Math.max(0, Math.floor((session.expiresAt - Date.now()) / 1000))
+  }
 }
 
 export function destroySession(token: string): void {

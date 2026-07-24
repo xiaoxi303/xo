@@ -2592,7 +2592,7 @@ const submitButtonRef = ref<HTMLButtonElement | null>(null)
 
 const form = ref<any>({
   slug: '', title: '', image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: '',
-  releaseYear: '', postSpecs: '', director: '', deliverFormat: '', audioFormat: ''
+  releaseYear: '', postSpecs: '', director: '', isGraded: true, deliverFormat: '', audioFormat: ''
 })
 
 const MAX_PROJECT_VIDEOS = 10
@@ -3161,6 +3161,9 @@ const uploadProjectCover = async (e: Event) => {
     target.value = ''
   }
 }
+
+
+
 
 const uploadHeroPoster = async (e: Event) => {
   const target = e.target as HTMLInputElement
