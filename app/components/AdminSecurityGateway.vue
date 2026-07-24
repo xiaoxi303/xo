@@ -13,9 +13,14 @@
           <p class="text-xs text-slate-400 font-mono mt-0.5">Realtime API Interception & Client Token Sentinel</p>
         </div>
       </div>
-      <span class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
-        REALTIME LIVE FEED
-      </span>
+      <div class="flex items-center gap-2">
+        <button @click="deleteAllLogs" class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-700 border border-rose-500/20 hover:bg-rose-500/20">
+          ✖ 清空日志
+        </button>
+        <span class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+          REALTIME LIVE FEED
+        </span>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pb-2">
@@ -62,7 +67,10 @@
             <td class="py-3.5 px-4 text-slate-500">{{ log.ip }}</td>
             <td class="py-3.5 px-4 text-slate-600">{{ log.action }}</td>
             <td class="py-3.5 px-4 text-slate-400">{{ formatRelativeTime(log.timestamp) }}</td>
-            <td class="py-3.5 px-4 text-right font-bold">{{ statusLabel(log.status) }}</td>
+            <td class="py-3.5 px-4 text-right font-bold flex items-center justify-end gap-2">
+              {{ statusLabel(log.status) }}
+              <button @click="deleteLog(log.id)" class="text-rose-400 hover:text-rose-600 text-[10px]" title="删除">✖</button>
+            </td>
           </tr>
         </tbody>
         <tbody v-else>
@@ -119,6 +127,26 @@ const formatTokenCountdown = computed(() => {
 let countdownTimer: ReturnType<typeof setInterval> | null = null
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 let eventSource: EventSource | null = null
+
+const deleteLog = async (id: string) => {
+  if (!confirm('确认删除这条安全日志吗？')) return
+  try {
+    await $fetch('/api/admin/security-logs', { method: 'DELETE', body: { id } })
+    await refreshSecurityState()
+  } catch (e) {
+    alert('删除失败')
+  }
+}
+
+const deleteAllLogs = async () => {
+  if (!confirm('确认删除所有安全日志吗？此操作不可恢复！')) return
+  try {
+    await $fetch('/api/admin/security-logs', { method: 'DELETE', body: { deleteAll: true } })
+    await refreshSecurityState()
+  } catch (e) {
+    alert('删除失败')
+  }
+}
 
 const refreshSecurityState = async () => {
   try {
