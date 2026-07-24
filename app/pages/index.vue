@@ -52,6 +52,9 @@
               <NuxtLink to="/booking" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all">
                 📅 合作预约 (Booking)
               </NuxtLink>
+              <NuxtLink to="/booking/form" class="btn-primary shadow-xl" style="background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 10px 25px rgba(16,185,129,0.25);">
+                📝 立即预约 (填写表单)
+              </NuxtLink>
             </div>
 
             <!-- Tech stack tag line -->
