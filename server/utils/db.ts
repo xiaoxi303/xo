@@ -425,9 +425,10 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
       INSERT INTO projects (
         slug, title, image, imageBefore, videoUrl, videoUrls, software, tags, featured, 
         description, longDescription, workflow, password,
-        releaseYear, postSpecs, director, deliverFormat, audioFormat
+        releaseYear, postSpecs, director, deliverFormat, audioFormat,
+        sortOrder, displayNumber
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       body.slug,
       body.title,
@@ -446,7 +447,9 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
       body.postSpecs || '',
       body.director || '',
       body.deliverFormat || '',
-      body.audioFormat || ''
+      body.audioFormat || '',
+      body.sortOrder || 0,
+      body.displayNumber || ''
     ).run()
     return
   }
@@ -477,7 +480,8 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
       UPDATE projects
       SET title = ?, image = ?, imageBefore = ?, videoUrl = ?, videoUrls = ?, software = ?, tags = ?, featured = ?, 
           description = ?, longDescription = ?, workflow = ?, password = ?,
-          releaseYear = ?, postSpecs = ?, director = ?, deliverFormat = ?, audioFormat = ?
+          releaseYear = ?, postSpecs = ?, director = ?, deliverFormat = ?, audioFormat = ?,
+          sortOrder = ?, displayNumber = ?
       WHERE slug = ?
     `).bind(
       body.title,
@@ -497,6 +501,8 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
       body.director || '',
       body.deliverFormat || '',
       body.audioFormat || '',
+      body.sortOrder || 0,
+      body.displayNumber || '',
       body.slug
     ).run()
     return
