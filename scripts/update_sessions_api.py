@@ -1,4 +1,8 @@
-import fs from 'node:fs'
+﻿# -*- coding: utf-8 -*-
+import codecs
+
+# Update active-sessions API to support DELETE
+api_content = '''import fs from 'node:fs'
 import { defineEventHandler, getCookie, readBody } from 'h3'
 import { SESSION_COOKIE, getSessionInfo, destroySession } from '../../utils/auth'
 import { getRuntimeDataPath } from '../../utils/storage'
@@ -80,3 +84,9 @@ export default defineEventHandler(async (event) => {
     count: activeSessions.length
   }
 })
+'''
+
+with codecs.open(r'D:\Git\zpj\server\api\admin\active-sessions.get.ts', 'w', 'utf-8') as f:
+    f.write(api_content)
+
+print("Updated active-sessions.get.ts")
