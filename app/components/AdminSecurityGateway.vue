@@ -23,17 +23,10 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-5 gap-4 pb-2">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pb-2">
       <div class="p-4 rounded-2xl bg-black/[0.02] border border-black/[0.04]">
         <span class="text-[9px] font-mono text-slate-400 block uppercase font-bold">拦截非法请求</span>
         <span class="font-display font-bold text-xl text-emerald-600">{{ totalBlocked }} 次</span>
-      </div>
-      <div class="p-4 rounded-2xl bg-black/[0.02] border border-black/[0.04]">
-        <span class="text-[9px] font-mono text-slate-400 block uppercase font-bold">用户 Token 会话守卫</span>
-        <span class="font-display font-bold text-xl text-[#121316] font-mono">{{ formatClientCountdown }}</span>
-        <span class="block text-[10px] mt-1" :class="clientSession.loggedIn ? 'text-emerald-600' : 'text-rose-500'">
-          {{ clientSession.loggedIn ? `用户 ${clientSession.username} 已登录` : '用户未登录或已过期' }}
-        </span>
       </div>
       <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
         <span class="text-[9px] font-mono text-amber-900 block uppercase font-bold">管理员 Token 会话守卫</span>
@@ -105,13 +98,7 @@ type SecurityLog = {
 const totalBlocked = ref(0)
 const diskStatus = ref('读取中...')
 const liveLogs = ref<SecurityLog[]>([])
-const clientSession = ref({
-  loggedIn: false,
-  username: '',
-  createdAt: 0,
-  expiresAt: 0,
-  remainingSeconds: 0
-})
+
 
 const adminSession = ref({
   loggedIn: false,
@@ -123,13 +110,7 @@ const adminSession = ref({
 
 
 
-const formatClientCountdown = computed(() => {
-  const sec = Math.max(0, clientSession.value.remainingSeconds || 0)
-  const h = Math.floor(sec / 3600).toString().padStart(2, '0')
-  const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0')
-  const s = Math.floor(sec % 60).toString().padStart(2, '0')
-  return `${h}:${m}:${s}`
-})
+
 
 const formatAdminCountdown = computed(() => {
   const sec = Math.max(0, adminSession.value.remainingSeconds || 0)
@@ -168,29 +149,22 @@ const refreshSecurityState = async () => {
     const res = await $fetch<any>('/api/admin/security-logs')
     if (!res?.success) return
 
-    clientSession.value = res.clientSession || { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
     adminSession.value = res.session || { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
 
     totalBlocked.value = res.totalBlocked || 0
     diskStatus.value = res.diskStatus || '暂无安全日志文件'
     liveLogs.value = Array.isArray(res.logs) ? res.logs : []
   } catch {
-    clientSession.value = { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
     adminSession.value = { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
   }
 }
 
 const tickCountdown = () => {
-  if (clientSession.value.loggedIn) {
-    clientSession.value.remainingSeconds = Math.max(0, (clientSession.value.remainingSeconds || 0) - 1)
-  }
   if (adminSession.value.loggedIn) {
     adminSession.value.remainingSeconds = Math.max(0, (adminSession.value.remainingSeconds || 0) - 1)
-  }
-  if ((!clientSession.value.loggedIn && !adminSession.value.loggedIn) || 
-      (clientSession.value.loggedIn && clientSession.value.remainingSeconds === 0) ||
-      (adminSession.value.loggedIn && adminSession.value.remainingSeconds === 0)) {
-    refreshSecurityState()
+    if (adminSession.value.remainingSeconds === 0) {
+      refreshSecurityState()
+    }
   }
 }
 

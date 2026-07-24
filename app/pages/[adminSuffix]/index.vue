@@ -1655,6 +1655,9 @@
             <AdminThemePalette :site-config="siteConfig" @save="saveSiteConfig" @toast="showToast" />
           </div>
 
+          <!-- Client Token Guard Panel -->
+          <ClientTokenGuard />
+
           <AdminSecurityGateway />
 
           <!-- 5. Preset Persona Templates -->
