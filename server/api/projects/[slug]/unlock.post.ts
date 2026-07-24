@@ -5,6 +5,7 @@
  */
 import { dbGetProjectPassword } from '../../../utils/db'
 import { randomBytes } from 'crypto'
+import { logSecurityEvent } from '../../../utils/security-logger'
 
 // In-memory unlock token store (project-scoped, lightweight)
 // Each token is: { slug, expiresAt }
@@ -28,6 +29,13 @@ export default defineEventHandler(async (event) => {
   }
 
   if (password !== storedPassword) {
+    const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
+    logSecurityEvent({
+      type: 'Project Password Guard',
+      ip,
+      action: `Failed password attempt for project "${slug}"`,
+      status: 'blocked'
+    })
     // Artificial delay to resist brute-force
     await new Promise(r => setTimeout(r, 600))
     throw createError({ statusCode: 401, statusMessage: '密码错误，请联系作者获取授权密码。' })

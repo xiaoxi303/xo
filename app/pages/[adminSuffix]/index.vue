@@ -1840,7 +1840,10 @@
                        <span>🔐 访问保护密码</span>
                        <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">(留空则完全公开)</span>
                      </label>
-                     <input v-model="form.password" type="text" class="form-input font-mono text-xs" placeholder="例如: client2026 (无密码请留空)" />
+                     <div class="flex gap-2">
+                       <input v-model="form.password" type="text" class="form-input font-mono text-xs flex-1" placeholder="例如: client2026 (无密码请留空)" />
+                       <button type="button" @click="form.password = generateRandomPassword()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-700 border border-amber-500/20 hover:bg-amber-500/20 whitespace-nowrap">随机生成</button>
+                     </div>
                    </div>
                  </div>
 
@@ -3420,6 +3423,15 @@ const triggerFormSubmit = () => {
   if (tempTagInput.value.trim()) addTag()
   submitButtonRef.value?.click()
 }
+const generateRandomPassword = () => {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  let result = ''
+  for (let i = 0; i < 12; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
+}
+
 const saveProject = async () => {
   try {
     const videos = normalizeProjectVideos()

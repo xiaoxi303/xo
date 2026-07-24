@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { defineEventHandler, getCookie } from 'h3'
-import { getSessionInfo, SESSION_COOKIE } from '../../utils/auth'
+import { CLIENT_SESSION_COOKIE, getSessionInfo, SESSION_COOKIE } from '../../utils/auth'
 import { getSecurityLogs } from '../../utils/security-logger'
 import { getRuntimeDataPath } from '../../utils/storage'
 
@@ -15,11 +15,28 @@ function formatDiskStatus() {
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, SESSION_COOKIE)
+  const clientToken = getCookie(event, CLIENT_SESSION_COOKIE)
   const session = token ? getSessionInfo(token) : null
+  const clientSession = clientToken ? getSessionInfo(clientToken) : null
   const logs = getSecurityLogs()
 
   return {
     success: true,
+    clientSession: clientSession
+      ? {
+          loggedIn: true,
+          username: clientSession.username,
+          createdAt: clientSession.createdAt,
+          expiresAt: clientSession.expiresAt,
+          remainingSeconds: clientSession.remainingSeconds
+        }
+      : {
+          loggedIn: false,
+          username: '',
+          createdAt: 0,
+          expiresAt: 0,
+          remainingSeconds: 0
+        },
     session: session
       ? {
           loggedIn: true,

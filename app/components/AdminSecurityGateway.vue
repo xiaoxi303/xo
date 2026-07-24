@@ -2,15 +2,15 @@
   <div class="glass-card p-8 space-y-6 my-6">
     <div class="flex items-center justify-between border-b pb-4 border-black/[0.06]">
       <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full" :class="session.loggedIn ? 'bg-emerald-500 animate-ping' : 'bg-rose-500'" />
+        <span class="w-2.5 h-2.5 rounded-full" :class="clientSession.loggedIn ? 'bg-emerald-500 animate-ping' : 'bg-rose-500'" />
         <div>
           <div class="flex items-center gap-2">
-            <h3 class="font-display font-bold text-lg text-[#121316]">安全网关阻断日志与防撞库大屏 (Security Gateway Map)</h3>
+            <h3 class="font-display font-bold text-lg text-[#121316]">安全网关阻断日志与用户 Token 大屏 (Security Gateway Map)</h3>
             <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 border border-purple-500/20">
               Real Session Guard
             </span>
           </div>
-          <p class="text-xs text-slate-400 font-mono mt-0.5">Realtime API Interception & Admin Token Sentinel</p>
+          <p class="text-xs text-slate-400 font-mono mt-0.5">Realtime API Interception & Client Token Sentinel</p>
         </div>
       </div>
       <span class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
@@ -24,10 +24,10 @@
         <span class="font-display font-bold text-xl text-emerald-600">{{ totalBlocked }} 次</span>
       </div>
       <div class="p-4 rounded-2xl bg-black/[0.02] border border-black/[0.04]">
-        <span class="text-[9px] font-mono text-slate-400 block uppercase font-bold">Token 会话守卫</span>
+        <span class="text-[9px] font-mono text-slate-400 block uppercase font-bold">用户 Token 会话守卫</span>
         <span class="font-display font-bold text-xl text-[#121316] font-mono">{{ formatTokenCountdown }}</span>
-        <span class="block text-[10px] mt-1" :class="session.loggedIn ? 'text-emerald-600' : 'text-rose-500'">
-          {{ session.loggedIn ? `用户 ${session.username} 已登录` : '未登录或已过期，需要重新登录' }}
+        <span class="block text-[10px] mt-1" :class="(clientSession.loggedIn || adminSession.loggedIn) ? 'text-emerald-600' : 'text-rose-500'">
+          {{ clientSession.loggedIn ? `用户 ${clientSession.username} 已登录` : (adminSession.loggedIn ? `管理员 ${adminSession.username} 已登录` : '用户未登录或已过期，需要前端重新登录') }}
         </span>
       </div>
       <div class="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20">
@@ -90,7 +90,15 @@ type SecurityLog = {
 const totalBlocked = ref(0)
 const diskStatus = ref('读取中...')
 const liveLogs = ref<SecurityLog[]>([])
-const session = ref({
+const clientSession = ref({
+  loggedIn: false,
+  username: '',
+  createdAt: 0,
+  expiresAt: 0,
+  remainingSeconds: 0
+})
+
+const adminSession = ref({
   loggedIn: false,
   username: '',
   createdAt: 0,
@@ -117,20 +125,29 @@ const refreshSecurityState = async () => {
     const res = await $fetch<any>('/api/admin/security-logs')
     if (!res?.success) return
 
-    session.value = res.session
-    currentRemainingSec.value = res.session?.remainingSeconds || 0
+    clientSession.value = res.clientSession || { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
+    adminSession.value = res.session || { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
+    // 优先使用用户Token（clientSession），没有用户登录才使用管理员Token（adminSession）
+    if (res.clientSession?.loggedIn) {
+      currentRemainingSec.value = res.clientSession.remainingSeconds || 0
+    } else if (res.session?.loggedIn) {
+      currentRemainingSec.value = res.session.remainingSeconds || 0
+    } else {
+      currentRemainingSec.value = 0
+    }
     totalBlocked.value = res.totalBlocked || 0
     diskStatus.value = res.diskStatus || '暂无安全日志文件'
     liveLogs.value = Array.isArray(res.logs) ? res.logs : []
   } catch {
-    session.value = { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
+    clientSession.value = { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
+    adminSession.value = { loggedIn: false, username: '', createdAt: 0, expiresAt: 0, remainingSeconds: 0 }
     currentRemainingSec.value = 0
   }
 }
 
 const tickCountdown = () => {
   currentRemainingSec.value = Math.max(0, currentRemainingSec.value - 1)
-  if (currentRemainingSec.value === 0 && session.value.loggedIn) {
+  if (currentRemainingSec.value === 0 && (clientSession.value.loggedIn || adminSession.value.loggedIn)) {
     refreshSecurityState()
   }
 }

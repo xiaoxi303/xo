@@ -1,4 +1,4 @@
-import { validateSession, CLIENT_SESSION_COOKIE } from '../../utils/auth'
+import { getSessionInfo, CLIENT_SESSION_COOKIE } from '../../utils/auth'
 
 export default defineEventHandler((event) => {
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
@@ -6,13 +6,16 @@ export default defineEventHandler((event) => {
     return { loggedIn: false }
   }
 
-  const session = validateSession(token)
+  const session = getSessionInfo(token)
   if (!session) {
     return { loggedIn: false }
   }
 
   return {
     loggedIn: true,
-    username: session.username
+    username: session.username,
+    createdAt: session.createdAt,
+    expiresAt: session.expiresAt,
+    remainingSeconds: session.remainingSeconds
   }
 })
