@@ -6,6 +6,7 @@
 import { dbGetProjectPassword } from '../../../utils/db'
 import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
+import { getRealClientIP } from '../../../utils/ip-helper'
 
 // In-memory unlock token store (project-scoped, lightweight)
 // Each token is: { slug, expiresAt }
@@ -29,7 +30,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (password !== storedPassword) {
-    const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
+    const ip = getRealClientIP(event)
     logSecurityEvent({
       type: 'Project Password Guard',
       ip,

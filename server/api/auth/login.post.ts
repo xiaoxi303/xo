@@ -8,11 +8,12 @@ import {
 } from '../../utils/auth'
 import { dbGetSiteConfig } from '../../utils/db'
 import { logSecurityEvent } from '../../utils/security-logger'
+import { getRealClientIP } from '../../utils/ip-helper'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { username, password } = body || {}
-  const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
+  const ip = getRealClientIP(event)
 
   if (!username || !password) {
     throw createError({ statusCode: 400, statusMessage: '请输入用户名和密码。' })

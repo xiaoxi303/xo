@@ -1,5 +1,6 @@
 import { validateSession, SESSION_COOKIE } from '../utils/auth'
 import { logSecurityEvent } from '../utils/security-logger'
+import { getRealClientIP } from '../utils/ip-helper'
 
 export default defineEventHandler((event) => {
   const url = getRequestURL(event)
@@ -20,7 +21,7 @@ export default defineEventHandler((event) => {
   const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)
   if (!isAdminRoute || !isMutation) return
 
-  const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
+  const ip = getRealClientIP(event)
   const token = getCookie(event, SESSION_COOKIE)
 
   if (!token) {
