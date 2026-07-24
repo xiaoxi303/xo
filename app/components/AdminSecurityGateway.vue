@@ -2,15 +2,15 @@
   <div class="glass-card p-8 space-y-6 my-6">
     <div class="flex items-center justify-between border-b pb-4 border-black/[0.06]">
       <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full" :class="clientSession.loggedIn ? 'bg-emerald-500 animate-ping' : 'bg-rose-500'" />
+        <span class="w-2.5 h-2.5 rounded-full" :class="adminSession.loggedIn ? 'bg-emerald-500 animate-ping' : 'bg-rose-500'" />
         <div>
           <div class="flex items-center gap-2">
-            <h3 class="font-display font-bold text-lg text-[#121316]">安全网关阻断日志与用户 Token 大屏 (Security Gateway Map)</h3>
+            <h3 class="font-display font-bold text-lg text-[#121316]">安全网关阻断日志 (Security Gateway Map)</h3>
             <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 border border-purple-500/20">
               Real Session Guard
             </span>
           </div>
-          <p class="text-xs text-slate-400 font-mono mt-0.5">Realtime API Interception & Client Token Sentinel</p>
+          <p class="text-xs text-slate-400 font-mono mt-0.5">Realtime API Interception & Admin Token Sentinel</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
