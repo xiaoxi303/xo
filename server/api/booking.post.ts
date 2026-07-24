@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { defineEventHandler, readBody } from 'h3'
 import { getRuntimeDataPath } from '../../utils/storage'
-import { logSecurityEvent } from '../../utils/security-logger'
+import { logSecurityEvent } from '../utils/security-logger'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
