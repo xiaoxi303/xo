@@ -498,14 +498,14 @@
             <div class="glass-card p-8 space-y-6">
               <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
                 <div>
-                  <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">\U0001f4c5 合作预约管理</h3>
+                  <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">📅 合作预约管理</h3>
                   <p class="text-xs mt-1" style="color: var(--color-ink-4)">查看和管理客户的合作预约申请</p>
                 </div>
                 <span class="text-xs font-mono px-3 py-1 rounded-full" style="background: var(--color-accent-10); color: var(--color-accent)">共 {{ bookings.length }} 条预约</span>
               </div>
 
               <div v-if="bookings.length === 0" class="text-center py-12">
-                <span class="text-4xl">\U0001f4cb</span>
+                <span class="text-4xl">📋</span>
                 <p class="text-sm mt-3" style="color: var(--color-ink-4)">暂无预约记录</p>
               </div>
 
@@ -514,7 +514,7 @@
                   <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center gap-3">
                       <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: var(--color-accent-10)">
-                        {{ b.serviceType === 'tvc' ? '\U0001f3ac' : b.serviceType === 'color' ? '\U0001f3a8' : b.serviceType === 'short' ? '\U0001f4f9' : b.serviceType === 'audio' ? '\U0001f3b5' : '\U0001f4c1' }}
+                        {{ b.serviceType === 'tvc' ? '🎬' : b.serviceType === 'color' ? '🎨' : b.serviceType === 'short' ? '📹' : b.serviceType === 'audio' ? '🎵' : '📁' }}
                       </div>
                       <div>
                         <span class="font-bold text-sm" style="color: var(--color-ink-1)">{{ b.name }}</span>
