@@ -51,9 +51,9 @@
       <table class="w-full text-left text-xs font-mono border-collapse">
         <thead>
           <tr class="bg-black/[0.02] text-[9px] uppercase text-slate-400 border-b border-black/[0.05]">
-            <th class="py-3 px-4">防护类型</th>
+            <th class="py-3 px-4">事件类型</th>
             <th class="py-3 px-4">终端 IP</th>
-            <th class="py-3 px-4">处置动作 / 触发策略</th>
+            <th class="py-3 px-4">详细信息</th>
             <th class="py-3 px-4">时间</th>
             <th class="py-3 px-4 text-right">状态</th>
           </tr>
@@ -62,10 +62,10 @@
           <tr v-for="log in liveLogs" :key="log.id" class="hover:bg-black/[0.01] transition-all">
             <td class="py-3.5 px-4 font-bold text-[#121316] flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full" :class="statusDotClass(log.status)" />
-              <span>{{ log.type }}</span>
+              <span>{{ formatEventType(log.type) }}</span>
             </td>
-            <td class="py-3.5 px-4 text-slate-500">{{ log.ip }}</td>
-            <td class="py-3.5 px-4 text-slate-600">{{ log.action }}</td>
+            <td class="py-3.5 px-4 text-slate-500 font-mono text-[10px]">{{ log.ip }}</td>
+            <td class="py-3.5 px-4 text-slate-600">{{ formatEventAction(log.type, log.action) }}</td>
             <td class="py-3.5 px-4 text-slate-400">{{ formatRelativeTime(log.timestamp) }}</td>
             <td class="py-3.5 px-4 text-right font-bold flex items-center justify-end gap-2">
               {{ statusLabel(log.status) }}
@@ -197,6 +197,55 @@ onMounted(() => {
   eventSource = new EventSource('/api/analytics/stream')
   eventSource.addEventListener('update', refreshSecurityState)
 })
+
+const formatEventType = (type: string) => {
+  const typeMap: Record<string, string> = {
+    'Client Login Guard': '🔐 客户登录',
+    'Client Access Gate': '🟢 客户登录',
+    'Client Token Guard': '🔐 客户会话',
+    'Admin Login Guard': '🔑 管理员登录',
+    'Admin Access Gate': '🟢 管理员登录',
+    'Admin Force Logout': '⚠️ 强制登出',
+    'Token Session Guard': '🔑 管理员会话',
+    'Project Password Guard': '🔒 作品密码'
+  }
+  return typeMap[type] || type
+}
+
+const formatEventAction = (type: string, action: string) => {
+  // Parse the action to show more friendly messages
+  if (action.includes('non-existent user')) {
+    const match = action.match(/"([^"]+)"/)
+    const username = match ? match[1] : '未知'
+    return `账户 "${username}" 不存在，尚未注册`
+  }
+  if (action.includes('non-existent admin')) {
+    const match = action.match(/"([^"]+)"/)
+    const username = match ? match[1] : '未知'
+    return `管理员 "${username}" 不存在`
+  }
+  if (action.includes('Wrong password')) {
+    const match = action.match(/"([^"]+)"/)
+    const username = match ? match[1] : '未知'
+    return `用户 "${username}" 密码输入错误`
+  }
+  if (action.includes('session issued')) {
+    const match = action.match(/"([^"]+)"/)
+    const username = match ? match[1] : '未知'
+    return `用户 "${username}" 登录成功`
+  }
+  if (action.includes('forced logout')) {
+    const match = action.match(/"([^"]+)"/)
+    const username = match ? match[1] : '未知'
+    return `用户 "${username}" 被强制登出`
+  }
+  if (action.includes('Failed password attempt')) {
+    const match = action.match(/"([^"]+)"/)
+    const slug = match ? match[1] : '未知'
+    return `作品 "${slug}" 密码验证失败`
+  }
+  return action
+}
 
 onBeforeUnmount(() => {
   if (countdownTimer) clearInterval(countdownTimer)
