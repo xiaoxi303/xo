@@ -5,35 +5,22 @@ import { getRuntimeDataPath } from '../../utils/storage'
 import { logSecurityEvent } from '../../utils/security-logger'
 
 export default defineEventHandler(async (event) => {
-  // Check admin authentication
   const token = getCookie(event, SESSION_COOKIE)
-  if (!token) {
-    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
-  }
+  if (!token) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   
   const session = getSessionInfo(token)
-  if (!session) {
-    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
-  }
+  if (!session) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-  // Handle DELETE request - force logout
   if (event.method === 'DELETE') {
     const body = await readBody(event)
     const { token: targetToken } = body || {}
     
-    if (!targetToken) {
-      throw createError({ statusCode: 400, statusMessage: 'Missing token' })
-    }
+    if (!targetToken) throw createError({ statusCode: 400, statusMessage: 'Missing token' })
 
     const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
-    
-    // Get session info before destroying
     const targetSession = getSessionInfo(targetToken)
-    
-    // Destroy the session
     destroySession(targetToken)
     
-    // Log the force logout
     logSecurityEvent({
       type: 'Admin Force Logout',
       ip,
@@ -44,14 +31,12 @@ export default defineEventHandler(async (event) => {
     return { success: true, message: 'Session destroyed' }
   }
 
-  // Handle GET request - list active sessions
   const sessionsPath = getRuntimeDataPath('.sessions.json')
   let allSessions: Record<string, any> = {}
   
   try {
     if (fs.existsSync(sessionsPath)) {
-      const content = fs.readFileSync(sessionsPath, 'utf-8')
-      allSessions = JSON.parse(content)
+      allSessions = JSON.parse(fs.readFileSync(sessionsPath, 'utf-8'))
     }
   } catch {
     allSessions = {}
@@ -59,11 +44,8 @@ export default defineEventHandler(async (event) => {
 
   const now = Date.now()
   
-  // Filter and format active client sessions (exclude admin sessions)
   const activeSessions = Object.entries(allSessions)
-    .filter(([_, sess]: [string, any]) => {
-      return sess.expiresAt > now && sess.username !== 'admin'
-    })
+    .filter(([_, sess]: [string, any]) => sess.expiresAt > now && sess.username !== 'admin')
     .map(([sessToken, sess]: [string, any]) => ({
       token: sessToken.slice(0, 8) + '...',
       fullToken: sessToken,
@@ -74,9 +56,5 @@ export default defineEventHandler(async (event) => {
     }))
     .sort((a: any, b: any) => a.expiresAt - b.expiresAt)
 
-  return {
-    success: true,
-    sessions: activeSessions,
-    count: activeSessions.length
-  }
+  return { success: true, sessions: activeSessions, count: activeSessions.length }
 })
