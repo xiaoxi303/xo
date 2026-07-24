@@ -2384,6 +2384,7 @@ const tabs = [
   { label: '数据看板', value: 'analytics', icon: '📊' },
   { label: '作品管理', value: 'projects', icon: '🎥' },
   { label: '授权申请', value: 'requests', icon: '🔑' },
+  { label: '合作预约', value: 'bookings', icon: '📅' },
   { label: '用户管理', value: 'users', icon: '👥' },
   { label: '首页配置', value: 'home', icon: '🏠' },
   { label: '个人履历', value: 'about', icon: '🙋' },
