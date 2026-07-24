@@ -1,62 +1,139 @@
 <template>
   <div class="min-h-screen pt-28 pb-24 px-6">
-    <div class="max-w-2xl mx-auto">
+    <div class="max-w-2xl mx-auto space-y-8">
       
-      <div class="mb-8">
-        <NuxtLink to="/booking" class="text-amber-600 hover:text-amber-700">← 返回预约说明</NuxtLink>
+      <!-- Back button -->
+      <div class="reveal">
+        <NuxtLink to="/booking" class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+            <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/>
+          </svg>
+          返回预约说明
+        </NuxtLink>
       </div>
 
-      <h1 class="text-3xl font-bold mb-6">合作预约表单</h1>
-
-      <div v-if="submitted" class="p-8 border rounded-lg bg-green-50 text-center">
-        <p class="text-2xl mb-4">✅</p>
-        <p class="text-lg font-bold text-green-700">预约提交成功！</p>
-        <p class="text-green-600 mt-2">我们会在24小时内与您联系</p>
-        <NuxtLink to="/" class="inline-block mt-4 text-amber-600">返回首页</NuxtLink>
-      </div>
-
-      <form v-else @submit.prevent="submitForm" class="space-y-6">
-        <div>
-          <label class="block text-sm font-bold mb-2">姓名 *</label>
-          <input v-model="form.name" type="text" required class="w-full p-3 border rounded-lg" placeholder="请输入您的姓名" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-bold mb-2">电话 *</label>
-            <input v-model="form.phone" type="tel" required class="w-full p-3 border rounded-lg" placeholder="手机号码" />
-          </div>
-          <div>
-            <label class="block text-sm font-bold mb-2">邮箱 *</label>
-            <input v-model="form.email" type="email" required class="w-full p-3 border rounded-lg" placeholder="your@email.com" />
+      <!-- Success Message -->
+      <Transition name="fade">
+        <div v-if="submitted" class="glass-card p-12 text-center space-y-6 rounded-3xl border-2 border-emerald-200 bg-emerald-50/50">
+          <span class="text-6xl">✅</span>
+          <h2 class="font-display text-2xl font-bold text-emerald-800">预约提交成功！</h2>
+          <p class="text-emerald-600">感谢您的预约，我们会在24小时内通过邮件或电话与您联系。</p>
+          <div class="flex items-center justify-center gap-4 pt-4">
+            <NuxtLink to="/" class="btn-ghost py-2 px-6 text-sm">返回首页</NuxtLink>
+            <NuxtLink to="/projects" class="btn-primary py-2 px-6 text-sm">查看作品集</NuxtLink>
           </div>
         </div>
+      </Transition>
 
-        <div>
-          <label class="block text-sm font-bold mb-2">服务类型 *</label>
-          <select v-model="form.serviceType" required class="w-full p-3 border rounded-lg">
-            <option value="">请选择</option>
-            <option value="tvc">商业TVC广告</option>
-            <option value="color">电影调色</option>
-            <option value="short">短视频制作</option>
-            <option value="audio">音效设计</option>
-            <option value="other">其他</option>
-          </select>
+      <!-- Form -->
+      <Transition name="fade">
+        <div v-if="!submitted" class="glass-card p-8 sm:p-10 space-y-8 rounded-3xl border-2 border-black/10 shadow-2xl">
+          <div class="text-center space-y-2">
+            <span class="text-4xl">📝</span>
+            <h1 class="font-display text-2xl font-bold text-slate-900">合作预约表单</h1>
+            <p class="text-sm text-slate-500">请填写以下信息，我们会尽快与您联系</p>
+          </div>
+
+          <form @submit.prevent="submitForm" class="space-y-6">
+            <!-- Name -->
+            <div class="space-y-2">
+              <label class="form-label font-semibold">
+                <span class="text-rose-500">*</span> 您的姓名
+              </label>
+              <input v-model="form.name" type="text" required class="form-input" placeholder="请输入您的姓名" />
+            </div>
+
+            <!-- Contact -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="form-label font-semibold">
+                  <span class="text-rose-500">*</span> 联系电话
+                </label>
+                <input v-model="form.phone" type="tel" required class="form-input" placeholder="手机号码" />
+              </div>
+              <div class="space-y-2">
+                <label class="form-label font-semibold">
+                  <span class="text-rose-500">*</span> 电子邮箱
+                </label>
+                <input v-model="form.email" type="email" required class="form-input" placeholder="your@email.com" />
+              </div>
+            </div>
+
+            <!-- Company -->
+            <div class="space-y-2">
+              <label class="form-label font-semibold">公司/品牌名称</label>
+              <input v-model="form.company" type="text" class="form-input" placeholder="选填" />
+            </div>
+
+            <!-- Service Type -->
+            <div class="space-y-2">
+              <label class="form-label font-semibold">
+                <span class="text-rose-500">*</span> 服务类型
+              </label>
+              <select v-model="form.serviceType" required class="form-input">
+                <option value="">请选择服务类型</option>
+                <option value="tvc">🎬 商业TVC广告</option>
+                <option value="color">🎨 电影/纪录片调色</option>
+                <option value="short">📹 短视频制作</option>
+                <option value="audio">🎵 音效/配乐设计</option>
+                <option value="other">📁 其他服务</option>
+              </select>
+            </div>
+
+            <!-- Budget -->
+            <div class="space-y-2">
+              <label class="form-label font-semibold">预算范围</label>
+              <select v-model="form.budget" class="form-input">
+                <option value="">请选择预算范围</option>
+                <option value="under5k">5,000 元以下</option>
+                <option value="5k-10k">5,000 - 10,000 元</option>
+                <option value="10k-30k">10,000 - 30,000 元</option>
+                <option value="30k-50k">30,000 - 50,000 元</option>
+                <option value="over50k">50,000 元以上</option>
+                <option value="negotiable">面议</option>
+              </select>
+            </div>
+
+            <!-- Timeline -->
+            <div class="space-y-2">
+              <label class="form-label font-semibold">期望交付时间</label>
+              <select v-model="form.timeline" class="form-input">
+                <option value="">请选择期望时间</option>
+                <option value="urgent">⚡ 加急（3天内）</option>
+                <option value="1week">1周内</option>
+                <option value="2weeks">2周内</option>
+                <option value="1month">1个月内</option>
+                <option value="flexible">时间灵活</option>
+              </select>
+            </div>
+
+            <!-- Description -->
+            <div class="space-y-2">
+              <label class="form-label font-semibold">
+                <span class="text-rose-500">*</span> 项目描述
+              </label>
+              <textarea v-model="form.description" required rows="5" class="form-input resize-none" placeholder="请简要描述您的项目需求、创意想法或参考作品..."></textarea>
+            </div>
+
+            <!-- Reference Links -->
+            <div class="space-y-2">
+              <label class="form-label font-semibold">参考链接</label>
+              <input v-model="form.referenceLinks" type="text" class="form-input" placeholder="如有参考视频/图片链接，请粘贴在这里" />
+            </div>
+
+            <!-- Submit -->
+            <div class="pt-4">
+              <button type="submit" :disabled="submitting" class="btn-primary w-full py-4 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-lg hover:shadow-xl transition-all">
+                <span v-if="submitting" class="animate-spin">⏳</span>
+                <span v-else>📨</span>
+                {{ submitting ? '提交中...' : '提交预约' }}
+              </button>
+            </div>
+
+            <p v-if="error" class="text-sm text-rose-500 text-center">❌ {{ error }}</p>
+          </form>
         </div>
-
-        <div>
-          <label class="block text-sm font-bold mb-2">项目描述 *</label>
-          <textarea v-model="form.description" required rows="4" class="w-full p-3 border rounded-lg" placeholder="请描述您的项目需求"></textarea>
-        </div>
-
-        <div>
-          <button type="submit" :disabled="submitting" class="w-full bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 disabled:opacity-50">
-            {{ submitting ? '提交中...' : '提交预约' }}
-          </button>
-        </div>
-
-        <p v-if="error" class="text-red-500 text-center">{{ error }}</p>
-      </form>
+      </Transition>
 
     </div>
   </div>
@@ -75,8 +152,12 @@ const form = ref({
   name: '',
   phone: '',
   email: '',
+  company: '',
   serviceType: '',
-  description: ''
+  budget: '',
+  timeline: '',
+  description: '',
+  referenceLinks: ''
 })
 
 const submitForm = async () => {
@@ -90,7 +171,7 @@ const submitForm = async () => {
     })
     submitted.value = true
   } catch (e: any) {
-    error.value = e.statusMessage || '提交失败'
+    error.value = e.statusMessage || '提交失败，请稍后重试'
   } finally {
     submitting.value = false
   }
