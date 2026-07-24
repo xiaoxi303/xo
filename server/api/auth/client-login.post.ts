@@ -33,26 +33,26 @@ export default defineEventHandler(async (event) => {
 
   if (!userRecord) {
     logSecurityEvent({
-      type: 'Client Token Guard',
+      type: 'Client Login Guard',
       ip,
-      action: `Failed client login for username "${username}"`,
-      status: 'blocked'
+      action: `Login attempt for non-existent user "${username}"`,
+      status: 'warning'
     })
     // Artificial delay to prevent brute force timing attacks
     await new Promise(resolve => setTimeout(resolve, 800))
-    throw createError({ statusCode: 401, statusMessage: '用户名或密码错误。' })
+    throw createError({ statusCode: 404, statusMessage: '该账户不存在，请先注册。' })
   }
 
   // Verify client password
   if (!verifyPassword(password, userRecord.password)) {
     logSecurityEvent({
-      type: 'Client Token Guard',
+      type: 'Client Login Guard',
       ip,
-      action: `Failed client login for username "${username}"`,
+      action: `Wrong password for user "${username}"`,
       status: 'blocked'
     })
     await new Promise(resolve => setTimeout(resolve, 800))
-    throw createError({ statusCode: 401, statusMessage: '用户名或密码错误。' })
+    throw createError({ statusCode: 401, statusMessage: '密码错误，请重新输入。' })
   }
 
   // Create session and set cookie

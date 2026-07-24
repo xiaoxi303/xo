@@ -23,15 +23,28 @@ export default defineEventHandler(async (event) => {
   const allowedUsername = config.admin?.username || 'admin'
   const allowedPasswordHash = config.admin?.passwordHash || ADMIN_PASSWORD_HASH
 
-  if (username !== allowedUsername || !verifyPassword(password, allowedPasswordHash)) {
+  // Check username first
+  if (username !== allowedUsername) {
     logSecurityEvent({
-      type: 'Token Session Guard',
+      type: 'Admin Login Guard',
       ip,
-      action: `Failed admin login for username "${username}"`,
+      action: `Login attempt for non-existent admin "${username}"`,
+      status: 'warning'
+    })
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    throw createError({ statusCode: 404, statusMessage: '该管理账户不存在。' })
+  }
+  
+  // Then check password
+  if (!verifyPassword(password, allowedPasswordHash)) {
+    logSecurityEvent({
+      type: 'Admin Login Guard',
+      ip,
+      action: `Wrong password for admin "${username}"`,
       status: 'blocked'
     })
     await new Promise((resolve) => setTimeout(resolve, 800))
-    throw createError({ statusCode: 401, statusMessage: '用户名或密码错误。' })
+    throw createError({ statusCode: 401, statusMessage: '管理员密码错误。' })
   }
 
   const token = createSession(username)
