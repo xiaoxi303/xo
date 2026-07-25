@@ -11,7 +11,7 @@
           
           <!-- Avatar Frame -->
           <div class="relative w-24 h-24 rounded-full overflow-hidden flex items-center justify-center text-slate-800 font-display font-bold text-3xl shadow-xl border-4 border-white ring-4 ring-amber-500/20 flex-shrink-0"
-               style="background: linear-gradient(135deg, rgba(217,119,6,0.2), rgba(180,83,9,0.3))">
+               style="background: linear-gradient(135deg, var(--color-bronze-bg), rgba(180,83,9,0.3))">
             <img v-if="siteConfig?.siteInfo?.avatar" :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" alt="" />
             <span v-else>{{ siteConfig?.siteInfo?.ownerInitial || 'X' }}</span>
           </div>
@@ -23,21 +23,21 @@
                 <span class="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
                 <span>{{ siteConfig?.about?.role || '资深剪辑指导 / DI 调色总监' }}</span>
               </div>
-              <h1 class="font-display text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight pt-1">
+              <h1 class="font-display text-4xl sm:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight pt-1">
                 {{ siteConfig?.siteInfo?.title || 'Xo Studio' }}
               </h1>
             </div>
 
-            <p class="text-slate-700 text-sm sm:text-base leading-relaxed font-sans font-medium">
+            <p class="text-[var(--color-ink-3)] text-sm sm:text-base leading-relaxed font-sans font-medium">
               {{ siteConfig?.about?.bio || '你好，我是 Xo。一名专注于极客视觉体验与故事节奏的后期制作人。拥有 5 年影视及商业视频后期制作经验，曾为多个头部数码硬件、高端品牌及汽车品牌交付主视觉概念片。' }}
             </p>
 
-            <blockquote class="p-4 rounded-2xl bg-black/[0.03] border-l-4 border-amber-600 text-slate-600 text-xs sm:text-sm italic font-sans leading-relaxed">
+            <blockquote class="p-4 rounded-2xl bg-black/[0.03] border-l-4 border-amber-600 text-[var(--color-ink-4)] text-xs sm:text-sm italic font-sans leading-relaxed">
               “{{ siteConfig?.about?.bioSub || '我相信镜头是会呼吸的。每一个颜色调性，每一段声音速度都是对情感的尊贵引导。让画面本身说话，细节剪辑更向光绽放故事。' }}”
             </blockquote>
 
             <div class="pt-2">
-              <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-primary shadow-lg hover:shadow-amber-600/20">
+              <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')" class="btn-primary shadow-lg hover:shadow-amber-600/20">
                 <span>发起合作咨询 (Email)</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
               </a>
@@ -51,7 +51,7 @@
         <div class="flex items-center justify-between border-b pb-4 border-black/10">
           <div>
             <span class="text-amber-800 text-xs font-bold uppercase tracking-widest font-mono">Chronicle & Timeline</span>
-            <h2 class="font-display text-3xl font-bold text-slate-900 tracking-tight">影视制作年谱 (Experience Log)</h2>
+            <h2 class="font-display text-3xl font-bold text-[var(--color-ink-1)] tracking-tight">影视制作年谱 (Experience Log)</h2>
           </div>
           
         </div>
@@ -74,7 +74,7 @@
             <div class="glass-card p-7 flex-1 border-2 border-black/10 hover:border-amber-500/40 transition-all duration-300 relative overflow-hidden group shadow-xl bg-white/90 backdrop-blur-xl rounded-2xl">
               <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
                 <div>
-                  <h3 class="text-slate-900 font-display font-bold text-xl group-hover:text-amber-800 transition-colors duration-300">
+                  <h3 class="text-[var(--color-ink-1)] font-display font-bold text-xl group-hover:text-amber-800 transition-colors duration-300">
                     {{ exp.role }}
                   </h3>
                   <p class="text-amber-800 text-xs font-mono font-bold uppercase mt-0.5 tracking-wider">
@@ -86,7 +86,7 @@
                 </span>
               </div>
 
-              <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-sans mb-4">
+              <p class="text-[var(--color-ink-4)] text-xs sm:text-sm leading-relaxed font-sans mb-4">
                 {{ exp.desc }}
               </p>
 
@@ -107,7 +107,7 @@
 
 <script setup lang="ts">
 useHead({
-  title: '剪辑总监履历 — xo.dev',
+  title: '剪辑总监履历 — Xo',
   meta: [{ name: 'description', content: '了解电影调色指导 Xo 的工作年谱、调色流程与后期制作观念。' }]
 })
 

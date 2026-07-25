@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-28 pb-24 px-6 relative overflow-hidden" style="background: var(--color-bg, #faf8f5);">
+  <div class="min-h-screen pt-28 pb-24 px-6 relative overflow-hidden" style="background: var(--color-bg);">
     <!-- Ambient Backdrop Light Glows -->
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
@@ -11,13 +11,13 @@
       <!-- Page Header -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="space-y-3">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-amber-800 text-[10px] font-mono font-bold"
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[var(--color-bronze-dark)] text-[10px] font-mono font-bold"
                style="background: rgba(217,119,6,0.12); border: 1px solid rgba(217,119,6,0.3);">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+            <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-bronze)] animate-pulse" />
             <span>PORTFOLIO GALLERY (4K HDR)</span>
           </div>
-          <h1 class="font-display text-5xl lg:text-6xl font-bold leading-none tracking-tight text-slate-900">全部作品集</h1>
-          <p class="text-slate-600 text-sm max-w-md leading-relaxed font-sans">
+          <h1 class="font-display text-5xl lg:text-6xl font-bold leading-none tracking-tight text-[var(--color-ink-1)]">全部作品集</h1>
+          <p class="text-[var(--color-ink-4)] text-sm max-w-md leading-relaxed font-sans">
             结合极致节奏感的镜头拼贴、电影级调色与科技感三维包装。
           </p>
         </div>
@@ -32,8 +32,8 @@
             :class="[
               'relative px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-300 ease-out active:scale-95 cursor-pointer',
               currentFilter === f.value
-                ? 'bg-amber-600 text-white shadow-md scale-[1.02]'
-                : 'text-slate-700 hover:bg-black/5 hover:text-slate-900'
+                ? 'bg-[var(--color-bronze)] text-white shadow-md scale-[1.02]'
+                : 'text-[var(--color-ink-3)] hover:bg-black/5 hover:text-[var(--color-ink-1)]'
             ]"
           >
             {{ f.label }}
@@ -44,7 +44,7 @@
       <!-- Empty state -->
       <div v-if="filteredProjects.length === 0" class="flex flex-col items-center justify-center py-24 gap-4 glass-card rounded-3xl">
         <span class="text-5xl animate-bounce">🎬</span>
-        <p class="font-display text-xl font-bold text-slate-800">暂无匹配的作品分类</p>
+        <p class="font-display text-xl font-bold text-[var(--color-ink-2)]">暂无匹配的作品分类</p>
         <button @click="currentFilter = 'all'" class="btn-primary text-xs px-6 py-2">返回全部作品</button>
       </div>
 
@@ -88,7 +88,7 @@
                 <div class="w-14 h-14 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1)"
                      style="box-shadow: 0 10px 30px rgba(217,119,6,0.4); border: 1px solid rgba(255,255,255,0.9);">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                       class="w-6 h-6 ml-0.5 text-amber-800 transition-transform duration-300 group-hover:scale-110">
+                       class="w-6 h-6 ml-0.5 text-[var(--color-bronze-dark)] transition-transform duration-300 group-hover:scale-110">
                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
                   </svg>
                 </div>
@@ -99,13 +99,13 @@
             <div class="p-7 space-y-3 bg-white/90 backdrop-blur-md">
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-amber-600" />
-                  <span v-if="project.tags?.[0]" class="text-amber-800 text-[11px] font-mono uppercase tracking-wider font-bold">{{ project.tags[0] }}</span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-[var(--color-bronze)]" />
+                  <span v-if="project.tags?.[0]" class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ project.tags[0] }}</span>
                 </div>
-                <h2 class="font-display font-bold text-xl text-slate-900 group-hover:text-amber-800 transition-colors">
+                <h2 class="font-display font-bold text-xl text-[var(--color-ink-1)] group-hover:text-[var(--color-bronze-dark)] transition-colors">
                   {{ project.title }}
                 </h2>
-                <p class="text-slate-600 text-sm line-clamp-2 leading-relaxed font-sans pt-1">
+                <p class="text-[var(--color-ink-4)] text-sm line-clamp-2 leading-relaxed font-sans pt-1">
                   {{ project.description }}
                 </p>
               </div>
@@ -124,7 +124,7 @@
 
 <script setup lang="ts">
 useHead({
-  title: '剪辑作品集 - xo.dev',
+  title: '剪辑作品集 - Xo',
   meta: [{ name: 'description', content: '查看 Xo Studio 的剪辑、调色与后期作品。' }]
 })
 

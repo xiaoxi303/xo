@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen relative overflow-hidden" style="background: var(--color-bg, #faf8f5);">
+  <div class="min-h-screen relative overflow-hidden" style="background: var(--color-bg);">
     <!-- ===== Ambient Studio Luxury Backdrop Glows (High Visibility) ===== -->
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
@@ -19,24 +19,24 @@
           <div ref="heroTextRef" class="space-y-8">
             <!-- Elegant booking status badge -->
             <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full shadow-md backdrop-blur-xl group"
-                 style="background: rgba(255,255,255,0.9); border: 1px solid rgba(217,119,6,0.35);">
+                 style="background: var(--glass-bg); border: 1px solid var(--color-bronze-glow);">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping" />
-              <span class="text-slate-800 text-[11px] font-bold uppercase tracking-wider font-mono">Status: {{ siteConfig?.home?.bookingStatus || 'Booking Open (2026)' }}</span>
-              <span class="text-amber-800 text-[10px] font-mono font-bold border-l pl-2.5 px-2 py-0.5 rounded"
-                    style="border-color: rgba(217,119,6,0.3); background: rgba(217,119,6,0.12);">4K DI Ready</span>
+              <span class="text-[var(--color-ink-2)] text-[11px] font-bold uppercase tracking-wider font-mono">Status: {{ siteConfig?.home?.bookingStatus || 'Booking Open (2026)' }}</span>
+              <span class="text-[var(--color-bronze-dark)] text-[10px] font-mono font-bold border-l pl-2.5 px-2 py-0.5 rounded"
+                    style="border-color: var(--color-bronze-glow); background: var(--color-bronze-bg);">4K DI Ready</span>
             </div>
 
             <!-- Main Heading (Luxury Editorial Serif & Gradient) -->
             <div class="space-y-3">
               <h1 class="font-display text-5xl lg:text-7xl font-bold leading-[1.08] tracking-tight">
-                <span class="block text-slate-900 drop-shadow-sm">{{ siteConfig?.home?.heroTitle1 || '用剪辑' }}</span>
+                <span class="block text-[var(--color-ink-1)] drop-shadow-sm">{{ siteConfig?.home?.heroTitle1 || '用剪辑' }}</span>
                 <span class="block text-gradient italic font-normal my-1">{{ siteConfig?.home?.heroTitle2 || '重塑时间' }}</span>
-                <span class="block text-slate-900">{{ siteConfig?.home?.heroTitle3 || '与故事' }}</span>
+                <span class="block text-[var(--color-ink-1)]">{{ siteConfig?.home?.heroTitle3 || '与故事' }}</span>
               </h1>
             </div>
 
             <!-- Description -->
-            <p class="text-slate-700 text-sm sm:text-base leading-relaxed max-w-lg font-sans font-medium">
+            <p class="text-[var(--color-ink-3)] text-sm sm:text-base leading-relaxed max-w-lg font-sans font-medium">
               {{ siteConfig?.home?.heroSub || '资深视频剪辑师 & 调色包装设计师。专注于 TVC 广告、品牌形象宣传片、科技感产品动效包装，以及高画质纪录片的后期全流程开发。' }}
             </p>
 
@@ -46,7 +46,7 @@
                 <span>浏览剪辑作品 (Projects)</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
               </NuxtLink>
-              <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all" @click="trackEvent('contact_click', 'homepage')">
+              <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all" @click="trackEvent('contact_click', 'homepage')">
                 联系我 (Contact)
               </a>
               <NuxtLink to="/booking" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all">
@@ -83,7 +83,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                   
-                  <span class="font-bold text-slate-300">{{ heroVideoFps }}</span>
+                  <span class="font-bold text-[var(--color-ink-7)]">{{ heroVideoFps }}</span>
                 </div>
               </div>
 
@@ -96,6 +96,7 @@
                   index="01"
                   category=""
                   :description="siteConfig?.home?.heroSub"
+                    :minimal="true"
                   class="w-full h-full object-cover"
                 />
                 
@@ -106,18 +107,18 @@
               <div class="px-6 py-4 backdrop-blur-md flex items-center justify-between z-20"
                    style="background: rgba(255,255,255,0.96); border-top: 1px solid rgba(0,0,0,0.1);">
                 <div class="space-y-0.5">
-                  <div class="text-2xl font-display font-bold text-slate-900 leading-none">{{ siteConfig?.home?.statValue1 || '120+' }}</div>
-                  <div class="text-slate-600 text-[9px] uppercase font-mono tracking-wider font-bold">{{ siteConfig?.home?.statLabel1 || '剪辑交付量' }}</div>
+                  <div class="text-2xl font-display font-bold text-[var(--color-ink-1)] leading-none">{{ siteConfig?.home?.statValue1 || '120+' }}</div>
+                  <div class="text-[var(--color-ink-4)] text-[9px] uppercase font-mono tracking-wider font-bold">{{ siteConfig?.home?.statLabel1 || '剪辑交付量' }}</div>
                 </div>
                 <div class="h-7 w-px bg-black/15" />
                 <div class="space-y-0.5">
-                  <div class="text-2xl font-display font-bold text-slate-900 leading-none">{{ siteConfig?.home?.statValue2 || '4K HDR' }}</div>
-                  <div class="text-slate-600 text-[9px] uppercase font-mono tracking-wider font-bold">{{ siteConfig?.home?.statLabel2 || '高规格支持' }}</div>
+                  <div class="text-2xl font-display font-bold text-[var(--color-ink-1)] leading-none">{{ siteConfig?.home?.statValue2 || '4K HDR' }}</div>
+                  <div class="text-[var(--color-ink-4)] text-[9px] uppercase font-mono tracking-wider font-bold">{{ siteConfig?.home?.statLabel2 || '高规格支持' }}</div>
                 </div>
                 <div class="h-7 w-px bg-black/15" />
                 <div class="space-y-0.5">
-                  <div class="text-2xl font-display font-bold text-amber-800 leading-none">{{ statValue3 }}</div>
-                  <div class="text-slate-600 text-[9px] uppercase font-mono tracking-wider font-bold">{{ statLabel3 }}</div>
+                  <div class="text-2xl font-display font-bold text-[var(--color-bronze-dark)] leading-none">{{ statValue3 }}</div>
+                  <div class="text-[var(--color-ink-4)] text-[9px] uppercase font-mono tracking-wider font-bold">{{ statLabel3 }}</div>
                 </div>
               </div>
 
@@ -129,9 +130,9 @@
         <div class="flex justify-center mt-20">
           <button
             @click="scrollToBento"
-            class="flex flex-col items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors group cursor-pointer"
+            class="flex flex-col items-center gap-2 text-[var(--color-ink-6)] hover:text-[var(--color-ink-1)] transition-colors group cursor-pointer"
           >
-            <span class="text-[9px] tracking-widest font-mono uppercase font-bold text-slate-500">SCROLL DOWN</span>
+            <span class="text-[9px] tracking-widest font-mono uppercase font-bold text-[var(--color-ink-5)]">SCROLL DOWN</span>
             <div class="w-6 h-10 rounded-full border-2 border-black/15 flex items-start justify-center pt-2 group-hover:border-amber-600 transition-colors shadow-sm bg-white/60">
               <div class="w-1.5 h-2 rounded-full bg-amber-600 animate-bounce" />
             </div>
@@ -144,17 +145,17 @@
     <section class="py-12 border-y overflow-hidden select-none reveal backdrop-blur-md"
              style="background: linear-gradient(90deg, rgba(0,0,0,0.03) 0%, rgba(217,119,6,0.08) 50%, rgba(0,0,0,0.03) 100%); border-color: rgba(0,0,0,0.12);">
       <div class="max-w-6xl mx-auto px-6 mb-4">
-        <p class="section-label text-center font-mono text-[10px] font-bold text-slate-600">Collaborative Brands & Agencies · 合作与联合制作品牌</p>
+        <p class="section-label text-center font-mono text-[10px] font-bold text-[var(--color-ink-4)]">Collaborative Brands & Agencies · 合作与联合制作品牌</p>
       </div>
       <!-- Seamless Scrolling Wrapper -->
       <div class="relative w-full flex overflow-x-hidden">
-        <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-bold tracking-wide uppercase text-slate-800">
-          <span v-for="(brand, idx) in defaultBrands" :key="'b1-' + idx" class="flex items-center gap-2.5 hover:text-amber-800 transition-colors cursor-default">
+        <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-bold tracking-wide uppercase text-[var(--color-ink-2)]">
+          <span v-for="(brand, idx) in defaultBrands" :key="'b1-' + idx" class="flex items-center gap-2.5 hover:text-[var(--color-bronze-dark)] transition-colors cursor-default">
             <span class="text-amber-600 text-sm font-bold">✦</span> {{ brand }}
           </span>
         </div>
-        <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-bold tracking-wide uppercase text-slate-800 ml-16" aria-hidden="true">
-          <span v-for="(brand, idx) in defaultBrands" :key="'b2-' + idx" class="flex items-center gap-2.5 hover:text-amber-800 transition-colors cursor-default">
+        <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-bold tracking-wide uppercase text-[var(--color-ink-2)] ml-16" aria-hidden="true">
+          <span v-for="(brand, idx) in defaultBrands" :key="'b2-' + idx" class="flex items-center gap-2.5 hover:text-[var(--color-bronze-dark)] transition-colors cursor-default">
             <span class="text-amber-600 text-sm font-bold">✦</span> {{ brand }}
           </span>
         </div>
@@ -168,8 +169,8 @@
         <!-- Header -->
         <div ref="sectionHeaderRef" class="space-y-3 text-center reveal">
           <p class="text-amber-700 text-xs font-bold uppercase tracking-widest font-mono">Bento Gallery</p>
-          <h2 class="font-display text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight">后期剪辑与色彩美学</h2>
-          <p class="text-slate-600 text-xs sm:text-sm max-w-md mx-auto font-sans leading-relaxed">以温润透亮的模块化 Bento 排版，解构后期制作的本真秩序与视听艺术。</p>
+          <h2 class="font-display text-4xl lg:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight">后期剪辑与色彩美学</h2>
+          <p class="text-[var(--color-ink-4)] text-xs sm:text-sm max-w-md mx-auto font-sans leading-relaxed">以温润透亮的模块化 Bento 排版，解构后期制作的本真秩序与视听艺术。</p>
         </div>
 
         <!-- Grid -->
@@ -186,6 +187,7 @@
                   index="01"
                   :category="tvcProject.tags?.[0] || ''"
                   :description="tvcProject.description"
+                    :minimal="true"
                   class="w-full h-full object-cover"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
@@ -201,13 +203,13 @@
               <div class="p-8 space-y-3 bg-white/90">
                 <div class="flex items-center gap-2">
                   <span class="w-2.5 h-2.5 rounded-full bg-amber-600" />
-                  <span v-if="tvcProject.tags?.[0]" class="text-amber-800 text-[11px] font-mono uppercase tracking-wider font-bold">{{ tvcProject.tags[0] }}</span>
-                  <span v-if="tvcProject.postSpecs" class="text-slate-500 text-[10px] font-mono font-bold">· {{ tvcProject.postSpecs }}</span>
+                  <span v-if="tvcProject.tags?.[0]" class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ tvcProject.tags[0] }}</span>
+                  <span v-if="tvcProject.postSpecs" class="text-[var(--color-ink-5)] text-[10px] font-mono font-bold">· {{ tvcProject.postSpecs }}</span>
                 </div>
-                <h3 class="font-display font-bold text-slate-900 text-2xl group-hover:text-amber-800 transition-colors">
+                <h3 class="font-display font-bold text-[var(--color-ink-1)] text-2xl group-hover:text-[var(--color-bronze-dark)] transition-colors">
                   {{ tvcProject.title }}
                 </h3>
-                <p class="text-slate-600 text-sm leading-relaxed font-sans line-clamp-2">
+                <p class="text-[var(--color-ink-4)] text-sm leading-relaxed font-sans line-clamp-2">
                   {{ tvcProject.description }}
                 </p>
               </div>
@@ -218,16 +220,16 @@
           <BentoItem span="12:6:4" to="/about" class="reveal shadow-2xl">
             <div class="p-8 h-full flex flex-col justify-between space-y-6 relative overflow-hidden group">
               <div class="space-y-4">
-                <div class="relative w-16 h-16 rounded-full overflow-hidden flex items-center justify-center text-slate-800 font-display font-bold text-xl shadow-md"
+                <div class="relative w-16 h-16 rounded-full overflow-hidden flex items-center justify-center text-[var(--color-ink-2)] font-display font-bold text-xl shadow-md"
                      style="background: linear-gradient(135deg, rgba(217,119,6,0.3) 0%, rgba(180,83,9,0.4) 100%); border: 3px solid rgba(217,119,6,0.5); box-shadow: 0 0 15px rgba(217,119,6,0.3);">
                   <img v-if="siteConfig?.siteInfo?.avatar" :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" alt="" />
                   <span v-else>{{ siteConfig?.siteInfo?.ownerInitial || 'X' }}</span>
                 </div>
                 <div class="space-y-0.5">
-                  <h3 class="font-display font-bold text-slate-900 text-2xl">{{ siteConfig?.home?.profileCardTitle || 'Xo' }}</h3>
-                  <p class="text-amber-800 text-[11px] font-mono uppercase tracking-wider font-bold">{{ siteConfig?.home?.profileCardSub || '调色指导 / 视频剪辑' }}</p>
+                  <h3 class="font-display font-bold text-[var(--color-ink-1)] text-2xl">{{ siteConfig?.home?.profileCardTitle || 'Xo' }}</h3>
+                  <p class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ siteConfig?.home?.profileCardSub || '调色指导 / 视频剪辑' }}</p>
                 </div>
-                <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-sans">
+                <p class="text-[var(--color-ink-4)] text-xs sm:text-sm leading-relaxed font-sans">
                   {{ siteConfig?.home?.profileCardDesc || '专注于用节拍与叙事节奏微雕镜头。拥有 5 年影视及广告后期制作经验。' }}
                 </p>
               </div>
@@ -245,8 +247,8 @@
             <div class="p-8 h-full flex flex-col justify-between relative overflow-hidden group">
               <div>
                 <div class="space-y-1 mb-4">
-                  <h3 class="font-display font-bold text-slate-900 text-xl">工具与工作流</h3>
-                  <p class="text-amber-800 text-[10px] uppercase font-mono font-bold">达芬奇调色 & 剪辑栈</p>
+                  <h3 class="font-display font-bold text-[var(--color-ink-1)] text-xl">工具与工作流</h3>
+                  <p class="text-[var(--color-bronze-dark)] text-[10px] uppercase font-mono font-bold">达芬奇调色 & 剪辑栈</p>
                 </div>
                 <div class="flex flex-wrap gap-1.5">
                   <span v-for="t in (siteConfig?.home?.skillsTags && siteConfig.home.skillsTags.length > 0 ? siteConfig.home.skillsTags : ['Resolve', 'Premiere', 'After Effects', 'Cinema 4D', 'ACES 工作流', 'Logic Pro', 'Foley 音效'])" :key="t" class="tag font-semibold" style="border: 1px solid rgba(217,119,6,0.3); background: rgba(255,255,255,0.9);">
@@ -259,8 +261,8 @@
               <div class="space-y-4 mt-6">
                 <div v-for="skill in skills" :key="skill.name" class="space-y-1.5">
                   <div class="flex justify-between text-[11px] font-mono">
-                    <span class="text-slate-800 font-sans font-bold">{{ skill.name }}</span>
-                    <span class="text-amber-800 font-bold">{{ skill.level }}%</span>
+                    <span class="text-[var(--color-ink-2)] font-sans font-bold">{{ skill.name }}</span>
+                    <span class="text-[var(--color-bronze-dark)] font-bold">{{ skill.level }}%</span>
                   </div>
                   <div class="w-full h-2.5 rounded-full overflow-hidden p-0.5 shadow-inner" style="background: rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.08);">
                     <div
@@ -313,12 +315,12 @@
                 <div class="space-y-2">
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-amber-600" />
-                    <span v-if="gradingProject.tags?.[0]" class="text-amber-800 text-[11px] font-mono uppercase tracking-wider font-bold">{{ gradingProject.tags[0] }}</span>
+                    <span v-if="gradingProject.tags?.[0]" class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ gradingProject.tags[0] }}</span>
                   </div>
-                  <h3 class="font-display font-bold text-slate-900 text-2xl group-hover:text-amber-800 transition-colors">
+                  <h3 class="font-display font-bold text-[var(--color-ink-1)] text-2xl group-hover:text-[var(--color-bronze-dark)] transition-colors">
                     {{ gradingProject.title }}
                   </h3>
-                  <p class="text-slate-600 text-sm leading-relaxed font-sans line-clamp-2">
+                  <p class="text-[var(--color-ink-4)] text-sm leading-relaxed font-sans line-clamp-2">
                     {{ gradingProject.description }}
                   </p>
                 </div>
@@ -335,7 +337,7 @@
 <script setup lang="ts">
 // Page Head Metas
 useHead({
-  title: '视频作品集与调色工作室 — xo.dev',
+  title: '视频作品集与调色工作室 — Xo',
   meta: [
     { name: 'description', content: '资深视频后期剪辑师 & 达芬奇调色指导的主页与控制台，包含旗舰商业 TVC 概念广告及纪录片后期流程。' }
   ]

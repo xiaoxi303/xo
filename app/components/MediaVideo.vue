@@ -1,6 +1,13 @@
-<template>
-  <!-- High-performance video component with IntersectionObserver + 250ms debounce -->
-  <div ref="containerRef" class="relative overflow-hidden bg-slate-900 w-full h-full" :style="{ borderRadius: 'inherit' }">
+﻿<template>
+  <!-- Premium Video Player with Full Controls -->
+  <div 
+    ref="containerRef" 
+    class="video-player relative overflow-hidden w-full h-full group"
+    :style="{ borderRadius: 'inherit' }"
+    @mouseenter="showControls = true"
+    @mouseleave="showControls = false"
+  >
+    <!-- Fallback: Image or Art Poster -->
     <MediaImage
       v-if="!hasVideo && hasPoster"
       :src="poster"
@@ -11,7 +18,6 @@
       :description="description"
       class="w-full h-full"
     />
-
     <DefaultArtPoster
       v-else-if="!hasVideo"
       :title="title || '创意视频'"
@@ -21,25 +27,35 @@
       class="w-full h-full"
     />
 
-    <!-- Poster image shown until video loads -->
+    <!-- Poster overlay shown until video loads -->
     <div
-      v-else-if="!isVideoReady && poster"
-      class="absolute inset-0 bg-cover bg-center"
-      :style="{ backgroundImage: `url(${poster})` }"
+      v-if="hasVideo && !isVideoReady && poster"
+      class="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
+      :style="{ backgroundImage: `url(${poster})`, opacity: isVideoReady ? 0 : 1 }"
     />
 
-    <!-- Play icon overlay -->
+    <!-- Loading spinner -->
     <div
-      v-if="hasVideo && showPlayIcon && !isPlaying"
-      class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+      v-if="hasVideo && isLoading"
+      class="absolute inset-0 flex items-center justify-center z-20"
     >
-      <div class="w-14 h-14 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white translate-x-0.5">
+      <div class="video-spinner"></div>
+    </div>
+
+    <!-- Central play button (shown when not playing) -->
+    <div
+      v-if="hasVideo && !isPlaying && !minimal"
+      class="absolute inset-0 flex items-center justify-center z-10 cursor-pointer"
+      @click="togglePlay"
+    >
+      <div class="video-play-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8">
           <path d="M8 5.14v14l11-7-11-7z"/>
         </svg>
       </div>
     </div>
 
+    <!-- Video element -->
     <video
       v-if="hasVideo"
       ref="videoRef"
@@ -54,8 +70,118 @@
         transition: 'opacity 0.6s ease',
         opacity: isVideoReady ? 1 : 0
       }"
-      @canplay="isVideoReady = true"
+      @canplay="onCanPlay"
+      @waiting="isLoading = true"
+      @playing="isLoading = false"
+      @timeupdate="onTimeUpdate"
+      @ended="isPlaying = false"
     />
+
+    <!-- Video info overlay (top) -->
+    <div
+      v-if="hasVideo && title && showControls && !minimal"
+      class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent transition-opacity duration-300"
+      :class="{ 'opacity-0': isPlaying && !showControls, 'opacity-100': showControls }"
+    >
+      <div class="flex items-center gap-2">
+        <span v-if="index" class="video-badge">{{ index }}</span>
+        <span v-if="category" class="video-badge video-badge-accent">{{ category }}</span>
+      </div>
+      <h3 class="text-white text-sm font-semibold mt-2 font-sans">{{ title }}</h3>
+      <p v-if="description" class="text-white/70 text-xs mt-1 font-sans line-clamp-2">{{ description }}</p>
+    </div>
+
+    <!-- Controls bar (bottom) -->
+    <div
+      v-if="hasVideo && !minimal"
+      class="absolute bottom-0 left-0 right-0 transition-all duration-300"
+      :class="{ 
+        'translate-y-full opacity-0': isPlaying && !showControls,
+        'translate-y-0 opacity-100': showControls || !isPlaying
+      }"
+    >
+      <!-- Progress bar -->
+      <div 
+        class="video-progress-container"
+        @click="onProgressClick"
+        @mousemove="onProgressHover"
+        @mouseleave="hoverTime = null"
+      >
+        <div class="video-progress-bar">
+          <div 
+            class="video-progress-filled"
+            :style="{ width: progressPercent + '%' }"
+          />
+          <div 
+            v-if="hoverTime !== null"
+            class="video-progress-hover"
+            :style="{ width: hoverPercent + '%' }"
+          />
+        </div>
+        <!-- Hover time tooltip -->
+        <div 
+          v-if="hoverTime !== null"
+          class="video-time-tooltip"
+          :style="{ left: hoverPercent + '%' }"
+        >
+          {{ formatTime(hoverTime) }}
+        </div>
+      </div>
+
+      <!-- Control buttons -->
+      <div class="video-controls-bar">
+        <div class="flex items-center gap-3">
+          <!-- Play/Pause button -->
+          <button 
+            class="video-control-btn"
+            @click="togglePlay"
+            :aria-label="isPlaying ? '暂停' : '播放'"
+          >
+            <svg v-if="isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path d="M8 5.14v14l11-7-11-7z"/>
+            </svg>
+          </button>
+
+          <!-- Volume button -->
+          <button 
+            class="video-control-btn"
+            @click="toggleMute"
+            :aria-label="isMuted ? '取消静音' : '静音'"
+          >
+            <svg v-if="isMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+          </button>
+
+          <!-- Time display -->
+          <span class="video-time-display">
+            {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Fullscreen button -->
+          <button 
+            class="video-control-btn"
+            @click="toggleFullscreen"
+            :aria-label="isFullscreen ? '退出全屏' : '全屏'"
+          >
+            <svg v-if="isFullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -68,6 +194,7 @@ const props = withDefaults(defineProps<{
   category?: string
   description?: string
   showPlayIcon?: boolean
+  minimal?: boolean
 }>(), {
   src: '',
   poster: '',
@@ -76,32 +203,147 @@ const props = withDefaults(defineProps<{
   category: '',
   description: '',
   showPlayIcon: false,
+  minimal: false,
 })
 
 const containerRef = ref<HTMLElement | null>(null)
 const videoRef = ref<HTMLVideoElement | null>(null)
 const isVideoReady = ref(false)
 const isPlaying = ref(false)
+const isLoading = ref(false)
+const isMuted = ref(true)
+const isFullscreen = ref(false)
+const showControls = ref(false)
+const currentTime = ref(0)
+const duration = ref(0)
+const hoverTime = ref<number | null>(null)
+const hoverPercent = ref(0)
 const hasVideo = computed(() => !!props.src?.trim())
 const hasPoster = computed(() => !!props.poster?.trim())
 let playTimer: ReturnType<typeof setTimeout> | null = null
+let hideControlsTimer: ReturnType<typeof setTimeout> | null = null
 
+const progressPercent = computed(() => {
+  if (duration.value === 0) return 0
+  return (currentTime.value / duration.value) * 100
+})
+
+// Format time (seconds -> MM:SS)
+function formatTime(seconds: number): string {
+  if (isNaN(seconds) || seconds === 0) return '0:00'
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+// Video event handlers
+function onCanPlay() {
+  isVideoReady.value = true
+  isLoading.value = false
+  if (videoRef.value) {
+    duration.value = videoRef.value.duration
+  }
+}
+
+function onTimeUpdate() {
+  if (videoRef.value) {
+    currentTime.value = videoRef.value.currentTime
+  }
+}
+
+// Player controls
+function togglePlay() {
+  if (!videoRef.value) return
+  
+  if (isPlaying.value) {
+    videoRef.value.pause()
+    isPlaying.value = false
+  } else {
+    videoRef.value.play()
+      .then(() => { isPlaying.value = true })
+      .catch(() => { /* Silently ignore */ })
+  }
+}
+
+function toggleMute() {
+  if (!videoRef.value) return
+  videoRef.value.muted = !videoRef.value.muted
+  isMuted.value = videoRef.value.muted
+}
+
+function toggleFullscreen() {
+  if (!containerRef.value) return
+  
+  if (!document.fullscreenElement) {
+    containerRef.value.requestFullscreen()
+      .then(() => { isFullscreen.value = true })
+      .catch(() => { /* Silently ignore */ })
+  } else {
+    document.exitFullscreen()
+      .then(() => { isFullscreen.value = false })
+      .catch(() => { /* Silently ignore */ })
+  }
+}
+
+function onProgressClick(e: MouseEvent) {
+  if (!videoRef.value || !duration.value) return
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const percent = (e.clientX - rect.left) / rect.width
+  videoRef.value.currentTime = percent * duration.value
+}
+
+function onProgressHover(e: MouseEvent) {
+  if (!duration.value) return
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const percent = (e.clientX - rect.left) / rect.width
+  hoverPercent.value = percent * 100
+  hoverTime.value = percent * duration.value
+}
+
+// Keyboard shortcuts
+function onKeyDown(e: KeyboardEvent) {
+  if (!hasVideo.value) return
+  
+  switch (e.key) {
+    case ' ':
+    case 'k':
+      e.preventDefault()
+      togglePlay()
+      break
+    case 'm':
+      e.preventDefault()
+      toggleMute()
+      break
+    case 'f':
+      e.preventDefault()
+      toggleFullscreen()
+      break
+    case 'ArrowLeft':
+      e.preventDefault()
+      if (videoRef.value) videoRef.value.currentTime -= 5
+      break
+    case 'ArrowRight':
+      e.preventDefault()
+      if (videoRef.value) videoRef.value.currentTime += 5
+      break
+  }
+}
+
+// IntersectionObserver for lazy loading
 onMounted(() => {
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          // 250ms debounce — prevents rapid play/pause on fast scroll
           playTimer = setTimeout(() => {
             if (videoRef.value) {
               videoRef.value.preload = 'auto'
               videoRef.value.play()
                 .then(() => { isPlaying.value = true })
-                .catch(() => { /* Blocked by browser policy — silently ignore */ })
+                .catch(() => { /* Silently ignore */ })
             }
           }, 250)
         } else {
-          // Clear the pending play immediately
           if (playTimer) {
             clearTimeout(playTimer)
             playTimer = null
@@ -113,14 +355,19 @@ onMounted(() => {
         }
       })
     },
-    { threshold: 0.15 } // trigger when 15% visible
+    { threshold: 0.15 }
   )
 
   if (containerRef.value) observer.observe(containerRef.value)
+  
+  // Add keyboard listener
+  document.addEventListener('keydown', onKeyDown)
 
   onBeforeUnmount(() => {
     observer.disconnect()
     if (playTimer) clearTimeout(playTimer)
+    if (hideControlsTimer) clearTimeout(hideControlsTimer)
+    document.removeEventListener('keydown', onKeyDown)
     if (videoRef.value) {
       videoRef.value.pause()
       videoRef.value.src = ''
@@ -128,4 +375,179 @@ onMounted(() => {
     }
   })
 })
+
+// Listen for fullscreen changes
+if (import.meta.client) {
+  document.addEventListener('fullscreenchange', () => {
+    isFullscreen.value = !!document.fullscreenElement
+  })
+}
 </script>
+
+<style scoped>
+.video-player {
+  background: var(--color-ink-1);
+}
+
+/* Loading spinner */
+.video-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--color-bronze);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Central play button */
+.video-play-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.3s var(--ease-out);
+  transform: scale(1);
+}
+
+.video-play-btn:hover {
+  background: var(--color-bronze);
+  border-color: var(--color-bronze);
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(180, 83, 9, 0.4);
+}
+
+/* Video badges */
+.video-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 0.05em;
+}
+
+.video-badge-accent {
+  background: var(--color-bronze);
+  border-color: var(--color-bronze-light);
+}
+
+/* Progress bar */
+.video-progress-container {
+  position: relative;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0 12px;
+}
+
+.video-progress-bar {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: height 0.2s ease;
+}
+
+.video-progress-container:hover .video-progress-bar {
+  height: 5px;
+}
+
+.video-progress-filled {
+  height: 100%;
+  background: var(--color-bronze);
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+.video-progress-hover {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: height 0.2s ease;
+}
+
+.video-progress-container:hover .video-progress-hover {
+  height: 5px;
+}
+
+/* Time tooltip */
+.video-time-tooltip {
+  position: absolute;
+  top: -30px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Controls bar */
+.video-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+}
+
+/* Control buttons */
+.video-control-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.video-control-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.video-control-btn:active {
+  transform: scale(0.95);
+}
+
+/* Time display */
+.video-time-display {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.05em;
+}
+</style>

@@ -6,76 +6,136 @@
 @font-face {
   font-family: 'Xo Display';
   src: url('/fonts/xo-display.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('truetype');
+       url('/fonts/xo-display.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
 }
 @font-face {
   font-family: 'Xo Display';
   src: url('/fonts/xo-display.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('truetype');
+       url('/fonts/xo-display.ttf') format('truetype');
   font-weight: 100 900;
   font-style: italic;
 }
 @font-face {
   font-family: 'Xo Sans';
   src: url('/fonts/xo-sans.woff2') format('woff2'),
-       url('/fonts/xo-sans.woff2') format('truetype');
+       url('/fonts/xo-sans.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
 }
 
-/* ===== Design Token System — Quiet Luxury Warm ===== */
+/* ===== Design Token System — Quiet Luxury Warm 2.0 ===== */
 :root {
-  /* Backgrounds — 温润麻布米棕，非纯白 */
-  --color-bg:           #f2ede6;   /* 亚麻暖米棕 */
-  --color-bg-2:         #ece7de;   /* 深一阶暖灰 */
-  --color-bg-3:         #e3ddd3;   /* 云石暖灰 */
-  --color-surface:      rgba(255,255,255,0.86);
-  --color-surface-2:    rgba(255,255,255,0.55);
+  /* Backgrounds — 更细腻的暖色调梯度 */
+  --color-bg:           #f7f3ee;   /* 更明亮的亚麻暖米 */
+  --color-bg-2:         #f0ebe3;   /* 浅暖灰 */
+  --color-bg-3:         #e8e2d8;   /* 云石灰 */
+  --color-bg-4:         #ddd6c9;   /* 深层暖灰 */
+  --color-surface:      rgba(255,255,255,0.92);
+  --color-surface-2:    rgba(255,255,255,0.65);
+  --color-surface-3:    rgba(255,255,255,0.45);
 
-  /* Text */
-  --color-ink-1:        #0f1014;   /* 玄武岩极深碳 */
-  --color-ink-2:        #1e2025;   /* 石墨深碳 */
-  --color-ink-3:        #3a3c43;   /* 冷青灰碳 */
-  --color-ink-4:        #6b6d76;   /* 石灰中灰 */
-  --color-ink-5:        #9b9da6;   /* 月光浅灰 */
+  /* Text — 更丰富的文字层次 */
+  --color-ink-1:        #0a0b0e;   /* 极深碳黑 */
+  --color-ink-2:        #181a1f;   /* 石墨深碳 */
+  --color-ink-3:        #2d3038;   /* 冷青灰碳 */
+  --color-ink-4:        #4a4d56;   /* 中灰 */
+  --color-ink-5:        #6b6e78;   /* 石灰中灰 */
+  --color-ink-6:        #8f929c;   /* 月光浅灰 */
+  --color-ink-7:        #b4b7c1;   /* 极浅灰 */
 
   /* Accent — Antique Bronze Gold (Dynamic Reactive) */
   --color-bronze:       var(--color-brand-accent, #b45309);
   --color-bronze-light: var(--color-brand-accent, #d97706);
   --color-bronze-dark:  var(--color-brand-accent-hover, #92400e);
   --color-bronze-bg:    rgba(var(--color-brand-accent-rgb, 180, 83, 9), 0.07);
+  --color-bronze-glow:  rgba(var(--color-brand-accent-rgb, 180, 83, 9), 0.15);
 
-  /* Borders */
-  --color-border:       rgba(0,0,0,0.07);
-  --color-border-2:     rgba(0,0,0,0.12);
-  --color-border-3:     rgba(0,0,0,0.18);
+  /* Semantic Colors */
+  --color-success:      #059669;
+  --color-success-bg:   rgba(5, 150, 105, 0.08);
+  --color-warning:      #d97706;
+  --color-warning-bg:   rgba(217, 119, 6, 0.08);
+  --color-error:        #dc2626;
+  --color-error-bg:     rgba(220, 38, 38, 0.08);
+  --color-info:         #2563eb;
+  --color-info-bg:      rgba(37, 99, 235, 0.08);
 
-  /* Glass Mica — 暖米色调玻璃，不再是刺眼冷白 */
-  --glass-bg:     rgba(252, 248, 242, 0.78);   /* 带暖意的半透明奶油 */
-  --glass-border: rgba(255, 250, 240, 0.90);   /* 暖白高光边框 */
-  --glass-border-inner: rgba(180, 160, 130, 0.12); /* 底部暖棕内边 */
-  --glass-shadow: 0 1px 3px rgba(80,60,30,0.07),
-                  0 10px 36px -8px rgba(80,60,30,0.10),
-                  inset 0 1px 0 rgba(255,252,245,0.95);
-  --glass-shadow-hover: 0 2px 6px rgba(80,60,30,0.08),
-                  0 28px 52px -12px rgba(80,60,30,0.14),
-                  inset 0 1px 0 rgba(255,252,245,0.95);
+  /* Borders — 更精细的边框系统 */
+  --color-border:       rgba(0,0,0,0.06);
+  --color-border-2:     rgba(0,0,0,0.10);
+  --color-border-3:     rgba(0,0,0,0.16);
+  --color-border-focus: var(--color-bronze);
+
+  /* Glass Mica — 更精致的玻璃态 */
+  --glass-bg:           rgba(252, 248, 242, 0.82);
+  --glass-bg-hover:     rgba(252, 248, 242, 0.92);
+  --glass-border:       rgba(255, 250, 240, 0.95);
+  --glass-border-inner: rgba(180, 160, 130, 0.10);
+  --glass-shadow:       0 1px 2px rgba(80,60,30,0.06),
+                        0 8px 32px -6px rgba(80,60,30,0.08),
+                        inset 0 1px 0 rgba(255,252,245,0.98);
+  --glass-shadow-hover: 0 2px 4px rgba(80,60,30,0.07),
+                        0 20px 48px -10px rgba(80,60,30,0.12),
+                        inset 0 1px 0 rgba(255,252,245,0.98);
+  --glass-shadow-lg:    0 4px 8px rgba(80,60,30,0.08),
+                        0 32px 64px -16px rgba(80,60,30,0.16),
+                        inset 0 1px 0 rgba(255,252,245,0.98);
 
   /* Fonts */
   --font-display: 'Xo Display', Georgia, serif;
-  --font-sans:    'Xo Sans', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', 'Courier New', monospace;
+  --font-sans:    'Xo Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
 
-  /* Radii */
-  --r-sm:  8px;
-  --r-md:  14px;
-  --r-lg:  20px;
-  --r-xl:  28px;
-}
+  /* Font Sizes — 更精确的排版系统 */
+  --text-xs:    0.75rem;    /* 12px */
+  --text-sm:    0.875rem;   /* 14px */
+  --text-base:  1rem;       /* 16px */
+  --text-lg:    1.125rem;   /* 18px */
+  --text-xl:    1.25rem;    /* 20px */
+  --text-2xl:   1.5rem;     /* 24px */
+  --text-3xl:   1.875rem;   /* 30px */
+  --text-4xl:   2.25rem;    /* 36px */
+  --text-5xl:   3rem;       /* 48px */
+  --text-6xl:   3.75rem;    /* 60px */
 
-/* ===== Global Reset ===== */
+  /* Spacing — 更合理的间距系统 */
+  --space-1:    0.25rem;    /* 4px */
+  --space-2:    0.5rem;     /* 8px */
+  --space-3:    0.75rem;    /* 12px */
+  --space-4:    1rem;       /* 16px */
+  --space-5:    1.25rem;    /* 20px */
+  --space-6:    1.5rem;     /* 24px */
+  --space-8:    2rem;       /* 32px */
+  --space-10:   2.5rem;     /* 40px */
+  --space-12:   3rem;       /* 48px */
+  --space-16:   4rem;       /* 64px */
+  --space-20:   5rem;       /* 80px */
+  --space-24:   6rem;       /* 96px */
+
+  /* Radii — 更圆润的圆角系统 */
+  --r-sm:       6px;
+  --r-md:       10px;
+  --r-lg:       16px;
+  --r-xl:       24px;
+  --r-2xl:      32px;
+  --r-full:     9999px;
+
+  /* Shadows — 更自然的阴影系统 */
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:  0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg:  0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --shadow-xl:  0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+
+  /* Transitions — 更流畅的过渡效果 */
+  --duration-fast:    150ms;
+  --duration-normal:  250ms;
+  --duration-slow:    350ms;
+  --ease-in:          cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:         cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out:      cubic-bezier(0.4, 0, 0.2, 1);
+}/* ===== Global Reset ===== */
 *, *::before, *::after { box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }
@@ -494,4 +554,398 @@ body.no-grain::before {
 .hover-lift:hover {
   transform: translateY(-3px) scale(1.005);
   box-shadow: var(--glass-shadow-hover);
+}
+
+/* ===== Responsive Design System ===== */
+
+/* Mobile First Approach */
+@media (max-width: 480px) {
+  :root {
+    --text-4xl: 1.875rem;
+    --text-5xl: 2rem;
+    --text-6xl: 2.25rem;
+    --space-16: 3rem;
+    --space-20: 4rem;
+    --space-24: 5rem;
+  }
+  
+  .section-padding {
+    padding: var(--space-10) var(--space-4);
+  }
+  
+  .container {
+    padding: 0 var(--space-4);
+  }
+  
+  .hero-title {
+    font-size: var(--text-4xl);
+    line-height: 1.1;
+  }
+  
+  .hero-subtitle {
+    font-size: var(--text-base);
+  }
+  
+  .btn-primary,
+  .btn-ghost {
+    padding: 0.625rem 1.25rem;
+    font-size: var(--text-sm);
+  }
+  
+  .glass-card {
+    padding: var(--space-4);
+    border-radius: var(--r-lg);
+  }
+  
+  .bento-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .nav-links {
+    gap: var(--space-1);
+  }
+  
+  .nav-link {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-xs);
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --text-5xl: 2.5rem;
+    --text-6xl: 3rem;
+  }
+  
+  .section-padding {
+    padding: var(--space-12) var(--space-5);
+  }
+  
+  .container {
+    padding: 0 var(--space-5);
+  }
+  
+  .hero-title {
+    font-size: var(--text-5xl);
+  }
+  
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .section-padding {
+    padding: var(--space-16) var(--space-6);
+  }
+  
+  .container {
+    padding: 0 var(--space-6);
+  }
+  
+  .hero-title {
+    font-size: var(--text-6xl);
+  }
+  
+  .bento-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+@media (min-width: 1025px) {
+  .section-padding {
+    padding: var(--space-20) var(--space-8);
+  }
+  
+  .container {
+    padding: 0 var(--space-8);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .container-lg {
+    max-width: 1400px;
+  }
+  
+  .container-sm {
+    max-width: 800px;
+  }
+  
+  .bento-grid {
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-8);
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: var(--glass-shadow);
+  }
+  
+  .btn-primary:active,
+  .btn-ghost:active {
+    transform: scale(0.98);
+  }
+  
+  .glass-card:hover {
+    transform: none;
+  }
+}
+
+/* Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .page-enter-active,
+  .page-leave-active {
+    transition: none;
+  }
+  
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --color-bg: #ffffff;
+    --color-bg-2: #f5f5f5;
+    --color-bg-3: #eeeeee;
+    --color-ink-1: #000000;
+    --color-ink-2: #111111;
+    --color-ink-3: #222222;
+    --color-border: rgba(0,0,0,0.3);
+    --color-border-2: rgba(0,0,0,0.5);
+    --glass-border: rgba(0,0,0,0.2);
+  }
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .glass-card {
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+  
+  .btn-primary,
+  .btn-ghost {
+    background: white;
+    color: black;
+    border: 1px solid black;
+  }
+  
+  .bg-orbs,
+  .ambient-glow {
+    display: none;
+  }
+}
+
+/* ===== Enhanced Animation System ===== */
+
+/* Smooth Page Transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: all var(--duration-slow) var(--ease-out);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(16px) scale(0.99);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.99);
+}
+
+/* Tab Content Transitions */
+.tab-fade-slide-enter-active {
+  transition: all var(--duration-slow) var(--ease-out);
+}
+.tab-fade-slide-leave-active {
+  transition: all var(--duration-normal) cubic-bezier(0.7, 0, 0.84, 0);
+  position: absolute;
+  width: 100%;
+}
+.tab-fade-slide-enter-from,
+.tab-fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+}
+
+/* Admin Panel List Transitions */
+.panel-list-enter-active,
+.panel-list-leave-active {
+  transition: all var(--duration-slow) var(--ease-out);
+}
+.panel-list-enter-from,
+.panel-list-leave-to {
+  opacity: 0;
+  transform: scale(0.96) translateY(10px);
+}
+.panel-list-move {
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+/* Enhanced Hover Effects */
+.hover-lift {
+  transition: transform var(--duration-normal) var(--ease-out), 
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+.hover-lift:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* Button Interactions */
+.btn-primary,
+.btn-ghost {
+  transition: all var(--duration-normal) var(--ease-out);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(180, 83, 9, 0.25);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+.btn-ghost:hover {
+  transform: translateY(-1px);
+  background: rgba(0, 0, 0, 0.03);
+}
+.btn-ghost:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Glass Card Interactions */
+.glass-card {
+  transition: all var(--duration-normal) var(--ease-out);
+}
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+/* Navigation Underline Animation */
+.nav-underline-enter-active,
+.nav-underline-leave-active {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-underline-enter-from,
+.nav-underline-leave-to {
+  opacity: 0;
+  transform: scaleX(0.2) translateY(2px);
+}
+
+/* Mobile Menu Transition */
+.mobile-menu-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mobile-menu-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.7, 0, 0.84, 0);
+}
+.mobile-menu-enter-from,
+.mobile-menu-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+/* Check Mark Transition */
+.check-mark-enter-active {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.check-mark-leave-active {
+  transition: all 0.15s ease;
+}
+.check-mark-enter-from,
+.check-mark-leave-to {
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* Shimmer Loading Effect */
+.shimmer {
+  background: linear-gradient(90deg, 
+    var(--color-surface) 25%, 
+    var(--color-surface-2) 50%, 
+    var(--color-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Gradient Text Animation */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-bronze), var(--color-bronze-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Focus Visible Styles */
+:focus-visible {
+  outline: 2px solid var(--color-bronze);
+  outline-offset: 2px;
+}
+
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .page-enter-active,
+  .page-leave-active {
+    transition: none;
+  }
+  
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1;
+    transform: none;
+  }
+  
+  .hover-lift:hover {
+    transform: none;
+  }
+  
+  .glass-card:hover {
+    transform: none;
+  }
+  
+  .btn-primary:hover,
+  .btn-ghost:hover {
+    transform: none;
+  }
 }

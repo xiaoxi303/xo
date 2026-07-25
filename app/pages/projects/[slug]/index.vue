@@ -116,7 +116,7 @@
                 <!-- Custom Premium Player Container -->
                 <div 
                   ref="playerContainerRef" 
-                  class="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-black select-none z-10 max-h-[700px]" style="border: 2px solid rgba(217,119,6,0.35); box-shadow: 0 20px 50px rgba(0,0,0,0.25); aspect-ratio: auto;"
+                  class="relative w-full rounded-2xl overflow-hidden bg-black select-none z-10 max-h-[700px]" style="border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 25px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05); aspect-ratio: auto;"
                   @mousemove="resetControlsTimer"
                   @mouseleave="showControls = false"
                   @contextmenu.prevent
@@ -147,10 +147,10 @@
                   >
                     <button 
                       type="button"
-                      class="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-2xl pointer-events-auto transform transition-transform hover:scale-105 active:scale-95"
+                      class="play-btn-main pointer-events-auto"
                       @click="togglePlay"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 ml-1 text-amber-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10 ml-1">
                         <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
                       </svg>
                     </button>
@@ -158,23 +158,38 @@
 
                   <!-- Custom Bottom Controls (Glassmorphism Overlay) -->
                   <div 
-                    class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/85 via-black/45 to-transparent transition-all duration-300 transform flex flex-col justify-end pointer-events-auto z-20"
+                    class="absolute bottom-0 inset-x-0 px-5 pb-4 pt-16 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-all duration-500 transform flex flex-col justify-end pointer-events-auto z-20"
                     :class="{ 'opacity-100 translate-y-0': showControls, 'opacity-0 translate-y-2 pointer-events-none': !showControls }"
                   >
                     <!-- Scrub Progress Bar -->
                     <div 
-                      class="relative h-1 w-full bg-white/20 rounded-full cursor-pointer group/progress mb-3.5 transition-all hover:h-1.5"
+                      class="progress-bar-container group/progress"
                       @mousedown="startScrub"
+                      @mousemove="onProgressHover"
+                      @mouseleave="onProgressLeave"
                       ref="progressTrackRef"
                     >
+                      <!-- Buffered Progress -->
+                      <div 
+                        class="progress-buffered"
+                        :style="{ width: (bufferedEnd / (duration || 1)) * 100 + '%' }"
+                      />
                       <!-- Progress Fill -->
                       <div 
-                        class="absolute top-0 left-0 h-full bg-amber-600 rounded-full"
+                        class="progress-filled"
                         :style="{ width: (currentTime / (duration || 1)) * 100 + '%' }"
                       />
+                      <!-- Hover Time Tooltip -->
+                      <div 
+                        v-if="hoverTime !== null"
+                        class="progress-tooltip"
+                        :style="{ left: hoverPercent + '%' }"
+                      >
+                        {{ formatTime(hoverTime) }}
+                      </div>
                       <!-- Progress Thumb Knob -->
                       <div 
-                        class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border border-amber-600 shadow-md scale-0 group-hover/progress:scale-100 transition-transform"
+                        class="progress-thumb"
                         :style="{ left: 'calc(' + (currentTime / (duration || 1)) * 100 + '% - 6px)' }"
                       />
                     </div>
@@ -183,7 +198,7 @@
                     <div class="flex items-center justify-between text-white text-xs select-none">
                       <div class="flex items-center gap-4">
                         <!-- Play/Pause toggle -->
-                        <button type="button" @click="togglePlay" class="hover:text-amber-500 transition-colors">
+                        <button type="button" @click="togglePlay" class="video-ctrl-btn" aria-label="Play/Pause">
                           <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-white">
                             <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                           </svg>
@@ -193,13 +208,13 @@
                         </button>
 
                         <!-- Timeline Time counter -->
-                        <span class="font-mono text-[11px] text-gray-300">
+                        <span class="time-display">
                           {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
                         </span>
 
                         <!-- Volume with Slider -->
                         <div class="flex items-center gap-1.5 group/volume ml-1">
-                          <button type="button" @click="toggleMute" class="hover:text-amber-500 transition-colors">
+                          <button type="button" @click="toggleMute" class="video-ctrl-btn">
                             <svg v-if="isMuted || volume === 0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                               <path d="M9.547 3.062A.75.75 0 0110 3.75v12.5a.75.75 0 01-1.264.546L5.203 13H3.25A1.25 1.25 0 012 11.75v-3.5A1.25 1.25 0 013.25 7h1.953l3.533-3.296a.75.75 0 01.811-.064zM16.28 7.22a.75.75 0 10-1.06 1.06L16.44 9.5l-1.22 1.22a.75.75 0 101.06 1.06l1.22-1.22 1.22 1.22a.75.75 0 101.06-1.06L18.56 9.5l1.22-1.22a.75.75 0 00-1.06-1.06l-1.22 1.22-1.22-1.22z" />
                             </svg>
@@ -220,7 +235,7 @@
                       <div class="flex items-center gap-4">
                         <!-- Speed selector popover cycle -->
                         <div class="relative group/speed">
-                          <button type="button" class="font-mono text-[9px] font-bold border border-white/30 rounded px-1.5 py-0.5 hover:border-amber-500 hover:text-amber-500 transition-colors uppercase">
+                          <button type="button" class="speed-btn">
                             {{ playbackRate.toFixed(2) }}x
                           </button>
                           <div class="absolute bottom-full right-0 mb-2 bg-black/90 border border-white/10 rounded-xl py-1 shadow-2xl min-w-[70px] opacity-0 translate-y-1 pointer-events-none group-hover/speed:opacity-100 group-hover/speed:translate-y-0 group-hover/speed:pointer-events-auto transition-all duration-200">
@@ -237,14 +252,14 @@
                         </div>
 
                         <!-- Picture in Picture (PiP) -->
-                        <button type="button" @click="togglePiP" class="hover:text-amber-500 transition-colors" title="画中画">
+                        <button type="button" @click="togglePiP" class="video-ctrl-btn" title="画中画">
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                             <path fill-rule="evenodd" d="M2 3.75A1.75 1.75 0 013.75 2h12.5A1.75 1.75 0 0118 3.75v12.5A1.75 1.75 0 0116.25 18H3.75A1.75 1.75 0 012 16.25V3.75zM3.5 8v8.25c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V8h-13zm11 2.25a.75.75 0 00-1.5 0v3.5a.75.75 0 001.5 0v-3.5z" clip-rule="evenodd" />
                           </svg>
                         </button>
 
                         <!-- Fullscreen Toggle -->
-                        <button type="button" @click="toggleFullscreen" class="hover:text-amber-500 transition-colors">
+                        <button type="button" @click="toggleFullscreen" class="video-ctrl-btn">
                           <svg v-if="!isFullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                             <path d="M3.25 4A.75.75 0 014 3.25h3.5a.75.75 0 010 1.5H5v2.5a.75.75 0 01-1.5 0v-3.5zM12.5 3.25a.75.75 0 01.75-.75h3.5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0V5h-2.75a.75.75 0 01-.75-.75zM3.25 12.5a.75.75 0 01.75.75V15h2.75a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75v-3.5a.75.75 0 01.75-.75zM16.75 12.5a.75.75 0 01.75.75v3.5a.75.75 0 01-.75.75h-3.5a.75.75 0 010-1.5H15v-2.5a.75.75 0 01.75-.75z" />
                           </svg>
@@ -761,6 +776,10 @@ const playbackRate = ref(1.0)
 const isFullscreen = ref(false)
 const showControls = ref(true)
 const isDraggingScrub = ref(false)
+const bufferedEnd = ref(0)
+const hoverTime = ref<number | null>(null)
+const hoverPercent = ref(0)
+let lastClickTime = 0
 
 const progressTrackRef = ref<HTMLElement | null>(null)
 const playerContainerRef = ref<HTMLElement | null>(null)
@@ -787,6 +806,26 @@ const onTimeUpdate = () => {
       updateDuration()
     }
   }
+}
+
+const updateBuffered = () => {
+  if (!mainVideoRef.value) return
+  const buff = mainVideoRef.value.buffered
+  if (buff.length > 0) {
+    bufferedEnd.value = buff.end(buff.length - 1)
+  }
+}
+
+const onProgressHover = (e: MouseEvent) => {
+  if (!duration.value) return
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+  hoverPercent.value = percent * 100
+  hoverTime.value = percent * duration.value
+}
+
+const onProgressLeave = () => {
+  hoverTime.value = null
 }
 
 const onPlay = () => {
@@ -914,9 +953,85 @@ const formatTime = (seconds: number) => {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
+const handleKeydown = (e: KeyboardEvent) => {
+  if (!mainVideoRef.value) return
+  const tag = (e.target as HTMLElement)?.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+  switch (e.key) {
+    case ' ':
+    case 'k':
+    case 'K':
+      e.preventDefault()
+      togglePlay()
+      break
+    case 'm':
+    case 'M':
+      e.preventDefault()
+      toggleMute()
+      break
+    case 'f':
+    case 'F':
+      e.preventDefault()
+      toggleFullscreen()
+      break
+    case 'ArrowLeft':
+      e.preventDefault()
+      mainVideoRef.value.currentTime = Math.max(0, mainVideoRef.value.currentTime - 5)
+      break
+    case 'ArrowRight':
+      e.preventDefault()
+      mainVideoRef.value.currentTime = Math.min(duration.value, mainVideoRef.value.currentTime + 5)
+      break
+    case 'ArrowUp':
+      e.preventDefault()
+      setVolume(Math.min(1, volume.value + 0.1))
+      break
+    case 'ArrowDown':
+      e.preventDefault()
+      setVolume(Math.max(0, volume.value - 0.1))
+      break
+    case 'j':
+    case 'J':
+      e.preventDefault()
+      mainVideoRef.value.currentTime = Math.max(0, mainVideoRef.value.currentTime - 10)
+      break
+    case 'l':
+    case 'L':
+      e.preventDefault()
+      mainVideoRef.value.currentTime = Math.min(duration.value, mainVideoRef.value.currentTime + 10)
+      break
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      e.preventDefault()
+      mainVideoRef.value.currentTime = (Number(e.key) / 10) * duration.value
+      break
+  }
+}
+
+const handleVideoClick = (e: MouseEvent) => {
+  const now = Date.now()
+  if (now - lastClickTime < 300) {
+    e.preventDefault()
+    toggleFullscreen()
+    lastClickTime = 0
+    return
+  }
+  lastClickTime = now
+  togglePlay()
+}
+
 useHead({
-  title: () => project.value ? `${project.value.title} — Xo Studio` : '作品详情 — Xo Studio',
-  meta: [{ name: 'description', content: () => project.value ? project.value.description : '作品详情页' }]
+  title: () => project.value ? `${project.value.title} \u2014 Xo Studio` : '\u4f5c\u54c1\u8be6\u60c5 \u2014 Xo Studio',
+  meta: [{ name: 'description', content: () => project.value ? project.value.description : '\u4f5c\u54c1\u8be6\u60c5\u9875' }]
 })
 
 let observer: IntersectionObserver | null = null
@@ -967,9 +1082,16 @@ onMounted(async () => {
   if (import.meta.client) {
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.addEventListener('keydown', handleKeydown)
 
     recordProjectView()
   }
+
+  watch(mainVideoRef, (el) => {
+    if (el) {
+      el.addEventListener('progress', updateBuffered)
+    }
+  }, { immediate: true })
 })
 
 watch(
@@ -986,11 +1108,159 @@ onBeforeUnmount(() => {
   if (import.meta.client) {
     document.removeEventListener('fullscreenchange', handleFullscreenChange)
     document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.removeEventListener('keydown', handleKeydown)
   }
 })
 </script>
 
 <style scoped>
+
+/* ===== Premium Video Player UI ===== */
+
+/* Main play button */
+.play-btn-main {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.play-btn-main:hover {
+  background: var(--color-bronze, #b45309);
+  border-color: var(--color-bronze-light, #d97706);
+  transform: scale(1.1);
+  box-shadow: 0 0 40px rgba(180, 83, 9, 0.5), 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.play-btn-main:active {
+  transform: scale(0.95);
+}
+
+/* Video control buttons */
+.video-ctrl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: rgba(255,255,255,0.8);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.video-ctrl-btn:hover {
+  color: #f59e0b;
+  background: rgba(255,255,255,0.1);
+  transform: scale(1.08);
+}
+.video-ctrl-btn:active {
+  transform: scale(0.92);
+  background: rgba(255,255,255,0.15);
+}
+
+/* Progress bar */
+.progress-bar-container {
+  position: relative;
+  height: 4px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: height 0.2s ease;
+}
+.progress-bar-container:hover {
+  height: 6px;
+}
+.progress-buffered {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+.progress-filled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-bronze, #b45309), var(--color-bronze-light, #d97706));
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+.progress-tooltip {
+  position: absolute;
+  top: -36px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.progress-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--color-bronze, #b45309);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.progress-bar-container:hover .progress-thumb {
+  transform: translateY(-50%) scale(1);
+}
+
+/* Time display */
+.time-display {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.05em;
+}
+
+/* Speed button */
+.speed-btn {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+.speed-btn:hover {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease, transform 0.3s ease;

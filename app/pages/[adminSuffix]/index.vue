@@ -1183,7 +1183,7 @@
                   </div>
                   <div class="space-y-1.5">
                     <label class="form-label">联系邮箱</label>
-                    <input v-model="siteConfig.siteInfo.contactEmail" class="form-input font-mono" type="email" placeholder="hello@xo.dev" />
+                    <input v-model="siteConfig.siteInfo.contactEmail" class="form-input font-mono" type="email" placeholder="hello@Xo" />
                   </div>
                 </div>
                 
@@ -1309,7 +1309,7 @@
                 <span class="text-[9px] uppercase font-mono tracking-wider" style="color: var(--color-ink-5)">搜索结果预览</span>
                 <div class="space-y-1.5">
                   <p class="text-sm font-semibold" style="color: #1a0dab">{{ siteConfig.siteInfo.seoTitle || '网站标题' }}</p>
-                  <p class="text-[11px]" style="color: #006621">{{ siteConfig.siteInfo.contactEmail || 'xo.dev' }}</p>
+                  <p class="text-[11px]" style="color: #006621">{{ siteConfig.siteInfo.contactEmail || 'Xo' }}</p>
                   <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">{{ siteConfig.siteInfo.seoDescription || '网站描述...' }}</p>
                 </div>
               </div>
@@ -1615,7 +1615,7 @@
               <div class="grid md:grid-cols-3 gap-4">
                 <div class="space-y-1 md:col-span-2">
                   <label class="form-label">跳转链接 (Link URL)</label>
-                  <input v-model="siteConfig.announcement.link" class="form-input font-mono text-xs" placeholder="mailto:hello@xo.dev 或 https://..." />
+                  <input v-model="siteConfig.announcement.link" class="form-input font-mono text-xs" placeholder="mailto:hello@Xo 或 https://..." />
                 </div>
                 <div class="space-y-1 md:col-span-1">
                   <label class="form-label">CTA 按钮文案 (Action Label)</label>
@@ -2230,7 +2230,7 @@ if (currentSuffix !== configuredPath) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found.' })
 }
 
-useHead({ title: '配置工作台 — xo.dev' })
+useHead({ title: '配置工作台 — Xo' })
 
 const isLoggedIn = ref(false)
 const isCheckingAuth = ref(true)
@@ -2347,7 +2347,7 @@ const resetToFactoryDefaults = () => {
   siteConfig.value = {
     siteInfo: {
       brandName: 'Xo Studio', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
-      contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
+      contactEmail: 'hello@Xo', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
       bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
       seoTitle: 'Xo Studio · 影视剪辑 & DI 电影调色工作室', seoDescription: '专注极致剪辑节奏与 Quiet Luxury 高奢色彩科学。', footerTagline: '基于达芬奇色彩科学规范开发'
     },
@@ -2559,7 +2559,7 @@ const projectsList = ref<any[]>([])
 const siteConfig = useState<any>('site-config', () => ({
   siteInfo: {
     brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
-    contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
+    contactEmail: 'hello@Xo', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
     bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
     seoTitle: '', seoDescription: '', footerTagline: ''
   },
@@ -2857,7 +2857,7 @@ const fetchSiteConfig = async () => {
   siteConfig.value = {
     siteInfo: {
       brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
-      contactEmail: 'hello@xo.dev', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
+      contactEmail: 'hello@Xo', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
       bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
       seoTitle: '', seoDescription: '', footerTagline: '基于达芬奇色彩科学规范开发',
       ...data.siteInfo

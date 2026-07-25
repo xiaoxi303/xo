@@ -2,7 +2,7 @@
   <footer class="relative z-10 mt-16 pt-12 pb-12">
     <!-- Minimal divider -->
     <div class="max-w-6xl mx-auto px-6 mb-6">
-      <div class="h-[1px] w-full opacity-30" style="background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1) 15%, rgba(0,0,0,0.1) 85%, transparent);" />
+      <div class="h-[1px] w-full opacity-30" style="background: linear-gradient(90deg, transparent, var(--color-border-2) 20%, var(--color-border-2) 80%, transparent);" />
     </div>
 
     <div class="max-w-6xl mx-auto px-6">
@@ -18,7 +18,7 @@
           />
           <div class="flex items-center">
             <span class="text-[9px] font-mono font-bold tracking-[0.1em] uppercase ml-2.5"
-                  style="color: var(--color-ink-4);">xo.dev · 视频剪辑与调色工作室</span>
+                  style="color: var(--color-ink-5);">Xo · 视频剪辑与调色工作室</span>
           </div>
         </div>
 
@@ -57,7 +57,7 @@
         <p class="text-[9px] font-mono tracking-[0.15em] flex items-center gap-2" style="color: var(--color-ink-5);">
           <span>{{ siteConfig?.siteInfo?.footerTagline || '基于达芬奇色彩科学规范开发' }}</span>
           <span class="w-1.5 h-1.5 rounded-full" style="background: var(--color-bronze); opacity: 0.6;" />
-          <span>xo.dev</span>
+          <span>Xo</span>
         </p>
       </div>
 
@@ -108,21 +108,21 @@ const copySocialValue = (value: string, label: string) => {
 .social-btn {
   width: 36px;
   height: 36px;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-ink-4);
-  background: rgba(180, 83, 9, 0.03);
-  border: 1px solid rgba(180, 83, 9, 0.05);
+  color: var(--color-ink-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   text-decoration: none;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .social-btn:hover {
   color: var(--color-bronze);
-  background: rgba(180, 83, 9, 0.08);
+  background: var(--color-bronze-bg);
   border-color: rgba(180, 83, 9, 0.20);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.05);
+  box-shadow: 0 4px 12px var(--color-bronze-glow);
 }
 </style>

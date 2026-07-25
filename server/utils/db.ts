@@ -375,7 +375,8 @@ export async function dbReorderProjects(event: H3Event, slugs: string[]): Promis
     for (let i = 0; i < slugs.length; i++) {
       const slug = slugs[i]
       const sortOrder = i + 1
-      await db.prepare('UPDATE projects SET sortOrder = ? WHERE slug = ?').bind(sortOrder, slug).run().catch(() => {})
+      const displayNumber = sortOrder < 10 ? `0${sortOrder}` : `${sortOrder}`
+      await db.prepare('UPDATE projects SET sortOrder = ?, displayNumber = ? WHERE slug = ?').bind(sortOrder, displayNumber, slug).run().catch(() => {})
     }
   }
 

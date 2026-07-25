@@ -15,7 +15,7 @@
           : 'w-full max-w-6xl h-20 px-6 bg-transparent border-b border-transparent'
       ]"
       :style="isScrolled
-        ? { background: 'rgba(252, 248, 242, 0.62)', borderColor: 'rgba(200, 185, 160, 0.3)' }
+        ? { background: 'var(--glass-bg)', borderColor: 'var(--glass-border-inner)', boxShadow: 'var(--glass-shadow)' }
         : {}"
     >
       <!-- Brand Logo -->
@@ -163,7 +163,7 @@ onMounted(() => {
 <style scoped>
 .nav-underline-enter-active,
 .nav-underline-leave-active {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all var(--duration-slow) var(--ease-out);
 }
 .nav-underline-enter-from,
 .nav-underline-leave-to {
@@ -173,7 +173,7 @@ onMounted(() => {
 
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
-  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity var(--duration-normal) ease, transform var(--duration-normal) var(--ease-out);
 }
 .mobile-menu-enter-from,
 .mobile-menu-leave-to {
