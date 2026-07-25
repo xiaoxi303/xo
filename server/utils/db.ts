@@ -541,6 +541,7 @@ export async function dbDeleteProject(event: H3Event, slug: string): Promise<voi
 const defaultConfig = {
   siteInfo: {
     brandName: "Xo",
+    title: "Xo Studio",
     ownerName: "Xo",
     ownerInitial: "Z",
     contactEmail: "hello@xo.dev",
