@@ -838,6 +838,45 @@
                 </div>
               </div>
 
+              <!-- Additional Home Settings -->
+              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">其他设置</h3>
+                <div class="space-y-1.5">
+                  <label class="form-label">后期规格文本</label>
+                  <input v-model="siteConfig.home.colorSpecText" class="form-input" placeholder="4K 60FPS HDR / ACEScct" />
+                </div>
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="form-label">视频编码格式</label>
+                    <input v-model="siteConfig.home.heroVideoCodec" class="form-input" placeholder="PRORES 4444 XQ" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">视频帧率</label>
+                    <input v-model="siteConfig.home.heroVideoFps" class="form-input" placeholder="23.976 FPS" />
+                  </div>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="form-label">统计值 3</label>
+                    <input v-model="siteConfig.home.statValue3" class="form-input" placeholder="ACEScct" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">统计标签 3</label>
+                    <input v-model="siteConfig.home.statLabel3" class="form-input" placeholder="" />
+                  </div>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="form-label">TVC 项目节点数</label>
+                    <input v-model="siteConfig.home.tvcProjectNodes" class="form-input" placeholder="16 NODES" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">TVC 项目徽章</label>
+                    <input v-model="siteConfig.home.tvcProjectBadge" class="form-input" placeholder="FEATURED" />
+                  </div>
+                </div>
+              </div>
+
               <!-- Homepage Featured Projects Selector -->
               <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
                 <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">首页卡片大图作品展示</h3>
@@ -1174,6 +1213,10 @@
                   <div class="space-y-1.5">
                     <label class="form-label">持有人姓名</label>
                     <input v-model="siteConfig.siteInfo.ownerName" class="form-input" placeholder="Xo" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">站点标题</label>
+                    <input v-model="siteConfig.siteInfo.title" class="form-input" placeholder="Xo Studio" />
                   </div>
                 </div>
                 <div class="grid sm:grid-cols-2 gap-4">
