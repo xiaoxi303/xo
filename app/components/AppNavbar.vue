@@ -16,9 +16,9 @@
       ]"
       :style="isScrolled
         ? { 
-            background: 'rgba(252, 248, 242, 0.5)', 
-            borderColor: 'rgba(180, 160, 130, 0.06)',
-            boxShadow: '0 1px 2px rgba(80,60,30,0.03), 0 8px 32px -6px rgba(80,60,30,0.04), inset 0 1px 0 rgba(255,252,245,0.8)'
+            background: 'rgba(252, 248, 242, 0.45)', 
+            borderColor: 'rgba(180, 160, 130, 0.05)',
+            boxShadow: '0 1px 2px rgba(80,60,30,0.02), 0 8px 32px -6px rgba(80,60,30,0.03), inset 0 1px 0 rgba(255,252,245,0.75)'
           }
         : {}"
     >
