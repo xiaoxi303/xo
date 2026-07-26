@@ -140,7 +140,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const callCustomLLM = async (systemPrompt: string, userPrompt: string) => {
-    if (!apiKey) return null
+    if (!apiKey) {
+      return null
+    }
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -164,7 +166,8 @@ export default defineEventHandler(async (event) => {
         const text = json.choices?.[0]?.message?.content
         if (text) return text
       }
-    } catch (err: any) {}
+    } catch (err: any) {
+    }
     return null
   }
 
