@@ -664,13 +664,34 @@ watch(unlockStatus, async (val) => {
 // Generate daily password (same algorithm as backend)
 const getDailyPassword = (slug) => {
   if (!slug) return '------'
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
   
   // Get Beijing time using toLocaleDateString
-  const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
-  
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
   const secret = 'xo-studio-2026'
-  const input = slug + '|' + dateStr + '|' + secret
+  const seed = slug + '*' + todayStr + '*' + secret
+  
+  // SHA256 hash
+  const encoder = new TextEncoder()
+  const data = encoder.encode(seed)
+  
+  // Simple hash function (since we can't use crypto in browser easily)
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  hash = Math.abs(hash)
+  
+  const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+  let pwd = ''
+  let value = hash
+  for (let i = 0; i < 6; i++) {
+    const index = value % charset.length
+    pwd += charset[index]
+    value = Math.floor(value / charset.length)
+  }
+  return pwd
   
   let hash = 0
   for (let i = 0; i < input.length; i++) {

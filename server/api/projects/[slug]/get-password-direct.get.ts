@@ -5,7 +5,7 @@
 import { dbGetProjectsRaw, dbGetProjectPassword, dbCreatePasswordRequest, getD1Database } from '../../../utils/db'
 import { getRuntimeDataPath } from '../../../utils/storage'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../../utils/auth'
-import { generateDailyPassword, getBeijingDateString } from '../../../utils/password-utils'
+import { getDailyPassword, getBeijingDateString } from '../../../utils/password-utils'
 import fs from 'node:fs'
 
 export default defineEventHandler(async (event) => {
@@ -51,8 +51,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 3. Get password - always use dynamic password (static password input removed)
-  const today = getBeijingDateString()
-  let password = generateDailyPassword(slug, today)
+  let password = getDailyPassword(slug)
 
   if (!password) {
     return { password: null }

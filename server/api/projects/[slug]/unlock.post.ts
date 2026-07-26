@@ -6,7 +6,7 @@ import { dbGetProjectsRaw, dbGetProjectPassword } from '../../../utils/db'
 import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
-import { generateDailyPassword, getBeijingDateString, verifyPassword } from '../../../utils/password-utils'
+import { getDailyPassword, getBeijingDateString, verifyPassword } from '../../../utils/password-utils'
 
 // In-memory unlock token store
 const unlockTokens = new Map<string, { slug: string; expiresAt: number; date: string }>()
@@ -32,7 +32,8 @@ export default defineEventHandler(async (event) => {
 
   // Get valid password - always use dynamic password (static password input removed)
   const today = getBeijingDateString()
-  const validPassword = generateDailyPassword(slug, today)
+  const validPassword = getDailyPassword(slug)
+  
 
   if (!validPassword || validPassword.trim() === '') {
     return { success: true, token: null, public: true }
