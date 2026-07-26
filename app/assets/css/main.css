@@ -3,26 +3,55 @@
 @tailwind utilities;
 
 /* ===== Xo Custom Brand Typeface — 100% Localized ===== */
+
+/* Xo Display — Elegant Editorial Serif */
 @font-face {
   font-family: 'Xo Display';
   src: url('/fonts/xo-display.woff2') format('woff2'),
        url('/fonts/xo-display.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
+
 @font-face {
   font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2'),
-       url('/fonts/xo-display.ttf') format('truetype');
+  src: url('/fonts/xo-display-italic.woff2') format('woff2'),
+       url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 100 900;
   font-style: italic;
+  font-display: swap;
 }
+
+/* Xo Sans — Modern Geometric Sans */
 @font-face {
   font-family: 'Xo Sans';
   src: url('/fonts/xo-sans.woff2') format('woff2'),
        url('/fonts/xo-sans.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Xo Sans';
+  src: url('/fonts/xo-sans-italic.woff2') format('woff2'),
+       url('/fonts/xo-sans.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Xo Mono — Technical Monospace */
+@font-face {
+  font-family: 'Xo Mono';
+  src: url('/fonts/xo-mono.woff2') format('woff2'),
+       url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* ===== Design Token System — Quiet Luxury Warm 2.0 ===== */
@@ -83,10 +112,10 @@
                         0 32px 64px -16px rgba(80,60,30,0.16),
                         inset 0 1px 0 rgba(255,252,245,0.98);
 
-  /* Fonts */
-  --font-display: 'Xo Display', Georgia, serif;
-  --font-sans:    'Xo Sans', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+  /* Fonts — Xo Typography System */
+  --font-display: 'Xo Display', Georgia, 'Times New Roman', serif;
+  --font-sans:    'Xo Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'Xo Mono', 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
 
   /* Font Sizes — 更精确的排版系统 */
   --text-xs:    0.75rem;    /* 12px */
