@@ -665,11 +665,13 @@ watch(unlockStatus, async (val) => {
 const getDailyPassword = (slug) => {
   if (!slug) return '------'
   
+  // Same algorithm as server/utils/password-utils.ts
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
   const secret = 'XO_STUDIO_SALT'
   const cleanSlug = String(slug).trim().toLowerCase()
   const seed = 'project_' + cleanSlug + '*date*' + todayStr + '*salt*' + secret
   
+  // Use same hash as backend: simple charCode hash
   let hash = 0
   for (let i = 0; i < seed.length; i++) {
     const char = seed.charCodeAt(i)
