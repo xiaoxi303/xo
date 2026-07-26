@@ -12,7 +12,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '请填写必填项目' })
   }
 
-  const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
+  // Get real client IP (support various proxy headers)
+  let ip = ''
+  const cfConnectingIp = getHeader(event, 'cf-connecting-ip')
+  const xRealIp = getHeader(event, 'x-real-ip')
+  const xForwardedFor = getHeader(event, 'x-forwarded-for')
+  
+  if (cfConnectingIp) ip = cfConnectingIp.trim()
+  else if (xRealIp) ip = xRealIp.trim()
+  else if (xForwardedFor) ip = xForwardedFor.split(',')[0]?.trim() || ''
+  if (!ip) ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
+  if (ip === '::1' || ip === '::ffff:127.0.0.1') ip = '127.0.0.1 (本地)'
 
   const booking = {
     id: `BK-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
