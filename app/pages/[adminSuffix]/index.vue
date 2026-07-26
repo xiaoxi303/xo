@@ -1524,7 +1524,7 @@
                   </div>
                   <div class="flex items-center gap-3">
                     <div class="bg-amber-700/5 text-amber-700 text-xs px-3 py-1.5 rounded-lg border border-amber-800/10 font-mono font-bold">
-                      密码: {{ p.password }}
+                      密码: {{ p.activePassword || getDailyPassword(p.slug) }}
                     </div>
                     <button @click="openEditModal(p)" class="text-xs font-semibold hover:underline" style="color: var(--color-ink-4)">
                       修改
