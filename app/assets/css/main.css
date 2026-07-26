@@ -184,6 +184,123 @@
   font-feature-settings: 'tnum' 1, 'ss01' 1;
 }
 
+
+/* ===== Xo CJK Support — Chinese/Japanese/Korean ===== */
+
+/*
+ * 中文排版优化
+ * Xo Display 用于中文标题，搭配思源宋体作为回退
+ * Xo Sans 用于中文正文，搭配思源黑体作为回退
+ */
+
+/* 中文标题字体 — 优雅衬线 */
+@font-face {
+  font-family: 'Xo Display CJK';
+  src: local('Noto Serif CJK SC'),
+       local('Source Han Serif SC'),
+       local('STSong'),
+       local('SimSun'),
+       url('/fonts/xo-display.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+4E00-9FFF, U+3400-4DBF, U+2F00-2FDF, U+3000-303F, U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: 'Xo Display CJK';
+  src: local('Noto Serif CJK SC Bold'),
+       local('Source Han Serif SC Bold'),
+       local('STSong'),
+       local('SimSun'),
+       url('/fonts/xo-display.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+4E00-9FFF, U+3400-4DBF, U+2F00-2FDF, U+3000-303F, U+FF00-FFEF;
+}
+
+/* 中文正文字体 — 现代黑体 */
+@font-face {
+  font-family: 'Xo Sans CJK';
+  src: local('Noto Sans CJK SC'),
+       local('Source Han Sans SC'),
+       local('Microsoft YaHei'),
+       local('PingFang SC'),
+       url('/fonts/xo-sans.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+4E00-9FFF, U+3400-4DBF, U+2F00-2FDF, U+3000-303F, U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: 'Xo Sans CJK';
+  src: local('Noto Sans CJK SC Bold'),
+       local('Source Han Sans SC Bold'),
+       local('Microsoft YaHei Bold'),
+       local('PingFang SC Bold'),
+       url('/fonts/xo-sans.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+4E00-9FFF, U+3400-4DBF, U+2F00-2FDF, U+3000-303F, U+FF00-FFEF;
+}
+
+/* 日文字体支持 */
+@font-face {
+  font-family: 'Xo Sans CJK';
+  src: local('Noto Sans CJK JP'),
+       local('Source Han Sans JP'),
+       local('Hiragino Sans'),
+       url('/fonts/xo-sans.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+3040-309F, U+30A0-30FF, U+31F0-31FF;
+}
+
+/* 韩文字体支持 */
+@font-face {
+  font-family: 'Xo Sans CJK';
+  src: local('Noto Sans CJK KR'),
+       local('Source Han Sans KR'),
+       local('Apple Gothic'),
+       url('/fonts/xo-sans.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+AC00-D7AF, U+1100-11FF, U+3130-318F;
+}
+
+/* ===== Enhanced Typography with CJK ===== */
+
+/* 中文排版优化 */
+:lang(zh) {
+  font-family: 'Xo Sans CJK', 'Xo Sans', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+}
+
+:lang(zh) h1, :lang(zh) h2, :lang(zh) h3, :lang(zh) h4 {
+  font-family: 'Xo Display CJK', 'Xo Display', 'Noto Serif CJK SC', 'STSong', serif;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+}
+
+/* 日文排版优化 */
+:lang(ja) {
+  font-family: 'Xo Sans CJK', 'Xo Sans', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  line-height: 1.8;
+}
+
+/* 韩文排版优化 */
+:lang(ko) {
+  font-family: 'Xo Sans CJK', 'Xo Sans', 'Apple Gothic', 'Malgun Gothic', sans-serif;
+  line-height: 1.8;
+}
+
+
 /* ===== Font Feature Settings ===== */
 
 /* Enable ligatures for code */
@@ -267,10 +384,18 @@
 
   /* ===== Xo Typography Design Tokens ===== */
   
-  /* Primary Font Families */
+  /* Primary Font Families — Latin */
   --font-display: 'Xo Display', Georgia, 'Times New Roman', serif;
   --font-sans:    'Xo Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono:    'Xo Mono', 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  
+  /* CJK Font Families — Chinese/Japanese/Korean */
+  --font-display-cjk: 'Xo Display CJK', 'Xo Display', 'Noto Serif CJK SC', 'Source Han Serif SC', 'STSong', 'SimSun', serif;
+  --font-sans-cjk:    'Xo Sans CJK', 'Xo Sans', 'Noto Sans CJK SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  
+  /* Combined Font Stacks — Auto language detection */
+  --font-display-all: 'Xo Display', 'Xo Display CJK', Georgia, 'Noto Serif CJK SC', 'STSong', 'Times New Roman', serif;
+  --font-sans-all:    'Xo Sans', 'Xo Sans CJK', system-ui, -apple-system, 'Noto Sans CJK SC', 'PingFang SC', 'Segoe UI', sans-serif;
   
   /* Font Weights */
   --font-weight-thin:       100;
@@ -1269,4 +1394,66 @@ html {
 
 .hamburger-active .hamburger-line:nth-child(3) {
   transform: rotate(-45deg) translate(5px, -5px);
+}
+
+
+/* ===== CJK Typography Utilities ===== */
+
+/* 中文标题 */
+.cjk-display {
+  font-family: 'Xo Display CJK', 'Xo Display', 'Noto Serif CJK SC', 'STSong', serif;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+}
+
+/* 中文正文 */
+.cjk-body {
+  font-family: 'Xo Sans CJK', 'Xo Sans', 'Noto Sans CJK SC', 'PingFang SC', sans-serif;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+}
+
+/* 中文紧凑排版 */
+.cjk-tight {
+  font-family: 'Xo Sans CJK', 'Xo Sans', 'PingFang SC', sans-serif;
+  line-height: 1.6;
+  letter-spacing: 0;
+}
+
+/* 中文诗句排版 */
+.cjk-poetry {
+  font-family: 'Xo Display CJK', 'Noto Serif CJK SC', serif;
+  line-height: 2;
+  letter-spacing: 0.1em;
+  text-align: justify;
+}
+
+/* 竖排文字 */
+.cjk-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: 'Xo Display CJK', 'Noto Serif CJK SC', serif;
+}
+
+/* 中英文混排优化 */
+.cjk-mixed {
+  font-family: 'Xo Sans', 'Xo Sans CJK', system-ui, 'PingFang SC', sans-serif;
+  word-break: break-all;
+}
+
+/* 中文强调（着重号） */
+.cjk-emphasis {
+  text-emphasis: filled var(--color-bronze, #b45309);
+  text-emphasis-position: under right;
+}
+
+/* 响应式中文排版 */
+@media (max-width: 768px) {
+  .cjk-display {
+    letter-spacing: 0.03em;
+  }
+  
+  .cjk-body {
+    line-height: 1.7;
+  }
 }

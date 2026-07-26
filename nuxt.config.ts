@@ -6,9 +6,21 @@ export default defineNuxtConfig({
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
+      htmlAttrs: {
+        lang: 'zh-CN'
+      },
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { 'http-equiv': 'Content-Type', content: 'text/html; charset=utf-8' }
+      ],
       link: [
         { rel: 'icon', type: 'image/png', href: '/logo.png?v=312k_v4' },
-        { rel: 'apple-touch-icon', href: '/logo.png?v=312k_v4' }
+        { rel: 'apple-touch-icon', href: '/logo.png?v=312k_v4' },
+        // Preload Xo Display font
+        { rel: 'preload', href: '/fonts/xo-display.woff2', as: 'font', type: 'font/woff2', crossorigin: '' },
+        // Preload Xo Sans font
+        { rel: 'preload', href: '/fonts/xo-sans.woff2', as: 'font', type: 'font/woff2', crossorigin: '' }
       ]
     }
   },
