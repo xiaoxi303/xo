@@ -8,9 +8,7 @@
 
 @font-face {
   font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2'),
-       url('/fonts/xo-display.ttf') format('truetype'),
-       url('/fonts/xo-display.otf') format('opentype');
+  src: url('/fonts/xo-display.woff2?v=20260726') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -32,9 +30,7 @@
 
 @font-face {
   font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2'),
-       url('/fonts/xo-sans.ttf') format('truetype'),
-       url('/fonts/xo-sans.otf') format('opentype');
+  src: url('/fonts/xo-sans.woff2?v=20260726') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
