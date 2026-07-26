@@ -31,16 +31,19 @@ export default defineEventHandler(async (event) => {
     return { success: true, token: null, public: true }
   }
 
-  // Get the valid password for today
+  // Get the valid password
   let validPassword: string | null = null
   const today = getCurrentDateString()
 
-  if (project.autoRotatePassword) {
-    // Use daily rotating password
+  // First try static password from database
+  const staticPassword = await dbGetProjectPassword(event, slug)
+  
+  if (staticPassword && staticPassword.trim() !== '') {
+    // Use static password if available
+    validPassword = staticPassword
+  } else if (project.autoRotatePassword) {
+    // Fall back to daily rotating password if no static password
     validPassword = generateDailyPassword(slug, today)
-  } else {
-    // Use static password from database
-    validPassword = await dbGetProjectPassword(event, slug)
   }
 
   if (!validPassword || validPassword.trim() === '') {
