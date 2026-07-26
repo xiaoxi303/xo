@@ -25,19 +25,41 @@
         </p>
       </div>
 
-      <!-- Success State -->
-      <div v-if="submitSuccess" class="text-center py-8 space-y-4">
+      <!-- Success State with Dynamic Password -->
+      <div v-if="submitSuccess" class="text-center py-6 space-y-5">
         <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto"
              style="background: rgba(5, 150, 105, 0.1); border: 1px solid rgba(5, 150, 105, 0.2);">
           &#x2705;
         </div>
         <h2 class="font-display text-xl font-bold" style="color: var(--color-ink-1)">申请已提交</h2>
         <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
-          我们已收到您的申请，审核通过后将通过邮件通知您。
+          我们已收到您的申请，以下是今日的访问密码：
         </p>
-        <NuxtLink to="/projects" class="btn-primary inline-flex items-center gap-2 text-xs mt-4">
-          返回作品集
-        </NuxtLink>
+        
+        <!-- Dynamic Password Display -->
+        <div class="p-5 rounded-xl space-y-3" style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
+          <div class="flex items-center justify-center gap-2">
+            <span class="text-lg">&#x1f511;</span>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider" style="color: var(--color-ink-4)">今日访问密码</span>
+          </div>
+          <div class="p-4 rounded-lg font-mono text-3xl font-bold text-center tracking-[0.3em]"
+               style="background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-ink-1);">
+            {{ dailyPassword }}
+          </div>
+          <p class="text-[10px] leading-relaxed" style="color: var(--color-ink-5)">
+            &#x1f4a1; 密码每天凌晨 00:00 自动更新，请及时使用
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3 pt-2">
+          <NuxtLink :to="`/projects/${slug}`" class="btn-primary inline-flex items-center justify-center gap-2 text-xs">
+            <span>&#x1f511;</span>
+            <span>前往解锁作品</span>
+          </NuxtLink>
+          <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-4)">
+            返回作品集
+          </NuxtLink>
+        </div>
       </div>
 
       <!-- Request Form -->
@@ -130,6 +152,35 @@ onMounted(() => {
 useHead({
   title: () => `申请访问 - ${projectTitle.value || '作品'}`
 })
+
+// Generate daily password
+const getDailyPassword = (slug: string) => {
+  if (!slug) return '------'
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  const today = new Date()
+  const beijingTime = new Date(today.getTime() + 8 * 60 * 60 * 1000)
+  const dateStr = beijingTime.toISOString().split('T')[0]
+  const secret = 'xo-studio-secret-2026'
+  const input = `${slug}-${dateStr}-${secret}`
+  
+  let hash = 0
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  hash = Math.abs(hash)
+  
+  let password = ''
+  for (let i = 0; i < 6; i++) {
+    const index = hash % chars.length
+    password += chars[index]
+    hash = Math.floor(hash / chars.length)
+  }
+  return password
+}
+
+const dailyPassword = computed(() => getDailyPassword(slug))
 
 const submitRequest = async () => {
   if (submitLoading.value) return
