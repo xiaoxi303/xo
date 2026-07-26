@@ -1944,7 +1944,7 @@
                       <input id="isPasswordProtected" type="checkbox" v-model="form.isPasswordProtected" class="w-4 h-4 rounded cursor-pointer" />
                       <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">密码保护</label>
                     </div>
-                   <div class="space-y-1.5">
+                   <div v-if="form.isPasswordProtected" class="space-y-3 pl-6 border-l-2" style="border-color: var(--color-bronze-bg)">
                       <label class="form-label flex items-center gap-1">
                         <span>&#x1f511; </span>
                         <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">()</span>
