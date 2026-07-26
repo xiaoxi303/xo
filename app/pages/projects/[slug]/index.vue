@@ -64,7 +64,6 @@
           <p v-if="passwordError" class="text-xs text-rose-500 font-semibold">
             &#x274c; {{ passwordError }}
           </p>
-          </div>
 
           <div class="pt-4 border-t border-black/[0.05]">
             <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-4)">
