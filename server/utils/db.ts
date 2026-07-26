@@ -343,7 +343,7 @@ function sanitizeProject(row: any) {
   const { password, ...rest } = row
   return {
     ...normalizeProject(rest),
-    hasPassword: !!(password && String(password).trim() !== '')
+    hasPassword: !!(password && String(password).trim() !== '') || row.isPasswordProtected === 1 || row.isPasswordProtected === true
   }
 }
 
