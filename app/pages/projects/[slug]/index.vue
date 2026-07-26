@@ -23,8 +23,8 @@
             &#x1f512;
           </div>
           <div class="space-y-2">
-            <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-3);--color-ink-1)">&#x1f512; 访问保护</h1>
-            <p class="text-xs leading-relaxed" style="color: var(--color-ink-3);--color-ink-4)">
+            <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-3)">&#x1f512; 访问保护</h1>
+            <p class="text-xs leading-relaxed" style="color: var(--color-ink-3)">
               本作品受到访问保护，请输入密码解锁<br>
               &#x1f4a1; 密码每24小时（每天凌晨 00:00）自动更新一次
             </p>
@@ -35,8 +35,8 @@
             <div class="flex items-start gap-2">
               <span class="text-lg">&#x1f4a1;</span>
               <div class="space-y-1">
-                <p class="text-xs font-semibold" style="color: var(--color-ink-3);--color-ink-2)">访问说明</p>
-                <p class="text-xs leading-relaxed" style="color: var(--color-ink-3);--color-ink-4)">
+                <p class="text-xs font-semibold" style="color: var(--color-ink-3)">访问说明</p>
+                <p class="text-xs leading-relaxed" style="color: var(--color-ink-3)">
                   本作品设置了访问保护，密码每 24 小时（每天凌晨 00:00）会自动更新一次。旧密码失效后需重新获取最新密码。
                 </p>
               </div>
@@ -70,16 +70,16 @@
             <NuxtLink
               :to="`/projects/${slug}/get`"
               class="hover:opacity-80 transition-opacity underline flex items-center gap-1"
-              style="color: var(--color-ink-3);--color-bronze)"
+              style="color: var(--color-bronze)"
             >
               <span>&#x1f511;</span>
               <span>在线直接获取密码</span>
             </NuxtLink>
-            <span class="hidden sm:inline" style="color: var(--color-ink-3);--color-ink-6)">|</span>
+            <span class="hidden sm:inline" style="color: var(--color-ink-3)">|</span>
             <NuxtLink
               :to="`/projects/${slug}/request`"
               class="hover:opacity-80 transition-opacity underline flex items-center gap-1"
-              style="color: var(--color-ink-3);--color-ink-4)"
+              style="color: var(--color-ink-3)"
             >
               <span>&#x1f4dd;</span>
               <span>填写表单手动申请</span>
@@ -87,7 +87,7 @@
           </div>
 
           <div class="pt-4 border-t border-black/[0.05]">
-            <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-3);--color-ink-4)">
+            <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-3)">
               &larr; 返回作品集
             </NuxtLink>
           </div>
@@ -350,9 +350,9 @@
             <div class="flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center gap-3">
                 <span class="w-1 h-5 rounded-full" style="background: var(--color-bronze);" />
-                <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-3);--color-ink-1)">🎥 影视调色前后对比</h2>
+                <h2 class="font-display text-xl font-semibold" style="color: var(--color-ink-3)">🎥 影视调色前后对比</h2>
               </div>
-              <span class="text-[10px] font-mono" style="color: var(--color-ink-3);--color-ink-5)">← 左右拖动对比调色前后 →</span>
+              <span class="text-[10px] font-mono" style="color: var(--color-ink-3)">← 左右拖动对比调色前后 →</span>
             </div>
 
             <div
@@ -520,8 +520,8 @@
       <!-- Not found state -->
       <div v-if="!project" class="text-center py-20 space-y-4 reveal">
         <p class="text-5xl">🎞️</p>
-        <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-3);--color-ink-1)">未找到该作品</h1>
-        <p style="color: var(--color-ink-3);--color-ink-4)">请返回作品集重新选择。</p>
+        <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-3)">未找到该作品</h1>
+        <p style="color: var(--color-ink-3)">请返回作品集重新选择。</p>
         <NuxtLink to="/projects" class="btn-primary inline-flex">返回作品集</NuxtLink>
       </div>
 
@@ -536,7 +536,7 @@
           style="background: var(--color-bg); border: 1px solid var(--color-border); max-width: 400px;"
         >
           <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--color-border)">
-            <h3 class="font-display font-bold text-base" style="color: var(--color-ink-3);--color-ink-1)">申请专属授权密码</h3>
+            <h3 class="font-display font-bold text-base" style="color: var(--color-ink-3)">申请专属授权密码</h3>
             <button @click="closeRequestModal" class="text-slate-400 hover:text-slate-600 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -547,14 +547,14 @@
           <div v-if="requestSuccess" class="text-center py-6 space-y-3">
             <span class="text-3xl block">📨</span>
             <h4 class="font-bold text-sm text-emerald-600">申请提交成功！</h4>
-            <p class="text-xs leading-relaxed" style="color: var(--color-ink-3);--color-ink-4)">
+            <p class="text-xs leading-relaxed" style="color: var(--color-ink-3)">
               您的申请已成功发送至后台。主理人收到后会通过您的联系方式与您联系并提供密码。
             </p>
             <button @click="closeRequestModal" class="btn-ghost text-xs py-2 px-4 mt-2">关闭窗口</button>
           </div>
 
           <form v-else @submit.prevent="submitRequest" class="space-y-4">
-            <p class="text-xs leading-relaxed" style="color: var(--color-ink-3);--color-ink-4)">
+            <p class="text-xs leading-relaxed" style="color: var(--color-ink-3)">
               请填写您的基本信息，主理人审核后将通过您留下的联系方式（微信/邮箱）发送该作品的解锁密码。
             </p>
 
