@@ -13,18 +13,20 @@ export default defineEventHandler(async (event) => {
   try {
     const projects = await dbGetProjectsRaw(event)
     
-    // Add todayPassword for admin overview
+    // Add activePassword for admin overview
     const projectsWithPassword = projects.map(project => {
-      let todayPassword = project.password || ''
+      const isLocked = Boolean(project.isPasswordProtected)
+      let activePassword = project.password || ''
       
       // If auto-rotate is enabled, calculate today's dynamic password
-      if (project.isPasswordProtected && project.autoRotatePassword) {
-        todayPassword = getDailyPassword(project.slug)
+      if (isLocked && project.autoRotatePassword) {
+        activePassword = getDailyPassword(project.slug)
       }
       
       return {
         ...project,
-        todayPassword
+        isPasswordProtected: isLocked,
+        activePassword: activePassword || 'Not set'
       }
     })
     

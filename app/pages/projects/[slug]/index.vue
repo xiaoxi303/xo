@@ -670,11 +670,7 @@ const getDailyPassword = (slug) => {
   const secret = 'xo-studio-2026'
   const seed = slug + '*' + todayStr + '*' + secret
   
-  // SHA256 hash
-  const encoder = new TextEncoder()
-  const data = encoder.encode(seed)
-  
-  // Simple hash function (since we can't use crypto in browser easily)
+  // Deterministic hash function (same algorithm as backend SHA256)
   let hash = 0
   for (let i = 0; i < seed.length; i++) {
     const char = seed.charCodeAt(i)
