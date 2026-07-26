@@ -33,7 +33,7 @@ export function generateDailyPassword(projectSlug: string, dateStr?: string): st
   const secret = 'xo-studio-2026'
   
   // 组合输入字符串
-  const input = `${projectSlug}|${date}|${secret}`
+  const input = projectSlug + '|' + date + '|' + secret
   
   // 简单的哈希函数
   let hash = 0
