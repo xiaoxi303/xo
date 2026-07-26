@@ -132,6 +132,13 @@ const form = ref({
 const { data: projects } = await useFetch<any[]>('/api/projects')
 const project = computed(() => (projects.value || []).find(p => p.slug === slug))
 
+// Auto-fill form with logged-in user info
+const { data: userInfo } = await useFetch<any>('/api/auth/client-me')
+if (userInfo.value?.loggedIn) {
+  form.value.clientName = userInfo.value.username || ''
+  form.value.contact = userInfo.value.email || userInfo.value.wechat || ''
+}
+
 onMounted(() => {
   if (project.value) {
     projectTitle.value = project.value.title || '未知作品'
