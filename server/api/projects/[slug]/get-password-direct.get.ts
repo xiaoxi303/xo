@@ -1,6 +1,7 @@
 import { dbGetProjectsRaw, dbGetProjectPassword, dbCreatePasswordRequest, getD1Database } from '../../../utils/db'
 import { getRuntimeDataPath } from '../../../utils/storage'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../../utils/auth'
+import { generateDailyPassword, getCurrentDateString } from '../../../utils/password'
 import fs from 'node:fs'
 
 export default defineEventHandler(async (event) => {
@@ -47,10 +48,16 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 2. Retrieve raw password safely using server-only helper
-  const password = await dbGetProjectPassword(event, slug)
+  // 2. Retrieve password - try static first, then dynamic
+  let password = await dbGetProjectPassword(event, slug)
+  
+  // If no static password, use daily rotating password
+  if (!password || password.trim() === '') {
+    const today = getCurrentDateString()
+    password = generateDailyPassword(slug, today)
+  }
 
-  // If project doesn't have password, return null
+  // If still no password, return null
   if (!password) {
     return { password: null }
   }
