@@ -3,7 +3,7 @@
  * Server-side password verification for password-protected projects.
  * Supports both static passwords and daily rotating passwords.
  */
-import { dbGetProjectPassword, dbGetProject } from '../../../utils/db'
+import { dbGetProjectPassword, dbGetProjectsRaw } from '../../../utils/db'
 import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
@@ -22,7 +22,8 @@ export default defineEventHandler(async (event) => {
   if (!password) throw createError({ statusCode: 400, statusMessage: '请输入访问密码。' })
 
   // Get project info
-  const project = await dbGetProject(event, slug)
+  const projects = await dbGetProjectsRaw(event)
+  const project = projects.find((p: any) => p.slug === slug)
   if (!project) throw createError({ statusCode: 404, statusMessage: '作品不存在。' })
 
   // Check if project is password protected

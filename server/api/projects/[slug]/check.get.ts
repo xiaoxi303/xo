@@ -4,7 +4,7 @@
  * and whether the project requires a password at all.
  * Supports both static and daily rotating passwords.
  */
-import { dbGetProject } from '../../../utils/db'
+import { dbGetProjectsRaw } from '../../../utils/db'
 import { validateUnlockToken } from './unlock.post'
 import { generateDailyPassword, getCurrentDateString } from '../../../utils/password'
 
@@ -13,7 +13,8 @@ export default defineEventHandler(async (event) => {
   if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing slug.' })
 
   // Get project info
-  const project = await dbGetProject(event, slug)
+  const projects = await dbGetProjectsRaw(event)
+  const project = projects.find((p: any) => p.slug === slug)
   if (!project) throw createError({ statusCode: 404, statusMessage: '作品不存在。' })
 
   // Check if project is password protected
