@@ -25,38 +25,27 @@
         </p>
       </div>
 
-      <!-- Success State with Dynamic Password -->
-      <div v-if="submitSuccess" class="text-center py-6 space-y-5">
+      <!-- Success State - Manual Apply (No Password Display) -->
+      <div v-if="submitSuccess" class="text-center py-8 space-y-5">
         <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto"
              style="background: rgba(5, 150, 105, 0.1); border: 1px solid rgba(5, 150, 105, 0.2);">
-          &#x2705;
+          &#x2709;
         </div>
-        <h2 class="font-display text-xl font-bold" style="color: var(--color-ink-1)">申请已提交</h2>
-        <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
-          我们已收到您的申请，以下是今日的访问密码：
-        </p>
-        
-        <!-- Dynamic Password Display -->
-        <div class="p-5 rounded-xl space-y-3" style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
-          <div class="flex items-center justify-center gap-2">
-            <span class="text-lg">&#x1f511;</span>
-            <span class="text-[10px] font-mono font-bold uppercase tracking-wider" style="color: var(--color-ink-4)">今日访问密码</span>
-          </div>
-          <div class="p-4 rounded-lg font-mono text-3xl font-bold text-center tracking-[0.3em]"
-               style="background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-ink-1);">
-            {{ dailyPassword }}
-          </div>
-          <p class="text-[10px] leading-relaxed" style="color: var(--color-ink-5)">
-            &#x1f4a1; 密码每天凌晨 00:00 自动更新，请及时使用
+        <h2 class="font-display text-xl font-bold" style="color: var(--color-ink-1)">&#x2709; 申请已成功提交！</h2>
+        <div class="p-4 rounded-xl text-left space-y-2" style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
+          <p class="text-xs leading-relaxed" style="color: var(--color-ink-3)">
+            您的访问申请已通知作者，最新密码（或审核结果）将通过邮件发送至您的联系方式，请注意查收。
           </p>
+          <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
+            &#x1f4e8; 申请信息：
+          </p>
+          <ul class="text-xs space-y-1 pl-4" style="color: var(--color-ink-4)">
+            <li>&#x2022; 姓名：{{ form.clientName }}</li>
+            <li>&#x2022; 联系方式：{{ form.contact }}</li>
+          </ul>
         </div>
-
         <div class="flex flex-col gap-3 pt-2">
-          <NuxtLink :to="`/projects/${slug}`" class="btn-primary inline-flex items-center justify-center gap-2 text-xs">
-            <span>&#x1f511;</span>
-            <span>前往解锁作品</span>
-          </NuxtLink>
-          <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-4)">
+          <NuxtLink to="/projects" class="btn-primary inline-flex items-center justify-center gap-2 text-xs">
             返回作品集
           </NuxtLink>
         </div>
@@ -180,7 +169,7 @@ const getDailyPassword = (slug: string) => {
   return password
 }
 
-const dailyPassword = computed(() => getDailyPassword(slug))
+
 
 const submitRequest = async () => {
   if (submitLoading.value) return
