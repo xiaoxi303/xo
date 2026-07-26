@@ -1944,20 +1944,18 @@
                       <input id="isPasswordProtected" type="checkbox" v-model="form.isPasswordProtected" class="w-4 h-4 rounded cursor-pointer" />
                       <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">密码保护</label>
                     </div>
-                    <div class="flex items-center gap-2">
-                      <input id="autoRotatePassword" type="checkbox" v-model="form.autoRotatePassword" class="w-4 h-4 rounded cursor-pointer" />
-                      <label for="autoRotatePassword" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">每日自动更新密码</label>
-                    </div>
                    <div class="space-y-1.5">
-                     <label class="form-label flex items-center gap-1">
-                       <span>🔐 访问保护密码</span>
-                       <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">(留空则完全公开)</span>
-                     </label>
-                     <div class="flex gap-2">
-                       <input v-model="form.password" type="text" class="form-input font-mono text-xs flex-1" placeholder="例如: client2026 (无密码请留空)" />
-                       <button type="button" @click="form.password = generateRandomPassword()" class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-700 border border-amber-500/20 hover:bg-amber-500/20 whitespace-nowrap">随机生成</button>
-                     </div>
-                   </div>
+                      <label class="form-label flex items-center gap-1">
+                        <span>&#x1f511; </span>
+                        <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">()</span>
+                      </label>
+                      <div class="p-3 rounded-lg font-mono text-sm font-bold text-center" style="background: var(--color-bg-2); border: 1px solid var(--color-border); color: var(--color-ink-1);">
+                        {{ getDailyPassword(form.slug) }}
+                      </div>
+                      <p class="text-[10px]" style="color: var(--color-ink-5)">
+                        00:00
+                      </p>
+                    </div>
                  </div>
 
                  <!-- Technical Specifications Grid -->
@@ -3573,6 +3571,33 @@ const generateRandomPassword = () => {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return result
+}
+
+// Generate daily password for display
+const getDailyPassword = (slug: string) => {
+  if (!slug) return '------'
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  const today = new Date()
+  const beijingTime = new Date(today.getTime() + 8 * 60 * 60 * 1000)
+  const dateStr = beijingTime.toISOString().split('T')[0]
+  const secret = 'xo-studio-secret-2026'
+  const input = `${slug}-${dateStr}-${secret}`
+  
+  let hash = 0
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  hash = Math.abs(hash)
+  
+  let password = ''
+  for (let i = 0; i < 6; i++) {
+    const index = hash % chars.length
+    password += chars[index]
+    hash = Math.floor(hash / chars.length)
+  }
+  return password
 }
 
 const saveProject = async () => {
