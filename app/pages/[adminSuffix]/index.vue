@@ -1,11 +1,3 @@
-<script setup lang="ts">
-const formatDisplayNum = (p: any, i: number) => {
-  if (p.displayNumber) return p.displayNumber
-  const num = p.sortOrder ?? (i + 1)
-  return num < 10 ? `0${num}` : `${num}`
-}
-</script>
-
 <template>
   <div class="min-h-screen pt-10 pb-20 px-6 font-sans relative">
     <AdminAiCopilot />
@@ -2233,6 +2225,12 @@ const formatDisplayNum = (p: any, i: number) => {
 </template>
 
 <script setup lang="ts">
+const formatDisplayNum = (p: any, i: number) => {
+  if (p.displayNumber) return p.displayNumber
+  const num = p.sortOrder ?? (i + 1)
+  return num < 10 ? `0${num}` : `${num}`
+}
+
 const showAiNoticeModal = ref(false)
 const aiNoticePrompt = ref('2026 下半年商业 TVC 视觉制作与电影 DI 调色开放预订中')
 const isAiNoticeGenerating = ref(false)
