@@ -15,30 +15,45 @@
         </NuxtLink>
       </div>
 
-      <!-- Password Protection Lock Screen — only when server says hasPassword=true -->
+      <!-- Password Protection Lock Screen -->
       <Transition name="fade">
         <div v-if="project && project.hasPassword && !isUnlocked" class="max-w-md mx-auto py-16 text-center space-y-6">
           <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm"
                style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
-            🔐
+            &#x1f512;
           </div>
           <div class="space-y-2">
-            <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-1)">该作品受访问密码保护</h1>
+            <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-1)">&#x1f512; 访问保护</h1>
             <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
-              此项目包含未公开内容、商业合作机密或受到 NDA 限制。<br>
-              请输入客户专属授权密码以解锁并查看详情。
+              本作品受到访问保护，请输入密码解锁<br>
+              &#x1f4a1; 密码每24小时（每天凌晨 00:00）自动更新一次
             </p>
+          </div>
+
+          <!-- 每日密码更新提示 -->
+          <div class="p-4 rounded-xl text-left space-y-2" style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
+            <div class="flex items-start gap-2">
+              <span class="text-lg">&#x1f4a1;</span>
+              <div class="space-y-1">
+                <p class="text-xs font-semibold" style="color: var(--color-ink-2)">访问说明</p>
+                <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
+                  本作品设置了访问保护，密码每 24 小时（每天凌晨 00:00）会自动更新一次。旧密码失效后需重新获取最新密码。
+                </p>
+              </div>
+            </div>
           </div>
 
           <form @submit.prevent="verifyPassword" class="space-y-4 pt-4">
             <input
               v-model="inputPassword"
-              type="password"
+              type="text"
               class="form-input text-center font-mono tracking-widest py-3 rounded-xl w-full"
-              placeholder="请输入密码"
+              placeholder="请输入 6 位访问密码"
               required
               autofocus
               :disabled="passwordLoading"
+              maxlength="6"
+              style="text-transform: uppercase"
             />
             <button type="submit" class="btn-primary w-full justify-center py-3 text-xs font-semibold flex items-center gap-2" :disabled="passwordLoading">
               <span v-if="passwordLoading" class="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin" style="border-color: currentColor; border-top-color: transparent;" />
@@ -47,23 +62,8 @@
           </form>
 
           <p v-if="passwordError" class="text-xs text-rose-500 font-semibold">
-            ❌ {{ passwordError }}
+            &#x274c; {{ passwordError }}
           </p>
-
-          <div class="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-semibold">
-            <NuxtLink
-              :to="`/projects/${slug}/get`"
-              class="hover:opacity-80 transition-opacity underline text-amber-700 flex items-center gap-1"
-            >
-              🔗 在线直接获取密码 (去获取密码)
-            </NuxtLink>
-            
-            <span class="text-slate-300 hidden sm:inline">|</span>
-            
-            <button
-              type="button"
-              @click="openRequestModal"
-              class="hover:opacity-80 transition-opacity underline"
               style="color: var(--color-ink-3)"
             >
               📨 填写表单手动申请

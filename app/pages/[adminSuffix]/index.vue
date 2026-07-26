@@ -1940,6 +1940,15 @@
                      <input id="isColorGraded" type="checkbox" v-model="form.isColorGraded" class="w-4 h-4 rounded cursor-pointer" />
                      <label for="isColorGraded" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">已调色</label>
                    </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <input id="isPasswordProtected" type="checkbox" v-model="form.isPasswordProtected" class="w-4 h-4 rounded cursor-pointer" />
+                      <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">密码保护</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <input id="autoRotatePassword" type="checkbox" v-model="form.autoRotatePassword" class="w-4 h-4 rounded cursor-pointer" />
+                      <label for="autoRotatePassword" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">每日自动更新密码</label>
+                    </div>
                    <div class="space-y-1.5">
                      <label class="form-label flex items-center gap-1">
                        <span>🔐 访问保护密码</span>
@@ -2701,7 +2710,9 @@ const submitButtonRef = ref<HTMLButtonElement | null>(null)
 
 const form = ref<any>({
   slug: '', title: '', displayNumber: '', image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: [], tags: [], featured: false,
-      isColorGraded: false, description: '', longDescription: '', workflow: [], password: '',
+      isColorGraded: false,
+      isPasswordProtected: false,
+      autoRotatePassword: true, description: '', longDescription: '', workflow: [], password: '',
   releaseYear: '', postSpecs: '', director: '', isGraded: true, deliverFormat: '', audioFormat: ''
 })
 
@@ -3520,7 +3531,9 @@ const openCreateModal = () => {
   form.value = {
     slug: '', title: '', displayNumber: '', sortOrder: projectsList.value.length + 1, image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: ['Premiere Pro', 'DaVinci Resolve'],
     tags: ['剪辑节奏', '达芬奇调色'], featured: false,
-      isColorGraded: false, description: '', longDescription: '',
+      isColorGraded: false,
+      isPasswordProtected: false,
+      autoRotatePassword: true, description: '', longDescription: '',
     workflow: [{ icon: '⚡', title: 'Offline 粗剪', desc: '根据背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。' }],
     password: '',
     releaseYear: '2026',

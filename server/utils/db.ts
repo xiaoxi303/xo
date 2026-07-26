@@ -35,6 +35,9 @@ export async function getD1Database(event: H3Event) {
           deliverFormat TEXT,
           audioFormat TEXT,
           isColorGraded INTEGER DEFAULT 0,
+          isPasswordProtected INTEGER DEFAULT 0,
+          autoRotatePassword INTEGER DEFAULT 1,
+          passwordUpdatedAt TEXT,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS site_config (
@@ -343,6 +346,9 @@ export async function dbGetProjectsRaw(event: H3Event): Promise<any[]> {
       ...row,
       featured: Boolean(row.featured),
       isColorGraded: row.isColorGraded === 1 || row.isColorGraded === true,
+      isPasswordProtected: row.isPasswordProtected === 1 || row.isPasswordProtected === true,
+      autoRotatePassword: row.autoRotatePassword !== 0 && row.autoRotatePassword !== false,
+      passwordUpdatedAt: row.passwordUpdatedAt || null,
       videoUrls: parseJsonArray(row.videoUrls),
       software: parseJsonArray(row.software),
       tags: parseJsonArray(row.tags),

@@ -1,17 +1,17 @@
 /**
  * POST /api/projects/:slug/unlock
  * Server-side password verification for password-protected projects.
- * Returns a signed session token stored in a cookie — never exposes the raw password to the client.
+ * Supports both static passwords and daily rotating passwords.
  */
-import { dbGetProjectPassword } from '../../../utils/db'
+import { dbGetProjectPassword, dbGetProject } from '../../../utils/db'
 import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
+import { generateDailyPassword, getCurrentDateString } from '../../../utils/password'
 
 // In-memory unlock token store (project-scoped, lightweight)
-// Each token is: { slug, expiresAt }
-const unlockTokens = new Map<string, { slug: string; expiresAt: number }>()
-const UNLOCK_TTL_MS = 4 * 60 * 60 * 1000 // 4 hours
+const unlockTokens = new Map<string, { slug: string; expiresAt: number; date: string }>()
+const UNLOCK_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours (expires at midnight)
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -21,15 +21,33 @@ export default defineEventHandler(async (event) => {
   const { password } = body || {}
   if (!password) throw createError({ statusCode: 400, statusMessage: '请输入访问密码。' })
 
-  // Retrieve the stored password server-side (never sent to client)
-  const storedPassword = await dbGetProjectPassword(event, slug)
+  // Get project info
+  const project = await dbGetProject(event, slug)
+  if (!project) throw createError({ statusCode: 404, statusMessage: '作品不存在。' })
 
-  if (!storedPassword || storedPassword.trim() === '') {
-    // No password set — project is public
+  // Check if project is password protected
+  if (!project.isPasswordProtected) {
     return { success: true, token: null, public: true }
   }
 
-  if (password !== storedPassword) {
+  // Get the valid password for today
+  let validPassword: string | null = null
+  const today = getCurrentDateString()
+
+  if (project.autoRotatePassword) {
+    // Use daily rotating password
+    validPassword = generateDailyPassword(slug, today)
+  } else {
+    // Use static password from database
+    validPassword = await dbGetProjectPassword(event, slug)
+  }
+
+  if (!validPassword || validPassword.trim() === '') {
+    return { success: true, token: null, public: true }
+  }
+
+  // Verify password (case-insensitive comparison)
+  if (password.toUpperCase() !== validPassword.toUpperCase()) {
     const ip = getRealClientIP(event)
     logSecurityEvent({
       type: 'Project Password Guard',
@@ -40,22 +58,26 @@ export default defineEventHandler(async (event) => {
     // Artificial delay to resist brute-force
     await new Promise(r => setTimeout(r, 600))
     throw createError({ statusCode: 401, statusMessage: '密码错误，请联系作者获取授权密码。' })
-  }
+  })
 
-  // Password matches — issue a short-lived unlock token
+  // Password matches — issue a daily unlock token
   const token = randomBytes(24).toString('hex')
-  const expiresAt = Date.now() + UNLOCK_TTL_MS
-  unlockTokens.set(token, { slug, expiresAt })
+  const tomorrow = new Date()
+  tomorrow.setHours(0, 0, 0, 0)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const expiresAt = tomorrow.getTime()
 
-  // Set as HTTP-only cookie so the token persists across refreshes
+  unlockTokens.set(token, { slug, expiresAt, date: today })
+
+  // Set as HTTP-only cookie
   setCookie(event, `unlock_${slug}`, token, {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    maxAge: UNLOCK_TTL_MS / 1000
+    maxAge: Math.floor((expiresAt - Date.now()) / 1000)
   })
 
-  return { success: true, token }
+  return { success: true, token, date: today }
 })
 
 /**
@@ -65,7 +87,11 @@ export function validateUnlockToken(slug: string, token: string): boolean {
   const entry = unlockTokens.get(token)
   if (!entry) return false
   if (entry.slug !== slug) return false
-  if (entry.expiresAt < Date.now()) {
+  
+  const today = getCurrentDateString()
+  
+  // Check if token is expired or from a different day
+  if (entry.expiresAt < Date.now() || entry.date !== today) {
     unlockTokens.delete(token)
     return false
   }

@@ -2,26 +2,45 @@
  * GET /api/projects/:slug/check
  * Returns whether the current visitor has a valid unlock cookie for this project,
  * and whether the project requires a password at all.
+ * Supports both static and daily rotating passwords.
  */
-import { dbGetProjectPassword } from '../../../utils/db'
+import { dbGetProject } from '../../../utils/db'
 import { validateUnlockToken } from './unlock.post'
+import { generateDailyPassword, getCurrentDateString } from '../../../utils/password'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0]
   if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing slug.' })
 
-  const storedPassword = await dbGetProjectPassword(event, slug)
+  // Get project info
+  const project = await dbGetProject(event, slug)
+  if (!project) throw createError({ statusCode: 404, statusMessage: '作品不存在。' })
 
-  // No password set — project is public
-  if (!storedPassword || storedPassword.trim() === '') {
-    return { hasPassword: false, unlocked: true }
+  // Check if project is password protected
+  if (!project.isPasswordProtected) {
+    return { 
+      hasPassword: false, 
+      unlocked: true,
+      autoRotate: false,
+      passwordHint: null
+    }
   }
 
   // Check unlock cookie
   const token = getCookie(event, `unlock_${slug}`)
   if (token && validateUnlockToken(slug, token)) {
-    return { hasPassword: true, unlocked: true }
+    return { 
+      hasPassword: true, 
+      unlocked: true,
+      autoRotate: project.autoRotatePassword,
+      passwordHint: project.autoRotatePassword ? '密码每日凌晨 00:00 自动更新' : null
+    }
   }
 
-  return { hasPassword: true, unlocked: false }
+  return { 
+    hasPassword: true, 
+    unlocked: false,
+    autoRotate: project.autoRotatePassword,
+    passwordHint: project.autoRotatePassword ? '密码每日凌晨 00:00 自动更新' : null
+  }
 })
