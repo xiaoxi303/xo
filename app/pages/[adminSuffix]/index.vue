@@ -2745,7 +2745,7 @@ const form = ref<any>({
 
 const MAX_PROJECT_VIDEOS = 10
 const featuredCount = computed(() => projectsList.value.filter(p => p.featured).length)
-const lockedProjects = computed(() => (projectsList.value || []).filter((p: any) => p.password && p.password.trim() !== ''))
+const lockedProjects = computed(() => (projectsList.value || []).filter((p: any) => p.isPasswordProtected))
 const isValidImage = computed(() => form.value.image && /^https?:\/\/.*?\.(jpg|jpeg|png|webp|avif|gif)/i.test(form.value.image))
 
 const normalizeProjectVideos = () => {
