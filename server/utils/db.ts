@@ -342,7 +342,7 @@ export async function dbGetProjectsRaw(event: H3Event): Promise<any[]> {
     const normalizedList = (results || []).map((row: any) => ({
       ...row,
       featured: Boolean(row.featured),
-      isColorGraded: Boolean(row.isColorGraded),
+      isColorGraded: row.isColorGraded === 1 || row.isColorGraded === true,
       videoUrls: parseJsonArray(row.videoUrls),
       software: parseJsonArray(row.software),
       tags: parseJsonArray(row.tags),
