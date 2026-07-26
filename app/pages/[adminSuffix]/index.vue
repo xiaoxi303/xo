@@ -3589,28 +3589,32 @@ const generateRandomPassword = () => {
 // Generate daily password for display
 const getDailyPassword = (slug: string) => {
   if (!slug) return '------'
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
-  const today = new Date()
-  const beijingTime = new Date(today.getTime() + 8 * 60 * 60 * 1000)
-  const dateStr = beijingTime.toISOString().split('T')[0]
-  const secret = 'xo-studio-secret-2026'
-  const input = `${slug}-${dateStr}-${secret}`
   
+  // Get Beijing time using toLocaleDateString
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
+  const secret = 'XO_STUDIO_SALT'
+  const cleanSlug = String(slug).trim().toLowerCase()
+  const seed = 'project_' + cleanSlug + '*date*' + todayStr + '*salt*' + secret
+  
+  // Deterministic hash function
   let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i)
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i)
     hash = ((hash << 5) - hash) + char
     hash = hash & hash
   }
   hash = Math.abs(hash)
   
-  let password = ''
+  const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+  let pwd = ''
+  let value = hash
   for (let i = 0; i < 6; i++) {
-    const index = hash % chars.length
-    password += chars[index]
-    hash = Math.floor(hash / chars.length)
+    const index = value % charset.length
+    pwd += charset[index]
+    value = Math.floor(value / charset.length)
   }
-  return password
+  return pwd
+}
 }
 
 const saveProject = async () => {

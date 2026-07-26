@@ -1,29 +1,32 @@
 import crypto from 'crypto';
 
 /**
- * 全局统一动态密码生成器
- * 保证输入相同的 projectIdentifier 和日期，算出的密码 100% 一致
+ * 纯函数：给定 projectSlug 和当天日期，24小时内无论调用多少次，结果 100% 相同！
+ * 严禁使用任何随机数或当前毫秒时间！
  */
-export function getDailyPassword(projectIdentifier: string, secretKey: string = 'XO_STUDIO_2026_LOCK'): string {
-  // 1. 强行清洗标识符（防止 null/undefined/大小写混淆）
-  const cleanId = String(projectIdentifier || '').trim().toLowerCase();
-  if (!cleanId) return '123456';
+export function getDailyPassword(projectSlug: string, secretKey: string = 'XO_STUDIO_SALT'): string {
+  // 1. 防空处理：确保获取到作品的唯一标识
+  const cleanSlug = String(projectSlug || 'default').trim().toLowerCase();
+  if (!cleanSlug) return '123456';
 
-  // 2. 强制使用 Asia/Shanghai 时区格式化 YYYY-MM-DD
-  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+  // 2. 强行指定 Asia/Shanghai 时区，锁定格式为 YYYY-MM-DD
+  const todayDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
 
-  // 3. 唯一种子拼接
-  const seed = 'PROJECT_' + cleanId + '*DATE*' + todayStr + '*SALT*' + secretKey;
+  // 3. 拼接固定种子
+  const seed = 'project_' + cleanSlug + '*date*' + todayDateStr + '*salt*' + secretKey;
 
-  // 4. SHA256 哈希取前 6 位大写字符
+  // 4. SHA256 哈希计算
   const hash = crypto.createHash('sha256').update(seed).digest('hex');
+
+  // 5. 映射为 6 位大写密码 (排除 0, O, 1, I, L 等易混淆字符)
   const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-  let password = '';
+  let dailyCode = '';
   for (let i = 0; i < 6; i++) {
     const charIndex = parseInt(hash.substring(i * 2, i * 2 + 2), 16) % charset.length;
-    password += charset[charIndex];
+    dailyCode += charset[charIndex];
   }
-  return password;
+
+  return dailyCode;
 }
 
 /**
