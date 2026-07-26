@@ -6,11 +6,11 @@
     <div class="max-w-4xl mx-auto space-y-14 relative z-10">
 
       <!-- Profile Header Hero Card -->
-      <div class="glass-card p-8 sm:p-10 rounded-3xl border-2 border-black/10 shadow-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all duration-500 bg-white/90 backdrop-blur-xl">
+      <div class="glass-card p-8 sm:p-10 rounded-3xl border-2 border-[var(--color-border)] shadow-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all duration-500 bg-[var(--glass-bg)] backdrop-blur-xl">
         <div class="flex flex-col sm:flex-row items-center sm:items-start gap-8">
           
           <!-- Avatar Frame -->
-          <div class="relative w-24 h-24 rounded-full overflow-hidden flex items-center justify-center text-slate-800 font-display font-bold text-3xl shadow-xl border-4 border-white ring-4 ring-amber-500/20 flex-shrink-0"
+          <div class="relative w-24 h-24 rounded-full overflow-hidden flex items-center justify-center text-[var(--color-ink-2)] font-display font-bold text-3xl shadow-xl border-4 border-white ring-4 ring-amber-500/20 flex-shrink-0"
                style="background: linear-gradient(135deg, var(--color-bronze-bg), rgba(180,83,9,0.3))">
             <img v-if="siteConfig?.siteInfo?.avatar" :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" alt="" />
             <span v-else>{{ siteConfig?.siteInfo?.ownerInitial || 'X' }}</span>
@@ -19,8 +19,8 @@
           <!-- Info & Intro -->
           <div class="space-y-4 text-center sm:text-left flex-1">
             <div class="space-y-1">
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 text-[10px] font-mono font-bold border border-amber-500/20">
-                <span class="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-[var(--color-bronze-dark)] text-[10px] font-mono font-bold border border-amber-500/20">
+                <span class="w-2 h-2 rounded-full bg-[var(--color-bronze)] animate-pulse" />
                 <span>{{ siteConfig?.about?.role || '资深剪辑指导 / DI 调色总监' }}</span>
               </div>
               <h1 class="font-display text-4xl sm:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight pt-1">
@@ -48,9 +48,9 @@
 
       <!-- Experience Log Timeline Section -->
       <div class="space-y-8">
-        <div class="flex items-center justify-between border-b pb-4 border-black/10">
+        <div class="flex items-center justify-between border-b pb-4 border-[var(--color-border)]">
           <div>
-            <span class="text-amber-800 text-xs font-bold uppercase tracking-widest font-mono">Chronicle & Timeline</span>
+            <span class="text-[var(--color-bronze-dark)] text-xs font-bold uppercase tracking-widest font-mono">Chronicle & Timeline</span>
             <h2 class="font-display text-3xl font-bold text-[var(--color-ink-1)] tracking-tight">影视制作年谱 (Experience Log)</h2>
           </div>
           
@@ -67,17 +67,17 @@
           >
             <!-- timeline bolt node -->
             <div class="flex-shrink-0 w-10 h-10 rounded-full border-2 border-amber-500/40 bg-white flex items-center justify-center z-10 shadow-md group-hover:scale-110 transition-transform">
-              <span class="text-xs font-mono font-bold text-amber-800">0{{ i + 1 }}</span>
+              <span class="text-xs font-mono font-bold text-[var(--color-bronze-dark)]">0{{ i + 1 }}</span>
             </div>
 
             <!-- Content Light Glass card -->
-            <div class="glass-card p-7 flex-1 border-2 border-black/10 hover:border-amber-500/40 transition-all duration-300 relative overflow-hidden group shadow-xl bg-white/90 backdrop-blur-xl rounded-2xl">
+            <div class="glass-card p-7 flex-1 border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 relative overflow-hidden group shadow-xl bg-[var(--glass-bg)] backdrop-blur-xl rounded-2xl">
               <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
                 <div>
-                  <h3 class="text-[var(--color-ink-1)] font-display font-bold text-xl group-hover:text-amber-800 transition-colors duration-300">
+                  <h3 class="text-[var(--color-ink-1)] font-display font-bold text-xl group-hover:text-[var(--color-bronze-dark)] transition-colors duration-300">
                     {{ exp.role }}
                   </h3>
-                  <p class="text-amber-800 text-xs font-mono font-bold uppercase mt-0.5 tracking-wider">
+                  <p class="text-[var(--color-bronze-dark)] text-xs font-mono font-bold uppercase mt-0.5 tracking-wider">
                     {{ exp.company }}
                   </p>
                 </div>

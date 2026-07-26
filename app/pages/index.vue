@@ -20,7 +20,7 @@
             <!-- Elegant booking status badge -->
             <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full shadow-md backdrop-blur-xl group"
                  style="background: var(--glass-bg); border: 1px solid var(--color-bronze-glow);">
-              <span class="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping" />
+              <span class="w-2.5 h-2.5 rounded-full bg-[var(--color-bronze)] animate-ping" />
               <span class="text-[var(--color-ink-2)] text-[11px] font-bold uppercase tracking-wider font-mono">Status: {{ siteConfig?.home?.bookingStatus || 'Booking Open (2026)' }}</span>
               <span class="text-[var(--color-bronze-dark)] text-[10px] font-mono font-bold border-l pl-2.5 px-2 py-0.5 rounded"
                     style="border-color: var(--color-bronze-glow); background: var(--color-bronze-bg);">4K DI Ready</span>
@@ -134,7 +134,7 @@
           >
             <span class="text-[9px] tracking-widest font-mono uppercase font-bold text-[var(--color-ink-5)]">SCROLL DOWN</span>
             <div class="w-6 h-10 rounded-full border-2 border-black/15 flex items-start justify-center pt-2 group-hover:border-amber-600 transition-colors shadow-sm bg-white/60">
-              <div class="w-1.5 h-2 rounded-full bg-amber-600 animate-bounce" />
+              <div class="w-1.5 h-2 rounded-full bg-[var(--color-bronze)] animate-bounce" />
             </div>
           </button>
         </div>
@@ -151,12 +151,12 @@
       <div class="relative w-full flex overflow-x-hidden">
         <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-bold tracking-wide uppercase text-[var(--color-ink-2)]">
           <span v-for="(brand, idx) in defaultBrands" :key="'b1-' + idx" class="flex items-center gap-2.5 hover:text-[var(--color-bronze-dark)] transition-colors cursor-default">
-            <span class="text-amber-600 text-sm font-bold">✦</span> {{ brand }}
+            <span class="text-[var(--color-bronze)] text-sm font-bold">✦</span> {{ brand }}
           </span>
         </div>
         <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-bold tracking-wide uppercase text-[var(--color-ink-2)] ml-16" aria-hidden="true">
           <span v-for="(brand, idx) in defaultBrands" :key="'b2-' + idx" class="flex items-center gap-2.5 hover:text-[var(--color-bronze-dark)] transition-colors cursor-default">
-            <span class="text-amber-600 text-sm font-bold">✦</span> {{ brand }}
+            <span class="text-[var(--color-bronze)] text-sm font-bold">✦</span> {{ brand }}
           </span>
         </div>
       </div>
@@ -168,7 +168,7 @@
         
         <!-- Header -->
         <div ref="sectionHeaderRef" class="space-y-3 text-center reveal">
-          <p class="text-amber-700 text-xs font-bold uppercase tracking-widest font-mono">Bento Gallery</p>
+          <p class="text-[var(--color-bronze-dark)] text-xs font-bold uppercase tracking-widest font-mono">Bento Gallery</p>
           <h2 class="font-display text-4xl lg:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight">后期剪辑与色彩美学</h2>
           <p class="text-[var(--color-ink-4)] text-xs sm:text-sm max-w-md mx-auto font-sans leading-relaxed">以温润透亮的模块化 Bento 排版，解构后期制作的本真秩序与视听艺术。</p>
         </div>
@@ -192,7 +192,7 @@
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                 <div class="absolute top-4 right-4 flex items-center gap-2 z-20">
-                  <span class="px-3 py-1 rounded-full text-[10px] font-mono font-bold text-amber-300 backdrop-blur-md shadow-md"
+                  <span class="px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[var(--color-bronze-light)] backdrop-blur-md shadow-md"
                         style="background: rgba(0,0,0,0.85); border: 1px solid rgba(245,158,11,0.4);">{{ tvcProjectNodes }}</span>
                   <span class="px-3 py-1 rounded-full text-[10px] font-mono font-bold text-white shadow-md"
                         style="background: #d97706; border: 1px solid rgba(251,191,36,0.4);">{{ tvcProjectBadge }}</span>
@@ -202,7 +202,7 @@
               <!-- Details info -->
               <div class="p-8 space-y-3 bg-white/90">
                 <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-amber-600" />
+                  <span class="w-2.5 h-2.5 rounded-full bg-[var(--color-bronze)]" />
                   <span v-if="tvcProject.tags?.[0]" class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ tvcProject.tags[0] }}</span>
                   <span v-if="tvcProject.postSpecs" class="text-[var(--color-ink-5)] text-[10px] font-mono font-bold">· {{ tvcProject.postSpecs }}</span>
                 </div>
@@ -233,7 +233,7 @@
                   {{ siteConfig?.home?.profileCardDesc || '专注于用节拍与叙事节奏微雕镜头。拥有 5 年影视及广告后期制作经验。' }}
                 </p>
               </div>
-              <div class="inline-flex items-center gap-2 text-xs text-amber-900 font-bold hover:text-amber-700 transition-colors font-sans group/link">
+              <div class="inline-flex items-center gap-2 text-xs text-[var(--color-bronze-dark)] font-bold hover:text-[var(--color-bronze-dark)] transition-colors font-sans group/link">
                 <span>查看个人履历与经历年谱</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 group-hover/link:translate-x-1 transition-transform">
                   <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.63L9.7 5.47a.75.75 0 011.06-1.06l5.75 5.75a.75.75 0 010 1.06l-5.75 5.75a.75.75 0 11-1.06-1.06l4.68-4.68H3.75A.75.75 0 013 10z" clip-rule="evenodd"/>
@@ -305,7 +305,7 @@
 
                 <!-- Absolute specs sticker -->
                 <div class="absolute top-4 left-4">
-                  <span class="px-3 py-1 rounded text-[9px] font-mono font-bold uppercase shadow-md backdrop-blur-md text-amber-300"
+                  <span class="px-3 py-1 rounded text-[9px] font-mono font-bold uppercase shadow-md backdrop-blur-md text-[var(--color-bronze-light)]"
                         style="background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.2);">ACES 色彩规范</span>
                 </div>
               </div>
@@ -314,7 +314,7 @@
               <div class="p-8 flex flex-col justify-between flex-1 bg-white/90">
                 <div class="space-y-2">
                   <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-600" />
+                    <span class="w-2.5 h-2.5 rounded-full bg-[var(--color-bronze)]" />
                     <span v-if="gradingProject.tags?.[0]" class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ gradingProject.tags[0] }}</span>
                   </div>
                   <h3 class="font-display font-bold text-[var(--color-ink-1)] text-2xl group-hover:text-[var(--color-bronze-dark)] transition-colors">
