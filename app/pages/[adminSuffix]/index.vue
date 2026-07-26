@@ -1967,7 +1967,7 @@
                       
                       <!-- Dynamic Password Display (when auto-rotate is on) -->
                       <div v-if="form.autoRotatePassword" class="flex items-center gap-3 p-3 rounded-lg" style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
-                        <span class="font-mono font-bold text-sm" style="color: var(--color-ink-1)">&#x1f511; {{ getDailyPassword(form.slug) }}</span>
+                        <span class="font-mono font-bold text-sm" style="color: var(--color-ink-1)">&#x1f511; {{ dailyPassword }}</span>
                         <span class="text-[10px] px-2 py-0.5 rounded" style="background: var(--color-bronze-bg); color: var(--color-bronze);"> 00:00</span>
                       </div>
                       
@@ -3604,6 +3604,13 @@ const generateRandomPassword = () => {
 }
 
 // Generate daily password for display
+const dailyPassword = ref('------')
+watch(() => form.value?.slug, async (newSlug) => {
+  if (newSlug) {
+    dailyPassword.value = await getDailyPassword(newSlug)
+  }
+}, { immediate: true })
+
 const getDailyPassword = async (slug) => {
   if (!slug) return '------'
   
