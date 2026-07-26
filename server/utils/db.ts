@@ -318,6 +318,9 @@ function stringifyYaml(data: any): string {
   }
   
   lines.push(`featured: ${!!data.featured}`)
+  lines.push(`isColorGraded: ${!!data.isColorGraded}`)
+  lines.push(`isPasswordProtected: ${!!data.isPasswordProtected}`)
+  lines.push(`autoRotatePassword: ${data.autoRotatePassword !== false}`)
   
   if (Array.isArray(data.workflow)) {
     lines.push('workflow:')
