@@ -1,3 +1,11 @@
+<script setup lang="ts">
+const formatDisplayNum = (p: any, i: number) => {
+  if (p.displayNumber) return p.displayNumber
+  const num = p.sortOrder ?? (i + 1)
+  return num < 10 ? `0${num}` : `${num}`
+}
+</script>
+
 <template>
   <div class="min-h-screen pt-10 pb-20 px-6 font-sans relative">
     <AdminAiCopilot />
@@ -725,14 +733,15 @@
                           draggable="false"
                           @mousedown.stop
                           @dragstart.prevent.stop
-                          :value="p.displayNumber || (p.sortOrder ? (p.sortOrder < 10 ? `0${p.sortOrder}` : `${p.sortOrder}`) : (i + 1 < 10 ? `0${i + 1}` : `${i + 1}`))"
+                          :value="formatDisplayNum(p, i)"
                           @change="updateProjectNumber(p, i, $event)"
                           @keydown.enter.prevent="($event.target as HTMLElement).blur()"
                           class="w-11 h-7 text-center font-mono font-bold text-xs rounded-md bg-white border border-amber-900/15 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 text-amber-900 shadow-2xs transition-all cursor-text"
                           title="点击可直接输入修改序号或海报数字（如 01, 02 或 1, 2）"
                         />
-
-                                                <!-- Up/Down buttons -->
+                        </div>
+                        
+                        <!-- Up/Down buttons -->
                         <div class="flex flex-col gap-0.5 opacity-60 group-hover/row:opacity-100 transition-opacity p-1">
                           <button 
                             type="button" 
@@ -747,7 +756,6 @@
                             class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5"
                           >&#x25BC;</button>
                         </div>
-                      </div>
                     </td>
 
                     <td class="py-4 px-6 flex items-center gap-4 min-w-[260px]">
