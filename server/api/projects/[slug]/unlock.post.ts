@@ -1,17 +1,16 @@
 /**
  * POST /api/projects/:slug/unlock
- * Server-side password verification for password-protected projects.
- * Supports both static passwords and daily rotating passwords.
+ * Password verification API - supports static and dynamic passwords
  */
-import { dbGetProjectPassword, dbGetProjectsRaw } from '../../../utils/db'
+import { dbGetProjectsRaw, dbGetProjectPassword } from '../../../utils/db'
 import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
-import { generateDailyPassword, getCurrentDateString } from '../../../utils/password'
+import { generateDailyPassword, getBeijingDateString, verifyPassword } from '../../../utils/password-utils'
 
-// In-memory unlock token store (project-scoped, lightweight)
+// In-memory unlock token store
 const unlockTokens = new Map<string, { slug: string; expiresAt: number; date: string }>()
-const UNLOCK_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours (expires at midnight)
+const UNLOCK_TTL_MS = 24 * 60 * 60 * 1000
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -19,44 +18,50 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
   const { password } = body || {}
-  if (!password) throw createError({ statusCode: 400, statusMessage: '请输入访问密码。' })
+  if (!password) throw createError({ statusCode: 400, statusMessage: 'Please enter access password.' })
 
   // Get project info
   const projects = await dbGetProjectsRaw(event)
   const project = projects.find((p: any) => p.slug === slug)
-  if (!project) throw createError({ statusCode: 404, statusMessage: '作品不存在。' })
+  if (!project) throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
 
-  // Check if project is password protected
+  // Check if password protection is enabled
   if (!project.isPasswordProtected) {
     return { success: true, token: null, public: true }
   }
 
-  // Get the valid password (always use daily rotating password)
+  // Get valid password
   let validPassword: string | null = null
-  const today = getCurrentDateString()
+  const today = getBeijingDateString()
 
-  // Always use daily rotating password
-  validPassword = generateDailyPassword(slug, today)
+  // Try static password first
+  const staticPassword = await dbGetProjectPassword(event, slug)
+  
+  if (staticPassword && staticPassword.trim() !== '') {
+    validPassword = staticPassword
+  } else {
+    // Use dynamic password
+    validPassword = generateDailyPassword(slug, today)
+  }
 
   if (!validPassword || validPassword.trim() === '') {
     return { success: true, token: null, public: true }
   }
 
-  // Verify password (case-insensitive comparison)
-  if (password.toUpperCase() !== validPassword.toUpperCase()) {
+  // Verify password (case-insensitive)
+  if (!verifyPassword(password, validPassword)) {
     const ip = getRealClientIP(event)
     logSecurityEvent({
       type: 'Project Password Guard',
       ip,
-      action: `Failed password attempt for project "${slug}"`,
+      action: 'Failed password attempt for project "' + slug + '"',
       status: 'blocked'
     })
-    // Artificial delay to resist brute-force
     await new Promise(r => setTimeout(r, 600))
-    throw createError({ statusCode: 401, statusMessage: '密码错误，请联系作者获取授权密码。' })
+    throw createError({ statusCode: 401, statusMessage: 'Password incorrect, please contact the author.' })
   }
 
-  // Password matches — issue a daily unlock token
+  // Password matches - generate unlock token
   const token = randomBytes(24).toString('hex')
   const tomorrow = new Date()
   tomorrow.setHours(0, 0, 0, 0)
@@ -65,8 +70,7 @@ export default defineEventHandler(async (event) => {
 
   unlockTokens.set(token, { slug, expiresAt, date: today })
 
-  // Set as HTTP-only cookie
-  setCookie(event, `unlock_${slug}`, token, {
+  setCookie(event, 'unlock_' + slug, token, {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
@@ -76,17 +80,12 @@ export default defineEventHandler(async (event) => {
   return { success: true, token, date: today }
 })
 
-/**
- * Exported helper — used by GET /api/projects/:slug/check to validate unlock status
- */
 export function validateUnlockToken(slug: string, token: string): boolean {
   const entry = unlockTokens.get(token)
   if (!entry) return false
   if (entry.slug !== slug) return false
-  
-  const today = getCurrentDateString()
-  
-  // Check if token is expired or from a different day
+
+  const today = getBeijingDateString()
   if (entry.expiresAt < Date.now() || entry.date !== today) {
     unlockTokens.delete(token)
     return false

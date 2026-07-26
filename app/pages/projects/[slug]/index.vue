@@ -661,6 +661,43 @@ watch(unlockStatus, async (val) => {
   }
 }, { immediate: true })
 
+// Generate daily password (same algorithm as backend)
+const getDailyPassword = (slug) => {
+  if (!slug) return '------'
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  
+  // Get Beijing time (UTC+8)
+  const now = new Date()
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000)
+  const beijing = new Date(utc + (3600000 * 8))
+  const year = beijing.getUTCFullYear()
+  const month = String(beijing.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(beijing.getUTCDate()).padStart(2, '0')
+  const dateStr = year + '-' + month + '-' + day
+  
+  const secret = 'xo-studio-2026'
+  const input = slug + '|' + dateStr + '|' + secret
+  
+  let hash = 0
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  hash = Math.abs(hash)
+  
+  let pwd = ''
+  let value = hash
+  for (let i = 0; i < 6; i++) {
+    const index = value % chars.length
+    pwd += chars[index]
+    value = Math.floor(value / chars.length)
+  }
+  return pwd
+}
+
+const dailyPassword = computed(() => getDailyPassword(slug))
+
 const verifyPassword = async () => {
   if (!inputPassword.value.trim()) return
   passwordLoading.value = true
