@@ -50,13 +50,9 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 3. Get password - try static first, then dynamic
-  let password = await dbGetProjectPassword(event, slug)
-  
-  if (!password || password.trim() === '') {
-    const today = getBeijingDateString()
-    password = generateDailyPassword(slug, today)
-  }
+  // 3. Get password - always use dynamic password (static password input removed)
+  const today = getBeijingDateString()
+  let password = generateDailyPassword(slug, today)
 
   if (!password) {
     return { password: null }
