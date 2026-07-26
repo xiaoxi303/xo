@@ -3546,7 +3546,16 @@ const openCreateModal = () => {
 }
 const openEditModal = (project: any) => {
   isEditing.value = true
-  form.value = { displayNumber: '', sortOrder: 0, ...project, software: [...(project.software || [])], tags: [...(project.tags || [])], workflow: JSON.parse(JSON.stringify(project.workflow || [])) }
+  form.value = { 
+    displayNumber: '', 
+    sortOrder: 0, 
+    ...project, 
+    software: [...(project.software || [])], 
+    tags: [...(project.tags || [])], 
+    workflow: JSON.parse(JSON.stringify(project.workflow || [])),
+    isPasswordProtected: Boolean(project.isPasswordProtected),
+    autoRotatePassword: project.autoRotatePassword !== false
+  }
   form.value.videoUrls = Array.isArray(project.videoUrls) && project.videoUrls.length ? [...project.videoUrls] : [project.videoUrl || '']
   normalizeProjectVideos()
   tempTagInput.value = ''

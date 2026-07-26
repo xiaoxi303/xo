@@ -244,7 +244,10 @@ function normalizeProject(row: any) {
   return {
     ...row,
     videoUrls,
-    videoUrl: row.videoUrl || videoUrls[0] || ''
+    videoUrl: row.videoUrl || videoUrls[0] || '',
+    isPasswordProtected: row.isPasswordProtected === 1 || row.isPasswordProtected === true,
+    autoRotatePassword: row.autoRotatePassword !== 0 && row.autoRotatePassword !== false,
+    passwordUpdatedAt: row.passwordUpdatedAt || null
   }
 }
 
