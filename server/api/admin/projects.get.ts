@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     
     // Add activePassword for admin overview
     const projectsWithPassword = projects.map(project => {
-      const identifier = project.slug || project.id || ''
+      const identifier = project.slug || ''
       const isLocked = Boolean(project.isPasswordProtected)
       
       let activePassword = project.password || ''

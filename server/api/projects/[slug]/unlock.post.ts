@@ -1,15 +1,10 @@
-/**
- * POST /api/projects/:slug/unlock
- * Password verification API - supports static and dynamic passwords
- */
-import { dbGetProjectsRaw, dbGetProjectPassword } from '../../../utils/db'
+import { dbGetProjectsRaw } from '../../../utils/db'
 import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
 import { getDailyPassword, getBeijingDateString, verifyPassword } from '../../../utils/password-utils'
 
-// In-memory unlock token store
-const unlockTokens = new Map<string, { slug: string; expiresAt: number; date: string }>()
+const unlockTokens = new Map()
 const UNLOCK_TTL_MS = 24 * 60 * 60 * 1000
 
 export default defineEventHandler(async (event) => {
@@ -22,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
   // Get project info
   const projects = await dbGetProjectsRaw(event)
-  const project = projects.find((p: any) => p.slug === slug)
+  const project = projects.find((p) => p.slug === slug)
   if (!project) throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
 
   // Check if password protection is enabled
@@ -30,10 +25,8 @@ export default defineEventHandler(async (event) => {
     return { success: true, token: null, public: true }
   }
 
-  // Get valid password - always use dynamic password (static password input removed)
-  const today = getBeijingDateString()
+  // Always use dynamic password based on slug
   const validPassword = getDailyPassword(slug)
-  
 
   if (!validPassword || validPassword.trim() === '') {
     return { success: true, token: null, public: true }
@@ -59,7 +52,7 @@ export default defineEventHandler(async (event) => {
   tomorrow.setDate(tomorrow.getDate() + 1)
   const expiresAt = tomorrow.getTime()
 
-  unlockTokens.set(token, { slug, expiresAt, date: today })
+  unlockTokens.set(token, { slug, expiresAt, date: getBeijingDateString() })
 
   setCookie(event, 'unlock_' + slug, token, {
     httpOnly: true,
@@ -68,10 +61,10 @@ export default defineEventHandler(async (event) => {
     maxAge: Math.floor((expiresAt - Date.now()) / 1000)
   })
 
-  return { success: true, token, date: today }
+  return { success: true, token, date: getBeijingDateString() }
 })
 
-export function validateUnlockToken(slug: string, token: string): boolean {
+export function validateUnlockToken(slug, token) {
   const entry = unlockTokens.get(token)
   if (!entry) return false
   if (entry.slug !== slug) return false

@@ -1,24 +1,24 @@
 import crypto from 'crypto';
 
 /**
- * 纯函数：给定 projectSlug 和当天日期，24小时内无论调用多少次，结果 100% 相同！
- * 严禁使用任何随机数或当前毫秒时间！
+ * Pure function: Given projectSlug and today's date, password is 100% identical no matter how many times called!
+ * Strictly forbidden to use any random numbers or current millisecond time!
  */
 export function getDailyPassword(projectSlug: string, secretKey: string = 'XO_STUDIO_SALT'): string {
-  // 1. 防空处理：确保获取到作品的唯一标识
+  // 1. Clean identifier: ensure we get the unique slug
   const cleanSlug = String(projectSlug || 'default').trim().toLowerCase();
   if (!cleanSlug) return '123456';
 
-  // 2. 强行指定 Asia/Shanghai 时区，锁定格式为 YYYY-MM-DD
+  // 2. Force Asia/Shanghai timezone, lock format to YYYY-MM-DD
   const todayDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
 
-  // 3. 拼接固定种子
+  // 3. Fixed seed
   const seed = 'project_' + cleanSlug + '*date*' + todayDateStr + '*salt*' + secretKey;
 
-  // 4. SHA256 哈希计算
+  // 4. SHA256 hash
   const hash = crypto.createHash('sha256').update(seed).digest('hex');
 
-  // 5. 映射为 6 位大写密码 (排除 0, O, 1, I, L 等易混淆字符)
+  // 5. Map to 6 uppercase chars (exclude 0, O, 1, I, L)
   const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   let dailyCode = '';
   for (let i = 0; i < 6; i++) {
@@ -30,14 +30,14 @@ export function getDailyPassword(projectSlug: string, secretKey: string = 'XO_ST
 }
 
 /**
- * 获取北京时间的日期字符串 (YYYY-MM-DD)
+ * Get Beijing date string (YYYY-MM-DD)
  */
 export function getBeijingDateString(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
 }
 
 /**
- * 验证密码是否匹配（统一转大写并去除空格后比较）
+ * Verify password match (case-insensitive, trim spaces)
  */
 export function verifyPassword(inputPassword: string, validPassword: string): boolean {
   const normalizedInput = (inputPassword || '').toString().trim().toUpperCase();
