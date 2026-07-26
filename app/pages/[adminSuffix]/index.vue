@@ -704,8 +704,9 @@
                     :class="[
                       'hover:bg-amber-500/[0.04] transition-colors group/row',
                       draggedProjectIndex === i ? 'opacity-40 bg-amber-100/50' : ''
-                    ]"
-                  >
+    ]"
+  >
+
                     <!-- Leftmost Direct Editable Column (≡ Drag Handle ONLY + Non-Draggable Number Input) -->
                     <td class="py-3.5 px-4 text-center">
                       <div class="inline-flex items-center justify-center gap-1 p-1 rounded-xl bg-black/[0.02] border border-black/[0.06] group-hover/row:border-amber-600/30 group-hover/row:bg-amber-500/5 transition-all select-none">
@@ -727,7 +728,7 @@
                           @dragstart.prevent.stop
                           :value="p.displayNumber || String(p.sortOrder || i + 1).padStart(2, '0')"
                           @change="updateProjectNumber(p, i, $event)"
-                          @keydown.enter.prevent="($event.target as HTMLElement).blur()"
+                          @keydown.enter.prevent="$event.target.blur()"
                           class="w-11 h-7 text-center font-mono font-bold text-xs rounded-md bg-white border border-amber-900/15 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 text-amber-900 shadow-2xs transition-all cursor-text"
                           title="点击可直接输入修改序号或海报数字（如 01, 02 或 1, 2）"
                         />
@@ -744,11 +745,12 @@
                           <button 
                             type="button" 
                             @click.stop="moveProjectDown(i)" 
-                            :disabled="i >= projectsList.length - 1" 
+                            :disabled="!projectsList || i === projectsList.length - 1"
                             class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5"
                           >&#x25BC;</button>
-                        </div>
-                    </td>
+                      </div> <!-- 1. 关按钮框 -->
+                    </div>   <!-- 2. 关最外层 inline-flex 框 -->
+                    </td>    <!-- 3. 关 td 单元格 -->
 
                     <td class="py-4 px-6 flex items-center gap-4 min-w-[260px]">
                       <div class="w-14 h-9 rounded-lg overflow-hidden flex-shrink-0" style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
