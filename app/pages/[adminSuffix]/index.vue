@@ -1944,6 +1944,7 @@
                       <input id="isPasswordProtected" type="checkbox" v-model="form.isPasswordProtected" class="w-4 h-4 rounded cursor-pointer" />
                       <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)"></label>
                     </div>
+                    </div> <!-- Close grid -->
                     
                     <!-- Password Configuration (only show when protected) -->
                     <div v-if="form.isPasswordProtected" class="space-y-3 pl-6 border-l-2" style="border-color: var(--color-bronze-bg)">
