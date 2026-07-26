@@ -30,7 +30,12 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
     // Retrieve project password
     const projects = await dbGetProjectsRaw(event)
     const project = projects.find(p => p.slug === request.projectSlug)
-    const password = project ? project.password : ''
+    // Use dynamic password for auto-rotate projects
+    let password = project ? (project.password || '') : ''
+    if (project && project.autoRotatePassword && project.slug) {
+      const { getDailyPassword } = await import('./password-utils')
+      password = getDailyPassword(project.slug)
+    }
 
     const siteUrl = (config?.siteInfo?.siteUrl || 'https://xo.xoxox.bond').replace(/\/$/, '')
     const projectUrl = `${siteUrl}/projects/${request.projectSlug}`
