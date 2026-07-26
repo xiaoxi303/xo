@@ -65,6 +65,27 @@
             &#x274c; {{ passwordError }}
           </p>
 
+          <!-- 获取密码按钮 -->
+          <div class="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-semibold">
+            <NuxtLink
+              :to="`/projects/${slug}/get`"
+              class="hover:opacity-80 transition-opacity underline flex items-center gap-1"
+              style="color: var(--color-bronze)"
+            >
+              <span>&#x1f511;</span>
+              <span>在线直接获取密码</span>
+            </NuxtLink>
+            <span class="hidden sm:inline" style="color: var(--color-ink-6)">|</span>
+            <NuxtLink
+              :to="`/projects/${slug}/request`"
+              class="hover:opacity-80 transition-opacity underline flex items-center gap-1"
+              style="color: var(--color-ink-4)"
+            >
+              <span>&#x1f4dd;</span>
+              <span>填写表单手动申请</span>
+            </NuxtLink>
+          </div>
+
           <div class="pt-4 border-t border-black/[0.05]">
             <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-4)">
               &larr; 返回作品集
