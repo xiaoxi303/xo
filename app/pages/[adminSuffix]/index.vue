@@ -3632,7 +3632,6 @@ const getDailyPassword = (slug: string) => {
   }
   return pwd
 }
-}
 
 const saveProject = async () => {
   try {
