@@ -15,12 +15,12 @@ export default defineEventHandler(async (event) => {
     
     // Add activePassword for admin overview
     const projectsWithPassword = projects.map(project => {
+      const identifier = project.slug || project.id || ''
       const isLocked = Boolean(project.isPasswordProtected)
-      let activePassword = project.password || ''
       
-      // If auto-rotate is enabled, calculate today's dynamic password
+      let activePassword = project.password || ''
       if (isLocked && project.autoRotatePassword) {
-        activePassword = getDailyPassword(project.slug)
+        activePassword = getDailyPassword(identifier)
       }
       
       return {

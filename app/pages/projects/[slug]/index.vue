@@ -662,13 +662,14 @@ watch(unlockStatus, async (val) => {
 }, { immediate: true })
 
 // Generate daily password (same algorithm as backend)
-const getDailyPassword = (slug) => {
-  if (!slug) return '------'
+const getDailyPassword = (identifier) => {
+  if (!identifier) return '------'
   
   // Get Beijing time using toLocaleDateString
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
-  const secret = 'xo-studio-2026'
-  const seed = slug + '*' + todayStr + '*' + secret
+  const secret = 'XO_STUDIO_2026_LOCK'
+  const cleanId = String(identifier).trim().toLowerCase()
+  const seed = 'PROJECT_' + cleanId + '*DATE*' + todayStr + '*SALT*' + secret
   
   // Deterministic hash function (same algorithm as backend SHA256)
   let hash = 0

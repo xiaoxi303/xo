@@ -1,24 +1,22 @@
 import crypto from 'crypto';
 
 /**
- * 根据作品Slug和当前日期生成固定的6位动态密码（24小时内固定不变）
- * 使用 SHA256 哈希算法确保确定性
- * 
- * IMPORTANT: 统一使用 slug 作为种子，确保前后端一致
+ * 全局统一动态密码生成器
+ * 保证输入相同的 projectIdentifier 和日期，算出的密码 100% 一致
  */
-export function getDailyPassword(projectSlug: string, secretKey: string = 'xo-studio-2026'): string {
-  if (!projectSlug) return '------';
-  
-  // 1. 强制统一为 Asia/Shanghai 时区的 YYYY-MM-DD 格式
+export function getDailyPassword(projectIdentifier: string, secretKey: string = 'XO_STUDIO_2026_LOCK'): string {
+  // 1. 强行清洗标识符（防止 null/undefined/大小写混淆）
+  const cleanId = String(projectIdentifier || '').trim().toLowerCase();
+  if (!cleanId) return '123456';
+
+  // 2. 强制使用 Asia/Shanghai 时区格式化 YYYY-MM-DD
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
-  
-  // 2. 使用 slug 作为种子
-  const seed = projectSlug + '*' + todayStr + '*' + secretKey;
-  
-  // 3. 计算 SHA256 哈希值
+
+  // 3. 唯一种子拼接
+  const seed = 'PROJECT_' + cleanId + '*DATE*' + todayStr + '*SALT*' + secretKey;
+
+  // 4. SHA256 哈希取前 6 位大写字符
   const hash = crypto.createHash('sha256').update(seed).digest('hex');
-  
-  // 4. 映射为 6 位大写字母与数字组合（排除易混淆字符 O, 0, I, 1, L）
   const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   let password = '';
   for (let i = 0; i < 6; i++) {
