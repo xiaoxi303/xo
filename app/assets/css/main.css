@@ -18,8 +18,7 @@
 
 @font-face {
   font-family: 'Xo Display';
-  src: url('/fonts/xo-display-italic.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('woff2');
+  src: url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;
@@ -43,8 +42,7 @@
 
 @font-face {
   font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans-italic.woff2') format('woff2'),
-       url('/fonts/xo-sans.woff2') format('woff2');
+  src: url('/fonts/xo-sans.woff2') format('woff2');
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;
@@ -56,8 +54,7 @@
 
 @font-face {
   font-family: 'Xo Mono';
-  src: url('/fonts/xo-mono.woff2') format('woff2'),
-       url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
+  src: url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -69,8 +66,7 @@
 /* Xo Display — 不同宽度变体 */
 @font-face {
   font-family: 'Xo Display Narrow';
-  src: url('/fonts/xo-display-narrow.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('woff2');
+  src: url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -79,8 +75,7 @@
 
 @font-face {
   font-family: 'Xo Display Wide';
-  src: url('/fonts/xo-display-wide.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('woff2');
+  src: url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -90,8 +85,7 @@
 /* Xo Sans — 不同宽度变体 */
 @font-face {
   font-family: 'Xo Sans Narrow';
-  src: url('/fonts/xo-sans-narrow.woff2') format('woff2'),
-       url('/fonts/xo-sans.woff2') format('woff2');
+  src: url('/fonts/xo-sans.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -100,8 +94,7 @@
 
 @font-face {
   font-family: 'Xo Sans Wide';
-  src: url('/fonts/xo-sans-wide.woff2') format('woff2'),
-       url('/fonts/xo-sans.woff2') format('woff2');
+  src: url('/fonts/xo-sans.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -111,8 +104,7 @@
 /* Xo Handwriting — 手写风格（如有） */
 @font-face {
   font-family: 'Xo Hand';
-  src: url('/fonts/xo-hand.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('woff2');
+  src: url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -121,8 +113,7 @@
 /* Xo Decorative — 装饰风格（如有） */
 @font-face {
   font-family: 'Xo Decorative';
-  src: url('/fonts/xo-decorative.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('woff2');
+  src: url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -1652,8 +1643,7 @@ html {
 /* Xo Display — 特殊风格变体 */
 @font-face {
   font-family: 'Xo Display Swash';
-  src: url('/fonts/xo-display-swash.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('woff2');
+  src: url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -1662,8 +1652,7 @@ html {
 
 @font-face {
   font-family: 'Xo Display Titling';
-  src: url('/fonts/xo-display-titling.woff2') format('woff2'),
-       url('/fonts/xo-display.woff2') format('woff2');
+  src: url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -1673,8 +1662,7 @@ html {
 /* Xo Sans — 特殊风格变体 */
 @font-face {
   font-family: 'Xo Sans Rounded';
-  src: url('/fonts/xo-sans-rounded.woff2') format('woff2'),
-       url('/fonts/xo-sans.woff2') format('woff2');
+  src: url('/fonts/xo-sans.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -1682,8 +1670,7 @@ html {
 
 @font-face {
   font-family: 'Xo Sans Stencil';
-  src: url('/fonts/xo-sans-stencil.woff2') format('woff2'),
-       url('/fonts/xo-sans.woff2') format('woff2');
+  src: url('/fonts/xo-sans.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -1692,9 +1679,7 @@ html {
 /* Xo Mono — 变体 */
 @font-face {
   font-family: 'Xo Mono Light';
-  src: url('/fonts/xo-mono-light.woff2') format('woff2'),
-       url('/fonts/xo-mono.woff2') format('woff2'),
-       url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
+  src: url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -1702,9 +1687,7 @@ html {
 
 @font-face {
   font-family: 'Xo Mono Bold';
-  src: url('/fonts/xo-mono-bold.woff2') format('woff2'),
-       url('/fonts/xo-mono.woff2') format('woff2'),
-       url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
+  src: url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -1713,8 +1696,7 @@ html {
 /* Xo Icon — 图标字体（如有） */
 @font-face {
   font-family: 'Xo Icon';
-  src: url('/fonts/xo-icon.woff2') format('woff2'),
-       url('/fonts/xo-sans.woff2') format('woff2');
+  src: url('/fonts/xo-sans.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
