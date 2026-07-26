@@ -34,6 +34,7 @@ export async function getD1Database(event: H3Event) {
           director TEXT,
           deliverFormat TEXT,
           audioFormat TEXT,
+          isColorGraded INTEGER DEFAULT 0,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS site_config (
@@ -96,6 +97,9 @@ export async function getD1Database(event: H3Event) {
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE projects ADD COLUMN audioFormat TEXT;`)
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN isColorGraded INTEGER DEFAULT 0;`)
+      } catch (e) {}
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE users ADD COLUMN allowedProjects TEXT DEFAULT '';`)

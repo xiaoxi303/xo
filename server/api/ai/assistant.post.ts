@@ -190,21 +190,17 @@ export default defineEventHandler(async (event) => {
         }
       } catch (e) {}
       
+      const gradedText = gradedCount + ' 个'
+      const ungradedText = ungradedCount + ' 个'
+      const percentText = projectCount > 0 ? Math.round((gradedCount / projectCount) * 100) + '%' : '0%'
+      const suggestionText = ungradedCount > 0 
+        ? '- 您有 ' + ungradedCount + ' 个作品尚未标记调色状态，请在后台编辑作品时勾选「已调色」复选框。\n- 完成调色后，前台作品详情页和列表页会自动显示绿色「已调色」标签。'
+        : '- 🎉 所有作品都已标记调色状态！'
+      
       return {
         success: true,
         isCustomLlm: false,
-        reply: `🎬 [调色状态分析报告]:
-
-### 📊 当前作品调色状态统计：
-1. **✅ 已调色作品**：${gradedCount} 个
-2. **⏳ 未调色作品**：${ungradedCount} 个
-3. **📈 调色完成率**：${projectCount > 0 ? Math.round((gradedCount / projectCount) * 100) : 0}%
-
-### 💡 建议：
-${ungradedCount > 0 ? '- 您有 ' + ungradedCount + ' 个作品尚未标记调色状态，请在后台编辑作品时勾选「已调色」复选框。
-- 完成调色后，前台作品详情页和列表页会自动显示绿色「已调色」标签。' : '- 🎉 所有作品都已标记调色状态！'}
-
-💡 *提示：在后台作品编辑页面，您可以为每个作品单独设置调色状态。*`
+        reply: '🎬 [调色状态分析报告]:\n\n### 📊 当前作品调色状态统计：\n1. **✅ 已调色作品**：' + gradedText + '\n2. **⏳ 未调色作品**：' + ungradedText + '\n3. **📈 调色完成率**：' + percentText + '\n\n### 💡 建议：\n' + suggestionText + '\n\n💡 *提示：在后台作品编辑页面，您可以为每个作品单独设置调色状态。*'
       }
     }
     
