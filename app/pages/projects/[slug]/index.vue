@@ -666,14 +666,8 @@ const getDailyPassword = (slug) => {
   if (!slug) return '------'
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
   
-  // Get Beijing time (UTC+8)
-  const now = new Date()
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000)
-  const beijing = new Date(utc + (3600000 * 8))
-  const year = beijing.getUTCFullYear()
-  const month = String(beijing.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(beijing.getUTCDate()).padStart(2, '0')
-  const dateStr = year + '-' + month + '-' + day
+  // Get Beijing time using toLocaleDateString
+  const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
   
   const secret = 'xo-studio-2026'
   const input = slug + '|' + dateStr + '|' + secret

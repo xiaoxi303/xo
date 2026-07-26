@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 统一的密码工具函数
  * 确保前后端使用完全相同的算法生成动态密码
  */
@@ -11,17 +11,8 @@ const SAFE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
  * 使用 UTC+8 时区
  */
 export function getBeijingDateString(): string {
-  const now = new Date()
-  // 获取 UTC 时间戳，然后加 8 小时得到北京时间
-  const utcTimestamp = now.getTime() + (now.getTimezoneOffset() * 60000)
-  const beijingTimestamp = utcTimestamp + (8 * 3600000)
-  const beijingDate = new Date(beijingTimestamp)
-  
-  const year = beijingDate.getUTCFullYear()
-  const month = String(beijingDate.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(beijingDate.getUTCDate()).padStart(2, '0')
-  
-  return `${year}-${month}-${day}`
+  // 使用 toLocaleDateString 强制按北京时间获取日期
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
 }
 
 /**
