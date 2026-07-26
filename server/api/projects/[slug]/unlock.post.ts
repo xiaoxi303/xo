@@ -30,19 +30,9 @@ export default defineEventHandler(async (event) => {
     return { success: true, token: null, public: true }
   }
 
-  // Get valid password
-  let validPassword: string | null = null
+  // Get valid password - always use dynamic password (static password input removed)
   const today = getBeijingDateString()
-
-  // Try static password first
-  const staticPassword = await dbGetProjectPassword(event, slug)
-  
-  if (staticPassword && staticPassword.trim() !== '') {
-    validPassword = staticPassword
-  } else {
-    // Use dynamic password
-    validPassword = generateDailyPassword(slug, today)
-  }
+  const validPassword = generateDailyPassword(slug, today)
 
   if (!validPassword || validPassword.trim() === '') {
     return { success: true, token: null, public: true }
