@@ -692,7 +692,7 @@ const getDailyPassword = (slug) => {
     value = Math.floor(value / charset.length)
   }
   return pwd
-  
+}
 
 const dailyPassword = computed(() => getDailyPassword(slug))
 
