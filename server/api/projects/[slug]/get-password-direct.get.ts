@@ -2,6 +2,8 @@ import { dbGetProjectsRaw, dbGetProjectPassword, dbCreatePasswordRequest, getD1D
 import { getRuntimeDataPath } from '../../../utils/storage'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../../utils/auth'
 import { getDailyPassword } from '../../../utils/password-utils'
+import { sendApprovalEmail } from '../../../utils/email'
+import { dbGetUsers } from '../../../utils/db'
 import fs from 'node:fs'
 
 export default defineEventHandler(async (event) => {
@@ -41,6 +43,20 @@ export default defineEventHandler(async (event) => {
   }
 
   await dbCreatePasswordRequest(event, reqObj)
+
+  // Look up user email and send notification
+  try {
+    const users = await dbGetUsers(event)
+    const user = users.find((u: any) => u.username === session.username)
+    if (user && user.email) {
+      reqObj.contact = user.email
+      sendApprovalEmail(event, reqObj).catch(err => {
+        console.error('Failed to send direct access email:', err)
+      })
+    }
+  } catch (e) {
+    console.error('Failed to lookup user email:', e)
+  }
 
   return { password }
 })
