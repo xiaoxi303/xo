@@ -216,13 +216,36 @@
   --font-sans:    'Xo Sans', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-mono:    'Xo Mono', 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
   
-  /* Font Variants */
-  --font-display-narrow: 'Xo Display Narrow', 'Xo Display', sans-serif;
-  --font-display-wide:   'Xo Display Wide', 'Xo Display', sans-serif;
-  --font-sans-narrow:    'Xo Sans Narrow', 'Xo Sans', sans-serif;
-  --font-sans-wide:      'Xo Sans Wide', 'Xo Sans', sans-serif;
-  --font-hand:           'Xo Hand', 'Xo Display', cursive;
-  --font-decorative:     'Xo Decorative', 'Xo Display', fantasy;
+  /* Font Variants — Display */
+  --font-display-narrow:   'Xo Display Narrow', 'Xo Display', sans-serif;
+  --font-display-wide:     'Xo Display Wide', 'Xo Display', sans-serif;
+  --font-display-swash:    'Xo Display Swash', 'Xo Display', serif;
+  --font-display-titling:  'Xo Display Titling', 'Xo Display', serif;
+  
+  /* Font Variants — Sans */
+  --font-sans-narrow:      'Xo Sans Narrow', 'Xo Sans', sans-serif;
+  --font-sans-wide:        'Xo Sans Wide', 'Xo Sans', sans-serif;
+  --font-sans-rounded:     'Xo Sans Rounded', 'Xo Sans', sans-serif;
+  --font-sans-stencil:     'Xo Sans Stencil', 'Xo Sans', sans-serif;
+  
+  /* Font Variants — Mono */
+  --font-mono-light:       'Xo Mono Light', 'Xo Mono', monospace;
+  --font-mono-bold:        'Xo Mono Bold', 'Xo Mono', monospace;
+  
+  /* Font Variants — Special */
+  --font-hand:             'Xo Hand', 'Xo Display', cursive;
+  --font-decorative:       'Xo Decorative', 'Xo Display', fantasy;
+  --font-icon:             'Xo Icon', 'Xo Sans', sans-serif;
+  
+  /* Font Stacks — 预设组合 */
+  --font-stack-editorial:  'Xo Display', Georgia, serif;
+  --font-stack-headline:   'Xo Display', Georgia, serif;
+  --font-stack-body:       'Xo Sans', system-ui, sans-serif;
+  --font-stack-caption:    'Xo Sans', system-ui, sans-serif;
+  --font-stack-label:      'Xo Mono', monospace;
+  --font-stack-code:       'Xo Mono', monospace;
+  --font-stack-display:    'Xo Display Wide', 'Xo Display', serif;
+  --font-stack-brand:      'Xo Display', serif;
   
   /* Font alias for CJK — 使用 Xo 自定义字体 */
   --font-display-cjk: 'Xo Display', Georgia, serif;
@@ -1622,3 +1645,411 @@ html {
     font-size: 2rem;
   }
 }
+
+
+/* ===== Xo Typography System — Extended ===== */
+
+/* Xo Display — 特殊风格变体 */
+@font-face {
+  font-family: 'Xo Display Swash';
+  src: url('/fonts/xo-display-swash.woff2') format('woff2'),
+       url('/fonts/xo-display.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  font-feature-settings: 'swsh' 1;
+}
+
+@font-face {
+  font-family: 'Xo Display Titling';
+  src: url('/fonts/xo-display-titling.woff2') format('woff2'),
+       url('/fonts/xo-display.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  font-feature-settings: 'titl' 1;
+}
+
+/* Xo Sans — 特殊风格变体 */
+@font-face {
+  font-family: 'Xo Sans Rounded';
+  src: url('/fonts/xo-sans-rounded.woff2') format('woff2'),
+       url('/fonts/xo-sans.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Xo Sans Stencil';
+  src: url('/fonts/xo-sans-stencil.woff2') format('woff2'),
+       url('/fonts/xo-sans.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Xo Mono — 变体 */
+@font-face {
+  font-family: 'Xo Mono Light';
+  src: url('/fonts/xo-mono-light.woff2') format('woff2'),
+       url('/fonts/xo-mono.woff2') format('woff2'),
+       url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Xo Mono Bold';
+  src: url('/fonts/xo-mono-bold.woff2') format('woff2'),
+       url('/fonts/xo-mono.woff2') format('woff2'),
+       url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Xo Icon — 图标字体（如有） */
+@font-face {
+  font-family: 'Xo Icon';
+  src: url('/fonts/xo-icon.woff2') format('woff2'),
+       url('/fonts/xo-sans.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  font-feature-settings: 'liga' 1;
+}
+
+/* ===== Font Variant Utilities ===== */
+
+/* Display Variants */
+.font-display-swash {
+  font-family: 'Xo Display Swash', 'Xo Display', serif;
+  font-feature-settings: 'swsh' 1;
+}
+
+.font-display-titling {
+  font-family: 'Xo Display Titling', 'Xo Display', serif;
+  font-feature-settings: 'titl' 1;
+}
+
+/* Sans Variants */
+.font-sans-rounded {
+  font-family: 'Xo Sans Rounded', 'Xo Sans', sans-serif;
+}
+
+.font-sans-stencil {
+  font-family: 'Xo Sans Stencil', 'Xo Sans', sans-serif;
+}
+
+/* Mono Variants */
+.font-mono-light {
+  font-family: 'Xo Mono Light', 'Xo Mono', monospace;
+  font-weight: 300;
+}
+
+.font-mono-bold {
+  font-family: 'Xo Mono Bold', 'Xo Mono', monospace;
+  font-weight: 700;
+}
+
+/* Icon Font */
+.font-icon {
+  font-family: 'Xo Icon', 'Xo Sans', sans-serif;
+  font-feature-settings: 'liga' 1;
+}
+
+/* ===== Advanced Typography Features ===== */
+
+/* Small Caps */
+.small-caps {
+  font-feature-settings: 'smcp' 1;
+  letter-spacing: 0.05em;
+}
+
+.all-small-caps {
+  font-feature-settings: 'c2sc' 1, 'smcp' 1;
+  letter-spacing: 0.05em;
+}
+
+/* Ligatures */
+.ligatures-common {
+  font-feature-settings: 'liga' 1;
+}
+
+.ligatures-contextual {
+  font-feature-settings: 'calt' 1;
+}
+
+.ligatures-discretionary {
+  font-feature-settings: 'dlig' 1;
+}
+
+.ligatures-historical {
+  font-feature-settings: 'hlig' 1;
+}
+
+/* Numbers */
+.numbers-tabular {
+  font-feature-settings: 'tnum' 1;
+}
+
+.numbers-proportional {
+  font-feature-settings: 'pnum' 1;
+}
+
+.numbers-oldstyle {
+  font-feature-settings: 'onum' 1;
+}
+
+.numbers-lining {
+  font-feature-settings: 'lnum' 1;
+}
+
+.numbers-fraction {
+  font-feature-settings: 'frac' 1;
+}
+
+.numbers-ordinal {
+  font-feature-settings: 'ordn' 1;
+  font-variant-position: super;
+}
+
+/* Stylistic Sets */
+.style-set-1 { font-feature-settings: 'ss01' 1; }
+.style-set-2 { font-feature-settings: 'ss02' 1; }
+.style-set-3 { font-feature-settings: 'ss03' 1; }
+.style-set-4 { font-feature-settings: 'ss04' 1; }
+.style-set-5 { font-feature-settings: 'ss05' 1; }
+
+/* ===== Composition Utilities ===== */
+
+/* Font Stacks — 预设组合 */
+.font-stack-editorial {
+  font-family: 'Xo Display', Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.font-stack-headline {
+  font-family: 'Xo Display', Georgia, serif;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.font-stack-body {
+  font-family: 'Xo Sans', system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+.font-stack-caption {
+  font-family: 'Xo Sans', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.font-stack-label {
+  font-family: 'Xo Mono', monospace;
+  font-weight: 600;
+  font-size: 0.625rem;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.font-stack-code {
+  font-family: 'Xo Mono', monospace;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
+}
+
+.font-stack-display {
+  font-family: 'Xo Display Wide', 'Xo Display', serif;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.font-stack-brand {
+  font-family: 'Xo Display', serif;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+/* ===== Responsive Font Utilities ===== */
+
+/* Fluid Typography — 平滑缩放 */
+.fluid-xs {
+  font-size: clamp(0.625rem, 0.5rem + 0.5vw, 0.75rem);
+}
+
+.fluid-sm {
+  font-size: clamp(0.75rem, 0.625rem + 0.5vw, 0.875rem);
+}
+
+.fluid-base {
+  font-size: clamp(0.875rem, 0.75rem + 0.5vw, 1rem);
+}
+
+.fluid-lg {
+  font-size: clamp(1rem, 0.875rem + 0.5vw, 1.125rem);
+}
+
+.fluid-xl {
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.25rem);
+}
+
+.fluid-2xl {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.5rem);
+}
+
+.fluid-3xl {
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+}
+
+.fluid-4xl {
+  font-size: clamp(1.875rem, 1.5rem + 1.5vw, 2.25rem);
+}
+
+.fluid-5xl {
+  font-size: clamp(2.25rem, 1.875rem + 1.5vw, 3rem);
+}
+
+.fluid-6xl {
+  font-size: clamp(3rem, 2.25rem + 2vw, 3.75rem);
+}
+
+.fluid-7xl {
+  font-size: clamp(3.75rem, 3rem + 2.5vw, 4.5rem);
+}
+
+.fluid-8xl {
+  font-size: clamp(4.5rem, 3rem + 4vw, 6rem);
+}
+
+.fluid-9xl {
+  font-size: clamp(6rem, 4rem + 5vw, 8rem);
+}
+
+/* ===== Text Effects ===== */
+
+/* Text Shadow */
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow-md {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.text-shadow-xl {
+  text-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+}
+
+.text-shadow-glow {
+  text-shadow: 0 0 20px var(--color-bronze-glow, rgba(180, 83, 9, 0.3));
+}
+
+/* Text Outline */
+.text-outline {
+  -webkit-text-stroke: 1px currentColor;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-outline-thick {
+  -webkit-text-stroke: 2px currentColor;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Text Fill Effects */
+.text-fill-glass {
+  -webkit-text-fill-color: transparent;
+  background: var(--glass-bg, rgba(252, 248, 242, 0.82));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text-fill-pattern {
+  -webkit-text-fill-color: transparent;
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-bronze, #b45309) 0px,
+    var(--color-bronze, #b45309) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Text Mask */
+.text-mask-fade {
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+/* ===== Writing Modes ===== */
+
+.writing-horizontal {
+  writing-mode: horizontal-tb;
+}
+
+.writing-vertical {
+  writing-mode: vertical-rl;
+}
+
+.writing-vertical-lr {
+  writing-mode: vertical-lr;
+}
+
+/* ===== Text Decoration Advanced ===== */
+
+.text-decoration-wavy {
+  text-decoration-style: wavy;
+}
+
+.text-decoration-dotted {
+  text-decoration-style: dotted;
+}
+
+.text-decoration-dashed {
+  text-decoration-style: dashed;
+}
+
+.text-decoration-double {
+  text-decoration-style: double;
+}
+
+.text-decoration-bronze {
+  text-decoration-color: var(--color-bronze, #b45309);
+}
+
+.text-underline-offset-1 { text-underline-offset: 2px; }
+.text-underline-offset-2 { text-underline-offset: 4px; }
+.text-underline-offset-3 { text-underline-offset: 6px; }
+
+/* ===== Word Break & Overflow ===== */
+
+.break-normal  { word-break: normal; overflow-wrap: normal; }
+.break-words   { overflow-wrap: break-word; }
+.break-all     { word-break: break-all; }
+.break-keep    { word-break: keep-all; }
+
+/* Hyphenation */
+.hyphens-none  { hyphens: none; }
+.hyphens-auto  { hyphens: auto; }
+.hyphens-manual { hyphens: manual; }
