@@ -1940,7 +1940,6 @@
                      <input id="isColorGraded" type="checkbox" v-model="form.isColorGraded" class="w-4 h-4 rounded cursor-pointer" />
                      <label for="isColorGraded" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">已调色</label>
                    </div>
-                    </div>
                     <div class="flex items-center gap-2">
                       <input id="isPasswordProtected" type="checkbox" v-model="form.isPasswordProtected" class="w-4 h-4 rounded cursor-pointer" />
                       <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">密码保护</label>

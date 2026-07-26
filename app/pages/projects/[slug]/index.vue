@@ -64,10 +64,6 @@
           <p v-if="passwordError" class="text-xs text-rose-500 font-semibold">
             &#x274c; {{ passwordError }}
           </p>
-              style="color: var(--color-ink-3)"
-            >
-              📨 填写表单手动申请
-            </button>
           </div>
 
           <div class="pt-4 border-t border-black/[0.05]">
