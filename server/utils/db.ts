@@ -100,9 +100,18 @@ export async function getD1Database(event: H3Event) {
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE projects ADD COLUMN audioFormat TEXT;`)
+      } catch (e) {}
       try {
         await db.exec(`ALTER TABLE projects ADD COLUMN isColorGraded INTEGER DEFAULT 0;`)
       } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN isPasswordProtected INTEGER DEFAULT 0;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN autoRotatePassword INTEGER DEFAULT 1;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE projects ADD COLUMN passwordUpdatedAt TEXT;`)
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE users ADD COLUMN allowedProjects TEXT DEFAULT '';`)
