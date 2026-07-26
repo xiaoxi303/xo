@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     // Artificial delay to resist brute-force
     await new Promise(r => setTimeout(r, 600))
     throw createError({ statusCode: 401, statusMessage: '密码错误，请联系作者获取授权密码。' })
-  })
+  }
 
   // Password matches — issue a daily unlock token
   const token = randomBytes(24).toString('hex')
