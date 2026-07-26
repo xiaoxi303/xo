@@ -693,23 +693,6 @@ const getDailyPassword = (slug) => {
   }
   return pwd
   
-  let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
-  }
-  hash = Math.abs(hash)
-  
-  let pwd = ''
-  let value = hash
-  for (let i = 0; i < 6; i++) {
-    const index = value % chars.length
-    pwd += chars[index]
-    value = Math.floor(value / chars.length)
-  }
-  return pwd
-}
 
 const dailyPassword = computed(() => getDailyPassword(slug))
 
