@@ -1936,6 +1936,10 @@
                      <input id="featured" type="checkbox" v-model="form.featured" class="w-4 h-4 rounded cursor-pointer" />
                      <label for="featured" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">设为首页精选置顶</label>
                    </div>
+                   <div class="flex items-center gap-2">
+                     <input id="isColorGraded" type="checkbox" v-model="form.isColorGraded" class="w-4 h-4 rounded cursor-pointer" />
+                     <label for="isColorGraded" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">已调色</label>
+                   </div>
                    <div class="space-y-1.5">
                      <label class="form-label flex items-center gap-1">
                        <span>🔐 访问保护密码</span>
@@ -2696,7 +2700,8 @@ const tempExpInputs = ref<Record<number, string>>({})
 const submitButtonRef = ref<HTMLButtonElement | null>(null)
 
 const form = ref<any>({
-  slug: '', title: '', displayNumber: '', image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: [], tags: [], featured: false, description: '', longDescription: '', workflow: [], password: '',
+  slug: '', title: '', displayNumber: '', image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: [], tags: [], featured: false,
+      isColorGraded: false, description: '', longDescription: '', workflow: [], password: '',
   releaseYear: '', postSpecs: '', director: '', isGraded: true, deliverFormat: '', audioFormat: ''
 })
 
@@ -3514,7 +3519,8 @@ const openCreateModal = () => {
   aiPromptInput.value = ''
   form.value = {
     slug: '', title: '', displayNumber: '', sortOrder: projectsList.value.length + 1, image: '', imageBefore: '', videoUrl: '', videoUrls: [''], software: ['Premiere Pro', 'DaVinci Resolve'],
-    tags: ['剪辑节奏', '达芬奇调色'], featured: false, description: '', longDescription: '',
+    tags: ['剪辑节奏', '达芬奇调色'], featured: false,
+      isColorGraded: false, description: '', longDescription: '',
     workflow: [{ icon: '⚡', title: 'Offline 粗剪', desc: '根据背景声轨与击鼓声的峰值波形进行精确画面切割与卡位。' }],
     password: '',
     releaseYear: '2026',

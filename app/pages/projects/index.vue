@@ -81,6 +81,11 @@
                   style="background: #d97706; border: 1px solid rgba(251,191,36,0.4);">
                   FEATURED
                 </span>
+                <span v-if="project.isColorGraded"
+                  class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                  style="background: rgba(5, 150, 105, 0.2); color: #059669; border: 1px solid rgba(5, 150, 105, 0.3);">
+                  已调色
+                </span>
               </div>
 
               <!-- Play icon on hover -->

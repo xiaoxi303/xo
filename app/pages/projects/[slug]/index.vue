@@ -96,6 +96,14 @@
               <span>发布日期：{{ project.releaseYear || '2026' }} 年</span>
               <span class="text-slate-300">·</span>
               <span>后期规格：{{ project.postSpecs || (siteConfig?.home?.colorSpecText ? siteConfig.home.colorSpecText : '4K 60FPS HDR / ACEScct') }}</span>
+                    <span v-if="project.isColorGraded" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold" style="background: rgba(5, 150, 105, 0.1); color: #059669; border: 1px solid rgba(5, 150, 105, 0.2);">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      已调色
+                    </span>
+                    <span v-else class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold" style="background: rgba(107, 114, 128, 0.1); color: #6b7280; border: 1px solid rgba(107, 114, 128, 0.2);">
+                      <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                      未调色
+                    </span>
             </div>
           </div>
 
