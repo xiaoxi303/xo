@@ -1,305 +1,68 @@
-/* ===== Xo Typography System — Premium Brand Fonts ===== */
+/* ===== Xo Typography System — Custom Brand Fonts ===== */
 
-/* 
- * Xo Display — Elegant Editorial Serif
+/*
+ * Xo Display — 专属衬线字体
+ * 包含完整中文、英文字形
  * 用途：标题、大字号展示、品牌标识
- * 特点：高对比度衬线、优雅的字形设计
  */
 
-/* Xo Display Thin */
 @font-face {
   font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 100;
+  src: url('/fonts/xo-display.woff2') format('woff2'),
+       url('/fonts/xo-display.ttf') format('truetype'),
+       url('/fonts/xo-display.otf') format('opentype');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
-/* Xo Display Light */
 @font-face {
   font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Display Regular */
-@font-face {
-  font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Display Medium */
-@font-face {
-  font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Display SemiBold */
-@font-face {
-  font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Display Bold */
-@font-face {
-  font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Display Black */
-@font-face {
-  font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Display Italic */
-@font-face {
-  font-family: 'Xo Display';
-  src: url('/fonts/xo-display.woff2') format('woff2');
+  src: url('/fonts/xo-display-italic.woff2') format('woff2'),
+       url('/fonts/xo-display.woff2') format('woff2');
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;
 }
 
 /*
- * Xo Sans — Modern Geometric Sans
+ * Xo Sans — 专属无衬线字体
+ * 包含完整中文、英文字形
  * 用途：正文、UI元素、按钮文字
- * 特点：几何风格、高可读性、现代感
  */
 
-/* Xo Sans Thin */
 @font-face {
   font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 100;
+  src: url('/fonts/xo-sans.woff2') format('woff2'),
+       url('/fonts/xo-sans.ttf') format('truetype'),
+       url('/fonts/xo-sans.otf') format('opentype');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
-/* Xo Sans Light */
 @font-face {
   font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Sans Regular */
-@font-face {
-  font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Sans Medium */
-@font-face {
-  font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Sans SemiBold */
-@font-face {
-  font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Sans Bold */
-@font-face {
-  font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Sans Black */
-@font-face {
-  font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Xo Sans Italic */
-@font-face {
-  font-family: 'Xo Sans';
-  src: url('/fonts/xo-sans.woff2') format('woff2');
+  src: url('/fonts/xo-sans-italic.woff2') format('woff2'),
+       url('/fonts/xo-sans.woff2') format('woff2');
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;
 }
 
 /*
- * Xo Mono — Technical Monospace
- * 用途：代码、技术规格、数据展示
- * 特点：等宽设计、编程连字、清晰易读
+ * Xo Mono — 等宽字体（用于代码和技术规格）
  */
 
-/* Xo Mono Regular */
 @font-face {
   font-family: 'Xo Mono';
   src: url('/fonts/xo-mono.woff2') format('woff2'),
        url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
-  font-weight: 400;
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
   font-feature-settings: 'tnum' 1, 'ss01' 1;
 }
-
-/* Xo Mono Bold */
-@font-face {
-  font-family: 'Xo Mono';
-  src: url('/fonts/xo-mono.woff2') format('woff2'),
-       url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOTk6OThhvA.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  font-feature-settings: 'tnum' 1, 'ss01' 1;
-}
-
-
-/* ===== Xo CJK Support — Chinese/Japanese/Korean ===== */
-
-/*
- * 中文排版优化
- * Xo Display 用于中文标题，搭配思源宋体作为回退
- * Xo Sans 用于中文正文，搭配思源黑体作为回退
- */
-
-/* 中文标题字体 — 优雅衬线 */
-@font-face {
-  font-family: 'Xo Display CJK';
-  src: local('Noto Serif CJK SC'),
-       local('Source Han Serif SC'),
-       local('STSong'),
-       local('SimSun'),
-       url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+4E00-9FFF, U+3400-4DBF, U+2F00-2FDF, U+3000-303F, U+FF00-FFEF;
-}
-
-@font-face {
-  font-family: 'Xo Display CJK';
-  src: local('Noto Serif CJK SC Bold'),
-       local('Source Han Serif SC Bold'),
-       local('STSong'),
-       local('SimSun'),
-       url('/fonts/xo-display.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+4E00-9FFF, U+3400-4DBF, U+2F00-2FDF, U+3000-303F, U+FF00-FFEF;
-}
-
-/* 中文正文字体 — 现代黑体 */
-@font-face {
-  font-family: 'Xo Sans CJK';
-  src: local('Noto Sans CJK SC'),
-       local('Source Han Sans SC'),
-       local('Microsoft YaHei'),
-       local('PingFang SC'),
-       url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+4E00-9FFF, U+3400-4DBF, U+2F00-2FDF, U+3000-303F, U+FF00-FFEF;
-}
-
-@font-face {
-  font-family: 'Xo Sans CJK';
-  src: local('Noto Sans CJK SC Bold'),
-       local('Source Han Sans SC Bold'),
-       local('Microsoft YaHei Bold'),
-       local('PingFang SC Bold'),
-       url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+4E00-9FFF, U+3400-4DBF, U+2F00-2FDF, U+3000-303F, U+FF00-FFEF;
-}
-
-/* 日文字体支持 */
-@font-face {
-  font-family: 'Xo Sans CJK';
-  src: local('Noto Sans CJK JP'),
-       local('Source Han Sans JP'),
-       local('Hiragino Sans'),
-       url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+3040-309F, U+30A0-30FF, U+31F0-31FF;
-}
-
-/* 韩文字体支持 */
-@font-face {
-  font-family: 'Xo Sans CJK';
-  src: local('Noto Sans CJK KR'),
-       local('Source Han Sans KR'),
-       local('Apple Gothic'),
-       url('/fonts/xo-sans.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+AC00-D7AF, U+1100-11FF, U+3130-318F;
-}
-
-/* ===== Enhanced Typography with CJK ===== */
-
-/* 中文排版优化 */
-:lang(zh) {
-  font-family: 'Xo Sans CJK', 'Xo Sans', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
-  line-height: 1.8;
-  letter-spacing: 0.02em;
-}
-
-:lang(zh) h1, :lang(zh) h2, :lang(zh) h3, :lang(zh) h4 {
-  font-family: 'Xo Display CJK', 'Xo Display', 'Noto Serif CJK SC', 'STSong', serif;
-  line-height: 1.4;
-  letter-spacing: 0.05em;
-}
-
-/* 日文排版优化 */
-:lang(ja) {
-  font-family: 'Xo Sans CJK', 'Xo Sans', 'Hiragino Sans', 'Yu Gothic', sans-serif;
-  line-height: 1.8;
-}
-
-/* 韩文排版优化 */
-:lang(ko) {
-  font-family: 'Xo Sans CJK', 'Xo Sans', 'Apple Gothic', 'Malgun Gothic', sans-serif;
-  line-height: 1.8;
-}
-
 
 /* ===== Font Feature Settings ===== */
 
@@ -384,18 +147,16 @@
 
   /* ===== Xo Typography Design Tokens ===== */
   
-  /* Primary Font Families — Latin */
-  --font-display: 'Xo Display', Georgia, 'Times New Roman', serif;
-  --font-sans:    'Xo Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono:    'Xo Mono', 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  /* Primary Font Families — Xo Custom Fonts */
+  --font-display: 'Xo Display', Georgia, 'STSong', 'SimSun', serif;
+  --font-sans:    'Xo Sans', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono:    'Xo Mono', 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
   
-  /* CJK Font Families — Chinese/Japanese/Korean */
-  --font-display-cjk: 'Xo Display CJK', 'Xo Display', 'Noto Serif CJK SC', 'Source Han Serif SC', 'STSong', 'SimSun', serif;
-  --font-sans-cjk:    'Xo Sans CJK', 'Xo Sans', 'Noto Sans CJK SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  
-  /* Combined Font Stacks — Auto language detection */
-  --font-display-all: 'Xo Display', 'Xo Display CJK', Georgia, 'Noto Serif CJK SC', 'STSong', 'Times New Roman', serif;
-  --font-sans-all:    'Xo Sans', 'Xo Sans CJK', system-ui, -apple-system, 'Noto Sans CJK SC', 'PingFang SC', 'Segoe UI', sans-serif;
+  /* Font alias for CJK — 使用 Xo 自定义字体 */
+  --font-display-cjk: 'Xo Display', Georgia, serif;
+  --font-sans-cjk:    'Xo Sans', system-ui, sans-serif;
+  --font-display-all: 'Xo Display', Georgia, serif;
+  --font-sans-all:    'Xo Sans', system-ui, sans-serif;
   
   /* Font Weights */
   --font-weight-thin:       100;
