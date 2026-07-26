@@ -453,9 +453,10 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
         slug, title, image, imageBefore, videoUrl, videoUrls, software, tags, featured, 
         description, longDescription, workflow, password,
         releaseYear, postSpecs, director, deliverFormat, audioFormat,
+        isColorGraded, isPasswordProtected, autoRotatePassword,
         sortOrder, displayNumber
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       body.slug,
       body.title,
@@ -475,6 +476,9 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
       body.director || '',
       body.deliverFormat || '',
       body.audioFormat || '',
+      body.isColorGraded ? 1 : 0,
+      body.isPasswordProtected ? 1 : 0,
+      body.autoRotatePassword !== false ? 1 : 0,
       body.sortOrder || 0,
       body.displayNumber || ''
     ).run()
@@ -529,10 +533,10 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
       body.director || '',
       body.deliverFormat || '',
       body.audioFormat || '',
-      body.sortOrder || 0,
       body.isColorGraded ? 1 : 0,
       body.isPasswordProtected ? 1 : 0,
       body.autoRotatePassword !== false ? 1 : 0,
+      body.sortOrder || 0,
       body.displayNumber || '',
       body.slug
     ).run()
