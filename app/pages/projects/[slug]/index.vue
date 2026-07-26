@@ -450,9 +450,9 @@
                   <h2 class="font-display text-base font-bold uppercase tracking-wider text-slate-900">后期制作技术参数</h2>
                   <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full"
                        :class="project.isGraded !== false ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-500/10 border border-slate-500/20'">
-                    <span class="w-2 h-2 rounded-full" :class="project.isGraded !== false ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'" />
-                    <span class="text-[10px] uppercase font-mono font-bold" :class="project.isGraded !== false ? 'text-emerald-800' : 'text-slate-500'">
-                      {{ project.isGraded !== false ? '已调色' : '未调色' }}
+                    <span class="w-2 h-2 rounded-full" :class="project.isColorGraded ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'" />
+                    <span class="text-[10px] uppercase font-mono font-bold" :class="project.isColorGraded ? 'text-emerald-800' : 'text-slate-500'">
+                      {{ project.isColorGraded ? '已调色' : '未调色' }}
                     </span>
                   </div>
                 </div>
