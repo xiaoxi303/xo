@@ -1942,7 +1942,7 @@
                    </div>
                     <div class="flex items-center gap-2">
                       <input id="isPasswordProtected" type="checkbox" v-model="form.isPasswordProtected" class="w-4 h-4 rounded cursor-pointer" />
-                      <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)"></label>
+                      <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">密码保护</label>
                     </div>
                     </div> <!-- Close grid -->
                     
@@ -1951,7 +1951,7 @@
                       <!-- Auto Rotate Password Toggle -->
                       <div class="flex items-center gap-2">
                         <input id="autoRotatePassword" type="checkbox" v-model="form.autoRotatePassword" class="w-4 h-4 rounded cursor-pointer" />
-                        <label for="autoRotatePassword" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)"> (24H)</label>
+                        <label for="autoRotatePassword" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)"> 每日自动更新密码 (24小时动态密码)</label>
                       </div>
                       
                       <!-- Dynamic Password Display (when auto-rotate is on) -->
