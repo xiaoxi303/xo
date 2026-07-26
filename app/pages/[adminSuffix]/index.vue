@@ -725,7 +725,7 @@
                           draggable="false"
                           @mousedown.stop
                           @dragstart.prevent.stop
-                          :value="formatDisplayNum(p, i)"
+                          :value="p.displayNumber || String(p.sortOrder || i + 1).padStart(2, '0')"
                           @change="updateProjectNumber(p, i, $event)"
                           @keydown.enter.prevent="($event.target as HTMLElement).blur()"
                           class="w-11 h-7 text-center font-mono font-bold text-xs rounded-md bg-white border border-amber-900/15 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 text-amber-900 shadow-2xs transition-all cursor-text"
@@ -744,7 +744,7 @@
                           <button 
                             type="button" 
                             @click.stop="moveProjectDown(i)" 
-                            :disabled="i === (projectsList ? projectsList.length - 1 : 0)" 
+                            :disabled="i >= projectsList.length - 1" 
                             class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5"
                           >&#x25BC;</button>
                         </div>
