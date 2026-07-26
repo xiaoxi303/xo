@@ -732,10 +732,20 @@
                           title="点击可直接输入修改序号或海报数字（如 01, 02 或 1, 2）"
                         />
 
-                        <!-- Up/Down buttons -->
-                        <div class="flex flex-col gap-0.5 opacity-60 group-hover/row:opacity-100 transition-opacity pr-0.5" @mousedown.stop>
-                          <button type="button" @click.stop="moveProjectUp(i)" :disabled="i === 0" class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5 hover:bg-amber-100 rounded transition-all" title="向上移">▲</button>
-                          <button type="button" @click.stop="moveProjectDown(i)" :disabled="i === projectsList.length - 1" class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5 hover:bg-amber-100 rounded transition-all" title="向下移">▼</button>
+                                                <!-- Up/Down buttons -->
+                        <div class="flex flex-col gap-0.5 opacity-60 group-hover/row:opacity-100 transition-opacity p-1">
+                          <button 
+                            type="button" 
+                            @click.stop="moveProjectUp(i)" 
+                            :disabled="i === 0" 
+                            class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5"
+                          >&#x25B2;</button>
+                          <button 
+                            type="button" 
+                            @click.stop="moveProjectDown(i)" 
+                            :disabled="i === (projectsList ? projectsList.length - 1 : 0)" 
+                            class="text-[8px] text-slate-400 hover:text-amber-700 disabled:opacity-20 leading-none p-0.5"
+                          >&#x25BC;</button>
                         </div>
                       </div>
                     </td>
