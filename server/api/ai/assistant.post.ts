@@ -95,8 +95,40 @@ export default defineEventHandler(async (event) => {
   let aiSettings: any = {}
   try {
     const siteConfig = await dbGetSiteConfig(event)
-    if (siteConfig && siteConfig.aiSettings) aiSettings = siteConfig.aiSettings
+    if (siteConfig && siteConfig.aiSettings) {
+      aiSettings = siteConfig.aiSettings
+    } else {
+    }
+    // Fallback: read directly from config file
+    try {
+      const fs = require('fs')
+      const path = require('path')
+      const configPath = path.join(process.cwd(), 'content', 'site-config.json')
+      if (fs.existsSync(configPath)) {
+        const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+        if (configData.aiSettings) {
+          aiSettings = configData.aiSettings
+        }
+      }
+    } catch (e) {
+      console.error('[AI Copilot] Error reading config file:', e)
+    }
   } catch (e) {}
+
+  // Ensure aiSettings is loaded from config file
+  try {
+    const fs = require('fs')
+    const path = require('path')
+    const configPath = path.join(process.cwd(), 'content', 'site-config.json')
+    if (fs.existsSync(configPath)) {
+      const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+      if (configData.aiSettings) {
+        aiSettings = configData.aiSettings
+      }
+    }
+  } catch (e) {
+    console.error('[AI Copilot] Error reading config file:', e)
+  }
 
   const apiKey = (aiSettings.apiKey || process.env.OPENAI_API_KEY || '').trim()
   let endpoint = (aiSettings.apiEndpoint || aiSettings.endpoint || 'https://api.chatanywhere.tech/v1').trim()

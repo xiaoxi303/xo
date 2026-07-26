@@ -677,6 +677,7 @@ export async function dbGetSiteConfig(event: H3Event): Promise<any> {
     const row = await db.prepare('SELECT value FROM site_config WHERE key = ?').bind('site_config').first()
     if (row?.value) {
       return JSON.parse(row.value)
+      console.log('[dbGetSiteConfig] parsed config keys:', Object.keys(JSON.parse(row.value)))
     }
     // Seed initial values in D1
     await db.prepare('INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)').bind('site_config', JSON.stringify(defaultConfig)).run()
