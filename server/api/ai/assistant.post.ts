@@ -79,6 +79,14 @@ export default defineEventHandler(async (event) => {
 - 安全网关物理拦截：${totalBlockedCount} 次
 - Node.js 内存占用：${memoryUsageMB} MB (运行时间 ${systemUptimeMin} 分钟)
 
+
+【作品调色状态说明】
+每个作品(Project)现已包含 isColorGraded(Boolean)字段，表示"已调色"/"未调色"状态。
+- isColorGraded = true：作品已完成调色，标记为"已调色"
+- isColorGraded = false：作品尚未调色，标记为"未调色"
+当用户询问调色相关问题时，可以主动提及或检查作品的调色完成状态。
+当用户要求筛选或统计调色状态时，请基于实际数据进行分析。
+
 请根据用户的【具体指令/问题】进行有针对性的聪明回答。不要总是输出固定的诊断报告！
 只有当用户显式询问“系统诊断”、“全站健康”、“服务器状态”时才列出系统健康指标。
 对于其他任何问题（例如文案优化、创意灵感、回复客户、调色建议等），请直接给出高品质的专业建议！`
@@ -166,6 +174,39 @@ export default defineEventHandler(async (event) => {
 
   if (action === 'copilot-command') {
     const userPrompt = (prompt || '诊断全站健康').trim()
+    
+    // 检查是否包含调色相关关键词
+    const isColorGradedQuery = userPrompt.includes('调色') || userPrompt.includes('已调色') || userPrompt.includes('未调色') || userPrompt.includes('isColorGraded')
+    
+    if (isColorGradedQuery) {
+      // 统计调色状态
+      let gradedCount = 0
+      let ungradedCount = 0
+      try {
+        const projects = await dbGetProjectsRaw(event)
+        if (Array.isArray(projects)) {
+          gradedCount = projects.filter((p: any) => p.isColorGraded).length
+          ungradedCount = projects.filter((p: any) => !p.isColorGraded).length
+        }
+      } catch (e) {}
+      
+      return {
+        success: true,
+        isCustomLlm: false,
+        reply: `🎬 [调色状态分析报告]:
+
+### 📊 当前作品调色状态统计：
+1. **✅ 已调色作品**：${gradedCount} 个
+2. **⏳ 未调色作品**：${ungradedCount} 个
+3. **📈 调色完成率**：${projectCount > 0 ? Math.round((gradedCount / projectCount) * 100) : 0}%
+
+### 💡 建议：
+${ungradedCount > 0 ? '- 您有 ' + ungradedCount + ' 个作品尚未标记调色状态，请在后台编辑作品时勾选「已调色」复选框。
+- 完成调色后，前台作品详情页和列表页会自动显示绿色「已调色」标签。' : '- 🎉 所有作品都已标记调色状态！'}
+
+💡 *提示：在后台作品编辑页面，您可以为每个作品单独设置调色状态。*`
+      }
+    }
     
     // Call Custom LLM with User's Exact Prompt!
     const realCopilotReply = await callCustomLLM(
