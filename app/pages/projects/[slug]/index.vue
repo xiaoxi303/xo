@@ -662,36 +662,34 @@ watch(unlockStatus, async (val) => {
 }, { immediate: true })
 
 // Generate daily password (same algorithm as backend)
-const getDailyPassword = (slug) => {
+const getDailyPassword = async (slug) => {
   if (!slug) return '------'
   
-  // Same algorithm as server/utils/password-utils.ts
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
   const secret = 'XO_STUDIO_SALT'
   const cleanSlug = String(slug).trim().toLowerCase()
   const seed = 'project_' + cleanSlug + '*date*' + todayStr + '*salt*' + secret
   
-  // Use same hash as backend: simple charCode hash
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) {
-    const char = seed.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
-  }
-  hash = Math.abs(hash)
+  // Use SubtleCrypto SHA256 (same as server)
+  const encoder = new TextEncoder()
+  const data = encoder.encode(seed)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
   
   const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
   let pwd = ''
-  let value = hash
   for (let i = 0; i < 6; i++) {
-    const index = value % charset.length
-    pwd += charset[index]
-    value = Math.floor(value / charset.length)
+    const charIndex = parseInt(hash.substring(i * 2, i * 2 + 2), 16) % charset.length
+    pwd += charset[charIndex]
   }
   return pwd
 }
 
-const dailyPassword = computed(() => getDailyPassword(slug))
+const dailyPassword = ref('------')
+watch(() => slug, async () => {
+  dailyPassword.value = await getDailyPassword(slug)
+}, { immediate: true })
 
 const verifyPassword = async () => {
   if (!inputPassword.value.trim()) return
