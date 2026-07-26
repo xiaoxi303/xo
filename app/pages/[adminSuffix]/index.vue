@@ -1942,21 +1942,33 @@
                    </div>
                     <div class="flex items-center gap-2">
                       <input id="isPasswordProtected" type="checkbox" v-model="form.isPasswordProtected" class="w-4 h-4 rounded cursor-pointer" />
-                      <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)">密码保护</label>
+                      <label for="isPasswordProtected" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)"></label>
                     </div>
-                   <div v-if="form.isPasswordProtected" class="space-y-3 pl-6 border-l-2" style="border-color: var(--color-bronze-bg)">
-                      <label class="form-label flex items-center gap-1">
-                        <span>&#x1f511; </span>
-                        <span class="text-[9px] font-normal" style="color: var(--color-ink-5)">()</span>
-                      </label>
-                      <div class="p-3 rounded-lg font-mono text-sm font-bold text-center" style="background: var(--color-bg-2); border: 1px solid var(--color-border); color: var(--color-ink-1);">
-                        {{ getDailyPassword(form.slug) }}
+                    
+                    <!-- Password Configuration (only show when protected) -->
+                    <div v-if="form.isPasswordProtected" class="space-y-3 pl-6 border-l-2" style="border-color: var(--color-bronze-bg)">
+                      <!-- Auto Rotate Password Toggle -->
+                      <div class="flex items-center gap-2">
+                        <input id="autoRotatePassword" type="checkbox" v-model="form.autoRotatePassword" class="w-4 h-4 rounded cursor-pointer" />
+                        <label for="autoRotatePassword" class="text-xs select-none cursor-pointer" style="color: var(--color-ink-3)"> (24H)</label>
                       </div>
-                      <p class="text-[10px]" style="color: var(--color-ink-5)">
-                        00:00
-                      </p>
+                      
+                      <!-- Dynamic Password Display (when auto-rotate is on) -->
+                      <div v-if="form.autoRotatePassword" class="flex items-center gap-3 p-3 rounded-lg" style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
+                        <span class="font-mono font-bold text-sm" style="color: var(--color-ink-1)">&#x1f511; {{ getDailyPassword(form.slug) }}</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded" style="background: var(--color-bronze-bg); color: var(--color-bronze);"> 00:00</span>
+                      </div>
+                      
+                      <!-- Static Password Input (when auto-rotate is off) -->
+                      <div v-else>
+                        <input 
+                          v-model="form.password" 
+                          type="text"
+                          class="form-input text-xs w-full py-2 px-3 rounded-xl"
+                          placeholder="..."
+                        />
+                      </div>
                     </div>
-                 </div>
 
                  <!-- Technical Specifications Grid -->
                  <div class="p-4 rounded-xl space-y-4" style="background: rgba(255, 255, 255, 0.4); border: 1px solid var(--color-border-2)">
