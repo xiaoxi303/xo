@@ -63,12 +63,13 @@ export default defineEventHandler(async (event) => {
   const userAgent = getHeader(event, 'user-agent') || ''
   const deviceType = getDeviceType(userAgent)
 
-  // Format contact string: email + IP
+  // Format contact string: use body.contact (auto-filled by frontend) + IP
   const contactParts = []
-  if (clientEmail) {
-    contactParts.push(`邮箱: ${clientEmail}`)
-  } else if (body.contact && !body.contact.startsWith('IP:')) {
+  // body.contact already contains the email from frontend auto-fill
+  if (body.contact && !body.contact.startsWith('IP:')) {
     contactParts.push(body.contact)
+  } else if (clientEmail) {
+    contactParts.push(`邮箱: ${clientEmail}`)
   }
   contactParts.push(`IP: ${ip} (${deviceType})`)
   const formattedContact = contactParts.join(' | ') || body.contact
