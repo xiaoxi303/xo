@@ -7,47 +7,43 @@ import { sendApprovalEmail } from '../utils/email'
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
-  if (!body.clientName || !body.contact || !body.projectSlug || !body.projectTitle) {
+  if (!body.projectSlug || !body.projectTitle) {
     throw createError({
       statusCode: 400,
-      statusMessage: '客户姓名、联系方式、项目信息为必填项。'
+      statusMessage: '项目信息为必填项。'
     })
   }
 
-  // Helper: detect device type from user-agent
-  const getDeviceType = (ua: string): string => {
-    if (!ua) return 'Unknown'
-    const mobileKeywords = ['Mobile', 'Android', 'iPhone', 'iPad', 'Windows Phone']
-    return mobileKeywords.some(k => ua.includes(k)) ? 'Mobile' : 'PC'
-  }
-
-  // Retrieve client info if logged in
+  // 1. Get current logged-in user from session
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
   let clientUsername = ''
   let clientEmail = ''
+  
   if (token) {
     const session = validateSession(token)
     if (session) {
       clientUsername = session.username || ''
       // Look up user email from database
-      const db = await getD1Database(event)
-      if (db) {
-        const user = await db.prepare('SELECT email FROM users WHERE username = ?').bind(clientUsername).first() as any
-        clientEmail = user?.email || ''
-      } else {
-        const usersPath = getRuntimeDataPath('users.json')
-        if (fs.existsSync(usersPath)) {
-          try {
+      try {
+        const db = await getD1Database(event)
+        if (db) {
+          const user = await db.prepare('SELECT email FROM users WHERE username = ?').bind(clientUsername).first() as any
+          clientEmail = user?.email || ''
+        } else {
+          const usersPath = getRuntimeDataPath('users.json')
+          if (fs.existsSync(usersPath)) {
             const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
             const user = users.find((u: any) => u.username === clientUsername)
             clientEmail = user?.email || ''
-          } catch {}
+          }
         }
+      } catch (e) {
+        console.error('[password-requests] Failed to look up user email:', e)
       }
     }
   }
 
-  // Get real client IP (same logic as booking.post.ts)
+  // 2. Extract real client IP (EXACT same logic as booking.post.ts)
   let ip = ''
   const cfConnectingIp = getHeader(event, 'cf-connecting-ip')
   const xRealIp = getHeader(event, 'x-real-ip')
@@ -59,29 +55,32 @@ export default defineEventHandler(async (event) => {
   if (!ip) ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
   if (ip === '::1' || ip === '::ffff:127.0.0.1') ip = '127.0.0.1'
 
-  // Detect device type
+  // Debug log
+  console.log('[password-requests] clientUsername:', clientUsername)
+  console.log('[password-requests] clientEmail:', clientEmail)
+  console.log('[password-requests] body.contact:', body.contact)
+  console.log('[password-requests] Real IP:', ip)
+
+  // 3. Detect device type
   const userAgent = getHeader(event, 'user-agent') || ''
-  const deviceType = getDeviceType(userAgent)
+  const isMobile = /mobile|android|iphone|ipad/i.test(userAgent)
+  const deviceType = isMobile ? 'Mobile' : 'PC'
 
-  // Format contact string: use body.contact (auto-filled by frontend) + IP
-  const contactParts = []
-  // body.contact already contains the email from frontend auto-fill
-  if (body.contact && !body.contact.startsWith('IP:')) {
-    contactParts.push(body.contact)
-  } else if (clientEmail) {
-    contactParts.push(`邮箱: ${clientEmail}`)
-  }
-  contactParts.push(`IP: ${ip} (${deviceType})`)
-  const formattedContact = contactParts.join(' | ') || body.contact
+  // 4. Build final contact string
+  // Priority: body.contact (from frontend) -> clientEmail (from DB) -> username
+  const emailPart = body.contact || clientEmail || clientUsername || 'unknown'
+  const finalContact = `${emailPart} | IP: ${ip} (${deviceType})`
 
-  // Perform rate-limit and blacklist / whitelist check
+  console.log('[password-requests] finalContact:', finalContact)
+
+  // 5. Rate-limit and blacklist check
   const check = await dbCheckRateLimitAndBlacklist(event, {
     username: clientUsername,
     contact: body.contact,
     ip
   })
 
-  // Determine status and reason
+  // 6. Determine status
   let status = 'approved'
   let reason = check.isWhitelisted ? '白名单客户自动通过' : '防刷校验通过，系统自动授权'
 
@@ -90,9 +89,13 @@ export default defineEventHandler(async (event) => {
     reason = check.reason || '已被系统防刷保护或黑名单拦截，需管理员手动审核'
   }
 
+  // 7. Build request data with formatted contact
   const requestData = {
-    ...body,
-    contact: formattedContact,
+    clientName: body.clientName || clientUsername || 'Direct Access',
+    contact: finalContact,
+    projectSlug: body.projectSlug,
+    projectTitle: body.projectTitle,
+    reason: body.reason || '',
     clientUsername,
     clientEmail,
     ip,
@@ -106,7 +109,6 @@ export default defineEventHandler(async (event) => {
   try {
     await dbCreatePasswordRequest(event, requestData)
 
-    // If auto-approved, send email notification automatically in background
     if (status === 'approved') {
       sendApprovalEmail(event, requestData).catch(err => {
         console.error('Failed to send auto-approval email:', err)
