@@ -67,9 +67,21 @@ export default defineEventHandler(async (event) => {
   const deviceType = isMobile ? 'Mobile' : 'PC'
 
   // 4. Build final contact string
-  // Priority: body.contact (from frontend) -> clientEmail (from DB) -> username
-  const emailPart = body.contact || clientEmail || clientUsername || 'unknown'
-  const finalContact = `${emailPart} | IP: ${ip} (${deviceType})`
+  // Priority: clientEmail (from DB) > valid body.contact > username
+  let userContact = clientEmail || clientUsername || 'unknown'
+  
+  // Only use body.contact if it's a valid email (not IP: prefix garbage)
+  if (body.contact && !body.contact.startsWith('IP:') && body.contact.trim() !== '') {
+    userContact = body.contact
+  }
+  
+  // Normalize: add "邮箱:" prefix if it's an email without prefix
+  const contactLabel = userContact.includes('@') && !userContact.startsWith('邮箱:')
+    ? `邮箱: ${userContact}`
+    : userContact
+  
+  // Force final format
+  const finalContact = `${contactLabel} | IP: ${ip} (${deviceType})`
 
   console.log('[password-requests] finalContact:', finalContact)
 
