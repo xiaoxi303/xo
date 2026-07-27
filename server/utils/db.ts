@@ -134,13 +134,40 @@ export async function getD1Database(event: H3Event) {
 function parseYaml(yamlStr: string): any {
   const result: any = {}
   let currentKey = ''
+  let inBlockScalar = false
+  let blockScalarIndent = 0
+  let blockScalarLines: string[] = []
   const lines = yamlStr.split('\n')
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trimEnd()
-    if (!line) continue
-
+    const line = lines[i]
     const trimmed = line.trim()
+    
+    // Handle block scalar continuation
+    if (inBlockScalar) {
+      if (!trimmed) {
+        blockScalarLines.push('')
+        continue
+      }
+      const currentIndent = line.search(/\S/)
+      if (blockScalarIndent === 0) {
+        blockScalarIndent = currentIndent
+      }
+      if (currentIndent >= blockScalarIndent) {
+        blockScalarLines.push(line.substring(blockScalarIndent))
+        continue
+      } else {
+        // Block scalar ended, save it
+        result[currentKey] = blockScalarLines.join('\n').trimEnd()
+        inBlockScalar = false
+        blockScalarLines = []
+        blockScalarIndent = 0
+        // Fall through to process this line normally
+      }
+    }
+    
+    if (!trimmed) continue
+
     if (line.startsWith(' ') || line.startsWith('\t')) {
       if (trimmed.startsWith('-') && currentKey && !/^-\s*[\w-]+\s*:/.test(trimmed)) {
         const val = trimmed.substring(1).trim().replace(/^['"]|['"]$/g, '')
@@ -168,6 +195,15 @@ function parseYaml(yamlStr: string): any {
       const key = line.substring(0, colonIdx).trim()
       const val = line.substring(colonIdx + 1).trim().replace(/^['"]|['"]$/g, '')
 
+      // Check for block scalar indicators
+      if (val === '|-' || val === '|' || val === '>-' || val === '>') {
+        currentKey = key
+        inBlockScalar = true
+        blockScalarIndent = 0
+        blockScalarLines = []
+        continue
+      }
+      
       if (val === '') {
         currentKey = key
         result[key] = null
@@ -179,6 +215,11 @@ function parseYaml(yamlStr: string): any {
         result[key] = val
       }
     }
+  }
+  
+  // Save any remaining block scalar
+  if (inBlockScalar && currentKey) {
+    result[currentKey] = blockScalarLines.join('\n').trimEnd()
   }
 
   const workflowMatch = yamlStr.match(/workflow:\s*([\s\S]*?)(?=\n\w+:|$)/)
