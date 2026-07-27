@@ -238,13 +238,14 @@ export default defineEventHandler(async (event) => {
     } catch {}
   }
 
+  // Only include projects that actually exist in the database
   const allKnownSlugs = new Set([
     ...Array.from(projectTitles.keys()),
     ...Object.keys(viewCounts),
     ...Object.keys(clickCounts),
     ...Object.keys(unifiedHeat),
     ...Array.from(pageViewSlugs)
-  ])
+  ].filter(slug => projectTitles.has(slug)))
 
   for (const slug of Array.from(allKnownSlugs)) {
     if (!slug || slug === 'get') continue
@@ -252,6 +253,13 @@ export default defineEventHandler(async (event) => {
     const c = clickCounts[slug] || 0
     const h = Number(unifiedHeat[slug] || 0)
     projectCounts[slug] = Math.max(h, v, c)
+  }
+
+  // Ensure all existing projects appear in ranking, even with 0 clicks
+  for (const [slug, title] of projectTitles) {
+    if (!projectCounts[slug]) {
+      projectCounts[slug] = 0
+    }
   }
 
   let projectClicks: { slug: string; title: string; clicks: number }[] = []

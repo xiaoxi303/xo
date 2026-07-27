@@ -1,8 +1,24 @@
+// Debounce map to prevent rapid-fire clicks
+const clickDebounceMap = new Map<string, number>()
+
 export function recordProjectClickEvent(slug: string, title?: string) {
   if (typeof window === 'undefined' || !slug) return
 
   const cleanSlug = slug.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
   if (!cleanSlug || cleanSlug === 'projects') return
+
+  // Debounce: ignore if same slug was clicked within 1 second
+  const now = Date.now()
+  const lastClick = clickDebounceMap.get(cleanSlug) || 0
+  if (now - lastClick < 1000) return
+  clickDebounceMap.set(cleanSlug, now)
+
+  // Clean up old entries periodically
+  if (clickDebounceMap.size > 100) {
+    for (const [key, time] of clickDebounceMap) {
+      if (now - time > 60000) clickDebounceMap.delete(key)
+    }
+  }
 
   const payload = JSON.stringify({
     event: 'project_click',

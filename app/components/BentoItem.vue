@@ -122,8 +122,9 @@ const emit = defineEmits<{
 import { recordProjectClickEvent } from '~/utils/analytics'
 
 const handleClick = (e: MouseEvent) => {
-  emit('click', e)
-
+  e.stopPropagation()
+  e.preventDefault()
+  
   if (props.to && props.to.startsWith('/projects/')) {
     recordProjectClickEvent(props.to)
   }

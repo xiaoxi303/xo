@@ -176,7 +176,7 @@
         <!-- Grid -->
         <BentoContainer>
           <!-- Card 1: Showcase video -->
-          <BentoItem v-if="tvcProject" span="12:12:8" :to="'/projects/' + tvcProject.slug" @click="trackProjectClick(tvcProject)" class="reveal shadow-2xl">
+          <BentoItem v-if="tvcProject" span="12:12:8" :to="'/projects/' + tvcProject.slug"  class="reveal shadow-2xl">
             <div class="h-full flex flex-col justify-between">
               <!-- Media cover -->
               <div class="h-80 relative overflow-hidden bg-slate-950 border-b border-black/5">
@@ -419,12 +419,7 @@ const scrollToBento = () => {
   document.getElementById('bento-section')?.scrollIntoView({ behavior: 'smooth' })
 }
 
-import { recordProjectClickEvent } from '~/utils/analytics'
 
-const trackProjectClick = (project: any) => {
-  if (!import.meta.client || !project?.slug) return
-  recordProjectClickEvent(project.slug, project.title)
-}
 
 // Scroll reveals Entrance animations
 let revealObserver: IntersectionObserver | null = null

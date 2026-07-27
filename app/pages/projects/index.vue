@@ -58,7 +58,6 @@
             :to="'/projects/' + project.slug"
             class="group shadow-2xl transition-transform duration-300"
             :style="{ transitionDelay: `${Math.min(i * 30, 200)}ms` }"
-            @click="trackProjectClick(project)"
           >
             <!-- Media area -->
             <div :class="['relative overflow-hidden bg-slate-950', project.featured ? 'h-80' : 'h-64']">
@@ -163,10 +162,5 @@ const filteredProjects = computed(() => {
   })
 })
 
-import { recordProjectClickEvent } from '~/utils/analytics'
 
-const trackProjectClick = (project: any) => {
-  if (!import.meta.client || !project?.slug) return
-  recordProjectClickEvent(project.slug, project.title)
-}
 </script>
