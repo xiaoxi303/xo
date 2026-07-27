@@ -2031,3 +2031,76 @@ html {
 .hyphens-none  { hyphens: none; }
 .hyphens-auto  { hyphens: auto; }
 .hyphens-manual { hyphens: manual; }
+
+/* ===== Portfolio Grid TransitionGroup Optimizations ===== */
+
+/* Enter animation */
+.list-enter-active {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+/* Leave animation */
+.list-leave-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+  position: absolute;
+}
+
+/* Enter from state */
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+/* Leave to state */
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+/* Move animation for reordering */
+.list-move {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+/* Performance optimization for grid items */
+.bento-grid > * {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+
+/* ===== BentoItem 3D Tilt Performance Optimizations ===== */
+
+.bento-tilt-card {
+  will-change: transform;
+  transform: perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1);
+  transform-style: preserve-3d;
+}
+
+.bento-tilt-card:hover {
+  will-change: transform;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .bento-tilt-card {
+    transform: none !important;
+    transition: none !important;
+  }
+  
+  .list-enter-active,
+  .list-leave-active,
+  .list-move {
+    transition: none !important;
+  }
+  
+  .list-enter-from,
+  .list-leave-to {
+    opacity: 1;
+    transform: none;
+  }
+}
+

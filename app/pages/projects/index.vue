@@ -56,8 +56,8 @@
             :key="project.slug"
             :span="project.featured ? '12:12:8' : '12:6:4'"
             :to="'/projects/' + project.slug"
-            class="group shadow-2xl transition-all duration-500"
-            :style="{ transitionDelay: `${i * 45}ms` }"
+            class="group shadow-2xl transition-transform duration-300"
+            :style="{ transitionDelay: `${Math.min(i * 30, 200)}ms` }"
             @click="trackProjectClick(project)"
           >
             <!-- Media area -->
@@ -69,7 +69,7 @@
                 :index="project.displayNumber || project.sortOrder || (i + 1)"
                 :category="project.tags?.[0] || ''"
                 :description="project.description"
-                class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <!-- Gradient overlay -->
               <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
@@ -93,7 +93,7 @@
                 <div class="w-14 h-14 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1)"
                      style="box-shadow: 0 10px 30px rgba(217,119,6,0.4); border: 1px solid rgba(255,255,255,0.9);">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                       class="w-6 h-6 ml-0.5 text-[var(--color-bronze-dark)] transition-transform duration-300 group-hover:scale-110">
+                       class="w-6 h-6 ml-0.5 text-[var(--color-bronze-dark)] transition-transform duration-200 group-hover:scale-110">
                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
                   </svg>
                 </div>

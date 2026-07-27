@@ -425,8 +425,13 @@
                     </td>
                   </tr>
                   <tr v-for="r in passwordRequests" :key="r.id" class="hover:bg-black/[0.01] transition-colors">
-                    <td class="py-4 px-6 font-bold" style="color: var(--color-ink-1)">{{ r.clientName }}</td>
-                    <td class="py-4 px-6 font-mono" style="color: var(--color-ink-2)">{{ r.contact }}</td>
+                    <td class="py-4 px-6 font-bold" style="color: var(--color-ink-1)">
+                      <span>{{ r.clientUsername ? '直接在线获取 (账号: ' + r.clientUsername + ')' : r.clientName }}</span>
+                    </td>
+                    <td class="py-4 px-6 font-mono text-xs" style="color: var(--color-ink-2)">
+                      <span v-if="r.contact">{{ r.contact }}</span>
+                      <span v-if="r.ip" class="block text-[10px] opacity-60">IP: {{ r.ip }}</span>
+                    </td>
                     <td class="py-4 px-6">
                       <span class="font-semibold" style="color: var(--color-ink-3)">{{ r.projectTitle }}</span>
                       <span class="block text-[10px] font-mono opacity-50">/projects/{{ r.projectSlug }}</span>
@@ -434,7 +439,10 @@
                         <span class="font-bold text-amber-700">申请理由：</span>{{ r.reason }}
                       </div>
                       <div class="mt-1.5 text-[10px] font-mono" style="color: var(--color-ink-5)">
-                        解锁密码：<span class="font-bold text-amber-800 bg-amber-600/10 px-1.5 py-0.5 rounded">{{ getProjectPassword(r.projectSlug) || '未设置密码/免费公开' }}</span>
+                        解锁密码：
+                        <span class="font-bold text-amber-800 bg-amber-600/10 px-1.5 py-0.5 rounded" v-if="getProjectPassword(r.projectSlug)">{{ getProjectPassword(r.projectSlug) }}</span>
+                        <span class="font-bold text-emerald-700 bg-emerald-600/10 px-1.5 py-0.5 rounded" v-else-if="isProjectLocked(r.projectSlug)">已设密码保护 (动态密码)</span>
+                        <span class="font-bold text-slate-500 bg-slate-600/10 px-1.5 py-0.5 rounded" v-else>未设置密码/免费公开</span>
                       </div>
                     </td>
                     <td class="py-4 px-6" style="color: var(--color-ink-4)">
@@ -3681,7 +3689,13 @@ const updateRequestStatus = async (id: number | string, status: 'approved' | 're
 }
 const getProjectPassword = (slug: string) => {
   const p = projectsList.value?.find((x: any) => x.slug === slug)
-  return p ? p.password : ''
+  if (!p) return ''
+  if (!p.isPasswordProtected) return ''
+  return p.activePassword || p.password || ''
+}
+const isProjectLocked = (slug: string) => {
+  const p = projectsList.value?.find((x: any) => x.slug === slug)
+  return p ? p.isPasswordProtected : false
 }
 const copyShareText = (r: any) => {
   const pwd = getProjectPassword(r.projectSlug)

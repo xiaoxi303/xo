@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
   const requestData = {
     ...body,
     clientUsername,
+    ip,
     status,
     reason,
     isBlacklisted: check.isBlacklisted,

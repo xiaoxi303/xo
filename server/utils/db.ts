@@ -64,6 +64,8 @@ export async function getD1Database(event: H3Event) {
           projectSlug TEXT NOT NULL,
           projectTitle TEXT NOT NULL,
           status TEXT DEFAULT 'pending',
+          clientUsername TEXT DEFAULT '',
+          ip TEXT DEFAULT '',
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS users (
@@ -794,6 +796,7 @@ export async function dbCreatePasswordRequest(event: H3Event, data: any): Promis
     projectTitle: data.projectTitle,
     status: data.status || 'pending',
     clientUsername: data.clientUsername || '',
+    ip: data.ip || '',
     reason: data.reason || '',
     createdAt: new Date().toISOString()
   }

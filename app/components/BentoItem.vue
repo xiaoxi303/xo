@@ -1,13 +1,14 @@
-<template>
+﻿<template>
   <!-- Single Bento card with 3D tilt hover micro-interaction -->
   <div
     ref="cardRef"
     :class="[
-      'glass-card overflow-hidden group relative',
+      'glass-card overflow-hidden group relative bento-tilt-card',
       to ? 'cursor-pointer' : 'cursor-default',
       colSpanClass
     ]"
     :style="tiltStyle"
+    @mouseenter="onMouseEnter"
     @mousemove="onMouseMove"
     @mouseleave="onMouseLeave"
     @click="handleClick"
@@ -43,6 +44,7 @@ const rotateY = ref(0)
 const shineX = ref(50)
 const shineY = ref(50)
 const isHovered = ref(false)
+let animationFrameId: number | null = null
 
 // Static map to ensure Tailwind scan picks up whole literal class strings
 const spanMap: Record<string, string> = {
@@ -71,25 +73,47 @@ const shineStyle = computed(() => ({
   opacity: isHovered.value ? 1 : 0,
 }))
 
+const onMouseEnter = () => {
+  isHovered.value = true
+}
+
 const onMouseMove = (e: MouseEvent) => {
   if (!cardRef.value) return
-  isHovered.value = true
-  const rect = cardRef.value.getBoundingClientRect()
-  const cx = e.clientX - rect.left
-  const cy = e.clientY - rect.top
-  const halfW = rect.width / 2
-  const halfH = rect.height / 2
-  rotateY.value = ((cx - halfW) / halfW) * 6  // max ±6deg
-  rotateX.value = -((cy - halfH) / halfH) * 6
-  shineX.value = (cx / rect.width) * 100
-  shineY.value = (cy / rect.height) * 100
+  
+  // Cancel any pending animation frame
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+  }
+  
+  // Use requestAnimationFrame for smoother updates
+  animationFrameId = requestAnimationFrame(() => {
+    const rect = cardRef.value!.getBoundingClientRect()
+    const cx = e.clientX - rect.left
+    const cy = e.clientY - rect.top
+    const halfW = rect.width / 2
+    const halfH = rect.height / 2
+    rotateY.value = ((cx - halfW) / halfW) * 6
+    rotateX.value = -((cy - halfH) / halfH) * 6
+    shineX.value = (cx / rect.width) * 100
+    shineY.value = (cy / rect.height) * 100
+  })
 }
 
 const onMouseLeave = () => {
   isHovered.value = false
   rotateX.value = 0
   rotateY.value = 0
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+    animationFrameId = null
+  }
 }
+
+onUnmounted(() => {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+  }
+})
 
 const emit = defineEmits<{
   (e: 'click', event: MouseEvent): void
