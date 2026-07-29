@@ -4,8 +4,8 @@ const clickDebounceMap = new Map<string, number>()
 export function recordProjectClickEvent(slug: string, title?: string) {
   if (typeof window === 'undefined' || !slug) return
 
-  const cleanSlug = slug.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
-  if (!cleanSlug || cleanSlug === 'projects') return
+  const cleanSlug = slug.replace(/^\/(projects|blog)\//, '').split('/')[0].split('?')[0]
+  if (!cleanSlug || cleanSlug === 'projects' || cleanSlug === 'blog') return
 
   // Debounce: ignore if same slug was clicked within 1 second
   const now = Date.now()

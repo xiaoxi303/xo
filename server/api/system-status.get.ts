@@ -238,14 +238,14 @@ export default defineEventHandler(async (event) => {
     } catch {}
   }
 
-  // Only include projects that actually exist in the database
+  // Include both projects and blog posts in the heat calculation
   const allKnownSlugs = new Set([
     ...Array.from(projectTitles.keys()),
     ...Object.keys(viewCounts),
     ...Object.keys(clickCounts),
     ...Object.keys(unifiedHeat),
     ...Array.from(pageViewSlugs)
-  ].filter(slug => projectTitles.has(slug)))
+  ])
 
   for (const slug of Array.from(allKnownSlugs)) {
     if (!slug || slug === 'get') continue
@@ -326,6 +326,7 @@ export default defineEventHandler(async (event) => {
     trend: days,
     referrals,
     projectClicks,
+    heatMap: projectCounts,
     serverOs: osInfo,
     serverCpu: cpuInfo,
     serverRam: ramInfo,

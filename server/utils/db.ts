@@ -647,6 +647,11 @@ const defaultConfig = {
     label: "AMBIENT AUDIO",
     url: "https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3"
   },
+  blog: {
+    heroBadge: "MODERN SERENITY BLOG",
+    heroTitle: "灵感、技术与设计探索",
+    heroSub: "采用次世代胶囊美学设计系统 (Pill-shaped Design System)，记录极致前沿的切片与思考。"
+  },
   home: {
     heroTitle1: "用剪辑",
     heroTitle2: "重塑时间",

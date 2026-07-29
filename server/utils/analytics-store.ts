@@ -4,7 +4,7 @@ import { broadcastAnalyticsChange } from './broadcaster'
 
 export function recordProjectHeat(slug: string, count: number = 1) {
   if (!slug) return
-  const cleanSlug = slug.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+  const cleanSlug = slug.replace(/^\/(projects|blog)\//, '').split('/')[0].split('?')[0]
   if (!cleanSlug || cleanSlug === 'projects' || cleanSlug === 'get') return
 
   const heatFile = getRuntimeDataPath('project-heat.json')

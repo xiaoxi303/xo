@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0]
   if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing project slug' })
 
-  const cleanSlug = slug.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+  const cleanSlug = slug.replace(/^\/(projects|blog)\//, '').split('/')[0].split('?')[0]
   if (!cleanSlug || cleanSlug === 'projects' || cleanSlug === 'get') {
     return { ok: false, message: 'Invalid slug' }
   }

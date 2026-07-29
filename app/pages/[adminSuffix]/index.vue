@@ -654,6 +654,237 @@
           </div>
         </div>
 
+          <!-- TAB: BLOG MANAGEMENT -->
+          <div v-else-if="activeTab === 'blog'" key="blog" class="space-y-6">
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
+              <div class="glass-card p-6 flex items-center justify-between">
+                <div class="space-y-1">
+                  <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">文章总数</span>
+                  <div class="text-2xl font-display font-bold" style="color: var(--color-ink-1)">{{ adminBlogPosts.length }} <span class="text-sm font-normal" style="color: var(--color-ink-5)">POSTS</span></div>
+                </div>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-[#007AFF]/10 text-[#007AFF]">📝</div>
+              </div>
+              <div class="glass-card p-6 flex items-center justify-between">
+                <div class="space-y-1">
+                  <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">已发布文章</span>
+                  <div class="text-2xl font-display font-bold text-[#34C759]">{{ adminBlogPosts.filter(p => p.status === 'Published').length }} <span class="text-sm font-normal" style="color: var(--color-ink-5)">LIVE</span></div>
+                </div>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-[#34C759]/10 text-[#34C759]">🚀</div>
+              </div>
+              <div class="glass-card p-6 flex items-center justify-between">
+                <div class="space-y-1">
+                  <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">草稿箱</span>
+                  <div class="text-2xl font-display font-bold text-amber-600">{{ adminBlogPosts.filter(p => p.status === 'Draft').length }} <span class="text-sm font-normal" style="color: var(--color-ink-5)">DRAFTS</span></div>
+                </div>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-amber-500/10 text-amber-600">🔒</div>
+              </div>
+              <div class="glass-card p-6 flex items-center justify-between">
+                <div class="space-y-1">
+                  <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">分类数量</span>
+                  <div class="text-2xl font-display font-bold" style="color: var(--color-ink-1)">{{ adminBlogCategories.length }} <span class="text-sm font-normal" style="color: var(--color-ink-5)">CATS</span></div>
+                </div>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-purple-500/10 text-purple-600">🏷️</div>
+              </div>
+            </div>
+
+            <!-- Header & Filter Bar -->
+            <div class="flex flex-wrap justify-between items-center gap-4 pt-2">
+              <div class="flex items-center gap-3">
+                <h2 class="font-display text-lg font-bold" style="color: var(--color-ink-1)">博客文章与状态控制</h2>
+                <div class="flex items-center gap-1 p-1 rounded-lg bg-black/[0.04]">
+                  <button
+                    v-for="s in ['All', 'Published', 'Draft']"
+                    :key="s"
+                    @click="blogFilterStatus = s"
+                    :class="[
+                      'px-3 py-1 rounded text-[10px] font-mono font-bold transition-all',
+                      blogFilterStatus === s ? 'bg-white shadow-xs text-black' : 'text-slate-500 hover:text-black'
+                    ]"
+                  >
+                    {{ s }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button @click="showBlogHeroConfig = !showBlogHeroConfig" class="btn-ghost py-2 px-3.5 text-xs font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800">
+                  <span>🎨 {{ showBlogHeroConfig ? '收起 Banner 配置' : '博客 Banner 文案配置' }}</span>
+                </button>
+                <button @click="showCategoryManager = !showCategoryManager" class="btn-ghost py-2 px-3.5 text-xs font-bold flex items-center gap-1">
+                  <span>🏷️ {{ showCategoryManager ? '收起分类管理' : '管理分类与标签' }}</span>
+                </button>
+                <NuxtLink to="/admin/posts/new" class="btn-primary py-2 px-4 text-xs font-bold bg-[#007AFF] hover:bg-[#0062cc]">
+                  + 写新文章 (New Post)
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Inline Blog Hero Banner Configuration Card -->
+            <div v-if="showBlogHeroConfig" class="glass-card p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div class="flex items-center justify-between border-b border-black/10 pb-3">
+                <div class="space-y-0.5">
+                  <h3 class="font-display text-base font-bold" style="color: var(--color-ink-1)">✍️ 博客前台 Banner 配置 (Hero Banner)</h3>
+                  <p class="text-xs text-slate-500">修改后将实时同步更新在前台 (/blog) 的顶部黑金/天空蓝 Banner 区域。</p>
+                </div>
+                <button @click="showBlogHeroConfig = false" class="text-xs font-bold text-slate-400 hover:text-black">✕ 关闭面板</button>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <label class="form-label">博客 Badge 顶部标识 (Badge)</label>
+                  <input v-model="blogHeroConfig.heroBadge" class="form-input font-mono" placeholder="MODERN SERENITY BLOG" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="form-label">博客前台主标题 (Hero Title)</label>
+                  <input v-model="blogHeroConfig.heroTitle" class="form-input font-bold" placeholder="灵感、技术与设计探索" />
+                </div>
+                <div class="sm:col-span-2 space-y-1.5">
+                  <label class="form-label">博客前台描述段落 (Hero Subtitle)</label>
+                  <textarea v-model="blogHeroConfig.heroSub" rows="2" class="form-input resize-none" placeholder="采用次世代胶囊美学设计系统..." />
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-2">
+                <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5 bg-[#007AFF] hover:bg-[#0062cc]">
+                  💾 保存博客 Banner 配置
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Category & Tag Management Section (Expandable/Visible) -->
+            <div v-if="showCategoryManager" class="glass-card p-6 space-y-6 animate-in fade-in zoom-in-95 duration-200">
+              <div class="flex items-center justify-between border-b border-black/10 pb-4">
+                <div class="space-y-0.5">
+                  <h3 class="font-display text-base font-bold" style="color: var(--color-ink-1)">🏷️ 胶囊分类与标签配置 (Categories & Tags)</h3>
+                  <p class="text-xs text-slate-500">可在前台 Floating Pill Tabs 中实时过滤展示。</p>
+                </div>
+                <button @click="showCategoryManager = false" class="text-xs font-bold text-slate-400 hover:text-black">✕ 关闭面板</button>
+              </div>
+
+              <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Left: Create Category -->
+                <div class="space-y-3 p-4 rounded-2xl bg-black/[0.02] border border-black/10">
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">新增胶囊分类</h4>
+                  <input
+                    v-model="newAdminCatName"
+                    type="text"
+                    placeholder="分类名称 (如: Design / Tech / AI)"
+                    class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#007AFF]"
+                  />
+                  <input
+                    v-model="newAdminCatDesc"
+                    type="text"
+                    placeholder="极简分类描述说明..."
+                    class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-[#007AFF]"
+                  />
+                  <button
+                    @click="handleAddAdminCategory"
+                    class="w-full py-2 rounded-xl bg-[#007AFF] text-white text-xs font-bold shadow-sm hover:bg-[#0062cc] transition-colors"
+                  >
+                    + 保存新分类
+                  </button>
+                </div>
+
+                <!-- Right: Categories Grid List -->
+                <div class="lg:col-span-2 space-y-3">
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">已有分类列表</h4>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    <div
+                      v-for="cat in adminBlogCategories"
+                      :key="cat.id"
+                      class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between group hover:border-[#007AFF]/50 transition-colors"
+                    >
+                      <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#007AFF] text-white">
+                            {{ cat.name }}
+                          </span>
+                          <span class="text-[10px] font-mono text-slate-400">/category/{{ cat.slug }}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 pt-0.5 leading-snug">
+                          {{ cat.description || '暂无描述' }}
+                        </p>
+                      </div>
+
+                      <button
+                        v-if="cat.slug !== 'all'"
+                        @click="deleteAdminCategory(cat.id)"
+                        class="w-6 h-6 rounded-full bg-slate-100 hover:bg-rose-500 hover:text-white flex items-center justify-center text-xs text-slate-400 transition-colors"
+                        title="删除分类"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Posts List Table -->
+            <div class="glass-card overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="text-[9px] font-mono uppercase tracking-wider" style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--color-border); color: var(--color-ink-5)">
+                      <th class="py-3.5 px-6">文章标题 / Slug 路径</th>
+                      <th class="py-3.5 px-4">分类</th>
+                      <th class="py-3.5 px-4">状态 (Status)</th>
+                      <th class="py-3.5 px-4">日期</th>
+                      <th class="py-3.5 px-4 text-center">🔥 点击热度 (Heat & Views)</th>
+                      <th class="py-3.5 px-6 text-right">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y text-xs font-sans" style="divide-color: var(--color-border)">
+                    <tr v-for="p in filteredAdminPosts" :key="p.id" class="hover:bg-amber-500/[0.04] transition-colors group/row">
+                      <td class="py-3.5 px-6 max-w-md">
+                        <div class="flex items-center gap-3">
+                          <img :src="p.coverImage" class="w-10 h-10 rounded-xl object-cover flex-shrink-0 border" />
+                          <div class="space-y-0.5 min-w-0">
+                            <NuxtLink :to="`/blog/${p.slug}`" target="_blank" class="font-bold text-slate-900 hover:text-[#007AFF] transition-colors block truncate">
+                              {{ p.title }}
+                            </NuxtLink>
+                            <p class="font-mono text-[10px] text-slate-400 truncate">/blog/{{ p.slug }}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="py-3.5 px-4">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                          {{ p.category }}
+                        </span>
+                      </td>
+                      <td class="py-3.5 px-4">
+                        <CapsuleTag :variant="p.status === 'Published' ? 'published' : 'draft'" :dot="true">
+                          {{ p.status }}
+                        </CapsuleTag>
+                      </td>
+                      <td class="py-3.5 px-4 font-mono text-[11px] text-slate-500">
+                        {{ p.createdAt }}
+                      </td>
+                      <td class="py-3.5 px-4 text-center font-mono font-bold">
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-mono text-xs font-bold border border-amber-500/20 shadow-xs">
+                          🔥 {{ getBlogHeat(p) }}
+                        </span>
+                      </td>
+                      <td class="py-3.5 px-6 text-right">
+                        <div class="flex items-center justify-end gap-3 font-mono text-[11px]">
+                          <NuxtLink :to="`/admin/posts/edit/${p.id}`" class="font-bold hover:text-[#007AFF] transition-colors">编辑</NuxtLink>
+                          <button @click="toggleAdminPostStatus(p)" class="font-bold text-amber-600 hover:text-amber-700 transition-colors">
+                            {{ p.status === 'Published' ? '撤回草稿' : '发布' }}
+                          </button>
+                          <button @click="deleteAdminPost(p.id)" class="font-bold text-rose-500 hover:text-rose-600 transition-colors">删除</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr v-if="filteredAdminPosts.length === 0">
+                      <td colspan="6" class="py-12 text-center font-mono text-xs text-slate-400">暂无文章，点击 "+ 写新文章" 开始创作。</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <div v-else-if="activeTab === 'projects'" key="projects" class="space-y-6">
             <!-- TAB 1: PROJECTS -->
           <!-- Stats -->
@@ -818,6 +1049,24 @@
               <div class="space-y-1.5">
                 <label class="form-label">Hero 副文案段落</label>
                 <textarea v-model="siteConfig.home.heroSub" rows="3" class="form-input resize-none" />
+              </div>
+
+              <!-- Blog Hero Banner Settings -->
+              <!-- Blog Hero Banner Settings -->
+              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">✍️ 博客前台 Hero Banner 配置</h3>
+                <div class="space-y-1.5">
+                  <label class="form-label">博客 Badge 顶部标识 (Badge)</label>
+                  <input v-model="blogHeroConfig.heroBadge" class="form-input font-mono" placeholder="MODERN SERENITY BLOG" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="form-label">博客前台主标题 (Hero Title)</label>
+                  <input v-model="blogHeroConfig.heroTitle" class="form-input font-[#007AFF] font-bold" placeholder="灵感、技术与设计探索" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="form-label">博客前台描述段落 (Hero Subtitle)</label>
+                  <textarea v-model="blogHeroConfig.heroSub" rows="2" class="form-input resize-none" placeholder="采用次世代胶囊美学设计系统..." />
+                </div>
               </div>
               <!-- Booking Status & Video Showreel -->
               <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
@@ -2471,8 +2720,94 @@ watch(activeTab, (newTab) => {
     fetchSystemStatus()
   }
 })
+const blogStore = useBlogStore()
+blogStore.init()
+
+const adminBlogPosts = computed(() => blogStore.posts.value)
+const adminBlogCategories = computed(() => blogStore.categories.value)
+const blogFilterStatus = ref('All')
+
+const filteredAdminPosts = computed(() => {
+  if (blogFilterStatus.value === 'All') return adminBlogPosts.value
+  return adminBlogPosts.value.filter(p => p.status === blogFilterStatus.value)
+})
+
+const toggleAdminPostStatus = (post: any) => {
+  const newStatus = post.status === 'Published' ? 'Draft' : 'Published'
+  blogStore.updatePost(post.id, { status: newStatus })
+}
+
+const deleteAdminPost = (id: string) => {
+  if (confirm('确定要删除这篇文章吗？')) {
+    blogStore.deletePost(id)
+  }
+}
+
+// Get heat / view counts for blog post using real-time analytics heat map
+const getBlogHeat = (post: any) => {
+  if (!post) return 0
+  const heatMap = systemStatus.value?.heatMap || {}
+  const projectClicks = systemStatus.value?.projectClicks || []
+
+  let count = 0
+
+  if (post.views && ![1420, 980, 2150, 45].includes(post.views)) {
+    count = Math.max(count, Number(post.views || 0))
+  }
+
+  if (post.slug && heatMap[post.slug] !== undefined) {
+    count = Math.max(count, Number(heatMap[post.slug] || 0))
+  }
+  if (post.id && heatMap[post.id] !== undefined) {
+    count = Math.max(count, Number(heatMap[post.id] || 0))
+  }
+
+  const foundInClicks = projectClicks.find((p: any) => p.slug === post.slug || p.slug === post.id)
+  if (foundInClicks) {
+    count = Math.max(count, Number(foundInClicks.clicks || 0))
+  }
+
+  return count
+}
+
+// Category Management inside Admin Dashboard
+const newAdminCatName = ref('')
+const newAdminCatDesc = ref('')
+const showCategoryManager = ref(false)
+const showBlogHeroConfig = ref(false)
+
+const blogHeroConfig = computed(() => {
+  if (!siteConfig.value) siteConfig.value = {}
+  if (!siteConfig.value.blog) {
+    siteConfig.value.blog = {
+      heroBadge: 'MODERN SERENITY BLOG',
+      heroTitle: '灵感、技术与设计探索',
+      heroSub: '采用次世代胶囊美学设计系统 (Pill-shaped Design System)，记录极致前沿的切片与思考。'
+    }
+  }
+  return siteConfig.value.blog
+})
+
+const handleAddAdminCategory = () => {
+  if (!newAdminCatName.value.trim()) {
+    alert('请输入分类名称！')
+    return
+  }
+  blogStore.addCategory(newAdminCatName.value.trim(), newAdminCatDesc.value.trim())
+  newAdminCatName.value = ''
+  newAdminCatDesc.value = ''
+  alert('新胶囊分类保存成功！')
+}
+
+const deleteAdminCategory = (id: string) => {
+  if (confirm('确定删除该分类吗？')) {
+    blogStore.deleteCategory(id)
+  }
+}
+
 const tabs = [
   { label: '数据看板', value: 'analytics', icon: '📊' },
+  { label: '博客文章', value: 'blog', icon: '✍️' },
   { label: '作品管理', value: 'projects', icon: '🎥' },
   { label: '授权申请', value: 'requests', icon: '🔑' },
   { label: '合作预约', value: 'bookings', icon: '📅' },
@@ -2662,6 +2997,9 @@ const siteConfig = useState<any>('site-config', () => ({
   },
   music: {
     enabled: true, label: 'AMBIENT AUDIO', url: ''
+  },
+  blog: {
+    heroBadge: 'MODERN SERENITY BLOG', heroTitle: '灵感、技术与设计探索', heroSub: '采用次世代胶囊美学设计系统 (Pill-shaped Design System)，记录极致前沿的切片与思考。'
   },
   home: {
     heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '',

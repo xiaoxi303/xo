@@ -346,6 +346,69 @@
         </BentoContainer>
       </div>
     </section>
+
+    <!-- ===== CAPSULE BLOG SECTION (Modern Serenity Preview) ===== -->
+    <section class="py-20 px-6 relative z-10 bg-gradient-to-b from-transparent via-slate-100/50 to-transparent">
+      <div class="max-w-6xl mx-auto space-y-10">
+        <!-- Section Header -->
+        <div class="flex flex-wrap items-end justify-between gap-6 border-b border-black/10 pb-6">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-bold font-mono">
+              <span class="w-2 h-2 rounded-full bg-[#007AFF] animate-ping" />
+              <span>Modern Serenity Pill System</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-[var(--color-ink-1)]">
+              最新博客 (Blog Insights)
+            </h2>
+          </div>
+
+          <NuxtLink
+            to="/blog"
+            class="px-6 py-2.5 rounded-full text-xs font-bold text-white bg-[#007AFF] hover:bg-[#0062cc] shadow-[0_4px_15px_rgba(0,122,255,0.35)] transition-all flex items-center gap-2"
+          >
+            <span>进入博客 →</span>
+          </NuxtLink>
+        </div>
+
+        <!-- Featured Posts Cards Flow -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <NuxtLink
+            v-for="post in homeBlogPosts"
+            :key="post.id"
+            :to="`/blog/${post.slug}`"
+            class="group bg-white/95 rounded-[24px] border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl hover:border-[#007AFF]/40 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div class="relative aspect-[16/9] overflow-hidden bg-slate-100">
+              <img :src="post.coverImage" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div class="absolute top-3 right-3 flex items-center gap-1.5">
+                <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-[#007AFF] text-white shadow-xs">
+                  {{ post.category }}
+                </span>
+              </div>
+            </div>
+
+            <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 group-hover:text-[#007AFF] transition-colors leading-snug line-clamp-2">
+                  {{ post.title }}
+                </h3>
+                <p class="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+                  {{ post.excerpt }}
+                </p>
+              </div>
+
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400">{{ post.createdAt }}</span>
+                <span class="text-xs font-bold text-[#007AFF] flex items-center gap-1">
+                  <span>阅读全文</span>
+                  <span class="group-hover:translate-x-1 transition-transform">→</span>
+                </span>
+              </div>
+            </div>
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -366,6 +429,11 @@ const sectionHeaderRef = ref<HTMLElement | null>(null)
 // Data fetching sites config & projects list
 const { data: siteConfig } = await useFetch<any>('/api/site-config')
 const { data: projects } = await useFetch<any[]>('/api/projects')
+
+// Blog store initialization for Homepage preview section
+const blogStore = useBlogStore()
+blogStore.init()
+const homeBlogPosts = computed(() => blogStore.getPublishedPosts().slice(0, 3))
 
 // Dynamic Computed Getters for Ultra-Safe Bindings
 const heroVideoCodec = computed(() => siteConfig.value?.home?.heroVideoCodec || 'PRORES 4444 XQ')

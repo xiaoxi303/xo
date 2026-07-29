@@ -58,7 +58,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (targetSlug) {
-    targetSlug = targetSlug.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+    targetSlug = targetSlug.replace(/^\/(projects|blog)\//, '').split('/')[0].split('?')[0]
+    if (targetSlug && targetSlug !== 'projects' && targetSlug !== 'blog') {
+      recordProjectHeat(targetSlug, 1)
+    }
   }
 
   if (db) {

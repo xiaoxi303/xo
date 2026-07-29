@@ -149,6 +149,7 @@ const { data: siteConfig } = await useFetch<any>('/api/site-config')
 const navLinks = [
   { label: '首页', to: '/' },
   { label: '作品集', to: '/projects' },
+  { label: '博客', to: '/blog' },
   { label: '关于我', to: '/about' },
 ]
 

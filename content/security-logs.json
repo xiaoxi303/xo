@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "type": "Admin Access Gate",
+    "ip": "::1",
+    "action": "Admin session issued for \"admin\"",
+    "status": "success",
+    "id": "log-1785323386166-42gk",
+    "timestamp": 1785323386166
+  }
+]
