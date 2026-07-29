@@ -1098,3 +1098,123 @@ export async function dbCheckRateLimitAndBlacklist(event: H3Event, params: { use
 
   return { isWhitelisted: false, isBlacklisted: false, reason: '' }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Blog Posts & Categories Server Storage (File System & D1)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function dbGetBlogPosts(event?: H3Event): Promise<any[]> {
+  if (event) {
+    const db = await getD1Database(event)
+    if (db) {
+      try {
+        const row = await db.prepare('SELECT value FROM site_config WHERE key = ?').bind('blog_posts').first() as any
+        if (row?.value) return JSON.parse(row.value)
+      } catch {}
+    }
+  }
+
+  const postsPath = getRuntimeDataPath('blog-posts.json')
+  try {
+    if (fs.existsSync(postsPath)) {
+      const data = fs.readFileSync(postsPath, 'utf-8')
+      return JSON.parse(data) || []
+    }
+  } catch (err) {
+    console.error('[dbGetBlogPosts] Failed to read blog posts:', err)
+  }
+  return []
+}
+
+export async function dbSaveBlogPost(event: H3Event, post: any): Promise<any> {
+  const posts = await dbGetBlogPosts(event)
+  const index = posts.findIndex((p: any) => p.id === post.id)
+
+  const updatedPost = {
+    ...post,
+    updatedAt: new Date().toISOString()
+  }
+
+  if (index >= 0) {
+    posts[index] = updatedPost
+  } else {
+    posts.unshift(updatedPost)
+  }
+
+  const db = await getD1Database(event)
+  if (db) {
+    try {
+      await db.prepare('INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)').bind('blog_posts', JSON.stringify(posts)).run()
+    } catch {}
+  }
+
+  const postsPath = getRuntimeDataPath('blog-posts.json')
+  const dir = path.dirname(postsPath)
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2), 'utf-8')
+
+  return updatedPost
+}
+
+export async function dbDeleteBlogPost(event: H3Event, id: string): Promise<boolean> {
+  const posts = await dbGetBlogPosts(event)
+  const filtered = posts.filter((p: any) => p.id !== id)
+
+  const db = await getD1Database(event)
+  if (db) {
+    try {
+      await db.prepare('INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)').bind('blog_posts', JSON.stringify(filtered)).run()
+    } catch {}
+  }
+
+  const postsPath = getRuntimeDataPath('blog-posts.json')
+  const dir = path.dirname(postsPath)
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(postsPath, JSON.stringify(filtered, null, 2), 'utf-8')
+
+  return true
+}
+
+export async function dbGetBlogCategories(event?: H3Event): Promise<any[]> {
+  const defaultCats = [
+    { id: '1', name: '全部', slug: 'all', description: '所有精选文章与动态', count: 0 }
+  ]
+
+  if (event) {
+    const db = await getD1Database(event)
+    if (db) {
+      try {
+        const row = await db.prepare('SELECT value FROM site_config WHERE key = ?').bind('blog_categories').first() as any
+        if (row?.value) return JSON.parse(row.value)
+      } catch {}
+    }
+  }
+
+  const catsPath = getRuntimeDataPath('blog-categories.json')
+  try {
+    if (fs.existsSync(catsPath)) {
+      const data = fs.readFileSync(catsPath, 'utf-8')
+      return JSON.parse(data) || defaultCats
+    }
+  } catch (err) {
+    console.error('[dbGetBlogCategories] Failed to read blog categories:', err)
+  }
+
+  return defaultCats
+}
+
+export async function dbSaveBlogCategories(event: H3Event, categories: any[]): Promise<any[]> {
+  const db = await getD1Database(event)
+  if (db) {
+    try {
+      await db.prepare('INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)').bind('blog_categories', JSON.stringify(categories)).run()
+    } catch {}
+  }
+
+  const catsPath = getRuntimeDataPath('blog-categories.json')
+  const dir = path.dirname(catsPath)
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(catsPath, JSON.stringify(categories, null, 2), 'utf-8')
+
+  return categories
+}

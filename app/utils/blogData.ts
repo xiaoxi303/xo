@@ -35,14 +35,37 @@ const INITIAL_CATEGORIES: BlogCategory[] = [
   { id: '4', name: 'Life', slug: 'life', description: '灵感、读书笔记与剪辑日常', count: 0 }
 ]
 
-const INITIAL_POSTS: BlogPost[] = []
-
 export const useBlogStore = () => {
-  const posts = ref<BlogPost[]>([])
-  const categories = ref<BlogCategory[]>([])
-  const isLoaded = ref(false)
+  const posts = useState<BlogPost[]>('xo-blog-posts-state', () => [])
+  const categories = useState<BlogCategory[]>('xo-blog-categories-state', () => INITIAL_CATEGORIES)
+  const isLoaded = useState<boolean>('xo-blog-is-loaded', () => false)
 
-  const init = () => {
+  const fetchServerData = async () => {
+    try {
+      const [postsRes, catsRes] = await Promise.all([
+        $fetch<any>('/api/blog/posts').catch(() => ({ success: false, posts: [] })),
+        $fetch<any>('/api/blog/categories').catch(() => ({ success: false, categories: [] }))
+      ])
+
+      if (postsRes && postsRes.success && Array.isArray(postsRes.posts)) {
+        posts.value = postsRes.posts
+      }
+
+      if (catsRes && catsRes.success && Array.isArray(catsRes.categories) && catsRes.categories.length > 0) {
+        categories.value = catsRes.categories
+      }
+
+      if (process.client && typeof localStorage !== 'undefined') {
+        localStorage.setItem('xo_blog_posts', JSON.stringify(posts.value))
+        localStorage.setItem('xo_blog_categories', JSON.stringify(categories.value))
+      }
+      isLoaded.value = true
+    } catch (err) {
+      console.error('[useBlogStore] Failed to fetch server blog data:', err)
+    }
+  }
+
+  const init = async () => {
     if (process.client && typeof localStorage !== 'undefined') {
       const storedPosts = localStorage.getItem('xo_blog_posts')
       const storedCats = localStorage.getItem('xo_blog_categories')
@@ -50,33 +73,21 @@ export const useBlogStore = () => {
         try {
           const parsed = JSON.parse(storedPosts)
           if (Array.isArray(parsed)) {
-            // Remove legacy mock initial posts if present
             posts.value = parsed.filter(p => p && !['post-1', 'post-2', 'post-3', 'post-4'].includes(p.id))
-          } else {
-            posts.value = []
           }
-        } catch {
-          posts.value = []
-        }
-      } else {
-        posts.value = []
+        } catch {}
       }
-      localStorage.setItem('xo_blog_posts', JSON.stringify(posts.value))
-
       if (storedCats) {
         try {
-          categories.value = JSON.parse(storedCats)
-        } catch {
-          categories.value = INITIAL_CATEGORIES
-        }
-      } else {
-        categories.value = INITIAL_CATEGORIES
+          const parsedCats = JSON.parse(storedCats)
+          if (Array.isArray(parsedCats) && parsedCats.length > 0) {
+            categories.value = parsedCats
+          }
+        } catch {}
       }
-    } else {
-      posts.value = INITIAL_POSTS
-      categories.value = INITIAL_CATEGORIES
     }
-    isLoaded.value = true
+
+    await fetchServerData()
   }
 
   const save = () => {
@@ -88,26 +99,26 @@ export const useBlogStore = () => {
 
   // Getters
   const getPublishedPosts = () => {
-    return posts.value.filter(p => p.status === 'Published')
+    return posts.value.filter(p => p && p.status === 'Published')
   }
 
   const getPostBySlug = (slug: string) => {
-    return posts.value.find(p => p.slug === slug || p.id === slug)
+    return posts.value.find(p => p && (p.slug === slug || p.id === slug))
   }
 
   const getPostById = (id: string) => {
-    return posts.value.find(p => p.id === id)
+    return posts.value.find(p => p && p.id === id)
   }
 
   const getPostsByCategory = (categorySlug: string) => {
     if (!categorySlug || categorySlug === 'all') return getPublishedPosts()
-    const cat = categories.value.find(c => c.slug.toLowerCase() === categorySlug.toLowerCase() || c.name.toLowerCase() === categorySlug.toLowerCase())
+    const cat = categories.value.find(c => c && (c.slug.toLowerCase() === categorySlug.toLowerCase() || c.name.toLowerCase() === categorySlug.toLowerCase()))
     const catName = cat ? cat.name : categorySlug
-    return getPublishedPosts().filter(p => p.category.toLowerCase() === catName.toLowerCase())
+    return getPublishedPosts().filter(p => p && p.category.toLowerCase() === catName.toLowerCase())
   }
 
   // Actions
-  const createPost = (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views'>) => {
+  const createPost = async (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views'>) => {
     const newPost: BlogPost = {
       ...post,
       id: 'post-' + Date.now(),
@@ -117,11 +128,21 @@ export const useBlogStore = () => {
     }
     posts.value.unshift(newPost)
     save()
+
+    try {
+      await $fetch('/api/blog/posts', {
+        method: 'POST',
+        body: { post: newPost }
+      })
+    } catch (e) {
+      console.error('[createPost] Failed to sync to server disk:', e)
+    }
+
     return newPost
   }
 
-  const updatePost = (id: string, updatedFields: Partial<BlogPost>) => {
-    const idx = posts.value.findIndex(p => p.id === id)
+  const updatePost = async (id: string, updatedFields: Partial<BlogPost>) => {
+    const idx = posts.value.findIndex(p => p && p.id === id)
     if (idx !== -1) {
       posts.value[idx] = {
         ...posts.value[idx],
@@ -129,17 +150,36 @@ export const useBlogStore = () => {
         updatedAt: new Date().toISOString().split('T')[0]
       }
       save()
+
+      try {
+        await $fetch('/api/blog/posts', {
+          method: 'POST',
+          body: { post: posts.value[idx] }
+        })
+      } catch (e) {
+        console.error('[updatePost] Failed to sync to server disk:', e)
+      }
+
       return posts.value[idx]
     }
     return null
   }
 
-  const deletePost = (id: string) => {
-    posts.value = posts.value.filter(p => p.id !== id)
+  const deletePost = async (id: string) => {
+    posts.value = posts.value.filter(p => p && p.id !== id)
     save()
+
+    try {
+      await $fetch('/api/blog/posts', {
+        method: 'DELETE',
+        body: { id }
+      })
+    } catch (e) {
+      console.error('[deletePost] Failed to sync deletion to server disk:', e)
+    }
   }
 
-  const addCategory = (name: string, description: string) => {
+  const addCategory = async (name: string, description: string) => {
     const slug = name.toLowerCase().replace(/\s+/g, '-')
     const newCat: BlogCategory = {
       id: 'cat-' + Date.now(),
@@ -150,12 +190,31 @@ export const useBlogStore = () => {
     }
     categories.value.push(newCat)
     save()
+
+    try {
+      await $fetch('/api/blog/categories', {
+        method: 'POST',
+        body: { categories: categories.value }
+      })
+    } catch (e) {
+      console.error('[addCategory] Failed to sync categories to server disk:', e)
+    }
+
     return newCat
   }
 
-  const deleteCategory = (id: string) => {
-    categories.value = categories.value.filter(c => c.id !== id)
+  const deleteCategory = async (id: string) => {
+    categories.value = categories.value.filter(c => c && c.id !== id)
     save()
+
+    try {
+      await $fetch('/api/blog/categories', {
+        method: 'POST',
+        body: { categories: categories.value }
+      })
+    } catch (e) {
+      console.error('[deleteCategory] Failed to sync categories to server disk:', e)
+    }
   }
 
   return {
@@ -163,6 +222,7 @@ export const useBlogStore = () => {
     categories,
     isLoaded,
     init,
+    fetchServerData,
     save,
     getPublishedPosts,
     getPostBySlug,

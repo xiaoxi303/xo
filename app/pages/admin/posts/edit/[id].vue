@@ -362,31 +362,31 @@ const applyFormat = (actionId: string) => {
   post.content = post.content.substring(0, start) + formatted + post.content.substring(end)
 }
 
-const saveAsDraft = () => {
+const saveAsDraft = async () => {
   post.status = 'Draft'
   post.readTime = computedReadTime.value
   post.excerpt = post.content.substring(0, 90) + '...'
   
   if (blogStore.getPostById(post.id)) {
-    blogStore.updatePost(post.id, { ...post })
+    await blogStore.updatePost(post.id, { ...post })
   } else {
-    blogStore.createPost({ ...post })
+    await blogStore.createPost({ ...post })
   }
-  alert('草稿保存成功！')
+  alert('草稿保存成功！已写入服务器磁盘')
   router.push('/admin')
 }
 
-const publishPost = () => {
+const publishPost = async () => {
   post.status = 'Published'
   post.readTime = computedReadTime.value
   post.excerpt = post.content.substring(0, 100) + '...'
 
   if (blogStore.getPostById(post.id)) {
-    blogStore.updatePost(post.id, { ...post })
+    await blogStore.updatePost(post.id, { ...post })
   } else {
-    blogStore.createPost({ ...post })
+    await blogStore.createPost({ ...post })
   }
-  alert('文章发布成功！已更新至 RESTful 路径：/blog/' + post.slug)
+  alert('文章发布成功！已永久写入服务器磁盘，全网实时可用：/blog/' + post.slug)
   router.push('/admin')
 }
 

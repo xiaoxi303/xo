@@ -207,16 +207,17 @@ xo-studio/
 
 ---
 
-## 🛡️ 数据安全与持久化
+## 🛡️ 数据安全与磁盘持久化
 
-以下数据文件独立保存在服务器磁盘，**不会被 git pull 覆写**：
+以下数据文件独立保存在服务器磁盘（`content/` 目录），**不会被 git pull 覆写**，支持全网跨设备与浏览器实时同步：
 
 | 文件 / 路径 | 说明 |
 |:---|:---|
+| `content/blog-posts.json` | 博客文章数据（服务端磁盘持久化，全网共享） |
+| `content/blog-categories.json` | 博客分类数据（服务端磁盘持久化，全网共享） |
 | `content/site-config.json` | 全局站点与博客 Banner 配置 |
 | `content/project-heat.json` | 真实点击热度与页面浏览量 |
 | `content/projects/` | 视频作品数据 |
-| `localStorage (xo_blog_posts)` | 博客文章与分类数据存储 |
 | `localStorage (xo_e2ee_master_key)` | 客户端 AES-256-GCM 独立加密主密钥 |
 
 ---

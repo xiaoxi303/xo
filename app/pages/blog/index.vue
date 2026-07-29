@@ -185,7 +185,7 @@ const { data: siteConfigData } = await useFetch<any>('/api/site-config')
 const siteConfig = useState('site-config', () => siteConfigData.value)
 
 const blogStore = useBlogStore()
-blogStore.init()
+await blogStore.init()
 
 const searchQuery = ref('')
 const activeCategory = ref('all')
