@@ -3,7 +3,7 @@
     <AppPreloader v-if="!preloaderDone && !isPanelPage" @complete="onPreloaderComplete" />
 
     <!-- 1. Top Sticky Bar Announcement (顶部置顶模式) -->
-    <Transition name="fade">
+    <Transition name="banner-top">
       <div
         v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isPanelPage"
         class="fixed top-0 inset-x-0 z-[100] py-2 px-4 shadow-md border-b flex items-center justify-between text-xs font-sans backdrop-blur-md transition-all"
@@ -11,7 +11,8 @@
       >
         <div class="max-w-6xl mx-auto flex-1 flex items-center justify-center gap-3 overflow-hidden px-2">
           <!-- Badge -->
-          <span class="text-[9px] font-bold font-mono uppercase px-2 py-0.5 rounded-full tracking-wider border flex-shrink-0" :class="getBadgeClass(announcement?.badgeColor)">
+          <span class="text-[9px] font-bold font-mono uppercase px-2 py-0.5 rounded-full tracking-wider border flex-shrink-0 relative overflow-hidden" :class="getBadgeClass(announcement?.badgeColor)">
+            <span class="animate-pulse absolute inset-0 bg-white/20 rounded-full" />
             {{ announcement.badge || 'BROADCAST' }}
           </span>
 
@@ -53,7 +54,7 @@
     </Transition>
 
     <!-- 2. Floating Capsule Announcement (Bottom-Left 胶囊模式) -->
-    <Transition name="slide-up">
+    <Transition name="banner-capsule">
       <div
         v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position !== 'top-bar' && !isPanelPage"
         class="fixed bottom-6 left-6 z-[60] max-w-sm rounded-2xl p-4 shadow-[0_12px_40px_rgba(80,60,30,0.12)] border flex items-start gap-3.5 transition-all duration-500 backdrop-blur-xl"
@@ -185,7 +186,7 @@
   </div>
 
     <!-- Announcement Detail Modal -->
-    <Transition name="fade">
+    <Transition name="banner-modal">
       <div v-if="showAnnouncementDetail" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" @click.self="showAnnouncementDetail = false">
         <div class="glass-card p-8 rounded-3xl max-w-lg w-full space-y-6 border-2 border-amber-500/30 bg-white/95 shadow-2xl">
           <div class="flex items-center justify-between border-b pb-4 border-black/10">
@@ -398,6 +399,60 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* Top Sticky Bar Announcement Transition (下滑下落/滑升隐退) */
+.banner-top-enter-active {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease, filter 0.45s ease;
+}
+.banner-top-leave-active {
+  transition: transform 0.45s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.35s ease, filter 0.35s ease;
+}
+.banner-top-enter-from {
+  opacity: 0;
+  transform: translateY(-100%) scaleY(0.9);
+  filter: blur(8px);
+}
+.banner-top-leave-to {
+  opacity: 0;
+  transform: translateY(-100%) scaleY(0.9);
+  filter: blur(6px);
+}
+
+/* Floating Capsule Announcement Transition (左下角弹射绽放/滑落隐退) */
+.banner-capsule-enter-active {
+  transition: transform 0.75s cubic-bezier(0.34, 1.45, 0.64, 1), opacity 0.45s ease, filter 0.45s ease;
+}
+.banner-capsule-leave-active {
+  transition: transform 0.45s cubic-bezier(0.4, 0, 1, 1), opacity 0.35s ease, filter 0.35s ease;
+}
+.banner-capsule-enter-from {
+  opacity: 0;
+  transform: translateY(48px) scale(0.82) rotate(-3deg);
+  filter: blur(12px);
+}
+.banner-capsule-leave-to {
+  opacity: 0;
+  transform: translateY(36px) scale(0.85) rotate(-3deg);
+  filter: blur(8px);
+}
+
+/* Announcement Detail Modal Transition (中心缩放浮现) */
+.banner-modal-enter-active {
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, filter 0.4s ease;
+}
+.banner-modal-leave-active {
+  transition: transform 0.35s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.3s ease, filter 0.3s ease;
+}
+.banner-modal-enter-from {
+  opacity: 0;
+  transform: scale(0.88) translateY(24px);
+  filter: blur(10px);
+}
+.banner-modal-leave-to {
+  opacity: 0;
+  transform: scale(0.92) translateY(16px);
+  filter: blur(6px);
+}
+
 .slide-up-enter-active, .slide-up-leave-active {
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }

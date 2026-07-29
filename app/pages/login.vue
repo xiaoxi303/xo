@@ -38,7 +38,7 @@
             v-model="form.username"
             type="text"
             required
-            class="form-input text-xs w-full py-2.5 px-3 rounded-xl border border-black/[0.08]"
+            class="form-input text-xs w-full py-2.5 px-4 rounded-full border border-black/[0.08]"
             placeholder="请输入您的客户用户名"
             :disabled="loading"
           />
@@ -50,7 +50,7 @@
             v-model="form.password"
             type="password"
             required
-            class="form-input text-xs w-full py-2.5 px-3 rounded-xl font-mono border border-black/[0.08]"
+            class="form-input text-xs w-full py-2.5 px-4 rounded-full font-mono border border-black/[0.08]"
             placeholder="请输入密码"
             :disabled="loading"
           />
@@ -59,7 +59,7 @@
         <div class="pt-2">
           <button
             type="submit"
-            class="btn-primary w-full justify-center py-3 text-xs font-semibold flex items-center gap-2 shadow-sm rounded-xl"
+            class="btn-primary w-full justify-center py-3 text-xs font-semibold flex items-center gap-2 shadow-md rounded-full"
             :disabled="loading"
           >
             <span v-if="loading" class="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin" style="border-color: currentColor; border-top-color: transparent;" />

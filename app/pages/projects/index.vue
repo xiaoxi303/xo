@@ -23,14 +23,14 @@
         </div>
 
         <!-- Filter pills -->
-        <div class="flex flex-wrap items-center gap-2 p-2 rounded-2xl self-start md:self-auto shadow-md backdrop-blur-xl"
+        <div class="flex flex-wrap items-center gap-2 p-2 rounded-full self-start md:self-auto shadow-md backdrop-blur-xl"
              style="background: rgba(255,255,255,0.85); border: 1px solid rgba(217,119,6,0.25);">
           <button
             v-for="f in visibleFilterOpts"
             :key="f.value"
             @click="currentFilter = f.value"
             :class="[
-              'relative px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-300 ease-out active:scale-95 cursor-pointer',
+              'relative px-5 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ease-out active:scale-95 cursor-pointer',
               currentFilter === f.value
                 ? 'bg-[var(--color-bronze)] text-white shadow-md scale-[1.02]'
                 : 'text-[var(--color-ink-3)] hover:bg-black/5 hover:text-[var(--color-ink-1)]'

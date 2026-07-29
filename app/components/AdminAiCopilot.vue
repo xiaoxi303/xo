@@ -14,22 +14,22 @@
     <!-- Expanded Large AI Copilot Chat Dialog -->
     <div 
       v-if="isOpen" 
-      class="absolute bottom-14 left-0 w-[420px] sm:w-[500px] rounded-2xl glass-card border-2 border-purple-500/40 p-5 shadow-2xl space-y-3.5 bg-white/95 backdrop-blur-2xl ring-1 ring-black/10 text-left font-sans"
+      class="absolute bottom-14 left-0 w-[420px] sm:w-[500px] rounded-3xl glass-card border-2 border-purple-500/40 p-6 shadow-2xl space-y-4 bg-white/95 backdrop-blur-2xl ring-1 ring-black/10 text-left font-sans"
     >
       <div class="flex items-center justify-between border-b pb-3 border-black/10">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-purple-500 animate-ping" />
           <span class="font-bold text-sm text-[#121316]">Xo AI Neural Copilot (全局大模型助手)</span>
         </div>
-        <button type="button" @click="isOpen = false" class="text-slate-400 hover:text-black font-bold text-sm px-2 py-0.5 rounded hover:bg-black/5">✕</button>
+        <button type="button" @click="isOpen = false" class="text-slate-400 hover:text-black font-bold text-sm px-2.5 py-1 rounded-full hover:bg-black/5">✕</button>
       </div>
 
-      <div class="h-80 overflow-y-auto space-y-3 p-3.5 rounded-xl bg-black/[0.02] border border-black/[0.05] text-xs">
+      <div class="h-80 overflow-y-auto space-y-3 p-4 rounded-3xl bg-black/[0.02] border border-black/[0.05] text-xs">
         <div v-for="(msg, idx) in messages" :key="idx" :class="[msg.role === 'user' ? 'text-right' : 'text-left']">
           <div 
             :class="[
-              'inline-block p-3 rounded-2xl max-w-[90%] text-left whitespace-pre-wrap shadow-sm leading-relaxed text-xs',
-              msg.role === 'user' ? 'bg-amber-600 text-white font-medium' : 'bg-purple-600/10 text-purple-950 border border-purple-500/20'
+              'inline-block px-5 py-3 rounded-full max-w-[90%] text-left whitespace-pre-wrap shadow-sm leading-relaxed text-xs',
+              msg.role === 'user' ? 'bg-amber-600 text-white font-medium' : 'bg-purple-600/10 text-purple-950 border border-purple-500/20 rounded-2xl'
             ]"
           >
             {{ msg.text }}
@@ -42,13 +42,13 @@
           v-model="promptInput" 
           @keydown.enter="sendMessage" 
           placeholder="输入任何 AI 指令 (如: 诊断系统健康、优化作品文案)..." 
-          class="form-input text-xs flex-1 py-2.5 px-3.5 rounded-xl"
+          class="form-input text-xs flex-1 py-2.5 px-5 rounded-full border border-black/10"
         />
         <button 
           type="button" 
           @click="sendMessage" 
           :disabled="isLoading"
-          class="btn-primary py-2.5 px-4 text-xs bg-purple-600 hover:bg-purple-700 text-white border-none rounded-xl font-bold flex items-center gap-1 active:scale-95"
+          class="btn-primary py-2.5 px-6 text-xs bg-purple-600 hover:bg-purple-700 text-white border-none rounded-full font-bold flex items-center gap-1 active:scale-95 shadow-md"
         >
           <span v-if="isLoading" class="animate-spin">⏳</span>
           <span v-else>发送</span>

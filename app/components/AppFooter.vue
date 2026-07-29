@@ -1,23 +1,23 @@
 <template>
-  <footer class="relative z-10 mt-16 pt-12 pb-12">
+  <footer class="relative z-10 mt-6 pt-4 pb-6">
     <!-- Minimal divider -->
-    <div class="max-w-6xl mx-auto px-6 mb-6">
-      <div class="h-[1px] w-full opacity-30" style="background: linear-gradient(90deg, transparent, var(--color-border-2) 20%, var(--color-border-2) 80%, transparent);" />
+    <div class="max-w-6xl mx-auto px-6 mb-4">
+      <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-[var(--color-bronze)]/20 to-transparent" />
     </div>
 
     <div class="max-w-6xl mx-auto px-6">
       <!-- Main Row -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
 
         <!-- Left: Brand Block -->
         <div class="flex items-center gap-3 group cursor-default">
           <img
             src="/logo.png?v=312k_v4"
             alt="Xo Logo"
-            class="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            class="h-6 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
           <div class="flex items-center">
-            <span class="text-[9px] font-mono font-bold tracking-[0.1em] uppercase ml-2.5"
+            <span class="text-[9px] font-mono font-bold tracking-[0.1em] uppercase ml-2"
                   style="color: var(--color-ink-5);">Xo · 视频剪辑与调色工作室</span>
           </div>
         </div>
@@ -49,7 +49,7 @@
       </div>
 
       <!-- Bottom metadata footer -->
-      <div class="mt-14 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+      <div class="mt-4 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2"
            style="border-top: 1px solid rgba(0,0,0,0.04);">
         <p class="text-[9px] font-mono tracking-[0.1em]" style="color: var(--color-ink-5);">
           © {{ new Date().getFullYear() }} {{ siteConfig?.siteInfo?.brandName || 'Xo' }} · 保留所有权利
@@ -106,9 +106,9 @@ const copySocialValue = (value: string, label: string) => {
 
 <style scoped>
 .social-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-md);
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,8 +121,8 @@ const copySocialValue = (value: string, label: string) => {
 .social-btn:hover {
   color: var(--color-bronze);
   background: var(--color-bronze-bg);
-  border-color: rgba(180, 83, 9, 0.20);
+  border-color: rgba(180, 83, 9, 0.25);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--color-bronze-glow);
+  box-shadow: 0 4px 14px var(--color-bronze-glow);
 }
 </style>

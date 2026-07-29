@@ -5,32 +5,32 @@
         <h3 class="text-sm font-mono font-bold uppercase tracking-wider text-[#121316]">🎛️ 实时全站主题色彩调色盘</h3>
         <p class="text-[10px] text-slate-400 font-mono mt-0.5">Live Global Color Palette & Editorial Theme Engine</p>
       </div>
-      <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+      <span class="text-[10px] font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
         LIVE ENGINE
       </span>
     </div>
 
-    <div class="grid grid-cols-3 gap-3 pt-1">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
       <button
         v-for="tp in themePresets"
         :key="tp.id"
         type="button"
         @click="applyTheme(tp, true)"
         :class="[
-          'p-3.5 rounded-xl text-left border transition-all duration-200 flex flex-col justify-between h-24 active:scale-95 cursor-pointer',
+          'px-5 py-3 rounded-full text-left border transition-all duration-200 flex items-center justify-between active:scale-95 cursor-pointer shadow-sm',
           activeThemeId === tp.id
-            ? 'border-amber-600 bg-amber-500/10 shadow-md ring-2 ring-amber-600/30'
+            ? 'border-amber-600 bg-amber-500/10 shadow-md ring-2 ring-amber-600/30 font-bold'
             : 'border-black/[0.08] bg-black/[0.01] hover:bg-black/[0.04]'
         ]"
       >
-        <div class="flex justify-between items-center w-full">
-          <span class="text-xs font-bold text-[#121316]">{{ tp.name }}</span>
-          <span class="w-4 h-4 rounded-full border border-black/15 flex-shrink-0" :style="{ background: tp.accent }" />
+        <div class="flex items-center gap-2.5">
+          <span class="w-3.5 h-3.5 rounded-full border border-black/15 flex-shrink-0" :style="{ background: tp.accent }" />
+          <div>
+            <span class="text-xs font-bold text-[#121316] block leading-none">{{ tp.name }}</span>
+            <span class="text-[9px] font-mono text-slate-400 uppercase tracking-tight block mt-0.5">{{ tp.enName }}</span>
+          </div>
         </div>
-        <div>
-          <span class="text-[9px] font-mono block text-slate-400 uppercase">{{ tp.enName }}</span>
-          <span class="text-[9px] font-mono font-bold text-amber-800" v-if="activeThemeId === tp.id">✓ CURRENT ACTIVE</span>
-        </div>
+        <span class="text-[9px] font-mono font-bold text-amber-800" v-if="activeThemeId === tp.id">✓ ACTIVE</span>
       </button>
     </div>
   </div>

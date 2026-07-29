@@ -37,9 +37,14 @@
             </blockquote>
 
             <div class="pt-2">
-              <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')" class="btn-primary shadow-lg hover:shadow-amber-600/20">
+              <a 
+                :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')" 
+                class="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-lg hover:from-amber-600 hover:via-amber-500 hover:to-amber-700 hover:border-amber-400/40 hover:shadow-[0_12px_32px_rgba(217,119,6,0.45)] hover:-translate-y-1 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
+              >
                 <span>发起合作咨询 (Email)</span>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 ml-1 opacity-90 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:scale-110">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
               </a>
             </div>
           </div>

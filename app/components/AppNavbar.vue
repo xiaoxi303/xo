@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- Premium Navbar with Smooth Capsule Morph -->
   <header
     ref="navbarRef"
@@ -11,14 +11,14 @@
       :class="[
         'transition-all duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1) flex items-center justify-between',
         isScrolled
-          ? 'w-[92%] max-w-[640px] h-14 px-5 md:px-6 rounded-full backdrop-blur-xl border'
+          ? 'w-[92%] max-w-[700px] h-14 px-6 md:px-7 rounded-full backdrop-blur-xl border'
           : 'w-full max-w-6xl h-16 md:h-20 px-4 md:px-6 bg-transparent border-b border-transparent'
       ]"
       :style="isScrolled
         ? { 
-            background: 'rgba(252, 248, 242, 0.45)', 
-            borderColor: 'rgba(180, 160, 130, 0.05)',
-            boxShadow: '0 1px 2px rgba(80,60,30,0.02), 0 8px 32px -6px rgba(80,60,30,0.03), inset 0 1px 0 rgba(255,252,245,0.75)'
+            background: 'rgba(252, 248, 242, 0.75)', 
+            borderColor: 'rgba(180, 160, 130, 0.15)',
+            boxShadow: '0 4px 20px -2px rgba(80,60,30,0.06), 0 12px 36px -6px rgba(80,60,30,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
           }
         : {}"
     >
@@ -42,25 +42,25 @@
       <ul
         :class="[
           'hidden md:flex items-center transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)',
-          isScrolled ? 'gap-0.5' : 'gap-1'
+          isScrolled ? 'gap-1' : 'gap-1.5'
         ]"
       >
         <li v-for="link in navLinks" :key="link.to">
           <NuxtLink
             :to="link.to"
             :class="[
-              'relative px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-300 rounded-lg group',
+              'relative px-4 py-1.5 text-xs font-semibold tracking-wide transition-all duration-300 rounded-full group flex items-center justify-center',
               isActive(link.to)
-                ? 'text-[var(--color-ink-1)] font-bold'
-                : 'text-[var(--color-ink-5)] hover:text-[var(--color-ink-2)]'
+                ? 'text-[var(--color-ink-1)] bg-white/80 shadow-sm font-bold border border-black/[0.04]'
+                : 'text-[var(--color-ink-5)] hover:text-[var(--color-ink-1)] hover:bg-white/40'
             ]"
           >
             {{ link.label }}
-            <!-- Active underline transition -->
+            <!-- Active indicator dot -->
             <Transition name="nav-underline">
               <span
                 v-if="isActive(link.to)"
-                class="absolute bottom-0.5 left-2.5 right-2.5 h-[2px] bg-[var(--color-bronze)] rounded-full shadow-[0_2px_8px_var(--color-bronze-glow)]"
+                class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[var(--color-bronze)] rounded-full shadow-[0_0_8px_var(--color-bronze-glow)]"
               />
             </Transition>
           </NuxtLink>
@@ -69,22 +69,16 @@
 
       <!-- CTA + Mobile toggle -->
       <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
-        <!-- Contact button -->
-        <a
+        <!-- Contact button with cursor position radial color fill -->
+        <AppContactBtn
           :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')"
-          :class="[
-            'hidden md:inline-flex items-center gap-2 text-xs font-semibold tracking-wide transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)',
+          :customClass="[
+            'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-sm group cursor-pointer border',
             isScrolled 
-              ? 'px-3.5 py-1.5 rounded-full text-[var(--color-bronze)] bg-transparent hover:bg-[var(--color-bronze-bg)] hover:text-[var(--color-bronze-dark)]'
-              : 'px-4 py-2 rounded-xl text-[var(--color-ink-1)] bg-[var(--glass-bg)] backdrop-blur-sm border border-[var(--color-border)] hover:bg-[var(--color-ink-1)] hover:text-white hover:border-[var(--color-ink-1)] hover:-translate-y-[1px] shadow-sm'
-          ]"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 opacity-85">
-            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-          </svg>
-          <span class="tracking-[0.06em]">联系我</span>
-        </a>
+              ? 'px-4 py-1.5 text-slate-900 bg-amber-500/15 border-amber-600/30'
+              : 'px-5 py-2 text-white bg-slate-900 border-white/10'
+          ].join(' ')"
+        />
 
         <!-- Mobile hamburger -->
         <button
@@ -103,7 +97,7 @@
     <Transition name="mobile-menu">
       <div
         v-if="mobileOpen"
-        class="md:hidden absolute top-full left-4 right-4 mt-2 rounded-2xl p-3 flex flex-col gap-0.5"
+        class="md:hidden absolute top-full left-4 right-4 mt-2 rounded-3xl p-3 flex flex-col gap-1 backdrop-blur-2xl"
         :style="{
           background: 'var(--glass-bg)',
           border: '1px solid var(--glass-border-inner)',
@@ -115,25 +109,24 @@
           :key="link.to"
           :to="link.to"
           :class="[
-            'px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-between',
+            'px-5 py-3 rounded-full text-sm font-medium transition-all duration-200 flex items-center justify-between',
             isActive(link.to)
-              ? 'text-[var(--color-ink-1)] bg-[var(--color-surface)]'
-              : 'text-[var(--color-ink-5)] hover:text-[var(--color-ink-2)] hover:bg-[var(--color-surface-3)]'
+              ? 'text-[var(--color-ink-1)] bg-white/90 font-semibold shadow-sm'
+              : 'text-[var(--color-ink-5)] hover:text-[var(--color-ink-2)] hover:bg-white/40'
           ]"
           @click="mobileOpen = false"
         >
           <span>{{ link.label }}</span>
           <Transition name="check-mark">
-            <span v-if="isActive(link.to)" class="w-1.5 h-1.5 rounded-full bg-[var(--color-bronze)]" />
+            <span v-if="isActive(link.to)" class="w-2 h-2 rounded-full bg-[var(--color-bronze)]" />
           </Transition>
         </NuxtLink>
         <div class="border-t mt-2 pt-2 px-1" :style="{ borderColor: 'var(--color-border)' }">
           <a 
             :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" 
-            class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90"
-            :style="{ background: 'var(--color-ink-1)' }"
+            class="group flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-bold text-white bg-gradient-to-r from-slate-900 to-slate-800 hover:from-amber-600 hover:to-amber-700 shadow-md hover:shadow-[0_8px_25px_rgba(217,119,6,0.4)] transition-all duration-300 active:scale-[0.98]"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 opacity-70">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 opacity-90 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
             </svg>

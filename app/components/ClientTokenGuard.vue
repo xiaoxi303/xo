@@ -26,36 +26,27 @@
     <!-- Active sessions list -->
     <div v-else class="space-y-3">
       <div v-for="sess in sessions" :key="sess.token" 
-        class="p-4 rounded-xl bg-black/[0.02] border border-black/[0.04] hover:border-emerald-500/20 transition-all">
+        class="px-6 py-3.5 rounded-full bg-black/[0.02] border border-black/[0.04] hover:border-emerald-500/20 transition-all">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
               <span class="text-sm">👤</span>
             </div>
             <div>
               <span class="font-display font-bold text-sm text-[#121316]">{{ sess.username }}</span>
-              <span class="text-[10px] text-slate-400 block">会话: {{ sess.token }}</span>
+              <span class="text-[10px] text-slate-400 block font-mono">Token: {{ sess.token }}</span>
             </div>
           </div>
-          <div class="text-right">
-            <span class="font-display font-bold text-lg text-[#121316] font-mono">{{ formatCountdown(sess.remainingSeconds) }}</span>
-            <span class="text-[10px] text-slate-400 block">剩余时间</span>
-          </div>
-        </div>
-        <div class="flex items-center justify-between mt-3 pt-3 border-t border-black/[0.04]">
-          <span class="text-[10px] text-slate-400">
-            登录: {{ formatTime(sess.createdAt) }}
-          </span>
-          <span class="text-[10px] text-slate-400">
-            过期: {{ formatTime(sess.expiresAt) }}
-          </span>
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded" 
+          <div class="flex items-center gap-4">
+            <div class="text-right">
+              <span class="font-display font-bold text-base text-[#121316] font-mono">{{ formatCountdown(sess.remainingSeconds) }}</span>
+            </div>
+            <span class="text-[10px] font-mono px-3 py-1 rounded-full" 
               :class="sess.remainingSeconds > 3600 ? 'bg-emerald-500/10 text-emerald-600' : (sess.remainingSeconds > 600 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600')">
               {{ sess.remainingSeconds > 3600 ? '🟢 正常' : (sess.remainingSeconds > 600 ? '🟡 即将过期' : '🔴 即将失效') }}
             </span>
             <button @click="forceLogout(sess.fullToken)" 
-              class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20">
+              class="text-[10px] font-mono px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-colors cursor-pointer">
               强制登出
             </button>
           </div>

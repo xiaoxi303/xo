@@ -46,9 +46,13 @@
                 <span>浏览剪辑作品 (Projects)</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
               </NuxtLink>
-              <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all" @click="trackEvent('contact_click', 'homepage')">
-                联系我 (Contact)
-              </a>
+              <AppContactBtn
+                :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')"
+                customClass="px-6 py-3 text-xs font-bold text-[var(--color-ink-1)] bg-white/90 border border-amber-600/20 shadow-md"
+                @click="trackEvent('contact_click', 'homepage')"
+              >
+                <span>联系我 (Contact)</span>
+              </AppContactBtn>
               <NuxtLink to="/booking" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all">
                 📅 合作预约 (Booking)
               </NuxtLink>
@@ -142,13 +146,24 @@
     </section>
 
     <!-- ===== COOPERATIVE BRANDS (Cinematic Ribbon) ===== -->
-    <section class="py-12 border-y overflow-hidden select-none reveal backdrop-blur-md"
-             style="background: linear-gradient(90deg, rgba(0,0,0,0.03) 0%, rgba(217,119,6,0.08) 50%, rgba(0,0,0,0.03) 100%); border-color: rgba(0,0,0,0.12);">
-      <div class="max-w-6xl mx-auto px-6 mb-4">
-        <p class="section-label text-center font-mono text-[10px] font-bold text-[var(--color-ink-4)]">Collaborative Brands & Agencies · 合作与联合制作品牌</p>
+    <section class="relative py-12 overflow-hidden select-none reveal my-12">
+      <!-- Gradient border lines top and bottom -->
+      <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-bronze)]/30 to-transparent" />
+      <div class="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--color-bronze)]/30 to-transparent" />
+      
+      <!-- Smooth Ambient Gradient Background -->
+      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/[0.05] to-transparent pointer-events-none" />
+
+      <!-- Left and Right Smooth Edge Fade Overlays -->
+      <div class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[var(--color-bg-base)] to-transparent z-10 pointer-events-none" />
+      <div class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[var(--color-bg-base)] to-transparent z-10 pointer-events-none" />
+
+      <div class="relative max-w-6xl mx-auto px-6 mb-4 z-10">
+        <p class="section-label text-center font-mono text-[10px] font-bold text-[var(--color-ink-4)] tracking-widest uppercase">Collaborative Brands & Agencies · 合作与联合制作品牌</p>
       </div>
+
       <!-- Seamless Scrolling Wrapper -->
-      <div class="relative w-full flex overflow-x-hidden">
+      <div class="relative w-full flex overflow-x-hidden z-10">
         <div class="animate-marquee whitespace-nowrap flex items-center gap-16 text-xs sm:text-sm font-sans font-bold tracking-wide uppercase text-[var(--color-ink-2)]">
           <span v-for="(brand, idx) in defaultBrands" :key="'b1-' + idx" class="flex items-center gap-2.5 hover:text-[var(--color-bronze-dark)] transition-colors cursor-default">
             <span class="text-[var(--color-bronze)] text-sm font-bold">✦</span> {{ brand }}

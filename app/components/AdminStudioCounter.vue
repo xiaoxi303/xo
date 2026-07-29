@@ -4,7 +4,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h3 class="text-sm font-mono font-bold uppercase tracking-wider text-[#121316]">🎞️ 工作室硬核耗材与里程打卡</h3>
-          <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1">
+          <span class="text-[9px] font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             100% 数据库真实汇总
           </span>
@@ -14,7 +14,7 @@
       <button 
         type="button" 
         @click="incrementCoffee" 
-        class="btn-bronze text-[10px] py-1.5 px-3 rounded-xl shadow-sm flex items-center gap-1 font-bold active:scale-95 transition-all"
+        class="btn-bronze text-[10px] py-2 px-4 rounded-full shadow-sm flex items-center gap-1 font-bold active:scale-95 transition-all"
         title="给剪辑师投递续命咖啡"
       >
         <span>☕ 剪辑师续命 +1 杯</span>
@@ -22,7 +22,7 @@
     </div>
 
     <div class="grid grid-cols-2 gap-3 pt-1">
-      <div class="p-3.5 rounded-xl bg-black/[0.02] border border-black/[0.04] space-y-1">
+      <div class="p-4 rounded-full bg-black/[0.02] border border-black/[0.04] space-y-0.5 px-6">
         <span class="text-[9px] font-mono text-slate-400 uppercase flex items-center justify-between">
           <span>🎞️ 渲染导出总时长</span>
           <span class="text-[8px] text-emerald-600 font-bold">REAL SUM</span>
@@ -30,7 +30,7 @@
         <div class="font-display font-bold text-base text-[#121316]">{{ mileageData.renderHours }}</div>
       </div>
 
-      <div class="p-3.5 rounded-xl bg-black/[0.02] border border-black/[0.04] space-y-1">
+      <div class="p-4 rounded-full bg-black/[0.02] border border-black/[0.04] space-y-0.5 px-6">
         <span class="text-[9px] font-mono text-slate-400 uppercase flex items-center justify-between">
           <span>🎨 DAVINCI 节点使用量</span>
           <span class="text-[8px] text-emerald-600 font-bold">REAL NODES</span>
@@ -38,7 +38,7 @@
         <div class="font-display font-bold text-base text-[#121316]">{{ mileageData.davinciNodes }}</div>
       </div>
 
-      <div class="p-3.5 rounded-xl bg-black/[0.02] border border-black/[0.04] space-y-1">
+      <div class="p-4 rounded-full bg-black/[0.02] border border-black/[0.04] space-y-0.5 px-6">
         <span class="text-[9px] font-mono text-slate-400 uppercase flex items-center justify-between">
           <span>💾 硬盘素材吞吐量</span>
           <span class="text-[8px] text-emerald-600 font-bold">REAL DISK</span>
@@ -46,7 +46,7 @@
         <div class="font-display font-bold text-base text-[#121316]">{{ mileageData.diskThroughput }}</div>
       </div>
 
-      <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1">
+      <div class="p-4 rounded-full bg-amber-500/10 border border-amber-500/20 space-y-0.5 px-6">
         <span class="text-[9px] font-mono text-amber-800 uppercase font-bold">☕ 消耗咖啡杯数</span>
         <div class="font-display font-bold text-base text-amber-900 flex items-center gap-1">
           <span>{{ mileageData.coffeeCount }}</span>

@@ -54,7 +54,7 @@
             type="text"
             required
             minlength="3"
-            class="form-input text-xs w-full py-2.5 px-3 rounded-xl border border-black/[0.08]"
+            class="form-input text-xs w-full py-2.5 px-4 rounded-full border border-black/[0.08]"
             placeholder="请输入您的用户名 (至少 3 位)"
             :disabled="loading"
           />
@@ -68,7 +68,7 @@
           <input
             v-model="form.email"
             type="email"
-            class="form-input text-xs w-full py-2.5 px-3 rounded-xl border border-black/[0.08]"
+            class="form-input text-xs w-full py-2.5 px-4 rounded-full border border-black/[0.08]"
             placeholder="例如: client@gmail.com"
             :disabled="loading"
           />
@@ -81,7 +81,7 @@
           <input
             v-model="form.wechat"
             type="text"
-            class="form-input text-xs w-full py-2.5 px-3 rounded-xl border border-black/[0.08]"
+            class="form-input text-xs w-full py-2.5 px-4 rounded-full border border-black/[0.08]"
             placeholder="例如: wechat_123"
             :disabled="loading"
           />
@@ -94,7 +94,7 @@
             type="password"
             required
             minlength="6"
-            class="form-input text-xs w-full py-2.5 px-3 rounded-xl font-mono border border-black/[0.08]"
+            class="form-input text-xs w-full py-2.5 px-4 rounded-full font-mono border border-black/[0.08]"
             placeholder="请输入密码 (至少 6 位)"
             :disabled="loading"
           />
@@ -107,7 +107,7 @@
             type="password"
             required
             minlength="6"
-            class="form-input text-xs w-full py-2.5 px-3 rounded-xl font-mono border border-black/[0.08]"
+            class="form-input text-xs w-full py-2.5 px-4 rounded-full font-mono border border-black/[0.08]"
             placeholder="请再次输入密码"
             :disabled="loading"
           />
@@ -116,7 +116,7 @@
         <div class="pt-2">
           <button
             type="submit"
-            class="btn-primary w-full justify-center py-3 text-xs font-semibold flex items-center gap-2 rounded-xl shadow-sm"
+            class="btn-primary w-full justify-center py-3 text-xs font-semibold flex items-center gap-2 rounded-full shadow-md"
             :disabled="loading"
           >
             <span v-if="loading" class="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin" style="border-color: currentColor; border-top-color: transparent;" />
