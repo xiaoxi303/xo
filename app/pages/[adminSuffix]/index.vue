@@ -714,7 +714,7 @@
                 <button @click="showCategoryManager = !showCategoryManager" class="btn-ghost py-2 px-3.5 text-xs font-bold flex items-center gap-1">
                   <span>🏷️ {{ showCategoryManager ? '收起分类管理' : '管理分类与标签' }}</span>
                 </button>
-                <NuxtLink to="/admin/posts/new" class="btn-primary py-2 px-4 text-xs font-bold bg-[#007AFF] hover:bg-[#0062cc]">
+                <NuxtLink :to="`/${currentSuffix}/posts/edit/new`" class="btn-primary py-2 px-4 text-xs font-bold bg-[#007AFF] hover:bg-[#0062cc]">
                   + 写新文章 (New Post)
                 </NuxtLink>
               </div>
@@ -868,7 +868,7 @@
                       </td>
                       <td class="py-3.5 px-6 text-right">
                         <div class="flex items-center justify-end gap-3 font-mono text-[11px]">
-                          <NuxtLink :to="`/admin/posts/edit/${p.id}`" class="font-bold hover:text-[#007AFF] transition-colors">编辑</NuxtLink>
+                          <NuxtLink :to="`/${currentSuffix}/posts/edit/${p.id}`" class="font-bold hover:text-[#007AFF] transition-colors">编辑</NuxtLink>
                           <button @click="toggleAdminPostStatus(p)" class="font-bold text-amber-600 hover:text-amber-700 transition-colors">
                             {{ p.status === 'Published' ? '撤回草稿' : '发布' }}
                           </button>
@@ -2714,8 +2714,14 @@ const presetEmojis = [
   '📂', '💿', '💾', '📎'
 ]
 
-const activeTab = ref('analytics')
+const ADMIN_TAB_KEY = 'xo_admin_last_tab'
+const activeTab = ref(
+  (import.meta.client && localStorage.getItem(ADMIN_TAB_KEY)) || 'analytics'
+)
 watch(activeTab, (newTab) => {
+  if (import.meta.client) {
+    localStorage.setItem(ADMIN_TAB_KEY, newTab)
+  }
   if (newTab === 'analytics') {
     fetchSystemStatus()
   }
@@ -3524,6 +3530,9 @@ let sseSource: EventSource | null = null
 
 onMounted(() => {
   checkAuth()
+  // Restore last active tab from localStorage (SSR-safe: only runs on client)
+  const savedTab = localStorage.getItem(ADMIN_TAB_KEY)
+  if (savedTab) activeTab.value = savedTab
   const observer = new IntersectionObserver(
     (entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view') }) },
     { threshold: 0.1 }

@@ -28,7 +28,7 @@
         </div>
         <h2 class="text-xl font-bold text-slate-900 dark:text-white">文章未找到或尚未发布</h2>
         <p class="text-xs text-slate-500 max-w-sm mx-auto">
-          此博客网址暂无发布内容。前往管理后台即可创建并发布您的第一篇博客文章。
+          此博客网站暂无发布内容。前往管理后台即可创建并发布您的第一篇博客文章。
         </p>
         <div class="pt-2 flex items-center justify-center gap-3">
           <NuxtLink
@@ -55,9 +55,9 @@
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#007AFF]/10 text-[#007AFF] font-semibold">{{ post?.author.role }}</span>
           </div>
 
-          <span class="text-xs font-semibold text-slate-400">•</span>
+          <span class="text-xs font-semibold text-slate-400">—</span>
           <span class="text-xs font-mono font-medium text-slate-500">{{ post?.createdAt }}</span>
-          <span class="text-xs font-semibold text-slate-400">•</span>
+          <span class="text-xs font-semibold text-slate-400">—</span>
           
           <!-- Read Time Pill -->
           <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#F8F8F8] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
@@ -81,32 +81,6 @@
         <!-- Rendered Typography & Code Blocks -->
         <div class="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 text-base leading-relaxed space-y-6">
           <div v-html="renderedContent" />
-        </div>
-
-        <!-- Code Block Special Rounded Showcase -->
-        <div class="relative rounded-[20px] overflow-hidden bg-slate-950 border border-slate-800 p-5 shadow-2xl font-mono text-xs text-slate-200 space-y-3">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-rose-500/80" />
-              <span class="w-3 h-3 rounded-full bg-amber-500/80" />
-              <span class="w-3 h-3 rounded-full bg-emerald-500/80" />
-              <span class="text-[11px] text-slate-400 font-bold ml-2">capsule-demo.js</span>
-            </div>
-            <!-- Top Right Pill Copy Code Button -->
-            <button
-              @click="copyCode"
-              class="px-3.5 py-1 rounded-full bg-white/10 hover:bg-[#007AFF] text-white text-[11px] font-bold transition-all shadow-xs border border-white/15 flex items-center gap-1.5"
-            >
-              <span>{{ copied ? '✓ 已复制' : '📋 Copy Code' }}</span>
-            </button>
-          </div>
-          <pre class="overflow-x-auto text-emerald-400 py-2"><code>// Modern Serenity Capsule System
-const capsuleConfig = {
-  theme: 'Pill Architecture',
-  primaryColor: '#007AFF',
-  borderRadius: '9999px',
-  activeState: true
-};</code></pre>
         </div>
 
         <!-- Tags & Capsule Share Buttons -->
@@ -134,14 +108,84 @@ const capsuleConfig = {
             </button>
             <button
               @click="shareAction('poster')"
-              class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#007AFF] text-white hover:bg-[#0062cc] shadow-md transition-colors"
+              :disabled="isGeneratingPoster"
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#007AFF] text-white hover:bg-[#0062cc] shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              🎨 生成胶囊海报
+              {{ isGeneratingPoster ? '⏳ 生成中...' : '🎨 生成胶囊海报' }}
             </button>
           </div>
         </div>
       </div>
       </template>
+    </div>
+  </div>
+
+  <!-- Capsule Poster Template (Hidden, used for generation) -->
+  <div id="capsule-poster" style="display: none; position: fixed; left: -9999px; top: 0; width: 400px; padding: 0;">
+    <div style="background: linear-gradient(135deg, #f8f8f8 0%, #e8f4ff 50%, #f0f4ff 100%); border-radius: 28px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+      <!-- Cover Image -->
+      <div style="width: 100%; height: 220px; overflow: hidden; position: relative;">
+        <img
+          :src="post?.coverImage || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'"
+          style="width: 100%; height: 100%; object-fit: cover;"
+          crossorigin="anonymous"
+        />
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, rgba(248,248,248,0.9));"></div>
+      </div>
+      
+      <!-- Content -->
+      <div style="padding: 24px 28px 28px;">
+        <!-- Category Badge -->
+        <div style="display: inline-block; padding: 4px 12px; background: #007AFF; color: white; border-radius: 999px; font-size: 11px; font-weight: 700; margin-bottom: 12px;">
+          {{ post?.category || 'Design' }}
+        </div>
+        
+        <!-- Title -->
+        <h1 style="font-size: 20px; font-weight: 800; color: #1e293b; margin: 0 0 12px 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+          {{ post?.title || '文章标题' }}
+        </h1>
+        
+        <!-- Excerpt -->
+        <p style="font-size: 13px; color: #64748b; margin: 0 0 20px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+          {{ post?.excerpt || '文章摘要...' }}
+        </p>
+        
+        <!-- Author & Footer -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img
+              :src="post?.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'"
+              style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;"
+              crossorigin="anonymous"
+            />
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #1e293b;">{{ post?.author?.name || 'Antigravity Design' }}</div>
+              <div style="font-size: 10px; color: #94a3b8;">{{ post?.author?.role || 'Designer' }}</div>
+            </div>
+          </div>
+          
+          <!-- QR Code Placeholder -->
+          <div style="width: 56px; height: 56px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #e2e8f0;">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="4" width="12" height="12" rx="2" fill="#1e293b"/>
+              <rect x="24" y="4" width="12" height="12" rx="2" fill="#1e293b"/>
+              <rect x="4" y="24" width="12" height="12" rx="2" fill="#1e293b"/>
+              <rect x="8" y="8" width="4" height="4" rx="1" fill="white"/>
+              <rect x="28" y="8" width="4" height="4" rx="1" fill="white"/>
+              <rect x="8" y="28" width="4" height="4" rx="1" fill="white"/>
+              <rect x="20" y="20" width="4" height="4" rx="1" fill="#007AFF"/>
+              <rect x="28" y="20" width="4" height="4" rx="1" fill="#1e293b"/>
+              <rect x="20" y="28" width="4" height="4" rx="1" fill="#1e293b"/>
+              <rect x="28" y="28" width="4" height="4" rx="1" fill="#1e293b"/>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Brand Footer -->
+        <div style="text-align: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+          <div style="font-size: 10px; color: #94a3b8; font-weight: 600;">Modern Serenity 胶囊风博客</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -162,34 +206,104 @@ onMounted(() => {
   }
 })
 
-const copied = ref(false)
-const copyCode = () => {
-  if (process.client) {
-    navigator.clipboard.writeText(`// Modern Serenity Capsule System\nconst capsuleConfig = {\n  theme: 'Pill Architecture',\n  primaryColor: '#007AFF',\n  borderRadius: '9999px',\n  activeState: true\n};`)
-    copied.value = true
-    setTimeout(() => { copied.value = false }, 2000)
+const isGeneratingPoster = ref(false)
+
+const shareAction = async (type: string) => {
+  if (!process.client) return
+
+  if (type === 'link') {
+    navigator.clipboard.writeText(window.location.href)
+    alert('文章链接已复制到剪贴板！')
+  } else if (type === 'poster') {
+    await generatePoster()
   }
 }
 
-const shareAction = (type: string) => {
-  if (process.client) {
-    if (type === 'link') {
-      navigator.clipboard.writeText(window.location.href)
-      alert('文章链接已复制到剪贴板！')
-    } else {
-      alert('胶囊海报已准备完成，右键保存分享。')
+const generatePoster = async () => {
+  isGeneratingPoster.value = true
+
+  try {
+    const { toPng } = await import('html-to-image')
+    const posterEl = document.getElementById('capsule-poster')
+    if (!posterEl) {
+      alert('海报模板加载失败')
+      return
     }
+
+    // 显示海报容器
+    posterEl.style.display = 'block'
+
+    const dataUrl = await toPng(posterEl, {
+      quality: 1,
+      pixelRatio: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      style: {
+        transform: 'scale(1)',
+        transformOrigin: 'top left'
+      }
+    })
+
+    // 隐藏海报容器
+    posterEl.style.display = 'none'
+
+    // 触发下载
+    const link = document.createElement('a')
+    link.download = `capsule-poster-${post.value?.slug || 'article'}.png`
+    link.href = dataUrl
+    link.click()
+
+    alert('海报生成成功！已开始下载。')
+  } catch (error) {
+    console.error('海报生成失败:', error)
+    alert('海报生成失败，请重试。')
+  } finally {
+    isGeneratingPoster.value = false
   }
+}
+
+// Simple markdown to HTML renderer
+const renderMarkdown = (text: string): string => {
+  if (!text) return ''
+  
+  let html = text
+    // Headers
+    .replace(/^### (.*$)/gim, '<h3 style="font-size: 1.15rem; font-weight: 700; color: #007AFF; margin-top: 1.25rem; margin-bottom: 0.5rem;">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 style="font-size: 1.35rem; font-weight: 800; color: #007AFF; margin-top: 1.5rem; margin-bottom: 0.75rem;">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 style="font-size: 1.6rem; font-weight: 800; color: #007AFF; margin-top: 1.75rem; margin-bottom: 1rem;">$1</h1>')
+    // Blockquotes
+    .replace(/^\> (.*$)/gim, '<blockquote style="border-left: 4px solid #007AFF; padding: 0.75rem 1rem; margin: 1rem 0; color: #475569; font-style: italic; background: rgba(0,122,255,0.05); border-radius: 0 12px 12px 0;">$1</blockquote>')
+    // Bold and italic
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+    // Code blocks
+    .replace(/```([\s\S]*?)```/gim, '<pre style="background: #0f172a; color: #34d399; padding: 1rem; border-radius: 16px; font-family: monospace; font-size: 0.85rem; overflow-x: auto; margin: 1rem 0;"><code>$1</code></pre>')
+    // Inline code
+    .replace(/`(.*?)`/gim, '<code style="background: #f1f5f9; color: #0f172a; padding: 0.15rem 0.4rem; border-radius: 6px; font-family: monospace; font-size: 0.9em;">$1</code>')
+    // Images
+    .replace(/!\[(.*?)\]\((.*?)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 16px; margin: 1rem 0;" />')
+    // Links
+    .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" style="color: #007AFF; text-decoration: underline;">$1</a>')
+    // Unordered lists
+    .replace(/^\- (.*$)/gim, '<li style="margin-left: 1.5rem; margin-bottom: 0.25rem;">$1</li>')
+    // Paragraphs (double newline)
+    .replace(/\n\n/gim, '</p><p style="margin-bottom: 1rem;">')
+    // Single newlines
+    .replace(/\n/gim, '<br/>')
+  
+  // Wrap in paragraph if not starting with a block element
+  if (!html.startsWith('<h') && !html.startsWith('<blockquote') && !html.startsWith('<pre')) {
+    html = '<p style="margin-bottom: 1rem;">' + html + '</p>'
+  }
+  
+  return html
 }
 
 const renderedContent = computed(() => {
-  return `
-    <h2 style="font-size: 1.5rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #007AFF;">1. 胶囊视觉设计的核心哲学</h2>
-    <p>Modern Serenity 风格核心在于通过<strong>大弧度圆角 (Pill Badges)</strong> 与柔和微光背景，为前端和后台系统打造无比丝滑的感知体验。无论是文章筛选的 Floating Tab，还是状态切换指令，都能带来极其舒适的物理触感反馈。</p>
-    
-    <h2 style="font-size: 1.5rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #007AFF;">2. 代码块与信息交互呈现</h2>
-    <p>我们在博客正文中特别设计了 16-24px 圆角的大号代码框，搭配右上角独有的 Copy Code 胶囊小按键，让程序员与设计师在浏览排版时获得最佳阅读体验。</p>
-  `
+  const content = post.value?.content
+  if (!content) return '<p style="color: #94a3b8; text-align: center;">暂无正文内容...</p>'
+  return renderMarkdown(content)
 })
 
 useHead({

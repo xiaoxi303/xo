@@ -4,6 +4,22 @@
     "ip": "::1",
     "action": "Admin session issued for \"admin\"",
     "status": "success",
+    "id": "log-1785335369090-s1mo",
+    "timestamp": 1785335369090
+  },
+  {
+    "type": "Client Access Gate",
+    "ip": "::1",
+    "action": "Client session issued for \"123\"",
+    "status": "success",
+    "id": "log-1785326796773-kb1q",
+    "timestamp": 1785326796773
+  },
+  {
+    "type": "Admin Access Gate",
+    "ip": "::1",
+    "action": "Admin session issued for \"admin\"",
+    "status": "success",
     "id": "log-1785323386166-42gk",
     "timestamp": 1785323386166
   }

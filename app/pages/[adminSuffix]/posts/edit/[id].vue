@@ -120,6 +120,23 @@
             />
           </div>
 
+          <!-- Author Name input -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">作者署名 (Author Name)</label>
+            <div class="flex items-center gap-2">
+              <img
+                :src="post.author.avatar"
+                class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0"
+              />
+              <input
+                v-model="post.author.name"
+                type="text"
+                placeholder="作者名称"
+                class="w-full px-3.5 py-2 rounded-full bg-[#F8F8F8] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-[#007AFF]"
+              />
+            </div>
+          </div>
+
           <!-- Cover Image Input & Thumbnail Live Preview -->
           <div class="space-y-1 sm:col-span-2 lg:col-span-4 pt-2 border-t border-slate-100 dark:border-slate-800/60">
             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -229,7 +246,7 @@
             <span>段落数 <strong>{{ post.content ? post.content.split('\n\n').length : 0 }}</strong></span>
           </div>
           <div class="hidden sm:block">
-            提示：更改将实时保存在本地状态中
+            💾 发布后将永久写入服务器磁盘，全网同步可见
           </div>
         </div>
       </div>
@@ -258,8 +275,11 @@ const router = useRouter()
 const blogStore = useBlogStore()
 blogStore.init()
 
+// Preserve the admin suffix from the URL (e.g. /xiao) for navigation
+const adminSuffix = computed(() => route.params.adminSuffix as string || 'admin')
+
 const postId = computed(() => route.params.id as string)
-const isNew = computed(() => !postId.value || postId.value === 'new')
+const isNew = computed(() => !postId.value || postId.value === 'new' || postId.value === 'new')
 
 const post = reactive({
   id: '',
@@ -329,33 +349,39 @@ function getCapsuleStyle(isActive) {
     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
   }
 }
-\`\`\`
-
-## 页面等级的代码块 (Code Block UX)
-
-正文中代码块采用 \`18px\` 大圆角等线框、右上角提供人性量感 **Copy Code** 按置置到以自然勾通。
-
-\`\`\`bash
-npm install @capsule-design/ui
 \`\`\``
 
-onMounted(() => {
+onMounted(async () => {
+  // Fetch site config to get owner name and avatar
+  let ownerName = 'Antigravity Design'
+  let ownerAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+  try {
+    const config = await $fetch<any>('/api/site-config')
+    if (config?.siteInfo?.ownerName) ownerName = config.siteInfo.ownerName
+    if (config?.siteInfo?.avatar) ownerAvatar = config.siteInfo.avatar
+  } catch {}
+
   if (!isNew.value) {
     const found = blogStore.getPostById(postId.value) || blogStore.getPostBySlug(postId.value)
     if (found) {
       Object.assign(post, found)
+      // Always sync avatar from site config
+      if (ownerAvatar) post.author.avatar = ownerAvatar
     } else {
-      // Default initial mock if id not found
       post.id = 'post-' + Date.now()
       post.title = '探索 Modern Serenity：胶囊美学设计规范'
       post.slug = 'modern-serenity-capsule'
       post.content = SAMPLE_ARTICLE_MARKDOWN
+      post.author.name = ownerName
+      post.author.avatar = ownerAvatar
     }
   } else {
     post.id = 'post-' + Date.now()
     post.title = '新建精选切片文章'
     post.slug = 'my-new-post'
     post.content = SAMPLE_ARTICLE_MARKDOWN
+    post.author.name = ownerName
+    post.author.avatar = ownerAvatar
   }
 })
 
@@ -409,7 +435,7 @@ const saveAsDraft = async () => {
     await blogStore.createPost({ ...post })
   }
   alert('草稿保存成功！已写入服务器磁盘。')
-  router.push('/admin')
+  router.push(`/${adminSuffix.value}`)
 }
 
 const publishPost = async () => {
@@ -423,7 +449,7 @@ const publishPost = async () => {
     await blogStore.createPost({ ...post })
   }
   alert('文章发布成功！已永久写入服务器磁盘，全网实时可用于 /blog/' + post.slug)
-  router.push('/admin')
+  router.push(`/${adminSuffix.value}`)
 }
 
 const handleConfirmPublishModal = (data: any) => {
@@ -436,13 +462,12 @@ const handleConfirmPublishModal = (data: any) => {
 }
 
 const goBack = () => {
-  router.push('/admin')
+  router.push(`/${adminSuffix.value}`)
 }
 
 const renderedMarkdown = computed(() => {
   if (!post.content) return '<p style="color: #94a3b8;">暂无内容预览...</p>'
   
-  // Basic markdown to html renderer
   let html = post.content
     .replace(/^### (.*$)/gim, '<h3 style="font-size: 1.15rem; font-weight: 700; color: #007AFF; margin-top: 1rem;">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 style="font-size: 1.35rem; font-weight: 800; color: #007AFF; margin-top: 1.25rem;">$1</h2>')
