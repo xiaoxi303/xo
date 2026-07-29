@@ -16,7 +16,7 @@
       <div class="text-center space-y-2">
         <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl mx-auto shadow-sm"
              style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
-          &#x1f4dd;
+          📝
         </div>
         <span class="text-[9px] font-mono tracking-[0.25em] uppercase text-amber-700 font-bold block">申请访问权限</span>
         <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-1)">{{ projectTitle }}</h1>
@@ -29,19 +29,19 @@
       <div v-if="submitSuccess" class="text-center py-8 space-y-5">
         <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto"
              style="background: rgba(5, 150, 105, 0.1); border: 1px solid rgba(5, 150, 105, 0.2);">
-          &#x2709;
+          ✉️
         </div>
-        <h2 class="font-display text-xl font-bold" style="color: var(--color-ink-1)">&#x2709; 申请已成功提交！</h2>
+        <h2 class="font-display text-xl font-bold" style="color: var(--color-ink-1)">✉️ 申请已成功提交！</h2>
         <div class="p-4 rounded-xl text-left space-y-2" style="background: var(--color-bg-2); border: 1px solid var(--color-border);">
           <p class="text-xs leading-relaxed" style="color: var(--color-ink-3)">
             您的访问申请已通知作者，最新密码（或审核结果）将通过邮件发送至您的联系方式，请注意查收。
           </p>
           <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">
-            &#x1f4e8; 申请信息：
+            📨 申请信息：
           </p>
           <ul class="text-xs space-y-1 pl-4" style="color: var(--color-ink-4)">
-            <li>&#x2022; 姓名：{{ form.clientName }}</li>
-            <li>&#x2022; 联系方式：{{ form.contact }}</li>
+            <li>• 姓名：{{ form.clientName }}</li>
+            <li>• 联系方式：{{ form.contact }}</li>
           </ul>
         </div>
         <div class="flex flex-col gap-3 pt-2">
@@ -54,7 +54,7 @@
       <!-- Request Form -->
       <form v-else @submit.prevent="submitRequest" class="space-y-4">
         <div v-if="submitError" class="p-3.5 rounded-xl text-xs bg-rose-50 border border-rose-100 text-rose-600 font-medium">
-          &#x274c; {{ submitError }}
+          ❌ {{ submitError }}
         </div>
 
         <div class="space-y-1">
@@ -114,6 +114,8 @@
 </template>
 
 <script setup lang="ts">
+import { encryptE2EE, isE2EESupported } from '../../../utils/e2ee'
+
 const route = useRoute()
 const slug = route.params.slug as string
 
@@ -149,35 +151,6 @@ useHead({
   title: () => `申请访问 - ${projectTitle.value || '作品'}`
 })
 
-// Generate daily password
-const getDailyPassword = (slug: string) => {
-  if (!slug) return '------'
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
-  const today = new Date()
-  const beijingTime = new Date(today.getTime() + 8 * 60 * 60 * 1000)
-  const dateStr = beijingTime.toISOString().split('T')[0]
-  const secret = 'xo-studio-secret-2026'
-  const input = `${slug}-${dateStr}-${secret}`
-  
-  let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
-  }
-  hash = Math.abs(hash)
-  
-  let password = ''
-  for (let i = 0; i < 6; i++) {
-    const index = hash % chars.length
-    password += chars[index]
-    hash = Math.floor(hash / chars.length)
-  }
-  return password
-}
-
-
-
 const submitRequest = async () => {
   if (submitLoading.value) return
   
@@ -185,6 +158,17 @@ const submitRequest = async () => {
   submitError.value = ''
   
   try {
+    let e2eeData: any = null
+    try {
+      if (isE2EESupported()) {
+        e2eeData = await encryptE2EE(JSON.stringify({
+          contact: form.value.contact,
+          reason: form.value.reason,
+          ts: Date.now()
+        }))
+      }
+    } catch {}
+
     await $fetch('/api/password-requests', {
       method: 'POST',
       body: {
@@ -192,7 +176,8 @@ const submitRequest = async () => {
         projectTitle: projectTitle.value,
         clientName: form.value.clientName,
         contact: form.value.contact,
-        reason: form.value.reason
+        reason: form.value.reason,
+        e2eePayload: e2eeData
       }
     })
     

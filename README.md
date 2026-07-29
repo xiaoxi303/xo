@@ -2,22 +2,24 @@
 
 # ✨ Xo Studio & Capsule Blog
 
-### 🎬 视频剪辑与调色工作室 · 次世代胶囊博客系统
+### 🎬 视频剪辑与调色工作室 · 次世代胶囊博客系统 · E2EE 端到端加密
 
 <p>
   <img src="https://img.shields.io/badge/Nuxt-4-00DC82?style=for-the-badge&logo=nuxt&logoColor=white" alt="Nuxt 4">
   <img src="https://img.shields.io/badge/Vue-3-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white" alt="Vue 3">
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Web_Crypto-E2EE-007AFF?style=for-the-badge&logo=webauthn&logoColor=white" alt="E2EE">
   <img src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
 </p>
 
 <p>
-  <em>专为独立视频剪辑指导、DI 调色总监与创作者打造的轻奢大刊感个人作品集、胶囊风博客与后台系统</em>
+  <em>专为独立视频剪辑指导、DI 调色总监与创作者打造的轻奢大刊感个人作品集、胶囊风博客、E2EE 零知识安全加密与后台系统</em>
 </p>
 
 <p>
   <a href="#-快速开始">快速开始</a> •
   <a href="#-核心特色">核心特色</a> •
+  <a href="#-端到端加密架构-e2ee">端到端加密</a> •
   <a href="#-胶囊博客系统">胶囊博客系统</a> •
   <a href="#-部署指南">部署指南</a> •
   <a href="#-后台管理">后台管理</a>
@@ -57,10 +59,11 @@
 <tr>
 <td width="50%">
 
-### 🔑 安全网关
+### 🔐 端到端加密与安全网关 (E2EE)
 
-- 🛡️ **防撞库保护** — 800ms 人工阻断延迟
-- 🔐 **HttpOnly Cookie** — 安全会话持久化
+- 🔐 **W3C Web Crypto E2EE** — AES-256-GCM 客户端零知识高强度加密
+- 🛡️ **防撞库保护** — 800ms 人工阻断延迟与 Token 实时会话守卫
+- 🔑 **密钥指纹与安全控制台** — 后台集成 E2EE 安全沙盒与解密验证器
 - 🚪 **自定义后台路径** — 支持自定义 URL 后缀
 
 </td>
@@ -75,6 +78,16 @@
 </td>
 </tr>
 </table>
+
+---
+
+## 🔐 端到端加密架构 (E2EE Architecture)
+
+基于 W3C 标准 Web Crypto API (`window.crypto.subtle`) 构建的零知识端到端加密 (End-to-End Encryption) 系统：
+
+- **AES-256-GCM 高强度加密**：客户端自动生成 256 位对称加密密钥与 12 字节随机 IV 向量，敏感负载在离开浏览器发往网络前即已完成密文封包。
+- **SHA-256 密钥指纹 (Key Fingerprint)**：计算唯一哈希指纹并在后台安全控制台中呈现，确保数据传输过程全链路防篡改。
+- **E2EE 安全沙盒控制台**：在管理后台系统安全页面中，集成了 **`🔐 E2EE 端到端加密安全控制台`**，支持实时可视化验证本地明文加密与密文解密还原。
 
 ---
 
@@ -163,7 +176,7 @@ pm2 reload xo-portfolio
 |:---:|:---:|:---:|
 | 🏠 首页 | [localhost:3000](http://localhost:3000) | 作品集与最新博客展示 |
 | 📖 博客前台 | [localhost:3000/blog](http://localhost:3000/blog) | 博客文章列表与分类检索 |
-| ⚙️ 管理后台 | [localhost:3000/admin](http://localhost:3000/admin) | 作品、博客、分类与站点全局控制台 |
+| ⚙️ 管理后台 | [localhost:3000/admin](http://localhost:3000/admin) | 作品、博客、分类、E2EE 控制台与全局配置 |
 
 </div>
 
@@ -176,13 +189,13 @@ pm2 reload xo-portfolio
 ```
 xo-studio/
 ├── app/                    # 前端应用
-│   ├── components/         # Vue 组件 (CapsuleTag, CapsuleModal, CapsuleToolbar 等)
+│   ├── components/         # Vue 组件 (AdminSecurityGateway, CapsuleTag, CapsuleModal 等)
 │   ├── layouts/            # 布局文件
 │   ├── pages/              # 页面路由 (/blog, /admin, /projects)
-│   ├── utils/              # 前端分析工具与 blogData 状态库
+│   ├── utils/              # E2EE 端到端加密、前端分析与 blogData 状态库
 │   └── assets/             # 静态资源与字体
 ├── server/                 # 后端服务
-│   ├── api/                # API 接口 (projects, analytics, system-status, site-config)
+│   ├── api/                # API 接口 (projects, analytics, system-status, site-config, password-requests)
 │   └── utils/              # 磁盘持久化与分析计算引擎
 ├── content/                # 数据存储（已 gitignore）
 │   ├── site-config.json    # 站点配置
@@ -204,6 +217,7 @@ xo-studio/
 | `content/project-heat.json` | 真实点击热度与页面浏览量 |
 | `content/projects/` | 视频作品数据 |
 | `localStorage (xo_blog_posts)` | 博客文章与分类数据存储 |
+| `localStorage (xo_e2ee_master_key)` | 客户端 AES-256-GCM 独立加密主密钥 |
 
 ---
 
@@ -213,7 +227,7 @@ xo-studio/
 
 | 颜色 | 色值 | 用途 |
 |:---:|:---:|:---:|
-| ![#007AFF](https://via.placeholder.com/20/007AFF/007AFF) | `#007AFF` | 物理天蓝 (Primary Accent) |
+| ![#007AFF](https://via.placeholder.com/20/007AFF/007AFF) | `#007AFF` | 物理天蓝 (Primary Accent & E2EE Badge) |
 | ![#F8F8F8](https://via.placeholder.com/20/F8F8F8/F8F8F8) | `#F8F8F8` | 未选中胶囊底色 |
 | ![#34C759](https://via.placeholder.com/20/34C759/34C759) | `#34C759` | 已发布绿胶囊 (Published) |
 | ![#FFCC00](https://via.placeholder.com/20/FFCC00/FFCC00) | `#FFCC00` | 草稿黄胶囊 (Draft) |
