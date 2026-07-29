@@ -73,9 +73,34 @@
 
       <!-- Article Main Content Card -->
       <div class="bg-white/90 dark:bg-slate-900/90 rounded-[32px] p-8 sm:p-12 shadow-xl border border-slate-200/70 dark:border-slate-800 backdrop-blur-xl space-y-8">
-        <!-- Lead Excerpt -->
-        <div class="p-6 rounded-2xl bg-[#007AFF]/5 border border-[#007AFF]/20 text-slate-700 dark:text-slate-200 text-sm sm:text-base leading-relaxed font-medium">
-          💡 {{ post?.excerpt }}
+        <!-- AI 智能总结 -->
+        <div class="rounded-2xl border border-[#007AFF]/25 overflow-hidden bg-gradient-to-br from-[#007AFF]/5 via-blue-50/30 to-indigo-50/20 dark:from-[#007AFF]/10 dark:via-slate-900/50 dark:to-slate-900/30">
+          <!-- Header Bar -->
+          <div class="flex items-center gap-2.5 px-5 py-3 border-b border-[#007AFF]/15 bg-[#007AFF]/8 dark:bg-[#007AFF]/15">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#007AFF] animate-pulse" />
+              <span class="text-xs font-bold text-[#007AFF] tracking-wide uppercase font-mono">AI 智能总结</span>
+            </div>
+            <span v-if="aiSummarySource === 'llm'" class="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#007AFF] text-white">LLM</span>
+            <span v-else-if="aiSummarySource === 'extract'" class="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">智能提取</span>
+            <span v-if="aiSummaryLoading" class="ml-auto flex items-center gap-1 text-[10px] text-slate-400">
+              <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+              生成中...
+            </span>
+          </div>
+          <!-- Content -->
+          <div class="px-5 py-4 min-h-[56px]">
+            <!-- Loading skeleton -->
+            <div v-if="aiSummaryLoading" class="space-y-2 animate-pulse">
+              <div class="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-full" />
+              <div class="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-4/5" />
+              <div class="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3" />
+            </div>
+            <!-- Typewriter text -->
+            <p v-else class="text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+              {{ aiSummaryDisplayText }}<span v-if="aiSummaryTyping" class="inline-block w-0.5 h-4 bg-[#007AFF] ml-0.5 animate-pulse align-middle" />
+            </p>
+          </div>
         </div>
 
         <!-- Rendered Typography & Code Blocks -->
@@ -199,10 +224,71 @@ await blogStore.init()
 
 const post = computed(() => blogStore.getPostBySlug(slugParam.value))
 
+// ── AI Summary State ───────────────────────────────────────────────────
+const aiSummaryLoading = ref(false)
+const aiSummaryText = ref('')
+const aiSummaryDisplayText = ref('')
+const aiSummaryTyping = ref(false)
+const aiSummarySource = ref<'llm' | 'extract' | ''>('')
+
+const startTypewriter = (text: string) => {
+  aiSummaryDisplayText.value = ''
+  aiSummaryTyping.value = true
+  let i = 0
+  const interval = setInterval(() => {
+    if (i < text.length) {
+      aiSummaryDisplayText.value += text[i]
+      i++
+    } else {
+      aiSummaryTyping.value = false
+      clearInterval(interval)
+    }
+  }, 28)
+}
+
+const fetchAiSummary = async () => {
+  const fallback = post.value?.excerpt || ''
+  if (!post.value?.content) {
+    // No content at all → show excerpt immediately, no loading
+    aiSummaryLoading.value = false
+    aiSummaryDisplayText.value = fallback
+    return
+  }
+
+  // First: probe whether AI is configured (fast check)
+  aiSummaryLoading.value = true
+  try {
+    const res = await $fetch<{ success: boolean; summary?: string; source?: string; noKey?: boolean }>('/api/blog/summary', {
+      method: 'POST',
+      body: { content: post.value.content, title: post.value.title }
+    })
+
+    if (res.noKey) {
+      // No API key configured → show excerpt directly, no animation, no loading
+      aiSummaryLoading.value = false
+      aiSummaryDisplayText.value = fallback
+      return
+    }
+
+    if (res.success && res.summary) {
+      // AI summary ready → typewriter animation
+      aiSummarySource.value = res.source as 'llm' | 'extract'
+      aiSummaryLoading.value = false
+      startTypewriter(res.summary)
+      return
+    }
+  } catch {}
+
+  // Any error → show excerpt directly
+  aiSummaryLoading.value = false
+  aiSummaryDisplayText.value = fallback
+}
+
 onMounted(() => {
   if (import.meta.client && slugParam.value && post.value) {
     recordProjectClickEvent(slugParam.value, post.value?.title)
     $fetch(`/api/projects/${slugParam.value}/view`, { method: 'POST' }).catch(() => {})
+    fetchAiSummary()
   }
 })
 
