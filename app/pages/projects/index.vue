@@ -132,7 +132,7 @@ useHead({
   meta: [{ name: 'description', content: '查看 Xo Studio 的剪辑、调色与后期作品。' }]
 })
 
-const { data: projects } = await useFetch<any[]>('/api/projects')
+const { data: projects } = useFetch<any[]>('/api/projects', { lazy: true })
 const currentFilter = ref('all')
 
 const visibleFilterOpts = computed(() => {

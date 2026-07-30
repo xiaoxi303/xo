@@ -116,7 +116,8 @@ useHead({
   meta: [{ name: 'description', content: '了解电影调色指导 Xo 的工作年谱、调色流程与后期制作观念。' }]
 })
 
-const { data: siteConfig, refresh: refreshAboutConfig } = await useFetch<any>('/api/site-config', {
+const { data: siteConfig, refresh: refreshAboutConfig } = useFetch<any>('/api/site-config', {
+  lazy: true,
   key: 'site-config-about-fresh',
   getCachedData: () => undefined
 })

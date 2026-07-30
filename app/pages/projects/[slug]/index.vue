@@ -613,9 +613,9 @@ const mainVideoRef = ref<HTMLVideoElement | null>(null)
 const blurVideoRef = ref<HTMLVideoElement | null>(null)
 
 // Fetch project list (passwords are NEVER returned — only hasPassword:boolean)
-const { data: projects } = await useFetch<any[]>('/api/projects')
+const { data: projects } = useFetch<any[]>('/api/projects', { lazy: true })
 const project = computed(() => (projects.value || []).find(p => p.slug === slug))
-const { data: siteConfig } = await useFetch<any>('/api/site-config')
+const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
 const activeVideoIndex = ref(0)
 const parseVideoUrls = (input: any) => {
   if (Array.isArray(input)) return input
@@ -645,7 +645,7 @@ watch(projectVideoUrls, (urls) => {
 })
 
 // Check unlock status from server (uses HTTP-only cookie)
-const { data: unlockStatus } = await useFetch<any>(`/api/projects/${slug}/check`)
+const { data: unlockStatus } = useFetch<any>(`/api/projects/${slug}/check`, { lazy: true })
 
 const isUnlocked = ref(!!(unlockStatus.value?.unlocked))
 const inputPassword = ref('')

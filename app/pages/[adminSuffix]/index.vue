@@ -2562,13 +2562,14 @@ const router = useRouter()
 const currentSuffix = route.params.adminSuffix as string
 
 // Fetch config to validate suffix (only on client or SSR)
-const { data: _rawConfig } = await useFetch<any>('/api/site-config')
-const configuredPath = _rawConfig.value?.admin?.adminPath || 'admin'
+const { data: _rawConfig } = useFetch<any>('/api/site-config', { lazy: true })
+const configuredPath = computed(() => _rawConfig.value?.admin?.adminPath || 'admin')
 
-// If the suffix in the URL doesn't match the configured admin path, redirect to 404
-if (currentSuffix !== configuredPath) {
-  throw createError({ statusCode: 404, statusMessage: 'Page not found.' })
-}
+watch(_rawConfig, (cfg) => {
+  if (cfg?.admin?.adminPath && currentSuffix !== cfg.admin.adminPath) {
+    throw createError({ statusCode: 404, statusMessage: 'Page not found.' })
+  }
+}, { immediate: true })
 
 useHead({ title: '配置工作台 — Xo' })
 

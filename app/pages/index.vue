@@ -427,8 +427,8 @@ const heroCardRef = ref<HTMLElement | null>(null)
 const sectionHeaderRef = ref<HTMLElement | null>(null)
 
 // Data fetching sites config & projects list
-const { data: siteConfig } = await useFetch<any>('/api/site-config')
-const { data: projects } = await useFetch<any[]>('/api/projects')
+const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
+const { data: projects } = useFetch<any[]>('/api/projects', { lazy: true })
 
 // Blog store initialization for Homepage preview section
 const blogStore = useBlogStore()
