@@ -215,15 +215,26 @@
 <script setup lang="ts">
 const preloaderDone = ref(false)
 
+if (import.meta.client) {
+  try {
+    if (sessionStorage.getItem('xo_preloader_seen') === '1') {
+      preloaderDone.value = true
+    }
+  } catch (e) {}
+}
+
 const onPreloaderComplete = () => {
   preloaderDone.value = true
   if (import.meta.client) {
+    try {
+      sessionStorage.setItem('xo_preloader_seen', '1')
+    } catch (e) {}
     document.body.style.overflow = ''
   }
 }
 
-const { data: siteConfigData } = await useFetch('/api/site-config')
-const siteConfig = useState('site-config', () => siteConfigData.value)
+const { data: siteConfigData } = useFetch('/api/site-config', { lazy: true })
+const siteConfig = useState('site-config', () => siteConfigData.value || {})
 
 const showAnnouncementDetail = ref(false)
 const showBanner = ref(true)
