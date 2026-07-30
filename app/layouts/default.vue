@@ -315,13 +315,13 @@ const route = useRoute()
 const configuredAdminPath = computed(() => siteConfig.value?.admin?.adminPath || 'admin')
 
 const isAdminPage = computed(() => {
-  const path = (route.path || '').replace(/^\/|\\/$/g, '')
-  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\\/$/g, '')
+  const path = (route.path || '').replace(/^\/|\/$/, '')
+  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\/$/, '')
   return path === adminPath || path.startsWith(`${adminPath}/`)
 })
 
 const isPanelPage = computed(() => {
-  const path = (route.path || '').replace(/^\/|\\/$/g, '')
+  const path = (route.path || '').replace(/^\/|\/$/, '')
   const isClient = path === 'client' || path.startsWith('client/') || path === 'login' || path === 'register'
   return isAdminPage.value || isClient
 })
