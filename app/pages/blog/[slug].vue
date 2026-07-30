@@ -220,7 +220,7 @@ const route = useRoute()
 const slugParam = computed(() => route.params.slug as string)
 
 const blogStore = useBlogStore()
-await blogStore.init()
+blogStore.init()
 
 const post = computed(() => blogStore.getPostBySlug(slugParam.value))
 

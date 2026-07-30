@@ -112,9 +112,13 @@ export const useBlogStore = () => {
 
   const getPostsByCategory = (categorySlug: string) => {
     if (!categorySlug || categorySlug === 'all') return getPublishedPosts()
-    const cat = categories.value.find(c => c && (c.slug.toLowerCase() === categorySlug.toLowerCase() || c.name.toLowerCase() === categorySlug.toLowerCase()))
-    const catName = cat ? cat.name : categorySlug
-    return getPublishedPosts().filter(p => p && p.category.toLowerCase() === catName.toLowerCase())
+    let decoded = categorySlug
+    try { decoded = decodeURIComponent(categorySlug) } catch {}
+    const low = decoded.toLowerCase()
+    
+    const cat = categories.value.find(c => c && (c.slug.toLowerCase() === low || c.name.toLowerCase() === low))
+    const catName = cat ? cat.name.toLowerCase() : low
+    return getPublishedPosts().filter(p => p && (p.category.toLowerCase() === catName || p.category.toLowerCase() === low))
   }
 
   // Actions

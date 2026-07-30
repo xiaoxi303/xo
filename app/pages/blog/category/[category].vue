@@ -82,7 +82,7 @@ const route = useRoute()
 const categoryParam = computed(() => (route.params.category as string) || 'all')
 
 const blogStore = useBlogStore()
-await blogStore.init()
+blogStore.init()
 
 const categories = computed(() => blogStore.categories.value)
 const currentCategoryObj = computed(() => categories.value.find(c => c.slug.toLowerCase() === categoryParam.value.toLowerCase()))

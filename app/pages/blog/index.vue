@@ -181,11 +181,10 @@
 </template>
 
 <script setup lang="ts">
-const { data: siteConfigData } = await useFetch<any>('/api/site-config')
-const siteConfig = useState('site-config', () => siteConfigData.value)
+const { data: siteConfig } = await useFetch<any>('/api/site-config')
 
 const blogStore = useBlogStore()
-await blogStore.init()
+blogStore.init()
 
 const searchQuery = ref('')
 const activeCategory = ref('all')
