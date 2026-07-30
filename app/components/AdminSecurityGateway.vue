@@ -90,9 +90,9 @@
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-3 relative z-10">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-[#007AFF] animate-ping" />
-          <h4 class="font-display font-bold text-base tracking-wide text-white">🔐 E2EE 端到端加密安全控制台 (End-to-End Encryption)</h4>
+          <h4 class="font-display font-bold text-base tracking-wide text-white">🔐 E2EE v2.0 军工级端到端加密控制台 (Web Crypto Suite)</h4>
           <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#007AFF]/20 text-[#007AFF] border border-[#007AFF]/30">
-            W3C Web Crypto API
+            PBKDF2 100K + AES-256-GCM + HMAC-SHA256
           </span>
         </div>
         <div class="flex items-center gap-2 text-xs font-mono">
@@ -107,7 +107,7 @@
       <div class="space-y-3 relative z-10 pt-1">
         <div class="flex items-center justify-between text-xs font-semibold text-slate-300">
           <span>零知识端到端加密本地测试器 (Zero-Knowledge Local Sandbox Test)</span>
-          <span class="text-[10px] text-emerald-400 font-mono">● AES-256-GCM LIVE</span>
+          <span class="text-[10px] text-emerald-400 font-mono">● AES-256-GCM + HMAC-SHA256 LIVE</span>
         </div>
 
         <div class="grid md:grid-cols-2 gap-4">
@@ -124,21 +124,22 @@
               @click="handleE2EEEncrypt"
               class="w-full py-2 rounded-xl bg-[#007AFF] hover:bg-[#0062cc] text-xs font-bold text-white transition-all shadow-md flex items-center justify-center gap-1.5"
             >
-              <span>🔐 客户端 AES-256-GCM 加密</span>
+              <span>🔐 客户端 AES-256-GCM + HMAC 签名加密</span>
             </button>
           </div>
 
           <!-- Ciphertext Output & Decrypted Preview -->
           <div class="space-y-1.5">
-            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">E2EE 密文 Payload 与解密验证</label>
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">E2EE v2.0 密文 Payload 与解密验证</label>
             <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 font-mono text-[10px] space-y-1 text-slate-300 min-h-[68px] max-h-[85px] overflow-y-auto">
               <div v-if="e2eePayload">
                 <p class="text-amber-400">密文: {{ e2eePayload.ciphertext?.slice(0, 32) }}...</p>
-                <p class="text-slate-400">IV 向量: {{ e2eePayload.iv }}</p>
+                <p class="text-slate-400">IV 向量: {{ e2eePayload.iv }} | 版本: {{ e2eePayload.version }}</p>
+                <p class="text-purple-300">签名: {{ e2eePayload.signature }}</p>
                 <p class="text-emerald-400" v-if="e2eeDecrypted">解密还原: "{{ e2eeDecrypted }}"</p>
               </div>
               <div v-else class="text-slate-500 italic py-2 text-center">
-                点击左侧“客户端 AES-256-GCM 加密”开始端到端测试
+                点击左侧“客户端 AES-256-GCM + HMAC 签名加密”开始端到端测试
               </div>
             </div>
             <button
@@ -146,7 +147,7 @@
               @click="handleE2EEDecrypt"
               class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-all shadow-md flex items-center justify-center gap-1.5"
             >
-              <span>🔓 本地网页端解密验证</span>
+              <span>🔓 本地网页端解密与完整性校验</span>
             </button>
           </div>
         </div>

@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
     contact: finalContact,
     projectSlug: body.projectSlug,
     projectTitle: body.projectTitle,
-    reason: body.reason || '',
+    requestReason: body.reason || '',
     clientUsername,
     clientEmail,
     ip,
