@@ -326,23 +326,24 @@ const generatePoster = async () => {
       qrContainer.innerHTML = generateOfflineQRSVG(68)
     }
 
-    // 2. Preload images inside poster element
+    // 2. Preload images inside poster element with 400ms safety timeout
     const imgs = Array.from(posterEl.querySelectorAll('img'))
-    await Promise.all(imgs.map(img => {
+    const preloadPromise = Promise.all(imgs.map(img => {
       if (img.complete) return Promise.resolve()
       return new Promise(res => {
         img.onload = res
         img.onerror = res
       })
     }))
+    const timeoutPromise = new Promise(res => setTimeout(res, 400))
+    await Promise.race([preloadPromise, timeoutPromise])
 
-    // Small delay to ensure layout reflow
-    await new Promise(r => setTimeout(r, 200))
-
-    // 3. Render PNG using html-to-image
+    // 3. Render PNG using html-to-image (skipFonts prevents network font fetching hangs)
     const dataUrl = await toPng(posterEl, {
-      quality: 1,
+      quality: 0.95,
       pixelRatio: 2,
+      skipFonts: true,
+      cacheBust: false,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#090d16',
