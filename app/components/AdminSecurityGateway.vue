@@ -90,13 +90,16 @@
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-3 relative z-10">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-          <h4 class="font-display font-bold text-base tracking-wide text-white">💎 E2EE v3.0 ULTRA 顶级量子防御端到端加密矩阵 (Web Crypto Hybrid)</h4>
+          <h4 class="font-display font-bold text-base tracking-wide text-white">💎 E2EE v4.0 QUANTUM MATRIX 顶级量子防御端到端加密矩阵</h4>
           <span class="text-[9px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            HKDF-SHA512 + AES-256-GCM + ZKP-SHA512
+            HKDF-SHA512 + AES-256-GCM + ZKP-SHA512 + Nonce
           </span>
         </div>
         <div class="flex items-center gap-2 text-xs font-mono">
-          <span class="text-slate-400">量子指纹 (SHA-512):</span>
+          <button @click="handleE2EERotateKey" class="text-[10px] font-mono font-bold px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all" title="轮换密钥">
+            🔄 轮换密钥
+          </button>
+          <span class="text-slate-400">量子指纹:</span>
           <span class="px-2.5 py-1 rounded-full bg-white/10 text-amber-300 font-bold border border-amber-500/30">
             {{ e2eeFingerprint || '512-BIT-KEY' }}
           </span>
@@ -107,7 +110,7 @@
       <div class="space-y-3 relative z-10 pt-1">
         <div class="flex items-center justify-between text-xs font-semibold text-slate-300">
           <span>零知识端到端加密高阶测试矩阵 (Zero-Knowledge Hybrid Local Sandbox Test)</span>
-          <span class="text-[10px] text-emerald-400 font-mono">● AES-256-GCM + HKDF-SHA512 + ZKP-PROOF LIVE</span>
+          <span class="text-[10px] text-emerald-400 font-mono">● AES-256-GCM + HKDF-SHA512 + ZKP-MATRIX LIVE</span>
         </div>
 
         <div class="grid md:grid-cols-2 gap-4">
@@ -124,23 +127,23 @@
               @click="handleE2EEEncrypt"
               class="w-full py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-xs font-bold text-white transition-all shadow-lg flex items-center justify-center gap-1.5"
             >
-              <span>🔐 顶级 HKDF-SHA512 + AES-256-GCM + ZKP 签名加密</span>
+              <span>🔐 顶级 HKDF-SHA512 + AES-256-GCM + Nonce 矩阵加密</span>
             </button>
           </div>
 
           <!-- Ciphertext Output & Decrypted Preview -->
           <div class="space-y-1.5">
-            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">E2EE v3.0 密文 Payload 与解密验证</label>
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">E2EE v4.0 密文 Payload 与解密验证</label>
             <div class="p-2.5 rounded-xl bg-black/50 border border-white/10 font-mono text-[10px] space-y-1 text-slate-300 min-h-[75px] max-h-[95px] overflow-y-auto">
               <div v-if="e2eePayload">
                 <p class="text-amber-300">密文: {{ e2eePayload.ciphertext?.slice(0, 36) }}...</p>
-                <p class="text-slate-400">IV 向量: {{ e2eePayload.iv }} | HKDF: {{ e2eePayload.hkdfHash }}</p>
+                <p class="text-slate-400">IV 向量: {{ e2eePayload.iv }} | Nonce: {{ e2eePayload.epochNonce }}</p>
                 <p class="text-indigo-300">签名: {{ e2eePayload.signature }}</p>
                 <p class="text-sky-300" v-if="e2eePayload.zkpProof">零知识证明: {{ e2eePayload.zkpProof }}</p>
                 <p class="text-emerald-400" v-if="e2eeDecrypted">解密还原: "{{ e2eeDecrypted }}"</p>
               </div>
               <div v-else class="text-slate-500 italic py-2 text-center">
-                点击左侧“顶级 HKDF-SHA512 + AES-256-GCM + ZKP 签名加密”开始端到端测试
+                点击左侧“顶级 HKDF-SHA512 + AES-256-GCM + Nonce 矩阵加密”开始端到端测试
               </div>
             </div>
             <button
@@ -167,7 +170,7 @@ type SecurityLog = {
   status: 'blocked' | 'success' | 'warning'
 }
 
-import { encryptE2EE, decryptE2EE, getE2EEFingerprint } from '../utils/e2ee'
+import { encryptE2EE, decryptE2EE, getE2EEFingerprint, rotateE2EEKey } from '../utils/e2ee'
 
 const totalBlocked = ref(0)
 const diskStatus = ref('读取中...')
@@ -177,6 +180,17 @@ const e2eeInputText = ref('Xo Studio - 2026 核心机密商业调色数据')
 const e2eePayload = ref<any>(null)
 const e2eeDecrypted = ref('')
 const e2eeFingerprint = ref('')
+
+const handleE2EERotateKey = async () => {
+  try {
+    await rotateE2EEKey()
+    e2eeFingerprint.value = await getE2EEFingerprint()
+    e2eePayload.value = null
+    e2eeDecrypted.value = ''
+  } catch (e: any) {
+    alert('密钥轮换失败: ' + e.message)
+  }
+}
 
 const handleE2EEEncrypt = async () => {
   if (!e2eeInputText.value.trim()) return

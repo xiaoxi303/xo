@@ -38,34 +38,8 @@ export default defineNuxtConfig({
     transpile: ['gsap']
   },
 
-  // Vite Ultra Obfuscation & Bundle Shielding Configuration
-  vite: {
-    build: {
-      sourcemap: false,
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true,
-          pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
-          passes: 3
-        },
-        mangle: {
-          toplevel: true,
-          eval: true
-        },
-        format: {
-          comments: false
-        }
-      },
-      rollupOptions: {
-        output: {
-          chunkFileNames: '_nuxt/[hash:16].js',
-          entryFileNames: '_nuxt/[hash:16].js',
-          assetFileNames: '_nuxt/[hash:16][extname]'
-        }
-      }
-    }
+  experimental: {
+    appManifest: false
   },
 
   // @nuxt/image 配置 (使用服务器磁盘 IPX 高效图像处理引擎)
@@ -89,6 +63,35 @@ export default defineNuxtConfig({
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'SAMEORIGIN',
         'Referrer-Policy': 'strict-origin-when-cross-origin'
+      }
+    }
+  },
+
+  // Production-only Terser Ultra Obfuscation & Bundle Shielding Configuration
+  $production: {
+    vite: {
+      build: {
+        sourcemap: false,
+        minify: 'terser',
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+            pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
+            passes: 5,
+            unsafe: true,
+            unsafe_comps: true,
+            unsafe_math: true,
+            unsafe_proto: true
+          },
+          mangle: {
+            toplevel: true,
+            eval: true
+          },
+          format: {
+            comments: false
+          }
+        }
       }
     }
   },

@@ -2,7 +2,7 @@ import { dbGetProjectsRaw } from '../../../utils/db'
 import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
-import { getDailyPassword, getBeijingDateString, verifyPassword } from '../../../utils/password-utils'
+import { getDailyPassword, getBeijingDateString, verifyProjectPassword } from '../../../utils/password-utils'
 
 const unlockTokens = new Map()
 const UNLOCK_TTL_MS = 24 * 60 * 60 * 1000
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify password (case-insensitive)
-  if (!verifyPassword(password, validPassword)) {
+  if (!verifyProjectPassword(password, validPassword)) {
     const ip = getRealClientIP(event)
     logSecurityEvent({
       type: 'Project Password Guard',

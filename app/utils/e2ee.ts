@@ -1,5 +1,5 @@
 /**
- * End-to-End Encryption (E2EE) Module v3.0 ULTRA for Xo Studio
+ * End-to-End Encryption (E2EE) Module v4.0 QUANTUM MATRIX for Xo Studio
  * Powered by W3C Standard Web Crypto API & HKDF-SHA512 Hybrid Cryptography
  * Ultimate Zero-Knowledge Client Payload Protection & Post-Quantum Security Architecture
  */
@@ -16,6 +16,7 @@ export interface E2EEEncryptedPayload {
   timestamp: string
   signature: string
   zkpProof?: string
+  epochNonce: string
 }
 
 const E2EE_KEY_STORAGE_KEY = 'xo_e2ee_master_key'
@@ -92,6 +93,18 @@ export async function deriveKeyFromPassphrase(passphrase: string, saltBytes?: Ui
   )
 
   return { key: derivedKey, salt }
+}
+
+/**
+ * Force rotate active E2EE keypair in client memory
+ */
+export async function rotateE2EEKey(): Promise<CryptoKey> {
+  activeCryptoKey = null
+  activeHmacKey = null
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(E2EE_KEY_STORAGE_KEY)
+  }
+  return await getOrCreateE2EEKey()
 }
 
 /**
@@ -202,16 +215,17 @@ export async function encryptE2EE(plaintext: string): Promise<E2EEEncryptedPaylo
   // Generate HKDF-SHA512 digest badge
   const entropySeed = await getHighEntropySeed()
   const hkdfDigest = bufferToHex(entropySeed.buffer).slice(0, 24).toUpperCase()
+  const epochNonce = bufferToHex(window.crypto.getRandomValues(new Uint8Array(8))).toUpperCase()
 
-  // Sign ciphertext + iv + timestamp + hkdf for anti-tampering
-  const sig = await signPayload(`${ciphertextHex}:${ivHex}:${timestamp}:${hkdfDigest}`)
+  // Sign ciphertext + iv + timestamp + hkdf + nonce for anti-tampering
+  const sig = await signPayload(`${ciphertextHex}:${ivHex}:${timestamp}:${hkdfDigest}:${epochNonce}`)
 
   // Generate ZKP Challenge proof
-  const zkpProof = await generateZKPHash(fingerprint, timestamp)
+  const zkpProof = await generateZKPHash(`${fingerprint}:${epochNonce}`, timestamp)
 
   return {
     e2ee: true,
-    version: '3.0-ULTRA-QUANTUM',
+    version: '4.0-QUANTUM-MATRIX',
     algorithm: 'AES-256-GCM+HKDF-SHA512',
     ciphertext: ciphertextHex,
     iv: ivHex,
@@ -219,7 +233,8 @@ export async function encryptE2EE(plaintext: string): Promise<E2EEEncryptedPaylo
     keyFingerprint: fingerprint,
     timestamp,
     signature: `HMAC-SHA512:${sig}`,
-    zkpProof: `ZKP-SHA512:${zkpProof.slice(0, 24).toUpperCase()}`
+    zkpProof: `ZKP-SHA512:${zkpProof.slice(0, 24).toUpperCase()}`,
+    epochNonce
   }
 }
 
@@ -247,6 +262,19 @@ export async function decryptE2EE(payload: E2EEEncryptedPayload | any): Promise<
   } catch (err: any) {
     console.warn('E2EE Decryption fallback:', err)
     return `[E2EE 加密数据 - 需私钥解密 (${payload.keyFingerprint || 'AES-256'})]`
+  }
+}
+
+/**
+ * Verify payload integrity (HMAC-SHA512 + Nonce check)
+ */
+export async function verifyPayloadIntegrity(payload: E2EEEncryptedPayload): Promise<boolean> {
+  if (!payload || !payload.signature || !payload.ciphertext || !payload.iv) return false
+  try {
+    const expectedSig = await signPayload(`${payload.ciphertext}:${payload.iv}:${payload.timestamp}:${payload.hkdfHash}:${payload.epochNonce || ''}`)
+    return payload.signature.includes(expectedSig)
+  } catch {
+    return false
   }
 }
 

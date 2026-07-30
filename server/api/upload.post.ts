@@ -1,8 +1,15 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { randomBytes } from 'crypto'
+import { validateSession, SESSION_COOKIE } from '../utils/auth'
 
 export default defineEventHandler(async (event) => {
+  // Authentication check (admin session only)
+  const token = getCookie(event, SESSION_COOKIE)
+  if (!token || !validateSession(token)) {
+    throw createError({ statusCode: 401, statusMessage: '未经授权的上传请求，请先登录管理员账户。' })
+  }
+
   // Read multipart form data
   const multipart = await readMultipartFormData(event)
   if (!multipart || multipart.length === 0) {

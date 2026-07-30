@@ -1,4 +1,5 @@
 import { dbGetSiteConfig, dbSaveSiteConfig, getD1Database } from '../utils/db'
+import { validateSession, SESSION_COOKIE } from '../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const method = event.method
@@ -8,6 +9,12 @@ export default defineEventHandler(async (event) => {
   }
 
   if (method === 'PUT') {
+    // Authentication check (admin session only)
+    const token = getCookie(event, SESSION_COOKIE)
+    if (!token || !validateSession(token)) {
+      throw createError({ statusCode: 401, statusMessage: '未经授权的修改操作，请先登录管理员。' })
+    }
+
     const db = await getD1Database(event)
 
     try {

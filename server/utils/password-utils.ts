@@ -25,7 +25,7 @@ export function getBeijingDateString(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
 }
 
-export function verifyPassword(inputPassword: string, validPassword: string): boolean {
+export function verifyProjectPassword(inputPassword: string, validPassword: string): boolean {
   const normalizedInput = (inputPassword || '').toString().trim().toUpperCase();
   const normalizedValid = (validPassword || '').toString().trim().toUpperCase();
   return normalizedInput === normalizedValid;

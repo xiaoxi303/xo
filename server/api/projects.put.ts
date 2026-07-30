@@ -1,6 +1,13 @@
 import { dbUpdateProject, getD1Database } from '../utils/db'
+import { validateSession, SESSION_COOKIE } from '../utils/auth'
 
 export default defineEventHandler(async (event) => {
+  // Authentication check (admin session only)
+  const token = getCookie(event, SESSION_COOKIE)
+  if (!token || !validateSession(token)) {
+    throw createError({ statusCode: 401, statusMessage: '未经授权的请求，请先登录管理员。' })
+  }
+
   const body = await readBody(event)
 
   if (!body.slug || !body.title) {
