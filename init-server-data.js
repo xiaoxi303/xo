@@ -115,6 +115,26 @@ if (!fs.existsSync(pageViewsPath)) {
   console.log('⏭️  content/page-views.json already exists — skipped')
 }
 
+// ── Default blog-posts & categories ──────────────────────────────────────
+const blogPostsPath = path.join(contentDir, 'blog-posts.json')
+const blogCatsPath = path.join(contentDir, 'blog-categories.json')
+
+if (!fs.existsSync(blogCatsPath)) {
+  const defaultCats = [
+    { id: '1', name: '全部', slug: 'all', description: '所有精选文章与动态', count: 0 },
+    { id: '2', name: 'Design', slug: 'design', description: 'UI/UX 交互设计与胶囊设计系统', count: 0 },
+    { id: '3', name: 'Tech', slug: 'tech', description: '前沿前端技术与架构实践', count: 0 },
+    { id: '4', name: 'Life', slug: 'life', description: '灵感、读书笔记与剪辑日常', count: 0 }
+  ]
+  fs.writeFileSync(blogCatsPath, JSON.stringify(defaultCats, null, 2), 'utf-8')
+  console.log('✅ Created content/blog-categories.json')
+}
+
+if (!fs.existsSync(blogPostsPath)) {
+  fs.writeFileSync(blogPostsPath, JSON.stringify([], null, 2), 'utf-8')
+  console.log('✅ Created content/blog-posts.json')
+}
+
 
 
 // ── Summary ───────────────────────────────────────────────────────────────

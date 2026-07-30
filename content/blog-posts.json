@@ -1,5 +1,29 @@
 [
   {
+    "id": "post-1785336579825",
+    "title": "新建精选切片文章",
+    "slug": "my-new-post",
+    "excerpt": "## 核心设计规范 (Design Principles)\n\n1. **小胶囊导航栏 (Floating Pill Bar)**\n   - 当用户滚动时悬浮于顶部，使用 `#007AFF` 活跃颜色、...",
+    "content": "## 核心设计规范 (Design Principles)\n\n1. **小胶囊导航栏 (Floating Pill Bar)**\n   - 当用户滚动时悬浮于顶部，使用 `#007AFF` 活跃颜色、轻薄玻璃态背景、无边框阴影以及 `#F8F8F8` 的轻盈底色。\n\n2. **胶囊标签位置 (Pill Badges)**\n   - 文字右侧以浅灰配色 (如 `5 min read`)，让这些小标签如 `tutorial` 以轻柔的样式呈现。\n\n```javascript\n// 示例 胶囊风格色彩计算\nfunction getCapsuleStyle(isActive) {\n  return {\n    backgroundColor: isActive ? '#007AFF' : '#F8F8F8',\n    color: isActive ? '#FFFFFF' : '#333333',\n    borderRadius: '9999px',\n    padding: '6px 20px',\n    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'\n  }\n}\n```\n\n## 页面等级的代码块 (Code Block UX)\n\n正文中代码块采用 `18px` 大圆角等线框、右上角提供人性量感 **Copy Code** 按置置到以自然勾通。\n\n```bash\nnpm install @capsule-design/ui\n```",
+    "category": "测试",
+    "tags": [
+      "UI Design",
+      "Tutorial"
+    ],
+    "author": {
+      "name": "Antigravity Design",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      "role": "Lead Designer"
+    },
+    "readTime": "3 min read",
+    "coverImage": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
+    "status": "Published",
+    "seoTitle": "",
+    "createdAt": "2026-07-29",
+    "updatedAt": "2026-07-29T14:49:39.833Z",
+    "views": 0
+  },
+  {
     "id": "post-1785335613759",
     "title": "这是一篇测试文章",
     "slug": "my-new-post",
