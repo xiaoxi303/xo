@@ -384,9 +384,9 @@ const handleClientLogout = async () => {
   } catch (e) {}
 }
 
-// Always release body overflow on any route change to prevent blank page lock
+// Always release body overflow on any route change — unconditional to prevent blank page lock
 watch(() => route.path, () => {
-  if (import.meta.client && preloaderDone.value) {
+  if (import.meta.client) {
     document.body.style.overflow = ''
   }
 })

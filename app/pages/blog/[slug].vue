@@ -337,8 +337,8 @@ const generatePoster = async () => {
     ctx.font = '20px -apple-system, "PingFang SC", sans-serif'
     ctx.fillText(`${post.value.author?.role || 'Editor'} · xo.xoxox.bond`, 136, avatarY + 56)
 
-    // ── QR Code (pixel-art pattern) ───────────────────────────────────
-    drawQR(ctx, W - 160, H - 156, 112)
+    // ── QR Code (real scannable, from QuickChart.io) ────────────────────
+    await drawRealQR(ctx, W - 160, H - 156, 112)
     ctx.fillStyle = '#64748b'
     ctx.font = '18px -apple-system, "PingFang SC", sans-serif'
     ctx.textAlign = 'center'
@@ -426,38 +426,31 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
   return curY
 }
 
-// Helper: draw a simple decorative QR-like pattern
-function drawQR(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
-  // white background
+// Helper: draw a REAL scannable QR code using QuickChart.io API
+async function drawRealQR(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  // White rounded background
   ctx.fillStyle = '#ffffff'
   ctx.beginPath()
-  ctx.roundRect(x, y, size, size, 12)
+  ctx.roundRect(x, y, size, size, 14)
   ctx.fill()
 
-  const cell = size / 9
-  const pattern = [
-    [1,1,1,1,1,1,1,0,1],
-    [1,0,0,0,0,0,1,0,1],
-    [1,0,1,1,1,0,1,0,0],
-    [1,0,1,1,1,0,1,0,1],
-    [1,0,0,0,0,0,1,1,0],
-    [1,1,1,1,1,1,1,0,0],
-    [0,0,0,0,0,0,0,1,1],
-    [0,1,0,1,1,0,1,0,1],
-    [1,1,0,0,1,0,0,1,1],
-  ]
-  ctx.fillStyle = '#0f172a'
-  for (let row = 0; row < 9; row++) {
-    for (let col = 0; col < 9; col++) {
-      if (pattern[row][col]) {
-        ctx.fillRect(x + col * cell + 4, y + row * cell + 4, cell - 1, cell - 1)
-      }
-    }
+  try {
+    // Get current page URL or use site URL for the QR content
+    const qrText = encodeURIComponent(window.location.href)
+    // QuickChart.io generates real, scannable QR codes as PNG images
+    const qrUrl = `https://quickchart.io/qr?text=${qrText}&size=200&margin=1&ecLevel=M&format=png&dark=0f172a&light=ffffff`
+    const qrImg = await loadImage(qrUrl)
+    // Draw QR code inside the white background with 6px padding
+    const pad = 6
+    ctx.drawImage(qrImg, x + pad, y + pad, size - pad * 2, size - pad * 2)
+  } catch (e) {
+    // Fallback: draw simple placeholder text
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = `${size * 0.12}px monospace`
+    ctx.textAlign = 'center'
+    ctx.fillText('QR Code', x + size / 2, y + size / 2)
+    ctx.textAlign = 'left'
   }
-
-  // blue accent dot
-  ctx.fillStyle = '#007AFF'
-  ctx.fillRect(x + 5 * cell + 4, y + 5 * cell + 4, cell - 1, cell - 1)
 }
 
 // Simple markdown to HTML renderer
