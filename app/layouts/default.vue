@@ -213,22 +213,12 @@
 </template>
 
 <script setup lang="ts">
-const preloaderDone = ref(false)
-
-if (import.meta.client) {
-  try {
-    if (sessionStorage.getItem('xo_preloader_seen') === '1') {
-      preloaderDone.value = true
-    }
-  } catch (e) {}
-}
+// useState persists across route changes — does NOT reset on navigation
+const preloaderDone = useState('xo_preloader_done', () => false)
 
 const onPreloaderComplete = () => {
   preloaderDone.value = true
   if (import.meta.client) {
-    try {
-      sessionStorage.setItem('xo_preloader_seen', '1')
-    } catch (e) {}
     document.body.style.overflow = ''
   }
 }
@@ -325,13 +315,13 @@ const route = useRoute()
 const configuredAdminPath = computed(() => siteConfig.value?.admin?.adminPath || 'admin')
 
 const isAdminPage = computed(() => {
-  const path = (route.path || '').replace(/^\/|\/$/g, '')
-  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\/$/g, '')
+  const path = (route.path || '').replace(/^\/|\\/$/g, '')
+  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\\/$/g, '')
   return path === adminPath || path.startsWith(`${adminPath}/`)
 })
 
 const isPanelPage = computed(() => {
-  const path = (route.path || '').replace(/^\/|\/$/g, '')
+  const path = (route.path || '').replace(/^\/|\\/$/g, '')
   const isClient = path === 'client' || path.startsWith('client/') || path === 'login' || path === 'register'
   return isAdminPage.value || isClient
 })
@@ -397,8 +387,14 @@ const handleClientLogout = async () => {
 onMounted(() => {
   checkClientSession()
   checkBannerDismissal()
-  if (import.meta.client && !preloaderDone.value && !isPanelPage.value) {
-    document.body.style.overflow = 'hidden'
+  // CRITICAL: Always ensure body overflow is released when layout mounts
+  // This prevents body from staying locked if preloaderDone is already true
+  if (import.meta.client) {
+    if (preloaderDone.value || isPanelPage.value) {
+      document.body.style.overflow = ''
+    } else {
+      document.body.style.overflow = 'hidden'
+    }
   }
 })
 
