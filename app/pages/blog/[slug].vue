@@ -81,8 +81,8 @@
               <span class="w-2 h-2 rounded-full bg-[#007AFF] animate-pulse" />
               <span class="text-xs font-bold text-[#007AFF] tracking-wide uppercase font-mono">AI 智能总结</span>
             </div>
-            <span v-if="aiSummarySource === 'llm'" class="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#007AFF] text-white">LLM</span>
-            <span v-else-if="aiSummarySource === 'extract'" class="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">智能提取</span>
+            <span v-if="aiSummarySource === 'llm'" class="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#007AFF] text-white">LLM 智能生成</span>
+            <span v-else-if="aiSummarySource" class="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">智能提取</span>
             <span v-if="aiSummaryLoading" class="ml-auto flex items-center gap-1 text-[10px] text-slate-400">
               <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
               生成中...
@@ -247,41 +247,29 @@ const startTypewriter = (text: string) => {
 }
 
 const fetchAiSummary = async () => {
-  const fallback = post.value?.excerpt || ''
   if (!post.value?.content) {
-    // No content at all → show excerpt immediately, no loading
     aiSummaryLoading.value = false
-    aiSummaryDisplayText.value = fallback
+    aiSummaryDisplayText.value = post.value?.excerpt || ''
     return
   }
 
-  // First: probe whether AI is configured (fast check)
   aiSummaryLoading.value = true
   try {
-    const res = await $fetch<{ success: boolean; summary?: string; source?: string; noKey?: boolean }>('/api/blog/summary', {
+    const res = await $fetch<{ success: boolean; summary?: string; source?: string }>('/api/blog/summary', {
       method: 'POST',
       body: { content: post.value.content, title: post.value.title }
     })
 
-    if (res.noKey) {
-      // No API key configured → show excerpt directly, no animation, no loading
-      aiSummaryLoading.value = false
-      aiSummaryDisplayText.value = fallback
-      return
-    }
-
-    if (res.success && res.summary) {
-      // AI summary ready → typewriter animation
-      aiSummarySource.value = res.source as 'llm' | 'extract'
+    if (res?.success && res?.summary) {
+      aiSummarySource.value = (res.source || 'extract') as any
       aiSummaryLoading.value = false
       startTypewriter(res.summary)
       return
     }
-  } catch {}
+  } catch (e) {}
 
-  // Any error → show excerpt directly
   aiSummaryLoading.value = false
-  aiSummaryDisplayText.value = fallback
+  aiSummaryDisplayText.value = post.value?.excerpt || ''
 }
 
 onMounted(() => {
