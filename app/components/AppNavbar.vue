@@ -144,7 +144,7 @@ const navbarRef = ref<HTMLElement | null>(null)
 const isScrolled = ref(false)
 const mobileOpen = ref(false)
 
-const { data: siteConfig } = await useFetch<any>('/api/site-config')
+const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
 
 const navLinks = [
   { label: '首页', to: '/' },
