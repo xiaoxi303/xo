@@ -384,15 +384,22 @@ const handleClientLogout = async () => {
   } catch (e) {}
 }
 
+// Always release body overflow on any route change to prevent blank page lock
+watch(() => route.path, () => {
+  if (import.meta.client && preloaderDone.value) {
+    document.body.style.overflow = ''
+  }
+})
+
 onMounted(() => {
   checkClientSession()
   checkBannerDismissal()
-  // CRITICAL: Always ensure body overflow is released when layout mounts
-  // This prevents body from staying locked if preloaderDone is already true
   if (import.meta.client) {
+    // If preloader is already done (e.g. navigating between pages), ALWAYS release overflow
     if (preloaderDone.value || isPanelPage.value) {
       document.body.style.overflow = ''
     } else {
+      // First visit - lock scroll during preloader animation
       document.body.style.overflow = 'hidden'
     }
   }
