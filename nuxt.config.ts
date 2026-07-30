@@ -1,7 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-20',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
+
+  // Disable sourcemaps in production so source code cannot be reconstructed or inspected
+  sourcemap: false,
 
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
@@ -35,6 +38,36 @@ export default defineNuxtConfig({
     transpile: ['gsap']
   },
 
+  // Vite Ultra Obfuscation & Bundle Shielding Configuration
+  vite: {
+    build: {
+      sourcemap: false,
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+          pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
+          passes: 3
+        },
+        mangle: {
+          toplevel: true,
+          eval: true
+        },
+        format: {
+          comments: false
+        }
+      },
+      rollupOptions: {
+        output: {
+          chunkFileNames: '_nuxt/[hash:16].js',
+          entryFileNames: '_nuxt/[hash:16].js',
+          assetFileNames: '_nuxt/[hash:16][extname]'
+        }
+      }
+    }
+  },
+
   // @nuxt/image 配置 (使用服务器磁盘 IPX 高效图像处理引擎)
   image: {
     provider: 'ipx',
@@ -48,6 +81,17 @@ export default defineNuxtConfig({
   css: [
     '~/assets/css/main.css'
   ],
+
+  // Security headers & route rules
+  routeRules: {
+    '/**': {
+      headers: {
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Referrer-Policy': 'strict-origin-when-cross-origin'
+      }
+    }
+  },
 
   // Nuxt 4 目录规范
   future: {
