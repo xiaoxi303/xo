@@ -84,21 +84,21 @@
     </div>
 
     <!-- End-to-End Encryption (E2EE) Security Console -->
-    <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 text-white space-y-4 border border-blue-500/30 shadow-xl relative overflow-hidden">
-      <div class="absolute top-0 right-0 w-64 h-64 bg-[#007AFF]/10 rounded-full blur-3xl pointer-events-none" />
+    <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white space-y-4 border border-indigo-500/30 shadow-2xl relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-3 relative z-10">
         <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-[#007AFF] animate-ping" />
-          <h4 class="font-display font-bold text-base tracking-wide text-white">🔐 E2EE v2.0 军工级端到端加密控制台 (Web Crypto Suite)</h4>
-          <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#007AFF]/20 text-[#007AFF] border border-[#007AFF]/30">
-            PBKDF2 100K + AES-256-GCM + HMAC-SHA256
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+          <h4 class="font-display font-bold text-base tracking-wide text-white">💎 E2EE v3.0 ULTRA 顶级量子防御端到端加密矩阵 (Web Crypto Hybrid)</h4>
+          <span class="text-[9px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            HKDF-SHA512 + AES-256-GCM + ZKP-SHA512
           </span>
         </div>
         <div class="flex items-center gap-2 text-xs font-mono">
-          <span class="text-slate-400">密钥指纹:</span>
+          <span class="text-slate-400">量子指纹 (SHA-512):</span>
           <span class="px-2.5 py-1 rounded-full bg-white/10 text-amber-300 font-bold border border-amber-500/30">
-            {{ e2eeFingerprint || 'AES-256-GCM' }}
+            {{ e2eeFingerprint || '512-BIT-KEY' }}
           </span>
         </div>
       </div>
@@ -106,8 +106,8 @@
       <!-- Live E2EE Encryption & Decryption Interactive Tester -->
       <div class="space-y-3 relative z-10 pt-1">
         <div class="flex items-center justify-between text-xs font-semibold text-slate-300">
-          <span>零知识端到端加密本地测试器 (Zero-Knowledge Local Sandbox Test)</span>
-          <span class="text-[10px] text-emerald-400 font-mono">● AES-256-GCM + HMAC-SHA256 LIVE</span>
+          <span>零知识端到端加密高阶测试矩阵 (Zero-Knowledge Hybrid Local Sandbox Test)</span>
+          <span class="text-[10px] text-emerald-400 font-mono">● AES-256-GCM + HKDF-SHA512 + ZKP-PROOF LIVE</span>
         </div>
 
         <div class="grid md:grid-cols-2 gap-4">
@@ -118,28 +118,29 @@
               v-model="e2eeInputText"
               type="text"
               placeholder="输入需要端到端加密的敏感信息..."
-              class="w-full px-3.5 py-2 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#007AFF] font-mono"
+              class="w-full px-3.5 py-2 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-400 font-mono"
             />
             <button
               @click="handleE2EEEncrypt"
-              class="w-full py-2 rounded-xl bg-[#007AFF] hover:bg-[#0062cc] text-xs font-bold text-white transition-all shadow-md flex items-center justify-center gap-1.5"
+              class="w-full py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-xs font-bold text-white transition-all shadow-lg flex items-center justify-center gap-1.5"
             >
-              <span>🔐 客户端 AES-256-GCM + HMAC 签名加密</span>
+              <span>🔐 顶级 HKDF-SHA512 + AES-256-GCM + ZKP 签名加密</span>
             </button>
           </div>
 
           <!-- Ciphertext Output & Decrypted Preview -->
           <div class="space-y-1.5">
-            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">E2EE v2.0 密文 Payload 与解密验证</label>
-            <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 font-mono text-[10px] space-y-1 text-slate-300 min-h-[68px] max-h-[85px] overflow-y-auto">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">E2EE v3.0 密文 Payload 与解密验证</label>
+            <div class="p-2.5 rounded-xl bg-black/50 border border-white/10 font-mono text-[10px] space-y-1 text-slate-300 min-h-[75px] max-h-[95px] overflow-y-auto">
               <div v-if="e2eePayload">
-                <p class="text-amber-400">密文: {{ e2eePayload.ciphertext?.slice(0, 32) }}...</p>
-                <p class="text-slate-400">IV 向量: {{ e2eePayload.iv }} | 版本: {{ e2eePayload.version }}</p>
-                <p class="text-purple-300">签名: {{ e2eePayload.signature }}</p>
+                <p class="text-amber-300">密文: {{ e2eePayload.ciphertext?.slice(0, 36) }}...</p>
+                <p class="text-slate-400">IV 向量: {{ e2eePayload.iv }} | HKDF: {{ e2eePayload.hkdfHash }}</p>
+                <p class="text-indigo-300">签名: {{ e2eePayload.signature }}</p>
+                <p class="text-sky-300" v-if="e2eePayload.zkpProof">零知识证明: {{ e2eePayload.zkpProof }}</p>
                 <p class="text-emerald-400" v-if="e2eeDecrypted">解密还原: "{{ e2eeDecrypted }}"</p>
               </div>
               <div v-else class="text-slate-500 italic py-2 text-center">
-                点击左侧“客户端 AES-256-GCM + HMAC 签名加密”开始端到端测试
+                点击左侧“顶级 HKDF-SHA512 + AES-256-GCM + ZKP 签名加密”开始端到端测试
               </div>
             </div>
             <button
@@ -147,7 +148,7 @@
               @click="handleE2EEDecrypt"
               class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-all shadow-md flex items-center justify-center gap-1.5"
             >
-              <span>🔓 本地网页端解密与完整性校验</span>
+              <span>🔓 本地网页端解密与双向零知识签名校验</span>
             </button>
           </div>
         </div>
