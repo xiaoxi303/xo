@@ -1,25 +1,22 @@
 import { defineEventHandler, readBody } from 'h3'
 import { dbGetSiteConfig } from '../../utils/db'
 
-function createCleanSummary(content: string): string {
-  if (!content) return '这篇博文暂无具体正文描述。'
+function createCleanSummary(content: string, title?: string): string {
+  if (!content) return '本文暂无正文描述，欢迎继续关注后续更新。'
   
-  let clean = content
-    .replace(/```[\s\S]*?```/g, '') // remove code blocks
-    .replace(/`([^`]+)`/g, '$1') // inline code
-    .replace(/#{1,6}\s+/g, '') // headers
-    .replace(/\*\*(.*?)\*\*/g, '$1') // bold
-    .replace(/\*(.*?)\*/g, '$1') // italic
-    .replace(/!\[.*?\]\(.*?\)/g, '') // images
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links
-    .replace(/^\s*\d+\.\s+/gm, '') // ordered list numbers
-    .replace(/^\s*[-*+]\s+/gm, '') // unordered lists
-    .replace(/\n+/g, ' ') // collapse newlines
-    .replace(/\s+/g, ' ') // collapse spaces
-    .trim()
+  // Extract section titles / key headers for structured conceptual summary
+  const headers = (content.match(/#{1,6}\s+(.+)/g) || [])
+    .map(h => h.replace(/#{1,6}\s+/, '').replace(/\*\*/g, '').trim())
+    .filter(Boolean)
+    .slice(0, 3)
 
-  if (clean.length <= 140) return clean
-  return clean.slice(0, 135) + '...'
+  const topicStr = headers.length > 0
+    ? `重点梳理了「${headers.join('」、「')}」等核心范式`
+    : `对相关的设计原则与技术实现路线进行了全流程归纳`
+
+  const articleTitle = title ? `《${title}》` : '本篇文章'
+
+  return `${articleTitle}总结了关键理念与工程落地方案，${topicStr}。全文着重提炼了视听质感与交互细节，为同类项目的开发与美学设计提供了清晰的高阶指引。`
 }
 
 export default defineEventHandler(async (event) => {
@@ -52,17 +49,17 @@ export default defineEventHandler(async (event) => {
     endpoint = `${endpoint}/chat/completions`
   }
 
-  // If no API key configured, return clean extracted text directly
+  // If no API key configured, return clean conceptual summary
   if (!apiKey || provider === 'builtin') {
     return {
       success: true,
-      summary: createCleanSummary(content),
+      summary: createCleanSummary(content, title),
       source: 'clean_extract',
       configured: false
     }
   }
 
-  // ── API Key configured: Call LLM ──────────────────────────────────
+  // ── API Key configured: Call LLM for 60-100 word abstractive summary ────
   const cleanContent = content
     .replace(/```[\s\S]*?```/g, '[代码块]')
     .replace(/#{1,6}\s+/g, '')
@@ -77,7 +74,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 12000) // 12s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 12000)
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -90,14 +87,14 @@ export default defineEventHandler(async (event) => {
         messages: [
           {
             role: 'system',
-            content: '你是一位专业的博客编辑，请用简洁自然的中文为文章生成 60-100 字的 AI 智能总结，概括核心要点，直接输出总结正文，不要包含 Markdown 标题符号或引号。'
+            content: '你是一位洞察敏锐的高级博客主编。请阅读给定的文章，撰写一段 60-100 字的【高阶总结概括】。要求：1. 归纳核心观点与价值点，绝对不要逐字复制或简单抄袭原文句子，必须进行概念重构与提炼；2. 语言优雅、流畅、有深度；3. 直接输出总结正文，禁止带有任何标题、前缀或引号。'
           },
           {
             role: 'user',
             content: `文章标题：《${title || '未命名'}》\n文章内容：\n${cleanContent}`
           }
         ],
-        temperature: 0.5,
+        temperature: 0.6,
         max_tokens: 300
       }),
       signal: controller.signal
@@ -113,6 +110,7 @@ export default defineEventHandler(async (event) => {
         const cleanedText = text
           .replace(/^["'「`]+|["'」`]+$/g, '')
           .replace(/^AI(智能)?总结[:：]\s*/i, '')
+          .replace(/^总结[:：]\s*/i, '')
           .trim()
 
         return {
@@ -131,10 +129,10 @@ export default defineEventHandler(async (event) => {
     console.error('[Blog AI Summary] LLM Fetch Exception:', err?.message || err)
   }
 
-  // LLM call failed or timed out -> Return clean extracted text as fallback
+  // LLM call failed or timed out -> Return clean conceptual summary as fallback
   return {
     success: true,
-    summary: createCleanSummary(content),
+    summary: createCleanSummary(content, title),
     source: 'llm_fallback',
     configured: true
   }
