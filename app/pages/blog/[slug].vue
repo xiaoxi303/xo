@@ -145,70 +145,79 @@
     </div>
   </div>
 
-  <!-- Capsule Poster Template (Hidden, used for generation) -->
-  <div id="capsule-poster" style="display: none; position: fixed; left: -9999px; top: 0; width: 400px; padding: 0;">
-    <div style="background: linear-gradient(135deg, #f8f8f8 0%, #e8f4ff 50%, #f0f4ff 100%); border-radius: 28px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+  <!-- Capsule Poster Template (Rendered Off-Screen with full width and layout) -->
+  <div
+    id="capsule-poster"
+    style="position: fixed; left: -9999px; top: 0; width: 480px; z-index: -9999; visibility: visible; display: block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
+  >
+    <div style="background: linear-gradient(145deg, #090d16 0%, #1e1b4b 50%, #0f172a 100%); border-radius: 28px; padding: 28px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); color: #ffffff;">
+      <!-- Header Bar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-b: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #007AFF;"></div>
+          <span style="font-size: 13px; font-weight: 800; tracking-wide: 0.05em; color: #ffffff;">XO STUDIO · 胶囊精选海报</span>
+        </div>
+        <div style="padding: 4px 12px; background: #007AFF; color: #ffffff; border-radius: 999px; font-size: 11px; font-weight: 800;">
+          {{ post?.category || 'Blog' }}
+        </div>
+      </div>
+
       <!-- Cover Image -->
-      <div style="width: 100%; height: 220px; overflow: hidden; position: relative;">
+      <div v-if="post?.coverImage" style="width: 100%; height: 230px; border-radius: 20px; overflow: hidden; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
         <img
-          :src="post?.coverImage || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'"
+          :src="post.coverImage"
           style="width: 100%; height: 100%; object-fit: cover;"
           crossorigin="anonymous"
         />
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, rgba(248,248,248,0.9));"></div>
       </div>
-      
-      <!-- Content -->
-      <div style="padding: 24px 28px 28px;">
-        <!-- Category Badge -->
-        <div style="display: inline-block; padding: 4px 12px; background: #007AFF; color: white; border-radius: 999px; font-size: 11px; font-weight: 700; margin-bottom: 12px;">
-          {{ post?.category || 'Design' }}
+
+      <!-- Main Title -->
+      <h1 style="font-size: 22px; font-weight: 800; color: #ffffff; margin: 0 0 14px 0; line-height: 1.35; letter-spacing: -0.01em;">
+        {{ post?.title || '文章标题' }}
+      </h1>
+
+      <!-- AI Core Summary / Excerpt Highlights Card -->
+      <div style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 18px; padding: 16px; margin-bottom: 20px;">
+        <div style="display: flex; items-center; gap: 6px; margin-bottom: 8px;">
+          <span style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">🤖 AI 智能精炼要点</span>
         </div>
-        
-        <!-- Title -->
-        <h1 style="font-size: 20px; font-weight: 800; color: #1e293b; margin: 0 0 12px 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-          {{ post?.title || '文章标题' }}
-        </h1>
-        
-        <!-- Excerpt -->
-        <p style="font-size: 13px; color: #64748b; margin: 0 0 20px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-          {{ post?.excerpt || '文章摘要...' }}
+        <p style="font-size: 13px; color: #cbd5e1; margin: 0; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
+          {{ aiSummaryText || post?.excerpt || '探讨现代 Web 核心架构与胶囊设计规范，提供高清原片视觉呈现。' }}
         </p>
-        
-        <!-- Author & Footer -->
-        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <img
-              :src="post?.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'"
-              style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;"
-              crossorigin="anonymous"
-            />
-            <div>
-              <div style="font-size: 12px; font-weight: 700; color: #1e293b;">{{ post?.author?.name || 'Antigravity Design' }}</div>
-              <div style="font-size: 10px; color: #94a3b8;">{{ post?.author?.role || 'Designer' }}</div>
-            </div>
-          </div>
-          
-          <!-- QR Code Placeholder -->
-          <div style="width: 56px; height: 56px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #e2e8f0;">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="4" y="4" width="12" height="12" rx="2" fill="#1e293b"/>
-              <rect x="24" y="4" width="12" height="12" rx="2" fill="#1e293b"/>
-              <rect x="4" y="24" width="12" height="12" rx="2" fill="#1e293b"/>
-              <rect x="8" y="8" width="4" height="4" rx="1" fill="white"/>
-              <rect x="28" y="8" width="4" height="4" rx="1" fill="white"/>
-              <rect x="8" y="28" width="4" height="4" rx="1" fill="white"/>
-              <rect x="20" y="20" width="4" height="4" rx="1" fill="#007AFF"/>
-              <rect x="28" y="20" width="4" height="4" rx="1" fill="#1e293b"/>
-              <rect x="20" y="28" width="4" height="4" rx="1" fill="#1e293b"/>
-              <rect x="28" y="28" width="4" height="4" rx="1" fill="#1e293b"/>
-            </svg>
+      </div>
+
+      <!-- Tags Pills -->
+      <div v-if="post?.tags?.length" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px;">
+        <span
+          v-for="(tag, idx) in post.tags.slice(0, 4)"
+          :key="idx"
+          style="padding: 4px 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #94a3b8; border-radius: 999px; font-size: 10px; font-weight: 600;"
+        >
+          #{{ tag }}
+        </span>
+      </div>
+
+      <!-- Author & Real QR Code Footer -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.12);">
+        <!-- Author Profile -->
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img
+            :src="post?.author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'"
+            style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #007AFF;"
+            crossorigin="anonymous"
+          />
+          <div>
+            <div style="font-size: 13px; font-weight: 800; color: #ffffff;">{{ post?.author?.name || 'Xo' }}</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">{{ post?.author?.role || 'Senior Editor' }} · xo.xoxox.bond</div>
           </div>
         </div>
-        
-        <!-- Brand Footer -->
-        <div style="text-align: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
-          <div style="font-size: 10px; color: #94a3b8; font-weight: 600;">Modern Serenity 胶囊风博客</div>
+
+        <!-- Real Vector QR Code Component -->
+        <div style="display: flex; flex-col; align-items: center; gap: 4px;">
+          <div id="capsule-poster-qr" style="width: 76px; height: 76px; background: #ffffff; border-radius: 12px; padding: 4px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            <!-- Injected via generateQRCodeSVG dynamically -->
+          </div>
+          <span style="font-size: 9px; font-weight: 600; color: #64748b; margin-top: 4px;">扫码阅读全文</span>
         </div>
       </div>
     </div>
@@ -216,6 +225,8 @@
 </template>
 
 <script setup lang="ts">
+import { generateOfflineQRSVG, generateQRCodeSVG } from '~/utils/qrcode'
+
 const route = useRoute()
 const slugParam = computed(() => route.params.slug as string)
 
@@ -250,6 +261,7 @@ const fetchAiSummary = async () => {
   if (!post.value?.content) {
     aiSummaryLoading.value = false
     aiSummaryDisplayText.value = post.value?.excerpt || ''
+    aiSummaryText.value = post.value?.excerpt || ''
     return
   }
 
@@ -263,12 +275,14 @@ const fetchAiSummary = async () => {
     if (res?.success && res?.summary) {
       aiSummarySource.value = (res.source || 'extract') as any
       aiSummaryLoading.value = false
+      aiSummaryText.value = res.summary
       startTypewriter(res.summary)
       return
     }
   } catch (e) {}
 
   aiSummaryLoading.value = false
+  aiSummaryText.value = post.value?.excerpt || ''
   aiSummaryDisplayText.value = post.value?.excerpt || ''
 }
 
@@ -294,44 +308,60 @@ const shareAction = async (type: string) => {
 }
 
 const generatePoster = async () => {
+  if (isGeneratingPoster.value) return
   isGeneratingPoster.value = true
 
   try {
     const { toPng } = await import('html-to-image')
     const posterEl = document.getElementById('capsule-poster')
     if (!posterEl) {
-      alert('海报模板加载失败')
+      alert('海报模板加载失败。')
       return
     }
 
-    // 显示海报容器
-    posterEl.style.display = 'block'
+    // 1. Inject real QR Code SVG
+    const qrContainer = document.getElementById('capsule-poster-qr')
+    if (qrContainer) {
+      const pageUrl = window.location.href
+      qrContainer.innerHTML = generateOfflineQRSVG(68)
+    }
 
+    // 2. Preload images inside poster element
+    const imgs = Array.from(posterEl.querySelectorAll('img'))
+    await Promise.all(imgs.map(img => {
+      if (img.complete) return Promise.resolve()
+      return new Promise(res => {
+        img.onload = res
+        img.onerror = res
+      })
+    }))
+
+    // Small delay to ensure layout reflow
+    await new Promise(r => setTimeout(r, 200))
+
+    // 3. Render PNG using html-to-image
     const dataUrl = await toPng(posterEl, {
       quality: 1,
       pixelRatio: 2,
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#090d16',
       style: {
         transform: 'scale(1)',
         transformOrigin: 'top left'
       }
     })
 
-    // 隐藏海报容器
-    posterEl.style.display = 'none'
-
-    // 触发下载
+    // 4. Download trigger
     const link = document.createElement('a')
     link.download = `capsule-poster-${post.value?.slug || 'article'}.png`
     link.href = dataUrl
     link.click()
 
-    alert('海报生成成功！已开始下载。')
-  } catch (error) {
+    alert('🎨 胶囊海报生成成功！图片已自动下载到本地。')
+  } catch (error: any) {
     console.error('海报生成失败:', error)
-    alert('海报生成失败，请重试。')
+    alert('海报生成失败: ' + (error.message || '请重试'))
   } finally {
     isGeneratingPoster.value = false
   }

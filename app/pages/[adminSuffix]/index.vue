@@ -2728,7 +2728,7 @@ watch(activeTab, (newTab) => {
   }
 })
 const blogStore = useBlogStore()
-await blogStore.init()
+blogStore.init()
 
 const adminBlogPosts = computed(() => blogStore.posts.value)
 const adminBlogCategories = computed(() => blogStore.categories.value)

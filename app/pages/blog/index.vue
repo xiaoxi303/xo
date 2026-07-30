@@ -181,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-const { data: siteConfig } = await useFetch<any>('/api/site-config')
+const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
 
 const blogStore = useBlogStore()
 blogStore.init()
