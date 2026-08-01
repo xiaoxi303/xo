@@ -1,6 +1,6 @@
 <template>
   <div>
-    <AppPreloader v-if="!preloaderDone && !isPanelPage" @complete="onPreloaderComplete" />
+    <AppPreloader v-if="!preloaderDone && !isPanelPage" @complete="onPreloaderComplete" @reveal-start="onPreloaderRevealStart" />
 
     <!-- 1. Top Sticky Bar Announcement (顶部置顶模式) -->
     <Transition name="banner-top">
@@ -215,9 +215,15 @@
 <script setup lang="ts">
 // useState persists across route changes — does NOT reset on navigation
 const preloaderDone = useState('xo_preloader_done', () => false)
+const preloaderRevealed = useState('xo_preloader_revealed', () => false)
+
+const onPreloaderRevealStart = () => {
+  preloaderRevealed.value = true
+}
 
 const onPreloaderComplete = () => {
   preloaderDone.value = true
+  preloaderRevealed.value = true
   if (import.meta.client) {
     document.body.style.overflow = ''
   }

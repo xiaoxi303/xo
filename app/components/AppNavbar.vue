@@ -176,6 +176,21 @@ watch(() => route.path, () => {
   }
 })
 
+const preloaderRevealed = useState('xo_preloader_revealed', () => false)
+const preloaderDone = useState('xo_preloader_done', () => false)
+
+let navAnimated = false
+const animateNavbarIn = async () => {
+  if (!import.meta.client || !navbarRef.value || navAnimated) return
+  navAnimated = true
+  const { gsap } = await import('gsap')
+  gsap.fromTo(
+    navbarRef.value,
+    { opacity: 0, y: -25 },
+    { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
+  )
+}
+
 // Scroll handler
 let scrollHandler: (() => void) | null = null
 
@@ -185,6 +200,19 @@ onMounted(() => {
   }
   window.addEventListener('scroll', scrollHandler, { passive: true })
   scrollHandler()
+
+  if (import.meta.client) {
+    if (preloaderDone.value || preloaderRevealed.value) {
+      animateNavbarIn()
+    } else {
+      const unwatch = watch([preloaderRevealed, preloaderDone], ([revealed, done]) => {
+        if (revealed || done) {
+          animateNavbarIn()
+          unwatch()
+        }
+      })
+    }
+  }
 })
 
 onBeforeUnmount(() => {

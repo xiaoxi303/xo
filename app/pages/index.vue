@@ -504,27 +504,47 @@ const scrollToBento = () => {
 
 
 
+const preloaderRevealed = useState('xo_preloader_revealed', () => false)
+const preloaderDone = useState('xo_preloader_done', () => false)
+
 // Scroll reveals Entrance animations
 let revealObserver: IntersectionObserver | null = null
+
+let heroAnimated = false
+const playHeroEntrance = async () => {
+  if (!import.meta.client || heroAnimated) return
+  heroAnimated = true
+  const { gsap } = await import('gsap')
+
+  if (heroTextRef.value) {
+    gsap.fromTo(
+      heroTextRef.value.children,
+      { opacity: 0, y: 35, scale: 0.96 },
+      { opacity: 1, y: 0, scale: 1, duration: 1.0, stagger: 0.06, ease: 'power3.out' }
+    )
+  }
+  if (heroCardRef.value) {
+    gsap.fromTo(
+      heroCardRef.value,
+      { opacity: 0, y: 45, scale: 0.91, rotateY: -5 },
+      { opacity: 1, y: 0, scale: 1, rotateY: 0, duration: 1.15, ease: 'power3.out', delay: 0.08 }
+    )
+  }
+}
 
 onMounted(async () => {
   await nextTick()
 
   if (import.meta.client) {
-    const { gsap } = await import('gsap')
-    if (heroTextRef.value) {
-      gsap.fromTo(
-        heroTextRef.value.children,
-        { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.1 }
-      )
-    }
-    if (heroCardRef.value) {
-      gsap.fromTo(
-        heroCardRef.value,
-        { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', delay: 0.25 }
-      )
+    if (preloaderDone.value || preloaderRevealed.value) {
+      playHeroEntrance()
+    } else {
+      const unwatch = watch([preloaderRevealed, preloaderDone], ([revealed, done]) => {
+        if (revealed || done) {
+          playHeroEntrance()
+          unwatch()
+        }
+      })
     }
   }
 
