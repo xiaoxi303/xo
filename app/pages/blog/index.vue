@@ -11,8 +11,8 @@
       <div class="text-center space-y-4 max-w-2xl mx-auto">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 shadow-xs backdrop-blur-md">
           <span class="w-2 h-2 rounded-full bg-[#007AFF] animate-ping" />
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-mono">
-            {{ siteConfig?.blog?.heroBadge || 'Modern Serenity Blog' }}
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-sans">
+            {{ siteConfig?.blog?.heroBadge || '胶囊美学博客' }}
           </span>
         </div>
         <h1 class="text-4xl sm:text-5xl font-extrabold font-display tracking-tight text-slate-900 dark:text-white">

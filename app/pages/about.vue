@@ -55,8 +55,8 @@
       <div class="space-y-8">
         <div class="flex items-center justify-between border-b pb-4 border-[var(--color-border)]">
           <div>
-            <span class="text-[var(--color-bronze-dark)] text-xs font-bold uppercase tracking-widest font-mono">Chronicle & Timeline</span>
-            <h2 class="font-display text-3xl font-bold text-[var(--color-ink-1)] tracking-tight">影视制作年谱 (Experience Log)</h2>
+            <span class="text-[var(--color-bronze-dark)] text-xs font-bold tracking-widest font-sans">年谱与履历</span>
+            <h2 class="font-display text-3xl font-bold text-[var(--color-ink-1)] tracking-tight">影视制作年谱</h2>
           </div>
           
         </div>

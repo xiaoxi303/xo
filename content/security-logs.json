@@ -4,6 +4,14 @@
     "ip": "::1",
     "action": "Admin session issued for \"admin\"",
     "status": "success",
+    "id": "log-1785570762770-d354",
+    "timestamp": 1785570762770
+  },
+  {
+    "type": "Admin Access Gate",
+    "ip": "::1",
+    "action": "Admin session issued for \"admin\"",
+    "status": "success",
     "id": "log-1785335369090-s1mo",
     "timestamp": 1785335369090
   },

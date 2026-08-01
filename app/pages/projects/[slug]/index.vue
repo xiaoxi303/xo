@@ -145,6 +145,26 @@
                   @mouseleave="showControls = false"
                   @contextmenu.prevent
                 >
+                  <!-- 1. Visible Site Logo Watermark (Only Logo, Semi-Transparent, Larger Size) -->
+                  <div
+                    v-if="logoWatermarkEnabled"
+                    class="absolute z-30 pointer-events-none flex items-center justify-center p-2 rounded-2xl bg-black/35 backdrop-blur-md border border-white/15 select-none shadow-md opacity-85 transition-all duration-300"
+                    :style="{ top: `${watermarkTopPx}px`, left: `${watermarkLeftPx}px` }"
+                  >
+                    <img v-if="siteLogo" :src="siteLogo" alt="Logo" class="object-contain" style="width: 28px; height: 28px;" />
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none" class="text-white/90" style="width: 28px; height: 28px; flex-shrink: 0;">
+                      <path d="M10 30L30 10M10 10L30 30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                      <circle cx="20" cy="20" r="8" stroke="currentColor" stroke-width="2.2" />
+                    </svg>
+                  </div>
+
+                  <!-- 2. Invisible Steganographic Watermark Layer (Canvas Overlay over Video Frame) -->
+                  <canvas
+                    v-if="invisibleWatermarkEnabled"
+                    ref="watermarkCanvasRef"
+                    class="absolute inset-0 w-full h-full pointer-events-none z-20 select-none opacity-80"
+                  />
+
                   <!-- Main Video Element -->
                   <video
                     ref="mainVideoRef"
@@ -615,7 +635,6 @@ const blurVideoRef = ref<HTMLVideoElement | null>(null)
 // Fetch project list (passwords are NEVER returned — only hasPassword:boolean)
 const { data: projects } = useFetch<any[]>('/api/projects', { lazy: true })
 const project = computed(() => (projects.value || []).find(p => p.slug === slug))
-const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
 const activeVideoIndex = ref(0)
 const parseVideoUrls = (input: any) => {
   if (Array.isArray(input)) return input
@@ -645,6 +664,213 @@ watch(projectVideoUrls, (urls) => {
 })
 
 // Check unlock status from server (uses HTTP-only cookie)
+const { data: siteConfigData } = useFetch('/api/site-config', { lazy: true })
+const siteConfig = useState<any>('site-config', () => siteConfigData.value || {})
+
+const logoWatermarkEnabled = computed(() => siteConfig.value?.watermark?.logoEnabled ?? true)
+const invisibleWatermarkEnabled = computed(() => siteConfig.value?.watermark?.invisibleEnabled ?? true)
+const siteLogo = computed(() => siteConfig.value?.siteInfo?.avatar || '/logo.png')
+const siteBrandName = computed(() => siteConfig.value?.siteInfo?.brandName || 'Xo')
+
+const invisibleText = computed(() => siteConfig.value?.watermark?.invisibleText || '© Xo Studio 2026')
+const invisibleOpacity = computed(() => (siteConfig.value?.watermark?.invisibleOpacity ?? 3) / 100)
+const watermarkCanvasRef = ref<HTMLCanvasElement | null>(null)
+
+const drawInvisibleWatermark = () => {
+  if (!watermarkCanvasRef.value || !playerContainerRef.value) return
+  const canvas = watermarkCanvasRef.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  const rect = playerContainerRef.value.getBoundingClientRect()
+  canvas.width = rect.width || 600
+  canvas.height = rect.height || 400
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.save()
+
+  ctx.rotate((-20 * Math.PI) / 180)
+  ctx.font = 'bold 13px sans-serif'
+  const text = invisibleText.value
+  const textWidth = ctx.measureText(text).width + 85
+  const textHeight = 65
+
+  // Pass 1: Primary Alpha LSB Layer
+  ctx.fillStyle = `rgba(255, 255, 255, ${invisibleOpacity.value})`
+  for (let x = -canvas.width; x < canvas.width * 2; x += textWidth) {
+    for (let y = -canvas.height; y < canvas.height * 2; y += textHeight) {
+      ctx.fillText(text, x, y)
+    }
+  }
+
+  // Pass 2: High-Frequency Boundary Outline Layer (for robust spatial derivative decoding)
+  ctx.strokeStyle = `rgba(251, 191, 36, ${Math.max(0.015, invisibleOpacity.value * 0.7)})`
+  ctx.lineWidth = 1
+  for (let x = -canvas.width; x < canvas.width * 2; x += textWidth) {
+    for (let y = -canvas.height; y < canvas.height * 2; y += textHeight) {
+      ctx.strokeText(text, x, y)
+    }
+  }
+
+  ctx.restore()
+}
+
+const watermarkLeftPx = ref(16)
+const watermarkTopPx = ref(16)
+
+const updateVideoContentBounds = () => {
+  const video = mainVideoRef.value
+  const container = playerContainerRef.value
+  if (!video || !container) {
+    watermarkLeftPx.value = 16
+    watermarkTopPx.value = 16
+    return
+  }
+
+  const containerRect = container.getBoundingClientRect()
+  const vWidth = video.videoWidth
+  const vHeight = video.videoHeight
+
+  if (!vWidth || !vHeight || !containerRect.width || !containerRect.height) {
+    watermarkLeftPx.value = 16
+    watermarkTopPx.value = 16
+    return
+  }
+
+  const containerAR = containerRect.width / containerRect.height
+  const videoAR = vWidth / vHeight
+
+  if (videoAR < containerAR) {
+    // Vertical video (pillarboxed on left and right)
+    const renderedWidth = containerRect.height * videoAR
+    const paddingLeft = (containerRect.width - renderedWidth) / 2
+    watermarkLeftPx.value = Math.max(12, Math.round(paddingLeft + 16))
+    watermarkTopPx.value = 16
+  } else {
+    // Horizontal video (letterboxed on top and bottom)
+    const renderedHeight = containerRect.width / videoAR
+    const paddingTop = (containerRect.height - renderedHeight) / 2
+    watermarkLeftPx.value = 16
+    watermarkTopPx.value = Math.max(12, Math.round(paddingTop + 16))
+  }
+}
+
+const isExportingVideo = ref(false)
+const exportProgress = ref(0)
+
+const downloadWatermarkedVideo = async () => {
+  const video = mainVideoRef.value
+  if (!video || !activeVideoUrl.value) return
+
+  isExportingVideo.value = true
+  exportProgress.value = 0
+
+  try {
+    const canvas = document.createElement('canvas')
+    const width = video.videoWidth || 1280
+    const height = video.videoHeight || 720
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas context not available')
+
+    const stream = canvas.captureStream(30)
+    let mimeType = 'video/webm;codecs=vp9'
+    if (!MediaRecorder.isTypeSupported(mimeType)) {
+      mimeType = 'video/webm'
+    }
+
+    const recorder = new MediaRecorder(stream, { mimeType })
+    const chunks: Blob[] = []
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunks.push(e.data)
+    }
+
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: mimeType })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `xo-watermarked-${slug || 'video'}.webm`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      isExportingVideo.value = false
+    }
+
+    const originalTime = video.currentTime
+    const wasPlaying = !video.paused
+    video.currentTime = 0
+    await video.play()
+    recorder.start(100)
+
+    const renderFrame = () => {
+      if (!isExportingVideo.value || video.ended || video.paused) {
+        if (recorder.state === 'recording') recorder.stop()
+        if (!wasPlaying) video.pause()
+        video.currentTime = originalTime
+        return
+      }
+
+      // 1. Draw raw video frame
+      ctx.drawImage(video, 0, 0, width, height)
+
+      // 2. Bake invisible steganographic watermark DIRECTLY INTO VIDEO PIXELS
+      if (invisibleWatermarkEnabled.value) {
+        ctx.save()
+        ctx.rotate((-20 * Math.PI) / 180)
+        ctx.font = 'bold 16px monospace'
+        ctx.fillStyle = `rgba(255, 255, 255, ${invisibleOpacity.value})`
+        ctx.strokeStyle = `rgba(251, 191, 36, ${Math.max(0.02, invisibleOpacity.value * 0.8)})`
+        ctx.lineWidth = 1.5
+
+        const text = invisibleText.value
+        const textWidth = ctx.measureText(text).width + 90
+        const textHeight = 75
+
+        for (let x = -width; x < width * 2; x += textWidth) {
+          for (let y = -height; y < height * 2; y += textHeight) {
+            ctx.strokeText(text, x, y)
+            ctx.fillText(text, x, y)
+          }
+        }
+        ctx.restore()
+      }
+
+      // 3. Bake visible top-left Logo badge DIRECTLY INTO VIDEO PIXELS
+      if (logoWatermarkEnabled.value) {
+        ctx.save()
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'
+        ctx.beginPath()
+        ctx.roundRect(20, 20, 44, 44, 12)
+        ctx.fill()
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
+        ctx.stroke()
+        ctx.restore()
+      }
+
+      if (video.duration > 0) {
+        exportProgress.value = Math.min(99, Math.round((video.currentTime / video.duration) * 100))
+      }
+      requestAnimationFrame(renderFrame)
+    }
+
+    renderFrame()
+  } catch (e) {
+    console.error('Export failed:', e)
+    isExportingVideo.value = false
+  }
+}
+
+watch([invisibleText, invisibleOpacity, activeVideoUrl], () => {
+  nextTick(() => {
+    drawInvisibleWatermark()
+    updateVideoContentBounds()
+  })
+})
+
 const { data: unlockStatus } = useFetch<any>(`/api/projects/${slug}/check`, { lazy: true })
 
 const isUnlocked = ref(!!(unlockStatus.value?.unlocked))
@@ -851,6 +1077,7 @@ const onVideoLoaded = () => {
     mainVideoRef.value.muted = isMuted.value
   }
   syncBlurVideo()
+  updateVideoContentBounds()
 }
 
 const onTimeUpdate = () => {
@@ -1137,6 +1364,7 @@ onMounted(async () => {
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
     document.addEventListener('keydown', handleKeydown)
+    window.addEventListener('resize', updateVideoContentBounds)
 
     recordProjectView()
   }
@@ -1146,6 +1374,15 @@ onMounted(async () => {
       el.addEventListener('progress', updateBuffered)
     }
   }, { immediate: true })
+})
+
+onBeforeUnmount(() => {
+  if (import.meta.client) {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.removeEventListener('keydown', handleKeydown)
+    window.removeEventListener('resize', updateVideoContentBounds)
+  }
 })
 
 watch(

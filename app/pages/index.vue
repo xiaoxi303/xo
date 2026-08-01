@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="min-h-screen relative overflow-hidden" style="background: var(--color-bg);">
     <!-- ===== Ambient Studio Luxury Backdrop Glows (High Visibility) ===== -->
     <div
@@ -21,9 +21,13 @@
             <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full shadow-md backdrop-blur-xl group"
                  style="background: var(--glass-bg); border: 1px solid var(--color-bronze-glow);">
               <span class="w-2.5 h-2.5 rounded-full bg-[var(--color-bronze)] animate-ping" />
-              <span class="text-[var(--color-ink-2)] text-[11px] font-bold uppercase tracking-wider font-mono">Status: {{ siteConfig?.home?.bookingStatus || 'Booking Open (2026)' }}</span>
-              <span class="text-[var(--color-bronze-dark)] text-[10px] font-mono font-bold border-l pl-2.5 px-2 py-0.5 rounded"
-                    style="border-color: var(--color-bronze-glow); background: var(--color-bronze-bg);">4K DI Ready</span>
+              <span class="text-[var(--color-ink-2)] text-[11px] font-bold tracking-wider font-sans">
+                状态: {{ siteConfig?.home?.bookingStatus || '接受预约中 (2026)' }}
+              </span>
+              <span class="text-[var(--color-bronze-dark)] text-[10px] font-sans font-bold border-l pl-2.5 px-2 py-0.5 rounded"
+                    style="border-color: var(--color-bronze-glow); background: var(--color-bronze-bg);">
+                AVAILABLE
+              </span>
             </div>
 
             <!-- Main Heading (Luxury Editorial Serif & Gradient) -->
@@ -43,21 +47,26 @@
             <!-- CTA controls -->
             <div class="flex flex-wrap items-center gap-4">
               <NuxtLink to="/projects" class="btn-primary shadow-xl" style="box-shadow: 0 10px 25px rgba(217,119,6,0.25);">
-                <span>浏览剪辑作品 (Projects)</span>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                <span>浏览剪辑作品</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
               </NuxtLink>
+
               <AppContactBtn
-                :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')"
+                :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.studio')"
                 customClass="px-6 py-3 text-xs font-bold text-[var(--color-ink-1)] bg-white/90 border border-amber-600/20 shadow-md"
                 @click="trackEvent('contact_click', 'homepage')"
               >
-                <span>联系我 (Contact)</span>
+                <span>联系我</span>
               </AppContactBtn>
+
               <NuxtLink to="/booking" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all">
-                📅 合作预约 (Booking)
+                📅 合作预约
               </NuxtLink>
+
               <NuxtLink to="/booking/form" class="btn-primary shadow-xl" style="background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 10px 25px rgba(16,185,129,0.25);">
-                📝 立即预约 (填写表单)
+                📋 填写表单
               </NuxtLink>
             </div>
 
@@ -83,11 +92,12 @@
                    style="background: #0b0d12; color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.15);">
                 <div class="flex items-center gap-2">
                   <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" style="box-shadow: 0 0 10px rgba(244,63,94,0.9);" />
-                  <span class="font-bold tracking-wider text-slate-100">SHOWREEL.MP4</span>
+                  <span class="font-bold tracking-wider text-slate-100 font-sans">作品集预览 MP4</span>
                 </div>
                 <div class="flex items-center gap-3">
-                  
-                  <span class="font-bold text-[var(--color-ink-7)]">{{ heroVideoFps }}</span>
+                  <span class="font-bold text-amber-400/90">{{ heroVideoCodec }}</span>
+                  <span class="text-white/40">|</span>
+                  <span class="font-bold text-slate-300">{{ heroVideoFps }}</span>
                 </div>
               </div>
 
@@ -100,11 +110,14 @@
                   index="01"
                   category=""
                   :description="siteConfig?.home?.heroSub"
-                    :minimal="true"
+                  :minimal="true"
+                  :watermark-logo-enabled="siteConfig?.watermark?.logoEnabled ?? true"
+                  :watermark-logo-text="siteConfig?.watermark?.logoText || 'Xo Studio'"
+                  :watermark-invisible-enabled="siteConfig?.watermark?.invisibleEnabled ?? true"
+                  :watermark-invisible-text="siteConfig?.watermark?.invisibleText || '© Xo Studio 2026'"
+                  :watermark-invisible-opacity="siteConfig?.watermark?.invisibleOpacity ?? 3"
                   class="w-full h-full object-cover"
                 />
-                
-                
               </div>
 
               <!-- Clean Stats footer -->
@@ -130,15 +143,48 @@
           </div>
         </div>
 
-        <!-- Scroll down indicator -->
-        <div class="flex justify-center mt-20">
+        <!-- Quiet Luxury Editorial Compass & Scroll Dock -->
+        <div class="flex flex-col items-center justify-center mt-12 md:mt-16 relative z-20">
           <button
+            type="button"
             @click="scrollToBento"
-            class="flex flex-col items-center gap-2 text-[var(--color-ink-6)] hover:text-[var(--color-ink-1)] transition-colors group cursor-pointer"
+            class="group relative inline-flex items-center gap-4 px-6 py-3 rounded-full backdrop-blur-2xl bg-white/85 shadow-[0_8px_32px_rgba(180,120,50,0.1)] border border-amber-800/15 hover:border-amber-600/40 hover:shadow-[0_12px_40px_rgba(217,119,6,0.22)] hover:-translate-y-1 active:translate-y-0 transition-all duration-500 cursor-pointer overflow-hidden"
+            aria-label="Scroll to Bento Section"
           >
-            <span class="text-[9px] tracking-widest font-mono uppercase font-bold text-[var(--color-ink-5)]">SCROLL DOWN</span>
-            <div class="w-6 h-10 rounded-full border-2 border-black/15 flex items-start justify-center pt-2 group-hover:border-amber-600 transition-colors shadow-sm bg-white/60">
-              <div class="w-1.5 h-2 rounded-full bg-[var(--color-bronze)] animate-bounce" />
+            <!-- Background Radial Glow on Hover -->
+            <div class="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            <!-- Left: Rotating Dial Compass Icon -->
+            <div class="relative w-7 h-7 flex items-center justify-center flex-shrink-0">
+              <!-- Outer Rotating Dashed Ring -->
+              <svg class="w-full h-full text-amber-700/40 animate-[spin_10s_linear_infinite] group-hover:text-amber-600 transition-colors" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3" />
+              </svg>
+              <!-- Center Golden Bead Drop -->
+              <span class="absolute w-2 h-2 rounded-full bg-[#b45309] shadow-[0_0_8px_rgba(180,83,9,0.8)] group-hover:scale-125 transition-transform duration-300" />
+            </div>
+
+            <!-- Middle: Monospaced Coordinates & Label -->
+            <div class="flex items-center gap-2.5 text-xs select-none">
+              <span class="text-[10px] font-mono font-extrabold tracking-widest text-[#b45309]">01</span>
+              <span class="w-3 h-px bg-amber-800/25 group-hover:w-5 group-hover:bg-amber-600 transition-all duration-300" />
+              <span class="font-sans font-bold tracking-widest text-[#0a0b0e] group-hover:text-[#b45309] transition-colors">
+                向下探索
+              </span>
+            </div>
+
+            <!-- Right: Animated Bouncing Down Arrow Pill -->
+            <div class="w-6 h-6 rounded-full bg-amber-500/10 group-hover:bg-amber-600 group-hover:text-white flex items-center justify-center text-[#b45309] transition-all duration-300 flex-shrink-0 shadow-inner">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="2.5"
+                stroke="currentColor"
+                class="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
             </div>
           </button>
         </div>
@@ -159,7 +205,9 @@
       <div class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[var(--color-bg-base)] to-transparent z-10 pointer-events-none" />
 
       <div class="relative max-w-6xl mx-auto px-6 mb-4 z-10">
-        <p class="section-label text-center font-mono text-[10px] font-bold text-[var(--color-ink-4)] tracking-widest uppercase">Collaborative Brands & Agencies · 合作与联合制作品牌</p>
+        <p class="section-label text-center font-sans text-xs font-bold text-[var(--color-ink-4)] tracking-widest uppercase">
+          合作品牌与技术标准 / Trusted Brands & Industry Tools
+        </p>
       </div>
 
       <!-- Seamless Scrolling Wrapper -->
@@ -183,15 +231,19 @@
         
         <!-- Header -->
         <div ref="sectionHeaderRef" class="space-y-3 text-center reveal">
-          <p class="text-[var(--color-bronze-dark)] text-xs font-bold uppercase tracking-widest font-mono">Bento Gallery</p>
-          <h2 class="font-display text-4xl lg:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight">后期剪辑与色彩美学</h2>
-          <p class="text-[var(--color-ink-4)] text-xs sm:text-sm max-w-md mx-auto font-sans leading-relaxed">以温润透亮的模块化 Bento 排版，解构后期制作的本真秩序与视听艺术。</p>
+          <p class="text-[var(--color-bronze-dark)] text-xs font-bold uppercase tracking-widest font-sans">后期艺术美学</p>
+          <h2 class="font-display text-4xl lg:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight">
+            精雕细琢的视觉呈现
+          </h2>
+          <p class="text-[var(--color-ink-4)] text-xs sm:text-sm max-w-md mx-auto font-sans leading-relaxed">
+            融合极致的色彩科学与叙事节奏，为商业广告、概念短片与纪录片注入震撼心灵的视听力量。
+          </p>
         </div>
 
         <!-- Grid -->
         <BentoContainer>
           <!-- Card 1: Showcase video -->
-          <BentoItem v-if="tvcProject" span="12:12:8" :to="'/projects/' + tvcProject.slug"  class="reveal shadow-2xl">
+          <BentoItem v-if="tvcProject" span="12:12:8" :to="'/projects/' + tvcProject.slug" class="reveal shadow-2xl">
             <div class="h-full flex flex-col justify-between">
               <!-- Media cover -->
               <div class="h-80 relative overflow-hidden bg-slate-950 border-b border-black/5">
@@ -202,7 +254,7 @@
                   index="01"
                   :category="tvcProject.tags?.[0] || ''"
                   :description="tvcProject.description"
-                    :minimal="true"
+                  :minimal="true"
                   class="w-full h-full object-cover"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
@@ -219,7 +271,7 @@
                 <div class="flex items-center gap-2">
                   <span class="w-2.5 h-2.5 rounded-full bg-[var(--color-bronze)]" />
                   <span v-if="tvcProject.tags?.[0]" class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ tvcProject.tags[0] }}</span>
-                  <span v-if="tvcProject.postSpecs" class="text-[var(--color-ink-5)] text-[10px] font-mono font-bold">· {{ tvcProject.postSpecs }}</span>
+                  <span v-if="tvcProject.postSpecs" class="text-[var(--color-ink-5)] text-[10px] font-mono font-bold">• {{ tvcProject.postSpecs }}</span>
                 </div>
                 <h3 class="font-display font-bold text-[var(--color-ink-1)] text-2xl group-hover:text-[var(--color-bronze-dark)] transition-colors">
                   {{ tvcProject.title }}
@@ -245,11 +297,11 @@
                   <p class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ siteConfig?.home?.profileCardSub || '调色指导 / 视频剪辑' }}</p>
                 </div>
                 <p class="text-[var(--color-ink-4)] text-xs sm:text-sm leading-relaxed font-sans">
-                  {{ siteConfig?.home?.profileCardDesc || '专注于用节拍与叙事节奏微雕镜头。拥有 5 年影视及广告后期制作经验。' }}
+                  {{ siteConfig?.home?.profileCardDesc || '专注于用节奏与叙事节奏微雕镜头。拥有 5 年影视及广告后期制作经验。' }}
                 </p>
               </div>
               <div class="inline-flex items-center gap-2 text-xs text-[var(--color-bronze-dark)] font-bold hover:text-[var(--color-bronze-dark)] transition-colors font-sans group/link">
-                <span>查看个人履历与经历年谱</span>
+                <span>关于我与履历</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 group-hover/link:translate-x-1 transition-transform">
                   <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.63L9.7 5.47a.75.75 0 011.06-1.06l5.75 5.75a.75.75 0 010 1.06l-5.75 5.75a.75.75 0 11-1.06-1.06l4.68-4.68H3.75A.75.75 0 013 10z" clip-rule="evenodd"/>
                 </svg>
@@ -257,13 +309,13 @@
             </div>
           </BentoItem>
 
-          <!-- Card 3: Professional Tools & Quiet Luxury Skill Bars -->
+          <!-- Card 3: Professional Tools & Skill Bars -->
           <BentoItem span="12:6:4" class="reveal shadow-2xl">
             <div class="p-8 h-full flex flex-col justify-between relative overflow-hidden group">
               <div>
                 <div class="space-y-1 mb-4">
                   <h3 class="font-display font-bold text-[var(--color-ink-1)] text-xl">工具与工作流</h3>
-                  <p class="text-[var(--color-bronze-dark)] text-[10px] uppercase font-mono font-bold">达芬奇调色 & 剪辑栈</p>
+                  <p class="text-[var(--color-bronze-dark)] text-[10px] uppercase font-mono font-bold">达芬奇调色 & 专业后期系统</p>
                 </div>
                 <div class="flex flex-wrap gap-1.5">
                   <span v-for="t in (siteConfig?.home?.skillsTags && siteConfig.home.skillsTags.length > 0 ? siteConfig.home.skillsTags : ['Resolve', 'Premiere', 'After Effects', 'Cinema 4D', 'ACES 工作流', 'Logic Pro', 'Foley 音效'])" :key="t" class="tag font-semibold" style="border: 1px solid rgba(217,119,6,0.3); background: rgba(255,255,255,0.9);">
@@ -353,12 +405,12 @@
         <!-- Section Header -->
         <div class="flex flex-wrap items-end justify-between gap-6 border-b border-black/10 pb-6">
           <div class="space-y-2">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-bold font-mono">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-bold font-sans">
               <span class="w-2 h-2 rounded-full bg-[#007AFF] animate-ping" />
-              <span>Modern Serenity Pill System</span>
+              <span>最新动态 / Insights</span>
             </div>
             <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-[var(--color-ink-1)]">
-              最新博客 (Blog Insights)
+              最新博客文章
             </h2>
           </div>
 
@@ -366,7 +418,10 @@
             to="/blog"
             class="px-6 py-2.5 rounded-full text-xs font-bold text-white bg-[#007AFF] hover:bg-[#0062cc] shadow-[0_4px_15px_rgba(0,122,255,0.35)] transition-all flex items-center gap-2"
           >
-            <span>进入博客 →</span>
+            <span>查看全部文章</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+              <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.63L9.7 5.47a.75.75 0 011.06-1.06l5.75 5.75a.75.75 0 010 1.06l-5.75 5.75a.75.75 0 11-1.06-1.06l4.68-4.68H3.75A.75.75 0 013 10z" clip-rule="evenodd"/>
+            </svg>
           </NuxtLink>
         </div>
 
@@ -432,8 +487,12 @@ const { data: projects } = useFetch<any[]>('/api/projects', { lazy: true })
 
 // Blog store initialization for Homepage preview section
 const blogStore = useBlogStore()
-blogStore.init()
-const homeBlogPosts = computed(() => blogStore.getPublishedPosts().slice(0, 3))
+if (import.meta.client || import.meta.server) {
+  blogStore.init?.()
+}
+const homeBlogPosts = computed(() => {
+  return blogStore.getPublishedPosts ? blogStore.getPublishedPosts().slice(0, 3) : []
+})
 
 // Dynamic Computed Getters for Ultra-Safe Bindings
 const heroVideoCodec = computed(() => siteConfig.value?.home?.heroVideoCodec || 'PRORES 4444 XQ')
@@ -458,7 +517,26 @@ const defaultBrands = computed(() => {
   ]
 })
 
-// Fallback logic if database is empty
+// Mock fallback for featured project 1
+const defaultTvcProject = {
+  slug: 'commercial-tvc-showcase',
+  title: '旗舰品牌概念 TVC 剪辑',
+  description: '极致节奏控场与色彩渲染，打造电影级视觉冲击。',
+  image: 'https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?w=800&q=80',
+  tags: ['Commercial TVC', 'Color Grading'],
+  postSpecs: '4K DCI HDR'
+}
+
+// Mock fallback for featured project 2
+const defaultGradingProject = {
+  slug: 'aces-color-grading-showcase',
+  title: '纪录片与电影级 DI 调色',
+  description: '基于 ACES 胶片色彩科学调校，还原最精准细腻的自然光影与故事质感。',
+  image: 'https://images.pexels.com/photos/2873486/pexels-photo-2873486.jpeg?w=800&q=80',
+  tags: ['DI Color Science', 'Documentary']
+}
+
+// Safe Fallback logic if database is empty
 const tvcProject = computed(() => {
   const list = projects.value || []
   const selectedSlug = siteConfig.value?.home?.featuredProject1
@@ -467,7 +545,7 @@ const tvcProject = computed(() => {
     if (found) return found
   }
   if (list.length > 0) return list[0]
-  return null
+  return defaultTvcProject
 })
 
 const gradingProject = computed(() => {
@@ -478,7 +556,7 @@ const gradingProject = computed(() => {
     if (found) return found
   }
   if (list.length > 1) return list[1]
-  return null
+  return defaultGradingProject
 })
 
 const techStack = ['Pr / Resolve / AE', 'Cinema 4D', 'VFX Compositing', 'DI Color Science']
@@ -501,8 +579,6 @@ const getProjectVideoUrl = (project: any) => {
 const scrollToBento = () => {
   document.getElementById('bento-section')?.scrollIntoView({ behavior: 'smooth' })
 }
-
-
 
 const preloaderRevealed = useState('xo_preloader_revealed', () => false)
 const preloaderDone = useState('xo_preloader_done', () => false)
@@ -532,6 +608,27 @@ const playHeroEntrance = async () => {
   }
 }
 
+// Setup observer safely
+const setupRevealObserver = () => {
+  if (!import.meta.client) return
+  if (revealObserver) revealObserver.disconnect()
+
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view')
+        }
+      })
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -45px 0px' }
+  )
+
+  document.querySelectorAll('.reveal').forEach((el) => {
+    revealObserver?.observe(el)
+  })
+}
+
 onMounted(async () => {
   await nextTick()
 
@@ -548,20 +645,13 @@ onMounted(async () => {
     }
   }
 
-  revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view')
-        }
-      })
-    },
-    { threshold: 0.1, rootMargin: '0px 0px -45px 0px' }
-  )
+  setupRevealObserver()
+})
 
-  document.querySelectorAll('.reveal').forEach((el) => {
-    revealObserver?.observe(el)
-  })
+// Re-observe elements when async data updates
+watch([projects, siteConfig], async () => {
+  await nextTick()
+  setupRevealObserver()
 })
 
 onBeforeUnmount(() => {

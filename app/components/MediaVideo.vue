@@ -1,8 +1,8 @@
-﻿<template>
+<template>
   <!-- Premium Video Player with Full Controls -->
   <div 
     ref="containerRef" 
-    class="video-player relative overflow-hidden w-full h-full group"
+    class="video-player relative overflow-hidden w-full h-full group select-none"
     :style="{ borderRadius: 'inherit' }"
     @mouseenter="showControls = true"
     @mouseleave="showControls = false"
@@ -55,6 +55,31 @@
       </div>
     </div>
 
+    <!-- 1. Visible Site Logo Watermark (Only Logo, Semi-Transparent, Larger Size) -->
+    <div
+      v-if="hasVideo && logoWatermarkEnabled"
+      class="absolute top-3 left-3 z-30 pointer-events-none flex items-center justify-center p-2 rounded-2xl bg-black/35 backdrop-blur-md border border-white/15 select-none shadow-md opacity-85 transition-all duration-300"
+    >
+      <img
+        v-if="siteLogo"
+        :src="siteLogo"
+        alt="Logo"
+        class="object-contain"
+        style="width: 28px; height: 28px;"
+      />
+      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none" class="text-white/90" style="width: 28px; height: 28px; flex-shrink: 0;">
+        <path d="M10 30L30 10M10 10L30 30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="20" cy="20" r="8" stroke="currentColor" stroke-width="2.2" />
+      </svg>
+    </div>
+
+    <!-- 2. Invisible Steganographic Watermark Layer (Canvas Overlay over Video Frame) -->
+    <canvas
+      v-if="hasVideo && invisibleWatermarkEnabled"
+      ref="watermarkCanvasRef"
+      class="absolute inset-0 w-full h-full pointer-events-none z-20 select-none opacity-80"
+    />
+
     <!-- Video element -->
     <video
       v-if="hasVideo"
@@ -80,7 +105,7 @@
     <!-- Video info overlay (top) -->
     <div
       v-if="hasVideo && title && showControls && !minimal"
-      class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent transition-opacity duration-300"
+      class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/60 to-transparent transition-opacity duration-300 z-10"
       :class="{ 'opacity-0': isPlaying && !showControls, 'opacity-100': showControls }"
     >
       <div class="flex items-center gap-2">
@@ -94,7 +119,7 @@
     <!-- Controls bar (bottom) -->
     <div
       v-if="hasVideo && !minimal"
-      class="absolute bottom-0 left-0 right-0 transition-all duration-300"
+      class="absolute bottom-0 left-0 right-0 transition-all duration-300 z-40"
       :class="{ 
         'translate-y-full opacity-0': isPlaying && !showControls,
         'translate-y-0 opacity-100': showControls || !isPlaying
@@ -208,6 +233,8 @@ const props = withDefaults(defineProps<{
 
 const containerRef = ref<HTMLElement | null>(null)
 const videoRef = ref<HTMLVideoElement | null>(null)
+const watermarkCanvasRef = ref<HTMLCanvasElement | null>(null)
+
 const isVideoReady = ref(false)
 const isPlaying = ref(false)
 const isLoading = ref(false)
@@ -218,17 +245,72 @@ const currentTime = ref(0)
 const duration = ref(0)
 const hoverTime = ref<number | null>(null)
 const hoverPercent = ref(0)
+
 const hasVideo = computed(() => !!props.src?.trim())
 const hasPoster = computed(() => !!props.poster?.trim())
 let playTimer: ReturnType<typeof setTimeout> | null = null
-let hideControlsTimer: ReturnType<typeof setTimeout> | null = null
+
+// Site config & Watermark computations
+const { data: siteConfigData } = useFetch('/api/site-config', { lazy: true })
+const siteConfig = useState<any>('site-config', () => siteConfigData.value || {})
+
+const logoWatermarkEnabled = computed(() => siteConfig.value?.watermark?.logoEnabled ?? true)
+const invisibleWatermarkEnabled = computed(() => siteConfig.value?.watermark?.invisibleEnabled ?? true)
+
+const siteLogo = computed(() => siteConfig.value?.siteInfo?.avatar || '/logo.png')
+const siteBrandName = computed(() => siteConfig.value?.siteInfo?.brandName || 'Xo')
+
+const invisibleText = computed(() => siteConfig.value?.watermark?.invisibleText || '© Xo Studio 2026')
+const invisibleOpacity = computed(() => (siteConfig.value?.watermark?.invisibleOpacity ?? 3) / 100)
+
+const drawInvisibleWatermark = () => {
+  if (!watermarkCanvasRef.value || !containerRef.value) return
+  const canvas = watermarkCanvasRef.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  const rect = containerRef.value.getBoundingClientRect()
+  canvas.width = rect.width || 600
+  canvas.height = rect.height || 400
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.save()
+
+  ctx.rotate((-20 * Math.PI) / 180)
+  ctx.font = 'bold 13px sans-serif'
+  const text = invisibleText.value
+  const textWidth = ctx.measureText(text).width + 85
+  const textHeight = 65
+
+  // Pass 1: Primary Alpha LSB Layer
+  ctx.fillStyle = `rgba(255, 255, 255, ${invisibleOpacity.value})`
+  for (let x = -canvas.width; x < canvas.width * 2; x += textWidth) {
+    for (let y = -canvas.height; y < canvas.height * 2; y += textHeight) {
+      ctx.fillText(text, x, y)
+    }
+  }
+
+  // Pass 2: High-Frequency Boundary Outline Layer (for robust spatial derivative decoding)
+  ctx.strokeStyle = `rgba(251, 191, 36, ${Math.max(0.015, invisibleOpacity.value * 0.7)})`
+  ctx.lineWidth = 1
+  for (let x = -canvas.width; x < canvas.width * 2; x += textWidth) {
+    for (let y = -canvas.height; y < canvas.height * 2; y += textHeight) {
+      ctx.strokeText(text, x, y)
+    }
+  }
+
+  ctx.restore()
+}
+
+watch([invisibleText, invisibleOpacity], () => {
+  drawInvisibleWatermark()
+})
 
 const progressPercent = computed(() => {
   if (duration.value === 0) return 0
   return (currentTime.value / duration.value) * 100
 })
 
-// Format time (seconds -> MM:SS)
 function formatTime(seconds: number): string {
   if (isNaN(seconds) || seconds === 0) return '0:00'
   const mins = Math.floor(seconds / 60)
@@ -236,7 +318,6 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-// Video event handlers
 function onCanPlay() {
   isVideoReady.value = true
   isLoading.value = false
@@ -251,17 +332,15 @@ function onTimeUpdate() {
   }
 }
 
-// Player controls
 function togglePlay() {
   if (!videoRef.value) return
-  
   if (isPlaying.value) {
     videoRef.value.pause()
     isPlaying.value = false
   } else {
     videoRef.value.play()
       .then(() => { isPlaying.value = true })
-      .catch(() => { /* Silently ignore */ })
+      .catch(() => {})
   }
 }
 
@@ -273,15 +352,14 @@ function toggleMute() {
 
 function toggleFullscreen() {
   if (!containerRef.value) return
-  
   if (!document.fullscreenElement) {
     containerRef.value.requestFullscreen()
       .then(() => { isFullscreen.value = true })
-      .catch(() => { /* Silently ignore */ })
+      .catch(() => {})
   } else {
     document.exitFullscreen()
       .then(() => { isFullscreen.value = false })
-      .catch(() => { /* Silently ignore */ })
+      .catch(() => {})
   }
 }
 
@@ -300,36 +378,6 @@ function onProgressHover(e: MouseEvent) {
   hoverTime.value = percent * duration.value
 }
 
-// Keyboard shortcuts
-function onKeyDown(e: KeyboardEvent) {
-  if (!hasVideo.value) return
-  
-  switch (e.key) {
-    case ' ':
-    case 'k':
-      e.preventDefault()
-      togglePlay()
-      break
-    case 'm':
-      e.preventDefault()
-      toggleMute()
-      break
-    case 'f':
-      e.preventDefault()
-      toggleFullscreen()
-      break
-    case 'ArrowLeft':
-      e.preventDefault()
-      if (videoRef.value) videoRef.value.currentTime -= 5
-      break
-    case 'ArrowRight':
-      e.preventDefault()
-      if (videoRef.value) videoRef.value.currentTime += 5
-      break
-  }
-}
-
-// IntersectionObserver for lazy loading
 onMounted(() => {
   const observer = new IntersectionObserver(
     (entries) => {
@@ -340,7 +388,7 @@ onMounted(() => {
               videoRef.value.preload = 'auto'
               videoRef.value.play()
                 .then(() => { isPlaying.value = true })
-                .catch(() => { /* Silently ignore */ })
+                .catch(() => {})
             }
           }, 250)
         } else {
@@ -348,206 +396,22 @@ onMounted(() => {
             clearTimeout(playTimer)
             playTimer = null
           }
-          if (videoRef.value) {
+          if (videoRef.value && !videoRef.value.paused) {
             videoRef.value.pause()
             isPlaying.value = false
           }
         }
       })
     },
-    { threshold: 0.15 }
+    { threshold: 0.3 }
   )
 
-  if (containerRef.value) observer.observe(containerRef.value)
-  
-  // Add keyboard listener
-  document.addEventListener('keydown', onKeyDown)
+  if (containerRef.value) {
+    observer.observe(containerRef.value)
+  }
 
-  onBeforeUnmount(() => {
-    observer.disconnect()
-    if (playTimer) clearTimeout(playTimer)
-    if (hideControlsTimer) clearTimeout(hideControlsTimer)
-    document.removeEventListener('keydown', onKeyDown)
-    if (videoRef.value) {
-      videoRef.value.pause()
-      videoRef.value.src = ''
-      videoRef.value.load()
-    }
+  nextTick(() => {
+    drawInvisibleWatermark()
   })
 })
-
-// Listen for fullscreen changes
-if (import.meta.client) {
-  document.addEventListener('fullscreenchange', () => {
-    isFullscreen.value = !!document.fullscreenElement
-  })
-}
 </script>
-
-<style scoped>
-.video-player {
-  background: var(--color-ink-1);
-}
-
-/* Loading spinner */
-.video-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: var(--color-bronze);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Central play button */
-.video-play-btn {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  transition: all 0.3s var(--ease-out);
-  transform: scale(1);
-}
-
-.video-play-btn:hover {
-  background: var(--color-bronze);
-  border-color: var(--color-bronze);
-  transform: scale(1.1);
-  box-shadow: 0 0 30px rgba(180, 83, 9, 0.4);
-}
-
-/* Video badges */
-.video-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.5rem;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--r-sm);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: white;
-  letter-spacing: 0.05em;
-}
-
-.video-badge-accent {
-  background: var(--color-bronze);
-  border-color: var(--color-bronze-light);
-}
-
-/* Progress bar */
-.video-progress-container {
-  position: relative;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 0 12px;
-}
-
-.video-progress-bar {
-  width: 100%;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-  overflow: hidden;
-  transition: height 0.2s ease;
-}
-
-.video-progress-container:hover .video-progress-bar {
-  height: 5px;
-}
-
-.video-progress-filled {
-  height: 100%;
-  background: var(--color-bronze);
-  border-radius: 2px;
-  transition: width 0.1s linear;
-}
-
-.video-progress-hover {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  transform: translateY(-50%);
-  pointer-events: none;
-  transition: height 0.2s ease;
-}
-
-.video-progress-container:hover .video-progress-hover {
-  height: 5px;
-}
-
-/* Time tooltip */
-.video-time-tooltip {
-  position: absolute;
-  top: -30px;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 0.2rem 0.5rem;
-  border-radius: var(--r-sm);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  pointer-events: none;
-  white-space: nowrap;
-}
-
-/* Controls bar */
-.video-controls-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-}
-
-/* Control buttons */
-.video-control-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: transparent;
-  border: none;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.video-control-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.1);
-}
-
-.video-control-btn:active {
-  transform: scale(0.95);
-}
-
-/* Time display */
-.video-time-display {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-  letter-spacing: 0.05em;
-}
-</style>

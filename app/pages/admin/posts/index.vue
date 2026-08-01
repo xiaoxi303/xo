@@ -5,7 +5,7 @@
       <!-- Topbar & Navigation Tabs: Pill-shaped Menu Items ('Posts', 'Categories', 'Analytics', 'Settings') -->
       <div class="flex flex-wrap items-center justify-between gap-4 p-3 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md backdrop-blur-xl">
         <!-- Pill Menu -->
-        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar scrollbar-none" @wheel="handleTabsWheel">
           <NuxtLink
             to="/admin/posts"
             class="px-5 py-2 rounded-full text-xs font-bold bg-[#007AFF] text-white shadow-[0_4px_12px_rgba(0,122,255,0.3)] select-none"
@@ -191,4 +191,30 @@ const deletePost = (id: string) => {
 useHead({
   title: '文章管理列表 - 博客后台 Dashboard'
 })
+
+const handleTabsWheel = (e: WheelEvent) => {
+  const container = e.currentTarget as HTMLElement
+  if (!container) return
+  if (e.deltaY) {
+    e.preventDefault()
+    container.scrollLeft += e.deltaY * 0.95
+  } else if (e.deltaX) {
+    container.scrollLeft += e.deltaX * 0.95
+  }
+}
 </script>
+
+<style scoped>
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.scrollbar-none,
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+</style>

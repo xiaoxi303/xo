@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <AppPreloader v-if="!preloaderDone && !isPanelPage" @complete="onPreloaderComplete" @reveal-start="onPreloaderRevealStart" />
 
@@ -329,7 +329,7 @@ const isAdminPage = computed(() => {
 const isPanelPage = computed(() => {
   const path = (route.path || '').replace(/^\/|\/$/, '')
   const isClient = path === 'client' || path.startsWith('client/') || path === 'login' || path === 'register'
-  return isAdminPage.value || isClient
+  return isAdminPage.value || isClient || path === 'xo-watermark' || path.startsWith('xo-watermark/')
 })
 
 // Ambient Soundscape Player States & Logic

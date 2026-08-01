@@ -123,8 +123,8 @@
       <!-- Navigation & Action Row -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
         <!-- Tabs Menu (Horizontal Scrollable Capsule) -->
-        <div class="flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap"
-             style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: thin; max-width: 100%;">
+        <div class="flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap scrollbar-none no-scrollbar" @wheel.prevent="handleTabsWheel"
+             style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: none; -ms-overflow-style: none; max-width: 100%;">
           <button
             v-for="t in tabs"
             :key="t.value"
@@ -1750,6 +1750,76 @@
           </div>
         </div>
 
+          <div v-else-if="activeTab === 'watermark'" key="watermark" class="space-y-8">
+            <div class="flex items-center justify-between p-6 glass-card">
+              <div>
+                <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">视频水印设置</h2>
+                <p class="text-xs font-mono mt-0.5" style="color: var(--color-ink-5)">配置视频播放器上的可见Logo水印与隐形Canvas水印，以及水印提取页面的密码设置。</p>
+              </div>
+              <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5">保存水印配置</button>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+              <div class="glass-card p-6 space-y-5">
+                <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
+                  <div>
+                    <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">可见 Logo 水印</h3>
+                    <p class="text-xs mt-1" style="color: var(--color-ink-4)">在视频播放器左上角叠加品牌名称，截屏/录屏时会带入。</p>
+                  </div>
+                  <label class="flex items-center gap-2 cursor-pointer bg-black/[0.03] px-3.5 py-1.5 rounded-full border border-black/10">
+                    <span class="text-xs font-bold font-mono" style="color: var(--color-ink-2)">启用</span>
+                    <input type="checkbox" v-model="siteConfig.watermark.logoEnabled" class="w-4 h-4 accent-amber-700 cursor-pointer" />
+                  </label>
+                </div>
+                <div class="space-y-4" :class="{ 'opacity-50 pointer-events-none': !siteConfig.watermark?.logoEnabled }">
+                  <div class="space-y-1.5">
+                    <label class="form-label">Logo 水印文本</label>
+                    <input v-model="siteConfig.watermark.logoText" class="form-input" placeholder="例如: Xo Studio" />
+                  </div>
+                </div>
+              </div>
+              <div class="glass-card p-6 space-y-5">
+                <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
+                  <div>
+                    <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">隐形 Canvas 水印</h3>
+                    <p class="text-xs mt-1" style="color: var(--color-ink-4)">极低不透明度的文本叠层，肉眼几乎不可见，截屏/录屏时会带入。</p>
+                  </div>
+                  <label class="flex items-center gap-2 cursor-pointer bg-black/[0.03] px-3.5 py-1.5 rounded-full border border-black/10">
+                    <span class="text-xs font-bold font-mono" style="color: var(--color-ink-2)">启用</span>
+                    <input type="checkbox" v-model="siteConfig.watermark.invisibleEnabled" class="w-4 h-4 accent-amber-700 cursor-pointer" />
+                  </label>
+                </div>
+                <div class="space-y-4" :class="{ 'opacity-50 pointer-events-none': !siteConfig.watermark?.invisibleEnabled }">
+                  <div class="space-y-1.5">
+                    <label class="form-label">隐形水印文本</label>
+                    <input v-model="siteConfig.watermark.invisibleText" class="form-input" placeholder="例如: © Xo Studio 2026" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label flex justify-between">
+                      <span>不透明度</span>
+                      <span class="text-[9px] text-amber-700 font-bold font-mono">{{ siteConfig.watermark?.invisibleOpacity || 3 }}%</span>
+                    </label>
+                    <input type="range" min="1" max="10" v-model.number="siteConfig.watermark.invisibleOpacity" class="w-full h-2 cursor-pointer" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="glass-card p-6 space-y-5">
+              <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
+                <div>
+                  <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">水印提取页面设置</h3>
+                  <p class="text-xs mt-1" style="color: var(--color-ink-4)">配置隐藏路由 <code class="font-mono text-amber-700 bg-amber-50 px-1 py-0.5 rounded">/xo-watermark</code> 的访问密码。</p>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div class="space-y-1.5">
+                  <label class="form-label">水印提取密码</label>
+                  <input v-model="siteConfig.watermark.extractPassword" type="password" class="form-input font-mono" placeholder="设置一个独立密码" />
+                  <p class="text-[9px] text-slate-400 font-mono">此密码与管理员密码不同，仅用于水印提取页面验证。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div v-else-if="activeTab === 'advanced'" key="advanced" class="space-y-8">
             <!-- TAB 5: ADVANCED & PLAYGROUND -->
           <!-- Save Top Bar -->
@@ -2483,6 +2553,17 @@
 </template>
 
 <script setup lang="ts">
+const handleTabsWheel = (e: WheelEvent) => {
+  const container = e.currentTarget as HTMLElement
+  if (!container) return
+  if (e.deltaY) {
+    e.preventDefault()
+    container.scrollLeft += e.deltaY * 0.95
+  } else if (e.deltaX) {
+    container.scrollLeft += e.deltaX * 0.95
+  }
+}
+
 const formatDisplayNum = (p: any, i: number) => {
   if (p.displayNumber) return p.displayNumber
   const num = p.sortOrder ?? (i + 1)
@@ -2822,6 +2903,7 @@ const tabs = [
   { label: '首页配置', value: 'home', icon: '🏠' },
   { label: '个人履历', value: 'about', icon: '🙋' },
   { label: '站点信息', value: 'siteinfo', icon: '🌐' },
+  { label: '水印设置', value: 'watermark', icon: '🔏' },
   { label: '高级设置', value: 'advanced', icon: '🎨' }
 ]
 
@@ -3017,6 +3099,7 @@ const siteConfig = useState<any>('site-config', () => ({
   },
   about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [] },
   admin: { username: 'admin', adminPath: 'admin' },
+  watermark: { logoEnabled: true, logoText: 'Xo Studio', invisibleEnabled: true, invisibleText: '© Xo Studio 2026', invisibleOpacity: 3, extractPassword: '' },
   emailSettings: {
     enabled: false,
     smtpHost: 'smtp.qq.com',
@@ -3327,7 +3410,8 @@ const fetchSiteConfig = async () => {
       adminPath: 'admin',
       ...data.admin
     },
-    emailSettings: {
+    watermark: { logoEnabled: true, logoText: 'Xo Studio', invisibleEnabled: true, invisibleText: '© Xo Studio 2026', invisibleOpacity: 3, extractPassword: '' },
+  emailSettings: {
       enabled: false,
       smtpHost: 'smtp.qq.com',
       smtpPort: 465,
@@ -3529,6 +3613,19 @@ const handleLogout = async () => {
 let statusTimer: any = null
 let sseSource: EventSource | null = null
 
+
+// Tabs wheel scroll
+onMounted(() => {
+  const tabsEl = document.querySelector('.scrollbar-none')
+  if (tabsEl) {
+    tabsEl.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault()
+        tabsEl.scrollLeft += e.deltaY
+      }
+    }, { passive: false })
+  }
+})
 onMounted(() => {
   checkAuth()
   // Restore last active tab from localStorage (SSR-safe: only runs on client)
@@ -4131,5 +4228,19 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   0% { left: -100%; }
   35% { left: 200%; }
   100% { left: 200%; }
+}
+
+/* Hide scrollbar for tabs cleanly across all browsers while retaining mouse wheel horizontal scroll */
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.scrollbar-none,
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 </style>
