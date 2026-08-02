@@ -3088,7 +3088,8 @@ const siteConfig = useState<any>('site-config', () => ({
     enabled: true, label: 'AMBIENT AUDIO', url: ''
   },
   blog: {
-    heroBadge: 'MODERN SERENITY BLOG', heroTitle: '灵感、技术与设计探索', heroSub: '采用次世代胶囊美学设计系统 (Pill-shaped Design System)，记录极致前沿的切片与思考。'
+    heroBadge: 'MODERN SERENITY BLOG', heroTitle: '灵感、技术与设计探索', heroSub: '采用次世代胶囊美学设计系统 (Pill-shaped Design System)，记录极致前沿的切片与思考。',
+    ...data.blog
   },
   home: {
     heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '',
@@ -3410,7 +3411,15 @@ const fetchSiteConfig = async () => {
       adminPath: 'admin',
       ...data.admin
     },
-    watermark: { logoEnabled: true, logoText: 'Xo Studio', invisibleEnabled: true, invisibleText: '© Xo Studio 2026', invisibleOpacity: 3, extractPassword: '' },
+    watermark: { 
+      logoEnabled: true, 
+      logoText: 'Xo Studio', 
+      invisibleEnabled: true, 
+      invisibleText: '© Xo Studio 2026', 
+      invisibleOpacity: 3, 
+      extractPassword: '',
+      ...data.watermark 
+    },
   emailSettings: {
       enabled: false,
       smtpHost: 'smtp.qq.com',
