@@ -18,6 +18,7 @@
 </p>
 
 <p>
+  <a href="./FEATURES.md">📖 <strong>全量功能总览文档 (FEATURES.md)</strong></a> •
   <a href="#-快速开始">快速开始</a> •
   <a href="#-核心特色">核心特色</a> •
   <a href="#-端到端加密-e2ee-v40">E2EE v4.0 量子加密</a> •
@@ -25,6 +26,8 @@
   <a href="#-🤖-ai-智能总结系统">AI 智能总结</a> •
   <a href="#-部署指南">部署指南</a>
 </p>
+
+> 💡 **提示**：项目的详细功能模块拆解、API 接口规格与加密技术指标已整理至独立的全量功能文档中，详情请参阅 [📖 **FEATURES.md**](./FEATURES.md)。
 
 ---
 
