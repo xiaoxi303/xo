@@ -5,8 +5,21 @@ import fs from 'node:fs'
 import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
 
+import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
+
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  let body = await readBody(event)
+
+  // Handle E2EE payload decryption if client sent E2EE encrypted request
+  if (isE2EEPayload(body)) {
+    try {
+      const decryptedString = decryptE2EE(body)
+      body = JSON.parse(decryptedString)
+    } catch (e: any) {
+      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败：请求数据损坏或被篡改。' })
+    }
+  }
+
   const { username, password } = body || {}
   const ip = getRealClientIP(event)
 

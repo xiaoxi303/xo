@@ -140,3 +140,113 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
     return false
   }
 }
+
+export async function sendVerificationCodeEmail(
+  event: H3Event,
+  options: { toEmail: string; code: string }
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const config = await dbGetSiteConfig(event)
+    const emailSettings = config?.emailSettings
+
+    if (!emailSettings || !emailSettings.enabled) {
+      return { success: false, message: '系统未开启邮件通知功能，请联系管理员配置。' }
+    }
+
+    if (!emailSettings.smtpHost || !emailSettings.smtpUser || !emailSettings.smtpPass) {
+      return { success: false, message: '系统 SMTP 发件参数未配置完整，请联系管理员。' }
+    }
+
+    const { toEmail, code } = options
+    if (!toEmail || !toEmail.includes('@')) {
+      return { success: false, message: '无效的电子邮箱地址。' }
+    }
+
+    const siteUrl = (config?.siteInfo?.siteUrl || 'https://xo.xoxox.bond').replace(/\/$/, '')
+    const logoImgSrc = `${siteUrl}/logo.png?v=312k_v4`
+    const senderName = emailSettings.senderName || 'Xo Studio'
+    const subject = `【${senderName}】注册验证码：${code}`
+
+    const transporter = nodemailer.createTransport({
+      host: emailSettings.smtpHost,
+      port: Number(emailSettings.smtpPort) || 465,
+      secure: emailSettings.smtpSecure !== false,
+      auth: {
+        user: emailSettings.smtpUser,
+        pass: emailSettings.smtpPass
+      }
+    })
+
+    const html = `
+      <div style="background-color: #f7f6f3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 50px 20px; color: #2d2f34; line-height: 1.6;">
+        <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; border: 1px solid #e9e8e3; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.035); overflow: hidden;">
+          
+          <!-- Top Accent Gold Line -->
+          <div style="height: 6px; background: linear-gradient(90deg, #d97706, #b45309, #d97706);"></div>
+          
+          <!-- Header Area -->
+          <div style="padding: 35px 40px 25px 40px; text-align: center; border-bottom: 1px solid #f3f2ee;">
+            <img src="${logoImgSrc}" alt="${senderName} Logo" style="height: 52px; width: auto; max-width: 220px; object-fit: contain; margin: 0 auto 12px auto; display: block;" />
+            <h1 style="color: #121316; margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: normal; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase;">${senderName}</h1>
+            <p style="color: #b45309; margin: 6px 0 0 0; font-family: monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: bold;">Account Registration Verification</p>
+            <div style="width: 24px; height: 1.5px; background-color: #b45309; margin: 18px auto 0 auto; opacity: 0.6;"></div>
+          </div>
+
+          <!-- Body Content -->
+          <div style="padding: 40px 40px;">
+            <p style="font-size: 15px; margin-top: 0; color: #121316; font-weight: 600;">尊敬的用户：</p>
+            <p style="font-size: 14px; color: #5e6066; margin-bottom: 24px; line-height: 1.7;">
+              您正在注册 <strong>${senderName}</strong> 客户控制中心账号。请在注册页面中输入下方 6 位数字验证码以完成身份验证：
+            </p>
+            
+            <!-- Code Ticket Card -->
+            <div style="background: #fdfbf7; border: 1.5px dashed #d97706; border-radius: 16px; padding: 28px 24px; text-align: center; margin: 28px 0; box-shadow: 0 4px 14px rgba(180, 83, 9, 0.03);">
+              <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: #b45309; font-weight: bold; display: block; margin-bottom: 10px;">注册验证码 / VERIFICATION CODE</span>
+              <strong style="font-size: 34px; font-family: 'Courier New', Courier, monospace; color: #121316; letter-spacing: 0.28em; display: inline-block; padding-left: 0.28em;">${code}</strong>
+              <div style="margin-top: 12px; font-size: 11px; color: #b45309; font-weight: 500;">
+                ⏱️ 验证码有效期为 <strong>60 秒</strong>，请尽快使用
+              </div>
+            </div>
+
+            <!-- Security Tip -->
+            <div style="background-color: #fcfcfa; border-radius: 12px; padding: 16px 20px; border: 1px solid #efeee9; margin-top: 24px;">
+              <p style="font-size: 12px; color: #8c8e94; margin: 0; line-height: 1.6;">
+                🔒 <strong>安全提示：</strong>如果这不是您本人的操作，请忽略本邮件，您的账号安全不会受任何影响。请勿将此验证码泄漏给他人。
+              </p>
+            </div>
+
+            <!-- Footer note -->
+            <div style="margin-top: 35px; border-top: 1px solid #f3f2ee; padding-top: 20px; text-align: center;">
+              <p style="font-size: 11px; line-height: 1.6; color: #a1a3a8; margin: 0;">
+                本邮件由 ${senderName} 系统自动发出，请勿直接回复。<br>
+                如有疑问，请通过官方网站公布的联系方式与管理员取得联系。
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Footer -->
+          <div style="background-color: #121316; padding: 20px; text-align: center;">
+            <p style="font-size: 9px; color: #8c8e94; margin: 0; font-family: monospace; text-transform: uppercase; letter-spacing: 0.12em;">
+              © ${new Date().getFullYear()} ${senderName} · All rights reserved
+            </p>
+          </div>
+
+        </div>
+      </div>
+    `
+
+    await transporter.sendMail({
+      from: `"${senderName}" <${emailSettings.senderEmail || emailSettings.smtpUser}>`,
+      to: toEmail,
+      subject,
+      html
+    })
+
+    console.log(`Successfully sent verification code email to: ${toEmail}`)
+    return { success: true }
+  } catch (error: any) {
+    console.error('Failed to send verification code email:', error)
+    return { success: false, message: error.message || '邮件发送失败，请稍后重试。' }
+  }
+}
+

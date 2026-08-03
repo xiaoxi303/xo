@@ -101,8 +101,10 @@ export default defineNuxtConfig({
     compatibilityVersion: 4
   },
 
-  // Nitro 部署预设配置：标准 Node 服务器，支持服务器磁盘读写。
+  // Nitro 部署预设与代码混淆/压缩配置
   nitro: {
-    preset: 'node-server'
+    preset: 'node-server',
+    minify: true,
+    sourcemap: false
   }
 })

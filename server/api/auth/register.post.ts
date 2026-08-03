@@ -1,5 +1,6 @@
 import { dbCreateUser } from '../../utils/db'
-import { hashPassword } from '../../utils/auth'
+import { hashPassword, createSession, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
+import { verifyAndConsumeCode } from '../../utils/verification'
 
 const ALLOWED_EMAIL_DOMAINS = [
   'qq.com', 'vip.qq.com', 'foxmail.com',
@@ -9,8 +10,20 @@ const ALLOWED_EMAIL_DOMAINS = [
   'aliyun.com', '139.com', '189.com', 'wo.cn'
 ]
 
+import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
+
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  let body = await readBody(event)
+
+  // Handle E2EE payload decryption if client sent E2EE encrypted request
+  if (isE2EEPayload(body)) {
+    try {
+      const decryptedString = decryptE2EE(body)
+      body = JSON.parse(decryptedString)
+    } catch (e: any) {
+      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败：请求数据损坏或被篡改。' })
+    }
+  }
 
   if (!body.username || !body.password) {
     throw createError({
@@ -36,30 +49,45 @@ export default defineEventHandler(async (event) => {
   }
 
   const email = body.email ? body.email.trim() : ''
+  const code = body.code ? body.code.trim() : ''
   const wechat = body.wechat ? body.wechat.trim() : ''
 
-  if (!email && !wechat) {
+  if (!email) {
     throw createError({
       statusCode: 400,
-      statusMessage: '邮箱和微信号必须选择填写一项以完成注册。'
+      statusMessage: '请输入电子邮箱地址。'
     })
   }
 
-  if (email) {
-    const parts = email.split('@')
-    if (parts.length !== 2) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: '请输入有效的邮箱地址。'
-      })
-    }
-    const domain = parts[1].toLowerCase()
-    if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: '注册邮箱只支持主流常用邮箱后缀（如 QQ、网易 163/126、Gmail、Outlook 等）。'
-      })
-    }
+  const parts = email.split('@')
+  if (parts.length !== 2) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: '请输入有效的邮箱地址。'
+    })
+  }
+  const domain = parts[1].toLowerCase()
+  if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: '注册邮箱只支持主流常用邮箱后缀（如 QQ、网易 163/126、Gmail、Outlook 等）。'
+    })
+  }
+
+  if (!code) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: '请输入邮箱验证码。'
+    })
+  }
+
+  // Verify email verification code
+  const verification = verifyAndConsumeCode(email, code)
+  if (!verification.success) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: verification.message || '验证码错误，请重新输入。'
+    })
   }
 
   const hashedPassword = hashPassword(password)
@@ -72,7 +100,16 @@ export default defineEventHandler(async (event) => {
       password: hashedPassword,
       role: 'client'
     })
-    return { success: true }
+
+    // Auto-login user after successful registration
+    const token = createSession(username)
+    setCookie(event, CLIENT_SESSION_COOKIE, token, SESSION_COOKIE_OPTS)
+
+    return {
+      success: true,
+      username,
+      role: 'client'
+    }
   } catch (error: any) {
     console.error('Failed to register user:', error)
     throw createError({

@@ -1,52 +1,69 @@
 <template>
-  <div class="min-h-screen pt-24 pb-20 px-4 sm:px-6">
+  <div class="min-h-screen pt-24 pb-20 px-4 sm:px-6 relative overflow-hidden font-sans">
+    <!-- Atmospheric Background Orbs -->
+    <div class="bg-orbs pointer-events-none">
+      <div class="bg-orb bg-orb-1 opacity-50" />
+      <div class="bg-orb bg-orb-2 opacity-40" />
+      <div class="bg-orb bg-orb-3 opacity-30" />
+    </div>
+
     <!-- Toast Floating Alert -->
     <Transition name="toast">
       <div 
         v-if="toastMessage" 
-        class="fixed top-8 left-1/2 -translate-x-1/2 z-[300] px-5 py-2.5 rounded-2xl shadow-2xl backdrop-blur-xl border text-xs font-semibold flex items-center gap-2"
-        style="background: rgba(18, 19, 22, 0.92); color: #ffffff; border-color: rgba(217, 119, 6, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.15);"
+        class="fixed top-8 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-2xl shadow-2xl backdrop-blur-xl border text-xs font-semibold flex items-center gap-2.5"
+        style="background: rgba(18, 19, 22, 0.94); color: #ffffff; border-color: rgba(217, 119, 6, 0.35); box-shadow: 0 16px 40px rgba(0,0,0,0.25);"
       >
-        <span class="text-amber-400">✨</span>
+        <span class="text-amber-400 text-sm">✨</span>
         <span>{{ toastMessage }}</span>
       </div>
     </Transition>
 
-    <div class="max-w-6xl mx-auto space-y-8">
+    <div class="max-w-6xl mx-auto space-y-8 relative z-10">
       
-      <!-- Page Header -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 reveal">
-        <div class="space-y-2">
-          <div class="flex items-center gap-2">
-            <span class="section-label">Client Control Hub</span>
-            <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-700 border border-amber-500/20">
-              PRO CLIENT
-            </span>
-          </div>
-          <h1 class="font-display text-4xl font-bold tracking-tight text-[#121316]">
-            客户控制中心
-          </h1>
-          <p class="text-xs max-w-lg font-sans leading-relaxed text-[#5e6066]">
-            在此管理您的客户个人资料、提现专属加密项目凭证，以及实时追踪密码申请审批进度。
-          </p>
-        </div>
+      <!-- Page Header Banner -->
+      <div class="glass-card p-6 sm:p-8 rounded-[32px] border border-amber-900/10 shadow-[0_20px_60px_rgba(180,120,40,0.06)] relative overflow-hidden reveal">
+        <!-- Top Accent Line -->
+        <div class="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700" />
+        <div class="absolute right-0 top-0 bottom-0 w-80 bg-gradient-to-l from-amber-500/5 to-transparent pointer-events-none" />
 
-        <div class="flex items-center gap-3">
-          <NuxtLink to="/" class="btn-ghost text-xs py-2.5 px-4 rounded-xl border border-black/[0.06] hover:bg-black/[0.03]">
-            🏠 返回首页
-          </NuxtLink>
-          <button @click="handleLogout" class="btn-bronze text-xs py-2.5 px-4 rounded-xl shadow-sm">
-            🚪 退出登录
-          </button>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div class="space-y-2">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <span class="section-label">CLIENT CONTROL HUB</span>
+              <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-500/20">
+                PRO CLIENT MEMBER
+              </span>
+              <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                E2EE SAFE SESSION
+              </span>
+            </div>
+            <h1 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#121316]">
+              客户控制中心
+            </h1>
+            <p class="text-xs max-w-xl leading-relaxed text-[#5e6066]">
+              欢迎回来！在此集中提取专属作品解密密钥、追踪密码申请进度，并管理账户安全凭证。
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3 shrink-0">
+            <NuxtLink to="/" class="btn-ghost text-xs py-2.5 px-4 rounded-2xl border border-black/[0.08] hover:bg-black/[0.04] transition-colors">
+              🏠 返回首页
+            </NuxtLink>
+            <button @click="handleLogout" class="btn-bronze text-xs py-2.5 px-4 rounded-2xl shadow-sm cursor-pointer">
+              🚪 退出登录
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Main Content Area -->
       <div v-if="dashboardData" class="space-y-8">
         
-        <!-- KPI Dashboard Quick Stats Overview -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 reveal">
-          <div class="glass-card p-5 flex items-center gap-4">
+        <!-- KPI Dashboard Quick Stats Overview (4 Cards Grid) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 reveal">
+          <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
             <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl shrink-0">
               🎬
             </div>
@@ -58,27 +75,39 @@
             </div>
           </div>
 
-          <div class="glass-card p-5 flex items-center gap-4">
+          <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
             <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xl shrink-0">
               📨
             </div>
             <div>
-              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">授权申请记录</p>
+              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">密码申请记录</p>
               <h3 class="font-display font-bold text-2xl text-[#121316] mt-0.5">
                 {{ dashboardData.requests?.length || 0 }} <span class="text-xs font-sans font-normal text-[#82848c]">条</span>
               </h3>
             </div>
           </div>
 
-          <div class="glass-card p-5 flex items-center gap-4">
+          <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
             <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-xl shrink-0">
               🛡️
             </div>
             <div>
-              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">账号保护状态</p>
-              <h3 class="font-display font-bold text-sm text-emerald-600 mt-1 flex items-center gap-1.5">
+              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">E2EE 加密保护</p>
+              <h3 class="font-display font-bold text-xs text-emerald-600 mt-1 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                安全加密连接
+                256-Bit GCM 通道
+              </h3>
+            </div>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-xl shrink-0">
+              💎
+            </div>
+            <div>
+              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">账户身份等级</p>
+              <h3 class="font-display font-bold text-xs text-amber-800 mt-1">
+                {{ dashboardData.profile.role === 'admin' ? '系统最高管理员' : '认证 Pro 客户会员' }}
               </h3>
             </div>
           </div>
@@ -89,7 +118,7 @@
           
           <!-- Left Column: User Profile Card (4 cols) -->
           <div class="lg:col-span-4 space-y-6 reveal">
-            <div class="glass-card p-6 flex flex-col items-center text-center space-y-5 relative overflow-hidden">
+            <div class="glass-card p-6 sm:p-7 rounded-[32px] flex flex-col items-center text-center space-y-5 relative overflow-hidden border border-black/[0.06]">
               <!-- Decorative Top Accent -->
               <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700" />
 
@@ -113,11 +142,12 @@
                   @{{ dashboardData.profile.username }}
                 </p>
                 <div class="inline-block px-3 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider mt-2 bg-amber-500/10 text-amber-800 border border-amber-500/20">
-                  {{ dashboardData.profile.role === 'admin' ? '系统最高管理员' : '认证客户会员' }}
+                  {{ dashboardData.profile.role === 'admin' ? '系统最高管理员' : '认证 Pro 客户会员' }}
                 </div>
               </div>
 
-              <div class="w-full pt-4 border-t border-black/[0.04] text-left text-xs font-mono space-y-3 text-[#5e6066]">
+              <!-- Details Box -->
+              <div class="w-full pt-4 border-t border-black/[0.05] text-left text-xs font-mono space-y-3 text-[#5e6066]">
                 <div class="flex justify-between items-center">
                   <span>绑定电子邮箱</span>
                   <span class="font-bold text-[#121316]">{{ dashboardData.profile.email || '未绑定' }}</span>
@@ -135,7 +165,7 @@
               <!-- Edit Button -->
               <button 
                 @click="openEditModal" 
-                class="btn-ghost w-full justify-center py-2.5 text-xs font-semibold rounded-xl border border-black/[0.08] hover:bg-black/[0.03] transition-all"
+                class="w-full py-3 px-4 text-xs font-bold rounded-2xl border border-black/10 bg-white/80 hover:bg-white hover:border-amber-600/40 hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 ⚙️ 编辑个人资料与密码
               </button>
@@ -146,19 +176,19 @@
           <div class="lg:col-span-8 space-y-6 reveal">
             
             <!-- Controls Bar: Navigation Tabs + Search Filter -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-1.5 rounded-2xl bg-black/[0.03] border border-black/[0.05]">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2 rounded-2xl bg-black/[0.03] border border-black/[0.05]">
               <div class="flex items-center gap-1">
                 <button 
                   @click="activeTab = 'projects'"
                   :class="[
-                    'px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-2',
+                    'px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer',
                     activeTab === 'projects'
-                      ? 'bg-white text-[#121316] shadow-sm border border-black/[0.06]'
+                      ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-white shadow-md'
                       : 'text-[#82848c] hover:text-[#121316]'
                   ]"
                 >
                   <span>🎥 专属授权项目</span>
-                  <span :class="['px-1.5 py-0.2 rounded-full text-[9px] font-mono', activeTab === 'projects' ? 'bg-amber-500/15 text-amber-800' : 'bg-black/5 text-slate-500']">
+                  <span :class="['px-2 py-0.5 rounded-full text-[9px] font-mono font-bold', activeTab === 'projects' ? 'bg-white/20 text-white' : 'bg-black/5 text-slate-500']">
                     {{ dashboardData.allowedProjects?.length || 0 }}
                   </span>
                 </button>
@@ -166,26 +196,26 @@
                 <button 
                   @click="activeTab = 'requests'"
                   :class="[
-                    'px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-2',
+                    'px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer',
                     activeTab === 'requests'
-                      ? 'bg-white text-[#121316] shadow-sm border border-black/[0.06]'
+                      ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-white shadow-md'
                       : 'text-[#82848c] hover:text-[#121316]'
                   ]"
                 >
                   <span>📨 密码申请记录</span>
-                  <span :class="['px-1.5 py-0.2 rounded-full text-[9px] font-mono', activeTab === 'requests' ? 'bg-amber-500/15 text-amber-800' : 'bg-black/5 text-slate-500']">
+                  <span :class="['px-2 py-0.5 rounded-full text-[9px] font-mono font-bold', activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-black/5 text-slate-500']">
                     {{ dashboardData.requests?.length || 0 }}
                   </span>
                 </button>
               </div>
 
               <!-- Search Filter Input (For projects tab) -->
-              <div v-if="activeTab === 'projects'" class="px-2">
+              <div v-if="activeTab === 'projects'" class="px-1">
                 <input 
                   v-model="searchQuery" 
                   type="text" 
-                  placeholder="🔍 搜索专属作品..."
-                  class="form-input text-xs py-1.5 px-3 rounded-xl border border-black/[0.08] w-full sm:w-44 bg-white/80"
+                  placeholder="搜索专属作品..."
+                  class="form-input text-xs py-2 px-3.5 rounded-xl border border-black/10 w-full sm:w-48 bg-white/90 focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20 transition-all"
                 />
               </div>
             </div>
@@ -196,7 +226,7 @@
                 <div 
                   v-for="project in filteredProjects" 
                   :key="project.slug"
-                  class="glass-card overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300 border border-black/[0.06]"
+                  class="glass-card overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300 border border-black/[0.06] rounded-[28px]"
                 >
                   <!-- Thumbnail Container -->
                   <div class="relative h-44 overflow-hidden bg-black">
@@ -207,11 +237,11 @@
                       class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div v-else class="w-full h-full flex items-center justify-center bg-stone-900 text-4xl">🎬</div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                     
                     <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
-                      <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-600/90 text-white backdrop-blur-md uppercase">
-                        EXCLUSIVE
+                      <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-600/90 text-white backdrop-blur-md uppercase tracking-wider">
+                        EXCLUSIVE PASS
                       </span>
                     </div>
                   </div>
@@ -219,7 +249,7 @@
                   <!-- Text Content -->
                   <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                     <div class="space-y-1.5">
-                      <h3 class="font-display font-bold text-base text-[#121316] group-hover:text-amber-700 transition-colors line-clamp-1">
+                      <h3 class="font-display font-bold text-base text-[#121316] group-hover:text-amber-800 transition-colors line-clamp-1">
                         {{ project.title }}
                       </h3>
                       <p class="text-xs line-clamp-2 leading-relaxed text-[#5e6066]">
@@ -229,26 +259,27 @@
 
                     <!-- Actions / Password Copy Bar -->
                     <div class="space-y-3 pt-3 border-t border-black/[0.04]">
-                      <div class="flex items-center justify-between p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15">
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-800">专属解密密码</span>
+                      <div class="flex items-center justify-between p-3 rounded-2xl bg-amber-500/5 border border-amber-500/15">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-900">专属解密密码</span>
                         <div class="flex items-center gap-2">
-                          <span class="font-mono font-bold text-sm tracking-widest text-[#121316]">
+                          <span class="font-mono font-bold text-sm tracking-widest text-[#121316] bg-white px-2.5 py-1 rounded-lg border border-black/5">
                             {{ project.password }}
                           </span>
                           <button 
                             @click="copyText(project.password)"
-                            class="text-[10px] font-bold px-2 py-1 rounded bg-amber-600/10 text-amber-800 hover:bg-amber-600/20 transition-all"
+                            class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-700/10 text-amber-900 hover:bg-amber-700 hover:text-white transition-all cursor-pointer"
                             title="复制密码"
                           >
-                            📋 复制
+                            复制
                           </button>
                         </div>
                       </div>
 
                       <div class="flex gap-2">
                         <NuxtLink 
-                          :to="'/projects/' + project.slug"
-                          class="flex-1 btn-bronze text-center justify-center py-2 text-xs rounded-xl font-semibold shadow-sm"
+                          :to="'/projects/' + project.slug + (project.password ? '?pwd=' + encodeURIComponent(project.password) : '')"
+                          class="flex-1 text-center justify-center py-2.5 text-xs rounded-xl font-bold shadow-md text-white transition-transform active:scale-[0.98]"
+                          style="background: linear-gradient(135deg, #c27a3d, #b45309);"
                         >
                           🎥 立即观看作品
                         </NuxtLink>
@@ -259,15 +290,15 @@
               </div>
 
               <!-- Empty Filtered Projects -->
-              <div v-else class="glass-card p-12 text-center flex flex-col items-center justify-center space-y-3">
+              <div v-else class="glass-card p-12 rounded-[32px] text-center flex flex-col items-center justify-center space-y-3 border border-black/[0.06]">
                 <span class="text-4xl">🎬</span>
-                <p class="text-sm font-display font-medium text-[#2d2f34]">
+                <p class="text-sm font-display font-bold text-[#2d2f34]">
                   {{ searchQuery ? '未搜索到匹配作品' : '暂无专属授权作品' }}
                 </p>
                 <p class="text-xs max-w-xs leading-relaxed text-[#82848c]">
                   {{ searchQuery ? '请尝试更换搜索关键字' : '您目前尚未获得任何加密作品的专属授权。您可以浏览主页并提交申请获取特定视频的密码。' }}
                 </p>
-                <NuxtLink v-if="!searchQuery" to="/" class="btn-bronze text-xs py-2.5 px-5 rounded-xl mt-2 shadow-sm">
+                <NuxtLink v-if="!searchQuery" to="/" class="btn-bronze text-xs py-2.5 px-5 rounded-2xl mt-2 shadow-md">
                   浏览公开作品
                 </NuxtLink>
               </div>
@@ -279,7 +310,7 @@
                 <div 
                   v-for="req in dashboardData.requests" 
                   :key="req.id"
-                  class="glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-black/[0.04] hover:border-black/[0.08] transition-all"
+                  class="glass-card p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-black/[0.05] hover:border-black/[0.1] transition-all"
                 >
                   <div class="space-y-1">
                     <div class="flex items-center gap-2">
@@ -291,28 +322,42 @@
                     <p class="text-[10px] font-mono text-[#82848c]">
                       申请时间：{{ formatDate(req.createdAt) }} · 联系方式：{{ req.contact }}
                     </p>
-                    <p v-if="req.reason" class="text-[11px] text-[#5e6066] mt-1 bg-black/[0.02] p-2 rounded-lg border border-black/[0.03]">
+                    <p v-if="req.reason" class="text-[11px] text-[#5e6066] mt-1 bg-black/[0.02] p-2.5 rounded-xl border border-black/[0.03]">
                       💬 申请原由：{{ req.reason }}
                     </p>
+
+                    <!-- Approved Password Display & Quick Copy -->
+                    <div v-if="req.status === 'approved' && req.password" class="flex items-center gap-2 mt-2 p-2 px-3 rounded-xl bg-amber-500/10 border border-amber-500/20 w-fit">
+                      <span class="text-[10px] font-mono font-bold text-amber-900 uppercase">🔑 解密密码:</span>
+                      <span class="font-mono font-bold text-xs text-[#121316] tracking-widest bg-white px-2 py-0.5 rounded border border-black/5">
+                        {{ req.password }}
+                      </span>
+                      <button 
+                        @click.stop="copyText(req.password)" 
+                        class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-700/10 text-amber-900 hover:bg-amber-700 hover:text-white transition-all cursor-pointer"
+                      >
+                        📋 复制密码
+                      </button>
+                    </div>
                   </div>
 
                   <div class="flex items-center gap-3 self-end sm:self-auto shrink-0">
                     <!-- Status Badges -->
                     <span 
                       v-if="req.status === 'pending'"
-                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 border border-amber-500/20 text-amber-700 flex items-center gap-1"
+                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 border border-amber-500/20 text-amber-800 flex items-center gap-1"
                     >
                       <span>🟡</span> <span>审核中</span>
                     </span>
                     <span 
                       v-else-if="req.status === 'approved'"
-                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 flex items-center gap-1"
+                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 flex items-center gap-1"
                     >
                       <span>🟢</span> <span>已授权通过</span>
                     </span>
                     <span 
                       v-else-if="req.status === 'rejected'"
-                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-rose-500/10 border border-rose-500/20 text-rose-700 flex items-center gap-1"
+                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-rose-500/10 border border-rose-500/20 text-rose-800 flex items-center gap-1"
                     >
                       <span>🔴</span> <span>审核未通过</span>
                     </span>
@@ -320,8 +365,8 @@
                     <!-- Action for approved -->
                     <NuxtLink 
                       v-if="req.status === 'approved'"
-                      :to="'/projects/' + req.projectSlug"
-                      class="btn-ghost text-[10px] font-bold py-1.5 px-3 rounded-lg border border-black/[0.08] hover:text-[#b45309]"
+                      :to="'/projects/' + req.projectSlug + (req.password ? '?pwd=' + encodeURIComponent(req.password) : '')"
+                      class="text-[10px] font-bold py-1.5 px-3 rounded-xl border border-amber-700/20 bg-amber-50 text-amber-900 hover:bg-amber-100 transition-colors"
                     >
                       观看视频 &rarr;
                     </NuxtLink>
@@ -330,11 +375,11 @@
               </div>
 
               <!-- Empty Requests -->
-              <div v-else class="glass-card p-12 text-center flex flex-col items-center justify-center space-y-3">
+              <div v-else class="glass-card p-12 rounded-[32px] text-center flex flex-col items-center justify-center space-y-3 border border-black/[0.06]">
                 <span class="text-4xl">📨</span>
-                <p class="text-sm font-display font-medium text-[#2d2f34]">暂无密码申请记录</p>
+                <p class="text-sm font-display font-bold text-[#2d2f34]">暂无密码申请记录</p>
                 <p class="text-xs max-w-xs leading-relaxed text-[#82848c]">
-                  您尚未提交过任何作品的授权申请。如需查看受 NDA 保护的加密视频，请在作品页点击提交申请。
+                  您尚未提交过任何作品的授权申请。如需查看受保护的加密视频，请在作品页点击提交申请。
                 </p>
               </div>
             </div>
@@ -359,10 +404,10 @@
         <div class="absolute inset-0 bg-black/40 backdrop-blur-md" @click="closeEditModal" />
         
         <!-- Modal Card -->
-        <div class="relative glass-card p-6 w-full max-w-md space-y-5 shadow-2xl z-10" style="background: rgba(254, 252, 248, 0.98);">
+        <div class="relative glass-card p-6 sm:p-7 w-full max-w-md space-y-5 shadow-2xl z-10 rounded-[32px]" style="background: rgba(255, 254, 250, 0.98);">
           <div class="flex justify-between items-center border-b border-black/[0.06] pb-3">
-            <h3 class="font-display font-bold text-base text-[#121316]">编辑个人资料</h3>
-            <button @click="closeEditModal" class="text-slate-400 hover:text-slate-700 text-base font-bold">✕</button>
+            <h3 class="font-display font-bold text-base text-[#121316]">编辑个人资料与密码</h3>
+            <button @click="closeEditModal" class="text-slate-400 hover:text-slate-700 text-base font-bold cursor-pointer">✕</button>
           </div>
 
           <form @submit.prevent="submitProfile" class="space-y-4 text-left">
@@ -373,42 +418,42 @@
                 v-model="editForm.nickname" 
                 type="text" 
                 placeholder="例如：张导演 / 某广告机构" 
-                class="form-input text-xs w-full px-3 py-2.5 border rounded-xl"
+                class="form-input text-xs w-full px-3.5 py-2.5 border rounded-2xl border-black/10 bg-white/90"
               />
             </div>
 
             <!-- Email -->
             <div class="space-y-1">
-              <label class="text-[10px] font-bold uppercase tracking-wider block text-amber-800">电子邮箱 (邮箱与微信必填一项)</label>
+              <label class="text-[10px] font-bold uppercase tracking-wider block text-amber-900">电子邮箱</label>
               <input 
                 v-model="editForm.email" 
                 type="email" 
                 placeholder="example@mail.com" 
-                class="form-input text-xs w-full px-3 py-2.5 border rounded-xl"
+                class="form-input text-xs w-full px-3.5 py-2.5 border rounded-2xl border-black/10 bg-white/90"
               />
             </div>
 
             <!-- WeChat -->
             <div class="space-y-1">
-              <label class="text-[10px] font-bold uppercase tracking-wider block text-amber-800">微信号 (邮箱与微信必填一项)</label>
+              <label class="text-[10px] font-bold uppercase tracking-wider block text-amber-900">微信号</label>
               <input 
                 v-model="editForm.wechat" 
                 type="text" 
                 placeholder="例如: wechat_123" 
-                class="form-input text-xs w-full px-3 py-2.5 border rounded-xl"
+                class="form-input text-xs w-full px-3.5 py-2.5 border rounded-2xl border border-black/10 bg-white/90"
               />
             </div>
 
             <!-- Avatar Selector -->
             <div class="space-y-2">
               <label class="text-[10px] font-bold uppercase tracking-wider block text-[#5e6066]">个性头像 (点击选择或下方粘贴图片链接)</label>
-              <div class="flex flex-wrap gap-2 p-3 rounded-xl bg-black/[0.02] border border-black/[0.04]">
+              <div class="flex flex-wrap gap-2 p-3 rounded-2xl bg-black/[0.02] border border-black/[0.04]">
                 <button 
                   v-for="em in emojiOptions" 
                   :key="em" 
                   type="button"
                   @click="editForm.avatar = em"
-                  class="w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-black/5 active:scale-95 transition-all"
+                  class="w-8 h-8 rounded-xl flex items-center justify-center text-lg hover:bg-black/5 active:scale-95 transition-all cursor-pointer"
                   :class="{ 'bg-amber-500/20 border border-amber-600/30 text-amber-800 scale-105 shadow-sm': editForm.avatar === em }"
                 >
                   {{ em }}
@@ -418,7 +463,7 @@
                 v-model="editForm.avatar" 
                 type="text" 
                 placeholder="或者粘贴自定义头像图片 URL" 
-                class="form-input text-[11px] w-full px-3 py-2 border rounded-xl font-mono"
+                class="form-input text-[11px] w-full px-3.5 py-2 border rounded-xl font-mono border-black/10"
               />
             </div>
 
@@ -429,11 +474,11 @@
                 v-model="editForm.password" 
                 type="password" 
                 placeholder="•••••••• (至少 6 位)" 
-                class="form-input text-xs w-full px-3 py-2.5 border rounded-xl font-mono"
+                class="form-input text-xs w-full px-3.5 py-2.5 border rounded-2xl border-black/10 bg-white/90 font-mono"
               />
             </div>
 
-            <div v-if="modalError" class="text-[11px] text-rose-600 font-semibold bg-rose-500/5 border border-rose-500/10 p-2.5 rounded-xl">
+            <div v-if="modalError" class="text-[11px] text-rose-600 font-semibold bg-rose-50 border border-rose-100 p-3 rounded-2xl">
               ⚠️ {{ modalError }}
             </div>
 
@@ -441,13 +486,14 @@
               <button 
                 type="button" 
                 @click="closeEditModal" 
-                class="flex-1 btn-ghost py-2.5 rounded-xl text-xs font-semibold justify-center border border-black/[0.08]"
+                class="flex-1 py-2.5 rounded-2xl text-xs font-bold justify-center border border-black/[0.08] hover:bg-black/5 transition-colors cursor-pointer"
               >
                 取消
               </button>
               <button 
                 type="submit" 
-                class="flex-1 btn-bronze py-2.5 rounded-xl text-xs font-semibold justify-center shadow-sm"
+                class="flex-1 py-2.5 rounded-2xl text-xs font-bold justify-center text-white shadow-md cursor-pointer"
+                style="background: linear-gradient(135deg, #c27a3d, #b45309);"
                 :disabled="modalSubmitting"
               >
                 {{ modalSubmitting ? '保存中...' : '确认保存更改' }}

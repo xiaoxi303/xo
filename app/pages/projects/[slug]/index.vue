@@ -1105,6 +1105,13 @@ watch(unlockStatus, async (val) => {
     isUnlocked.value = true
     await nextTick()
     initReveal()
+  } else {
+    // Check URL query parameter ?pwd=... for auto-unlocking from client center
+    const pwdParam = route.query.pwd as string
+    if (pwdParam && !isUnlocked.value) {
+      inputPassword.value = String(pwdParam).trim()
+      await verifyPassword()
+    }
   }
 }, { immediate: true })
 

@@ -1,7 +1,6 @@
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../utils/auth'
-import { getRuntimeDataPath } from '../../utils/storage'
-import { dbGetProjectsRaw } from '../../utils/db'
-import fs from 'node:fs'
+import { dbGetProjectsRaw, dbGetPasswordRequests, dbGetUsers } from '../../utils/db'
+import { getDailyPassword } from '../../utils/password-utils'
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
@@ -17,58 +16,81 @@ export default defineEventHandler(async (event) => {
   const username = session.username
 
   // 1. Get client user profile
-  let clientProfile: any = null
-  const usersPath = getRuntimeDataPath('users.json')
-  if (fs.existsSync(usersPath)) {
-    try {
-      const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-      const found = users.find((u: any) => u.username === username)
-      if (found) {
-        const { password, ...rest } = found
-        clientProfile = rest
-      }
-    } catch (e) {}
-  }
+  const allUsers = await dbGetUsers(event).catch(() => [])
+  const foundUser = allUsers.find((u: any) => u.username === username)
 
-  if (!clientProfile) {
+  if (!foundUser) {
     throw createError({ statusCode: 404, statusMessage: '客户账号不存在。' })
   }
 
-  // 2. Get allowed projects list
+  const { password: _p, ...clientProfile } = foundUser
+  const clientEmail = (clientProfile.email || '').trim().toLowerCase()
+
+  // 2. Fetch all password requests
+  const allRequests = await dbGetPasswordRequests(event).catch(() => [])
   const allProjects = await dbGetProjectsRaw(event).catch(() => [])
-  const allowedSlugs = (clientProfile.allowedProjects || '')
-    .split(',')
-    .map((s: string) => s.trim())
-    .filter(Boolean)
 
+  // Filter requests belonging to this user
+  const clientRequests = allRequests.filter((r: any) => {
+    if (r.clientUsername && r.clientUsername === username) return true
+    if (r.clientName && r.clientName.includes(`账号: ${username}`)) return true
+    if (clientEmail && r.contact && r.contact.toLowerCase().includes(clientEmail)) return true
+    return false
+  })
+
+  // Set of allowed project slugs (from user profile + approved requests)
+  const allowedSlugsSet = new Set<string>(
+    (clientProfile.allowedProjects || '')
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+  )
+
+  // Attach calculated password to approved requests & add to allowedSlugsSet
+  const enrichedRequests = clientRequests.map((r: any) => {
+    const project = allProjects.find((p: any) => p.slug === r.projectSlug)
+    let projectPwd = ''
+    if (project) {
+      if (project.autoRotatePassword !== false) {
+        projectPwd = getDailyPassword(project.slug)
+      } else {
+        projectPwd = project.password || ''
+      }
+    }
+
+    if (r.status === 'approved') {
+      allowedSlugsSet.add(r.projectSlug)
+    }
+
+    return {
+      ...r,
+      password: r.status === 'approved' ? projectPwd : '',
+      projectImage: project?.image || ''
+    }
+  })
+
+  // 3. Build allowed projects list with password included
   const allowedProjects = allProjects
-    .filter((p: any) => allowedSlugs.includes(p.slug))
-    .map((p: any) => ({
-      slug: p.slug,
-      title: p.title,
-      image: p.image,
-      description: p.description,
-      password: p.password || ''
-    }))
-
-  // 3. Get client password requests
-  let clientRequests: any[] = []
-  const requestsPath = getRuntimeDataPath('password-requests.json')
-  if (fs.existsSync(requestsPath)) {
-    try {
-      const requests = JSON.parse(fs.readFileSync(requestsPath, 'utf-8'))
-      clientRequests = requests.filter((r: any) => {
-        return (
-          r.clientUsername === username ||
-          (r.clientName && r.clientName.includes(`账号: ${username}`))
-        )
-      })
-    } catch (e) {}
-  }
+    .filter((p: any) => allowedSlugsSet.has(p.slug))
+    .map((p: any) => {
+      let pwd = ''
+      if (p.autoRotatePassword !== false) {
+        pwd = getDailyPassword(p.slug)
+      } else {
+        pwd = p.password || ''
+      }
+      return {
+        slug: p.slug,
+        title: p.title,
+        image: p.image,
+        description: p.description,
+        password: pwd
+      }
+    })
 
   return {
     profile: clientProfile,
     allowedProjects,
-    requests: clientRequests
+    requests: enrichedRequests
   }
 })
