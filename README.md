@@ -2,14 +2,14 @@
 
 # ✨ Xo Studio & Capsule Blog
 
-### 🎬 视频剪辑与调色工作室 · 次世代胶囊博客系统 · E2EE v4.0 顶级量子防御端到端加密
+### 🎬 视频剪辑与调色工作室 · 次世代胶囊博客系统 · E2EE v6.0 AES-256-GCM 端到端加密
 
 <p>
   <img src="https://img.shields.io/badge/Nuxt-4.5-00DC82?style=for-the-badge&logo=nuxt&logoColor=white" alt="Nuxt 4.5">
   <img src="https://img.shields.io/badge/Vue-3.5-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white" alt="Vue 3.5">
   <img src="https://img.shields.io/badge/TypeScript-5.5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/E2EE-v4.0_Quantum_Matrix-6366F1?style=for-the-badge&logo=webauthn&logoColor=white" alt="E2EE v4.0">
-  <img src="https://img.shields.io/badge/Terser-5--Pass_Obfuscated-FF6B6B?style=for-the-badge&logo=javascript&logoColor=white" alt="Terser Obfuscation">
+  <img src="https://img.shields.io/badge/E2EE-v6.0_AES--256--GCM-6366F1?style=for-the-badge&logo=webauthn&logoColor=white" alt="E2EE v6.0">
+  <img src="https://img.shields.io/badge/Terser-7--Pass_Hardened-FF6B6B?style=for-the-badge&logo=javascript&logoColor=white" alt="Terser Obfuscation">
   <img src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
 </p>
 
@@ -21,7 +21,7 @@
   <a href="./FEATURES.md">📖 <strong>全量功能总览文档 (FEATURES.md)</strong></a> •
   <a href="#-快速开始">快速开始</a> •
   <a href="#-核心特色">核心特色</a> •
-  <a href="#-端到端加密-e2ee-v40">E2EE v4.0 量子加密</a> •
+  <a href="#-端到端加密-e2ee-v60">E2EE v6.0 加密</a> •
   <a href="#-前端混淆与防逆向-v30">前端防逆向混淆</a> •
   <a href="#-🤖-ai-智能总结系统">AI 智能总结</a> •
   <a href="#-部署指南">部署指南</a>
@@ -63,7 +63,7 @@
 <tr>
 <td width="50%">
 
-### 🔐 端到端加密 (E2EE v4.0 Quantum Matrix)
+### 🔐 端到端加密 (E2EE v6.0)
 
 - 🔐 **W3C Web Crypto 顶级加密** — PBKDF2 100K 迭代 + HKDF-SHA512 + AES-256-GCM
 - 🛡️ **HMAC-SHA512 & Nonce 防篡改** — 包含随机 Epoch Nonce 与零知识证明 Matrix (`ZKP-SHA512`)
@@ -75,7 +75,7 @@
 
 ### 🛡️ 前端混淆 & 防审查体系 (v3.0 ULTRA)
 
-- 🌀 **Terser 5-Pass 深度代码混淆** — 多轮 AST 语法树重构，变量与函数名全面单字符哈希化
+- 🌀 **Terser 7-Pass 深度代码混淆** — 多轮 AST 语法树重构，变量与函数名全面单字符哈希化
 - 🚫 **Source Map 彻底剥离** — 关停 `.map` 映射与注释，遮蔽 Rollup Chunk 为 16 位 Hash
 - 🔒 **全局右键防审查与防复制** — 物理屏蔽右键菜单 (`contextmenu`)、禁止拖拽与文本复制
 - ⚡ **Infinite Debugger 卡死陷阱** — 开发者打开 DevTools 调试面板瞬间强行卡死冻结
@@ -86,20 +86,21 @@
 
 ---
 
-## 🔐 端到端加密架构 (E2EE v4.0 Quantum Matrix)
+## 🔐 端到端加密架构 (E2EE v6.0 AES-256-GCM)
 
 基于 W3C 标准 Web Crypto API (`window.crypto.subtle`) 构建的零知识端到端加密系统：
 
 - **PBKDF2 100,000 次迭代与 HKDF-SHA512 密钥派生**：通过 PBKDF2 + SHA-256 进行 100,000 次高阶迭代派生基础密钥，配合 `HKDF-SHA512`（RFC 5869 标准）展开独立的加密与 HMAC 签名子密钥。
 - **AES-256-GCM 结合 HMAC-SHA512 双向防篡改**：结合随机 12 字节 IV 向量、Epoch Nonce 与 48 字节 HMAC-SHA512 签名，确保网络传输密文全路径绝对保密且防中途篡改。
 - **ZKP-SHA512 零知识证明**：采用 SHA-512 Challenge-Response 零知识证明机制，无需传输任何明文凭证。
+- **防重放保护**：服务端校验 120 秒时间窗口、`epochNonce` 格式及同一指纹下的 nonce 唯一性，重复请求会被拒绝。
 - **后台 E2EE 安全沙盒控制台**：在管理后台安全控制台中，集成密钥热轮换、512 位量子指纹展示与加解密实时沙盒测试。
 
 ---
 
 ## 🛡️ 前端混淆与防逆向系统 (v3.0 ULTRA)
 
-- **Terser 5 轮 AST 混淆 (`passes: 5`)**：启用 `unsafe`、`toplevel` 混淆算法，剥离源代码控制流与全部注释。
+- **Terser 7 轮 AST 混淆 (`passes: 7`)**：启用 `unsafe`、`toplevel` 与函数名压缩，增加生产代码逆向分析成本。
 - **Source Map 剥离 & 随机 Hash 块**：彻底不生成 `.map` 文件，JS 产物自动重命名为 `_nuxt/[hash:16].js`。
 - **物理禁用右键菜单 (`contextmenu`)**：全局拦截右键，彻底屏蔽“检查”、“查看网页源代码”与“另存为”。
 - **DevTools Infinite Debugger 陷阱**：高频运行 `Function("debugger")()` 陷阱死循环，一旦开启 DevTools 调试面板将直接被强行挂起卡死。
@@ -161,7 +162,7 @@ npm run dev
 ### 生产环境构建
 
 ```bash
-# 构建 (触发 Terser 5-Pass 混淆与 Source Map 剥离)
+# 构建 (触发 Terser 7-Pass 混淆与 Source Map 剥离)
 npm run build
 
 # 预览构建结果
@@ -208,7 +209,7 @@ xo-studio/
 │   ├── layouts/            # 布局文件 (AppNavbar, AppFooter)
 │   ├── pages/              # 页面路由 (/blog, /[adminSuffix], /projects)
 │   ├── plugins/            # 客户端安全插件 (anti-scrape.client.ts)
-│   ├── utils/              # E2EE v4.0 量子加密、前端分析与 blogData 状态库
+│   ├── utils/              # E2EE v6.0 加密、前端分析与 blogData 状态库
 │   └── assets/             # 静态资源与字体
 ├── server/                 # 后端服务
 │   ├── api/                # API 接口 (projects, analytics, system-status, site-config, password-requests)
@@ -217,7 +218,7 @@ xo-studio/
 │   ├── site-config.json    # 站点配置与 AI 大模型设置
 │   ├── project-heat.json   # 热度与统计数据
 │   └── projects/           # 视频作品数据
-├── nuxt.config.ts          # Nuxt 配置 (包含 Terser 5-Pass 混淆与安全 Headers)
+├── nuxt.config.ts          # Nuxt 配置 (包含 Terser 7-Pass 混淆与安全 Headers)
 └── package.json            # 项目依赖
 ```
 
@@ -245,4 +246,11 @@ MIT License © 2026 [Xo Studio](https://github.com/your-username)
 
 ---
 
-*Last updated: 2026-08-05 11:18:06*
+## 安全更新基线
+
+- E2EE 使用 AES-256-GCM、HKDF-SHA512 与 P-384 ECDH；生产环境请设置高强度唯一的 `E2EE_SECRET`，不要使用代码中的开发默认值。
+- 服务端会校验时间戳和 `epochNonce`，并在有效窗口内拒绝重复 nonce，降低加密请求重放风险。
+- 生产构建启用 Terser 7-pass、移除 console/debugger、关闭 source map 与注释，并关闭函数名保留。
+- 代码混淆用于提高逆向成本，不等同于密钥保护；真正的密钥、权限判断和敏感数据必须继续放在服务端。
+
+*Last updated: 2026-08-05*

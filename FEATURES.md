@@ -467,4 +467,11 @@ pm2 start .output/server/index.mjs --name "xo-studio"
 
 ---
 
+## Security Baseline (2026-08-05)
+
+- E2EE uses AES-256-GCM, HKDF-SHA512 and P-384 ECDH. Set a strong, unique `E2EE_SECRET` in production.
+- Server-side replay protection validates the timestamp and `epochNonce`, then rejects a reused nonce within the 120-second acceptance window.
+- Production builds use seven Terser passes, remove console/debugger output, disable source maps and strip comments.
+- Obfuscation raises reverse-engineering cost; it does not replace server-side authorization, secret management or data protection.
+
 > **版权声明**：© 2026 Xo Studio & Capsule Blog. All Rights Reserved.

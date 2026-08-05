@@ -67,18 +67,22 @@ export default defineNuxtConfig({
     }
   },
 
-  // Apple-Grade Terser Ultra Obfuscation & Bundle Shielding Configuration
+  // Production hardening: stable minification with source-map stripping.
   $production: {
     vite: {
       build: {
         sourcemap: false,
-        minify: 'terser',
+        // esbuild is the reliable default for constrained deployment builders.
+        // Set NUXT_BUILD_MINIFY=terser when maximum client-side hardening is required.
+        minify: process.env.NUXT_BUILD_MINIFY === 'terser' ? 'terser' : 'esbuild',
         terserOptions: {
           compress: {
             drop_console: true,
             drop_debugger: true,
             pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace', 'console.warn'],
-            passes: 5,
+            // Three passes keep deployment memory/time predictable while still
+            // applying meaningful AST compression and name mangling.
+            passes: 3,
             unsafe: true,
             unsafe_comps: true,
             unsafe_math: true,
@@ -89,6 +93,7 @@ export default defineNuxtConfig({
           mangle: {
             toplevel: true,
             eval: true,
+            keep_fnames: false,
             properties: false
           },
           format: {

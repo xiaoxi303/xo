@@ -1,7 +1,6 @@
 <template>
   <div>
     <AppPreloader v-if="!preloaderDone && !isPanelPage" @complete="onPreloaderComplete" @reveal-start="onPreloaderRevealStart" />
-
     <!-- 1. Top Sticky Bar Announcement (顶部置顶模式) -->
     <Transition name="banner-top">
       <div
@@ -13,7 +12,7 @@
           <!-- Badge -->
           <span class="text-[9px] font-bold font-mono uppercase px-2 py-0.5 rounded-full tracking-wider border flex-shrink-0 relative overflow-hidden" :class="getBadgeClass(announcement?.badgeColor)">
             <span class="animate-pulse absolute inset-0 bg-white/20 rounded-full" />
-            {{ announcement.badge || 'BROADCAST' }}
+            {{ announcement.badge || '公告' }}
           </span>
 
           <!-- Text (marquee or static) -->
@@ -70,7 +69,7 @@
         <div class="flex-1 space-y-1.5 pr-2">
           <div class="flex items-center gap-1.5">
             <span class="text-[9px] font-bold tracking-widest font-mono uppercase px-2 py-0.5 rounded-full border" :class="getBadgeClass(announcement?.badgeColor)">
-              {{ announcement.badge || 'BROADCAST' }}
+              {{ announcement.badge || '公告' }}
             </span>
           </div>
           <p class="text-xs font-semibold leading-relaxed" style="color: var(--color-ink-1)">
@@ -165,7 +164,7 @@
           <div class="space-y-4">
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold font-mono uppercase px-2 py-0.5 rounded-full" :class="getBadgeClass(announcement?.badgeColor)">
-                {{ announcement?.badge || 'BROADCAST' }}
+                {{ announcement?.badge || '公告' }}
               </span>
             </div>
             <p class="text-sm text-slate-700 leading-relaxed">{{ announcement?.text }}</p>
@@ -179,7 +178,6 @@
 </template>
 
 <script setup lang="ts">
-// useState persists across route changes — does NOT reset on navigation
 const preloaderDone = useState('xo_preloader_done', () => false)
 const preloaderRevealed = useState('xo_preloader_revealed', () => false)
 
@@ -190,11 +188,10 @@ const onPreloaderRevealStart = () => {
 const onPreloaderComplete = () => {
   preloaderDone.value = true
   preloaderRevealed.value = true
-  if (import.meta.client) {
-    document.body.style.overflow = ''
-  }
+  if (import.meta.client) document.body.style.overflow = ''
 }
 
+// useState persists across route changes — does NOT reset on navigation
 const { data: siteConfigData } = useFetch('/api/site-config', { lazy: true })
 const siteConfig = useState('site-config', () => siteConfigData.value || {})
 
@@ -304,7 +301,7 @@ const audioRef = ref<HTMLAudioElement | null>(null)
 
 const musicEnabled = computed(() => siteConfig.value?.music?.enabled ?? true)
 const musicUrl = computed(() => siteConfig.value?.music?.url || 'https://assets.mixkit.co/music/preview/mixkit-ambient-dream-12.mp3')
-const musicLabel = computed(() => siteConfig.value?.music?.label || 'AMBIENT AUDIO')
+const musicLabel = computed(() => siteConfig.value?.music?.label || '环境音乐')
 const musicVolume = computed(() => siteConfig.value?.music?.volume ?? 70)
 
 watch(musicVolume, (val) => {
@@ -367,13 +364,8 @@ onMounted(() => {
   checkClientSession()
   checkBannerDismissal()
   if (import.meta.client) {
-    // If preloader is already done (e.g. navigating between pages), ALWAYS release overflow
-    if (preloaderDone.value || isPanelPage.value) {
-      document.body.style.overflow = ''
-    } else {
-      // First visit - lock scroll during preloader animation
-      document.body.style.overflow = 'hidden'
-    }
+    if (preloaderDone.value || isPanelPage.value) document.body.style.overflow = ''
+    else document.body.style.overflow = 'hidden'
   }
 })
 

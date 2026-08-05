@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-10 pb-20 px-6 font-sans relative">
+  <div class="min-h-screen pt-10 pb-20 px-6 font-sans relative admin-shell">
     <AdminAiCopilot />
 
     <!-- AI Interactive Prompt Dialog: Notice Copy -->
@@ -108,22 +108,33 @@
     </div>
 
     <!-- 3. Config Panel (Authenticated) -->
-    <div v-else :class="showLivePreview ? 'max-w-[1700px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8' : 'max-w-6xl mx-auto space-y-8'">
+    <div v-else :class="showLivePreview ? 'max-w-[1700px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 admin-workspace' : 'w-full max-w-none px-6 space-y-8 admin-workspace'">
 
       <!-- Left Edit Column -->
-      <div class="space-y-8 min-w-0">
+      <div class="space-y-8 min-w-0 admin-edit-column">
 
       <!-- Header -->
-      <div class="space-y-1 pb-4 border-b border-black/[0.05]">
+      <div class="space-y-1 pb-4 border-b border-black/[0.05] admin-page-header">
         <p class="section-label">Admin</p>
         <h1 class="font-display text-3xl font-bold tracking-tight" style="color: var(--color-ink-1)">配置工作台</h1>
         <p class="text-xs font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">Xo Studio · Site-Wide Configuration Panel</p>
       </div>
 
       <!-- Navigation & Action Row -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2 admin-navigation">
+        <div class="admin-sidebar-brand">
+          <img
+            class="admin-brand-mark"
+            :src="siteConfig?.siteInfo?.avatar || '/logo.png'"
+            :alt="siteConfig?.siteInfo?.brandName || 'Xo'"
+          />
+          <div>
+            <strong>{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</strong>
+            <span>CONTROL CENTER</span>
+          </div>
+        </div>
         <!-- Tabs Menu (Horizontal Scrollable Capsule) -->
-        <div class="flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap scrollbar-none no-scrollbar" @wheel.prevent="handleTabsWheel"
+        <div class="flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap scrollbar-none no-scrollbar admin-tabs" @wheel.prevent="handleTabsWheel"
              style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: none; -ms-overflow-style: none; max-width: 100%;">
           <button
             v-for="t in tabs"
@@ -139,12 +150,13 @@
               ? { color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.3)' }
               : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
           >
-            <span class="transition-transform duration-300 hover:rotate-12">{{ t.icon }}</span>{{ t.label }}
+            <IconSax :name="t.icon" :size="15" custom-class="admin-nav-icon" />
+            <span>{{ t.label }}</span>
           </button>
         </div>
 
         <!-- Right Side Quick Actions -->
-        <div class="flex items-center gap-3 flex-shrink-0 self-end lg:self-auto">
+        <div class="flex items-center gap-3 flex-shrink-0 self-end lg:self-auto admin-quick-actions">
           <button @click="showLivePreview = !showLivePreview"
                   :class="[
                     'px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 flex-shrink-0',
@@ -165,7 +177,7 @@
       </div>
 
       <!-- Tab Content with Smooth Gliding Transition -->
-      <div class="relative min-h-[400px]">
+      <div class="relative min-h-[400px] admin-tab-content">
         <Transition name="tab-fade-slide" mode="out-in">
           <div v-if="activeTab === 'analytics'" key="analytics" class="space-y-6">
             <!-- TAB 0: ANALYTICS DASHBOARD -->
@@ -177,7 +189,7 @@
             </div>
             <div class="flex items-center gap-3">
               <button @click="fetchSystemStatus" class="text-xs font-mono px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5" style="color: var(--color-ink-4); border: 1px solid var(--color-border)">
-                🔄 刷新数据
+                <IconSax name="refresh-2" :size="14" /> 刷新数据
               </button>
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold font-mono tracking-wider bg-emerald-50 border border-emerald-100 text-emerald-700">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
@@ -192,7 +204,7 @@
             <div class="glass-card p-5 flex flex-col gap-3">
               <div class="flex justify-between items-start">
                 <span class="text-[9px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">今日 PV</span>
-                <span class="text-sm bg-amber-50 rounded-md px-1.5">📈</span>
+                <span class="admin-stat-icon"><IconSax name="chart-2" :size="16" /></span>
               </div>
               <div>
                 <div class="text-3xl font-display font-bold tabular-nums" style="color: var(--color-ink-1)">{{ systemStatus.todayViews }}</div>
@@ -219,7 +231,7 @@
             <div class="glass-card p-5 flex flex-col gap-3">
               <div class="flex justify-between items-start">
                 <span class="text-[9px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">7日累计</span>
-                <span class="text-sm bg-amber-50 rounded-md px-1.5">📊</span>
+                <span class="admin-stat-icon"><IconSax name="chart-2" :size="16" /></span>
               </div>
               <div>
                 <div class="text-3xl font-display font-bold tabular-nums" style="color: var(--color-ink-1)">{{ systemStatus.weekViews }}</div>
@@ -231,7 +243,7 @@
             <div class="glass-card p-5 flex flex-col gap-3">
               <div class="flex justify-between items-start">
                 <span class="text-[9px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">咨询点击 (7天)</span>
-                <span class="text-sm bg-amber-50 rounded-md px-1.5">✉️</span>
+                <span class="admin-stat-icon"><IconSax name="mail" :size="16" /></span>
               </div>
               <div>
                 <div class="text-3xl font-display font-bold tabular-nums" style="color: var(--color-ink-1)">{{ systemStatus.contactClicks }}</div>
@@ -243,7 +255,7 @@
             <div class="glass-card p-5 flex flex-col gap-3">
               <div class="flex justify-between items-start">
                 <span class="text-[9px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">响应延迟</span>
-                <span class="text-sm bg-amber-50 rounded-md px-1.5">⚡</span>
+                <span class="admin-stat-icon"><IconSax name="magic-star" :size="16" /></span>
               </div>
               <div>
                 <div class="text-3xl font-display font-bold tabular-nums" style="color: var(--color-ink-1)">{{ systemStatus.latency }}</div>
@@ -324,12 +336,12 @@
               <div class="flex items-center justify-between">
                 <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">🔥 作品点击热度排行 (Top Engagement)</span>
                 <button @click="fetchSystemStatus" class="text-[10px] font-mono px-2 py-1 rounded bg-black/5 hover:bg-amber-600/10 hover:text-amber-800 transition-all flex items-center gap-1" style="color: var(--color-ink-4)" title="立刻刷新最新数据">
-                  <span>🔄</span> 实时刷新
+                  <IconSax name="refresh-2" :size="13" /> 实时刷新
                 </button>
               </div>
               <div class="space-y-3.5">
-                <template v-if="systemStatus.projectClicks?.length">
-                  <div v-for="(p, i) in systemStatus.projectClicks" :key="p.slug + '-' + p.clicks" class="space-y-1">
+                <template v-if="projectRanking.length">
+                  <div v-for="(p, i) in projectRanking" :key="p.slug + '-' + p.clicks" class="space-y-1">
                     <div class="flex justify-between text-xs items-center">
                       <div class="flex items-center gap-2 truncate max-w-[220px]">
                         <span class="font-mono font-bold text-[9px] px-1.5 py-0.5 rounded bg-amber-700/10 text-amber-800 border border-amber-700/20 flex-shrink-0">TOP {{ i + 1 }}</span>
@@ -339,7 +351,7 @@
                     </div>
                     <div class="h-2 w-full rounded-full overflow-hidden" style="background: rgba(0,0,0,0.04)">
                       <div class="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-500 transition-all duration-700"
-                        :style="{ width: Math.max(8, Math.round((p.clicks / (systemStatus.projectClicks[0].clicks || 1)) * 100)) + '%' }"/>
+                        :style="{ width: Math.max(8, Math.round((p.clicks / (projectRanking[0].clicks || 1)) * 100)) + '%' }"/>
                     </div>
                   </div>
                 </template>
@@ -477,7 +489,7 @@
                         @click="copyShareText(r)"
                         class="text-emerald-600 hover:text-emerald-500 font-bold hover:underline"
                       >
-                        📋 复制通知模板
+                        <IconSax name="copy" :size="14" /> 复制通知模板
                       </button>
                       <button
                         type="button"
@@ -1843,7 +1855,7 @@
               <template v-if="lockedProjects.length">
                 <div v-for="p in lockedProjects" :key="p.slug" class="p-4 rounded-xl flex items-center justify-between shadow-sm bg-black/[0.01]" style="border: 1px solid var(--color-border)">
                   <div class="flex items-center gap-3">
-                    <span class="text-lg">🔒</span>
+                    <IconSax name="lock" :size="18" />
                     <div>
                       <h4 class="font-bold text-sm" style="color: var(--color-ink-1)">{{ p.title }}</h4>
                       <p class="text-[10px] font-mono" style="color: var(--color-ink-5)">/projects/{{ p.slug }}</p>
@@ -2894,17 +2906,17 @@ const deleteAdminCategory = (id: string) => {
 }
 
 const tabs = [
-  { label: '数据看板', value: 'analytics', icon: '📊' },
-  { label: '博客文章', value: 'blog', icon: '✍️' },
-  { label: '作品管理', value: 'projects', icon: '🎥' },
-  { label: '授权申请', value: 'requests', icon: '🔑' },
-  { label: '合作预约', value: 'bookings', icon: '📅' },
-  { label: '用户管理', value: 'users', icon: '👥' },
-  { label: '首页配置', value: 'home', icon: '🏠' },
-  { label: '个人履历', value: 'about', icon: '🙋' },
-  { label: '站点信息', value: 'siteinfo', icon: '🌐' },
-  { label: '水印设置', value: 'watermark', icon: '🔏' },
-  { label: '高级设置', value: 'advanced', icon: '🎨' }
+  { label: '数据看板', value: 'analytics', icon: 'chart-2' },
+  { label: '博客文章', value: 'blog', icon: 'document-text' },
+  { label: '作品管理', value: 'projects', icon: 'video-play' },
+  { label: '授权申请', value: 'requests', icon: 'key' },
+  { label: '合作预约', value: 'bookings', icon: 'calendar-2' },
+  { label: '用户管理', value: 'users', icon: 'profile-2user' },
+  { label: '首页配置', value: 'home', icon: 'home-2' },
+  { label: '个人履历', value: 'about', icon: 'user' },
+  { label: '站点信息', value: 'siteinfo', icon: 'global' },
+  { label: '水印设置', value: 'watermark', icon: 'lock' },
+  { label: '高级设置', value: 'advanced', icon: 'setting' }
 ]
 
 const showLivePreview = ref(false)
@@ -3071,6 +3083,22 @@ const systemStatus = ref<any>({
 })
 
 const projectsList = ref<any[]>([])
+const projectRanking = computed(() => {
+  const heatMap = systemStatus.value?.heatMap || {}
+  const clicks = systemStatus.value?.projectClicks || []
+  const clickMap = new Map(clicks.map((item: any) => [item.slug, Number(item.clicks || 0)]))
+  const currentProjects = projectsList.value.length
+    ? projectsList.value
+    : clicks.map((item: any) => ({ slug: item.slug, title: item.title }))
+  return currentProjects
+    .map((project: any) => ({
+      slug: project.slug,
+      title: project.title || project.slug,
+      clicks: Math.max(Number(heatMap[project.slug] || 0), Number(clickMap.get(project.slug) || 0))
+    }))
+    .sort((a, b) => b.clicks - a.clicks)
+    .slice(0, 6)
+})
 const siteConfig = useState<any>('site-config', () => ({
   siteInfo: {
     brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
@@ -4167,6 +4195,103 @@ const copyShareText = (r: any) => {
 </script>
 
 <style scoped>
+.admin-shell {
+  color: var(--color-ink-2);
+  background:
+    radial-gradient(circle at 86% 5%, rgba(245, 158, 11, 0.12), transparent 30rem),
+    linear-gradient(135deg, rgba(255,255,255,0.72), rgba(247, 243, 236, 0.7));
+}
+
+.admin-shell :deep(.glass-card) {
+  border: 1px solid rgba(160, 130, 90, 0.16);
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 28px rgba(51, 39, 24, 0.055);
+  backdrop-filter: blur(14px);
+}
+
+.admin-shell :deep(.glass-card:hover) {
+  border-color: rgba(180, 83, 9, 0.24);
+  box-shadow: 0 14px 34px rgba(51, 39, 24, 0.08);
+}
+
+.admin-stat-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  color: var(--color-bronze-dark);
+  background: rgba(180, 83, 9, 0.08);
+  border: 1px solid rgba(180, 83, 9, 0.12);
+}
+
+.admin-nav-icon {
+  color: var(--color-bronze-dark);
+}
+
+.admin-page-header {
+  position: relative;
+  padding-top: 0.25rem;
+}
+
+.admin-page-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 5rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-bronze);
+}
+
+.admin-page-header h1 {
+  font-size: clamp(1.85rem, 2.35vw, 2.65rem);
+  line-height: 1.08;
+  letter-spacing: -0.018em;
+}
+
+.admin-tab-content > .tab-fade-slide-enter-active,
+.admin-tab-content > .tab-fade-slide-leave-active {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.admin-tab-content :deep(.font-display) {
+  letter-spacing: -0.01em;
+}
+
+.admin-tab-content :deep(table thead th) {
+  color: var(--color-ink-5);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.admin-tab-content :deep(table tbody tr) {
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.admin-tab-content :deep(table tbody tr:hover) {
+  background: rgba(180, 83, 9, 0.045);
+}
+
+.admin-tab-content :deep(input:not([type="checkbox"]):not([type="range"])),
+.admin-tab-content :deep(select),
+.admin-tab-content :deep(textarea) {
+  border-radius: 0.7rem;
+  border-color: rgba(160, 130, 90, 0.22);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.admin-tab-content :deep(button) {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.admin-tab-content :deep(button:hover) {
+  transform: translateY(-1px);
+}
+
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
@@ -4251,5 +4376,161 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 .no-scrollbar {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
+}
+
+@media (min-width: 1024px) {
+  .admin-edit-column {
+    position: relative;
+  }
+
+  .admin-page-header,
+  .admin-tab-content {
+    margin-left: 250px;
+    max-width: 1420px;
+  }
+
+  .admin-navigation {
+    position: fixed;
+    z-index: 40;
+    top: 2.5rem;
+    left: 1.5rem;
+    width: 224px;
+    min-height: calc(100vh - 5rem);
+    padding: 1.1rem;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 1rem;
+    border: 1px solid rgba(160, 130, 90, 0.18);
+    border-radius: 1.25rem;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 16px 40px rgba(40, 30, 20, 0.08);
+    backdrop-filter: blur(18px);
+  }
+
+  .admin-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.25rem 0.35rem 0.85rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .admin-brand-mark {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.7rem;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(160, 130, 90, 0.18);
+    box-shadow: 0 5px 14px rgba(180, 83, 9, 0.22);
+  }
+
+  .admin-sidebar-brand strong,
+  .admin-sidebar-brand span {
+    display: block;
+  }
+
+  .admin-sidebar-brand strong {
+    color: var(--color-ink-1);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+  }
+
+  .admin-sidebar-brand span {
+    margin-top: 0.15rem;
+    color: var(--color-ink-5);
+    font-family: monospace;
+    font-size: 0.48rem;
+    letter-spacing: 0.1em;
+  }
+
+  .admin-tabs {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: visible;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  .admin-tabs > button {
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.7rem;
+  }
+
+  .admin-tabs > button:not(.tab-pill-active) {
+    opacity: 0.78;
+  }
+
+  .admin-tabs > button:hover {
+    transform: translateX(3px);
+  }
+
+  .admin-quick-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .admin-quick-actions > button {
+    width: 100%;
+    text-align: left;
+  }
+
+  .admin-tab-content {
+    padding-bottom: 2rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .admin-shell {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .admin-workspace {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .admin-sidebar-brand {
+    display: none;
+  }
+
+  .admin-navigation {
+    margin-top: 0.5rem;
+    padding: 0.35rem;
+    border: 1px solid rgba(160, 130, 90, 0.16);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.68);
+    box-shadow: 0 8px 22px rgba(51, 39, 24, 0.05);
+  }
+
+  .admin-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .admin-quick-actions {
+    align-self: stretch;
+    justify-content: flex-end;
+  }
+
+  .admin-page-header h1 {
+    font-size: 1.85rem;
+  }
+
+  .admin-tab-content :deep(.grid) {
+    min-width: 0;
+  }
 }
 </style>

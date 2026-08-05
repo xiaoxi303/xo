@@ -14,9 +14,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Missing video url' })
   }
 
-  const siteConfig = await dbGetSiteConfig(event)
-  const invisibleText = siteConfig?.watermark?.invisibleText || '© Xo Studio 2026'
-
   // If local file on server
   let inputPath = targetUrl
   if (targetUrl.startsWith('/')) {
@@ -26,6 +23,27 @@ export default defineEventHandler(async (event) => {
   // Set response headers for video streaming
   setResponseHeader(event, 'Content-Type', 'video/mp4')
   setResponseHeader(event, 'Access-Control-Allow-Origin', '*')
+
+  if (/^https?:\/\//i.test(targetUrl)) {
+    const range = getHeader(event, 'range')
+    const upstream = await fetch(targetUrl, {
+      headers: range ? { range } : undefined,
+      redirect: 'follow'
+    }).catch(() => null)
+    if (!upstream || (!upstream.ok && upstream.status !== 206)) {
+      throw createError({ statusCode: upstream?.status || 502, message: 'Unable to fetch video source' })
+    }
+    setResponseStatus(event, upstream.status)
+    for (const name of ['content-type', 'content-length', 'content-range']) {
+      const value = upstream.headers.get(name)
+      if (value) setResponseHeader(event, name, value)
+    }
+    setResponseHeader(event, 'Accept-Ranges', 'bytes')
+    return upstream.body
+  }
+
+  const siteConfig = await dbGetSiteConfig(event)
+  const invisibleText = siteConfig?.watermark?.invisibleText || '© Xo Studio 2026'
 
   // Check if ffmpeg binary exists on server PATH
   try {

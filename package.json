@@ -3,7 +3,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "node init-server-data.js && nuxt build",
+    "build": "node scripts/build-production.mjs",
+    "build:nuxt": "nuxt build",
     "init-data": "node init-server-data.js",
     "dev": "node init-server-data.js && nuxt dev",
     "generate": "nuxt generate",

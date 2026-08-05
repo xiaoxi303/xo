@@ -225,7 +225,6 @@
       muted
       loop
       playsinline
-      crossorigin="anonymous"
       class="w-full h-full object-cover transition-all duration-300 cursor-pointer"
       :style="{
         opacity: isVideoReady ? 1 : 0,
@@ -660,7 +659,10 @@ const checkWebCodecsHardwareSupport = async () => {
 const initVideoDecodingEngine = async () => {
   if (!process.client || !props.src || !videoRef.value) return
 
-  const srcUrl = props.src.trim()
+  const rawUrl = props.src.trim()
+  const srcUrl = /^https?:\/\//i.test(rawUrl)
+    ? `/api/video-stream?url=${encodeURIComponent(rawUrl)}`
+    : rawUrl
   await checkWebCodecsHardwareSupport()
 
   // Clean up existing HLS instance

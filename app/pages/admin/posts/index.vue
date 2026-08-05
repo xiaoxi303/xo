@@ -23,7 +23,7 @@
             target="_blank"
             class="px-5 py-2 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-[#F8F8F8] dark:hover:bg-slate-800 transition-colors select-none"
           >
-            🌐 前台效果 (View Blog)
+            🌐 前台效果
           </NuxtLink>
         </div>
 
@@ -33,7 +33,7 @@
             to="/admin/posts/new"
             class="px-5 py-2 rounded-full text-xs font-bold text-white bg-[#007AFF] hover:bg-[#0062cc] shadow-[0_4px_12px_rgba(0,122,255,0.35)] active:scale-95 transition-all flex items-center gap-1.5"
           >
-            <span>+ 新建文章 (New Post)</span>
+            <span>+ 新建文章</span>
           </NuxtLink>
         </div>
       </div>
@@ -43,7 +43,7 @@
         <div>
           <h1 class="text-2xl font-extrabold font-display text-slate-900 dark:text-white flex items-center gap-2">
             <span>文章列表与状态卡片</span>
-            <span class="text-xs px-3 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] font-mono">Total: {{ posts.length }}</span>
+            <span class="text-xs px-3 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] font-mono">共 {{ posts.length }} 篇</span>
           </h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
             快速管理发布状态 (Published / Draft)，进行胶囊编辑与可视化配置。
@@ -63,7 +63,7 @@
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             ]"
           >
-            {{ status }}
+              {{ status === 'All' ? '全部' : status === 'Published' ? '已发布' : '草稿' }}
           </button>
         </div>
       </div>

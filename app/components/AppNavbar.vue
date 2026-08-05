@@ -26,7 +26,7 @@
       <NuxtLink
         to="/"
         class="group flex items-center gap-2 no-underline flex-shrink-0 transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)"
-        aria-label="Xo Home"
+        aria-label="Xo 首页"
       >
         <img
           src="/logo.png?v=312k_v4"
@@ -176,9 +176,6 @@ watch(() => route.path, () => {
   }
 })
 
-const preloaderRevealed = useState('xo_preloader_revealed', () => false)
-const preloaderDone = useState('xo_preloader_done', () => false)
-
 let navAnimated = false
 const animateNavbarIn = async () => {
   if (!import.meta.client || !navbarRef.value || navAnimated) return
@@ -201,18 +198,7 @@ onMounted(() => {
   window.addEventListener('scroll', scrollHandler, { passive: true })
   scrollHandler()
 
-  if (import.meta.client) {
-    if (preloaderDone.value || preloaderRevealed.value) {
-      animateNavbarIn()
-    } else {
-      const unwatch = watch([preloaderRevealed, preloaderDone], ([revealed, done]) => {
-        if (revealed || done) {
-          animateNavbarIn()
-          unwatch()
-        }
-      })
-    }
-  }
+  if (import.meta.client) animateNavbarIn()
 })
 
 onBeforeUnmount(() => {

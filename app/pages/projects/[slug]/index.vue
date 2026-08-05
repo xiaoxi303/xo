@@ -133,6 +133,7 @@
                   ref="blurVideoRef"
                   :key="`blur-${activeVideoUrl}`"
                   :src="activeVideoUrl"
+                  preload="none"
                   muted loop playsinline
                   class="ambilight-shadow"
                 />
@@ -303,10 +304,10 @@
                     ref="mainVideoRef"
                     :key="`main-${activeVideoUrl}`"
                     :src="activeVideoUrl"
-                    :poster="project.image"
+                    :poster="project?.image || ''"
+                    preload="metadata"
                     :muted="isMuted"
                     playsinline
-                    crossorigin="anonymous"
                     class="w-full h-full block cursor-pointer transition-all duration-300"
                     :style="{
                       maxHeight: isFullscreen ? 'none' : '700px',
@@ -868,7 +869,7 @@ const route = useRoute()
 const currentSlug = computed(() => {
   let raw = String(route.params.slug || '').trim()
   try { raw = decodeURIComponent(raw) } catch {}
-  return raw.toLowerCase()
+  return raw.replace(/^\/+|\/+$/g, '').split('/')[0].toLowerCase()
 })
 const slug = computed(() => currentSlug.value)
 
@@ -906,7 +907,12 @@ const projectVideoUrls = computed(() => {
   if (legacyUrl && !normalized.includes(legacyUrl)) normalized.unshift(legacyUrl)
   return normalized.slice(0, 10)
 })
-const activeVideoUrl = computed(() => projectVideoUrls.value[activeVideoIndex.value] || '')
+const activeVideoUrl = computed(() => {
+  const url = projectVideoUrls.value[activeVideoIndex.value] || ''
+  return /^https?:\/\//i.test(url)
+    ? `/api/video-stream?url=${encodeURIComponent(url)}`
+    : url
+})
 
 watch(projectVideoUrls, (urls) => {
   if (activeVideoIndex.value >= urls.length) activeVideoIndex.value = 0
@@ -1169,7 +1175,7 @@ const verifyPassword = async () => {
   passwordLoading.value = true
   passwordError.value = ''
   try {
-    const res = await $fetch<any>(`/api/projects/${slug}/unlock`, {
+    const res = await $fetch<any>(`/api/projects/${currentSlug.value}/unlock`, {
       method: 'POST',
       body: { password: inputPassword.value }
     })
@@ -1382,6 +1388,8 @@ const toggleABLoop = () => {
 }
 
 const progressTrackRef = ref<HTMLElement | null>(null)
+const mainVideoRef = ref<HTMLVideoElement | null>(null)
+const blurVideoRef = ref<HTMLVideoElement | null>(null)
 const playerContainerRef = ref<HTMLElement | null>(null)
 
 const updateDuration = () => {

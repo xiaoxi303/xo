@@ -24,6 +24,8 @@ export interface E2EEEncryptedPayload {
 }
 
 const SERVER_E2EE_SECRET = process.env.E2EE_SECRET || 'XO_STUDIO_WORLD_CLASS_QUANTUM_SECRET_2026'
+const E2EE_MAX_CLOCK_SKEW_MS = 120 * 1000
+const seenEpochNonces = new Map<string, number>()
 
 /**
  * Derive 256-bit AES-GCM Key using HKDF-SHA512 (RFC 5869)
@@ -58,9 +60,21 @@ export function verifyZKPProof(payload: E2EEEncryptedPayload): boolean {
   const payloadTime = new Date(payload.timestamp).getTime()
   if (isNaN(payloadTime)) return false
   const now = Date.now()
-  if (Math.abs(now - payloadTime) > 120 * 1000) {
+  if (Math.abs(now - payloadTime) > E2EE_MAX_CLOCK_SKEW_MS) {
     console.warn('[ZKP Guard World-Class] Anti-replay trigger: Payload timestamp expired or clock skew detected.')
     return false
+  }
+
+  if (!payload.epochNonce || !/^[a-f0-9]{16,}$/i.test(payload.epochNonce)) return false
+  const nonceKey = `${payload.keyFingerprint}:${payload.epochNonce}`
+  const seenAt = seenEpochNonces.get(nonceKey)
+  if (seenAt && now - seenAt <= E2EE_MAX_CLOCK_SKEW_MS) {
+    console.warn('[E2EE Guard] Replayed epoch nonce rejected.')
+    return false
+  }
+  seenEpochNonces.set(nonceKey, now)
+  for (const [key, timestamp] of seenEpochNonces) {
+    if (now - timestamp > E2EE_MAX_CLOCK_SKEW_MS) seenEpochNonces.delete(key)
   }
 
   // 2. Validate Fiat-Shamir ZKP proof structure if present

@@ -580,9 +580,6 @@ const scrollToBento = () => {
   document.getElementById('bento-section')?.scrollIntoView({ behavior: 'smooth' })
 }
 
-const preloaderRevealed = useState('xo_preloader_revealed', () => false)
-const preloaderDone = useState('xo_preloader_done', () => false)
-
 // Scroll reveals Entrance animations
 let revealObserver: IntersectionObserver | null = null
 
@@ -632,18 +629,7 @@ const setupRevealObserver = () => {
 onMounted(async () => {
   await nextTick()
 
-  if (import.meta.client) {
-    if (preloaderDone.value || preloaderRevealed.value) {
-      playHeroEntrance()
-    } else {
-      const unwatch = watch([preloaderRevealed, preloaderDone], ([revealed, done]) => {
-        if (revealed || done) {
-          playHeroEntrance()
-          unwatch()
-        }
-      })
-    }
-  }
+  if (import.meta.client) playHeroEntrance()
 
   setupRevealObserver()
 })

@@ -249,6 +249,9 @@ export default defineEventHandler(async (event) => {
 
   for (const slug of Array.from(allKnownSlugs)) {
     if (!slug || slug === 'get') continue
+    // Ignore stale analytics for projects that were deleted or renamed.
+    // The ranking must only contain projects that currently exist.
+    if (!projectTitles.has(slug)) continue
     const v = viewCounts[slug] || 0
     const c = clickCounts[slug] || 0
     const h = Number(unifiedHeat[slug] || 0)

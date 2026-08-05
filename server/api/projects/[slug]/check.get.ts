@@ -7,7 +7,8 @@ import { validateUnlockToken } from './unlock.post'
 import { generateDailyPassword, getBeijingDateString } from '../../../utils/password-utils'
 
 export default defineEventHandler(async (event) => {
-  const slug = getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0]
+  const slug = String(getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0] || '')
+    .trim().replace(/^\/+|\/+$/g, '').split('/')[0].toLowerCase()
   if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing slug.' })
 
   const projects = await dbGetProjectsRaw(event)

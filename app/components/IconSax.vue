@@ -91,6 +91,16 @@ const iconsaxPaths: Record<string, string> = {
   global: `<path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 12C8 16 10 21 12 21C14 21 16 16 16 12C16 8 14 3 12 3C10 3 8 8 8 12Z" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 9H21.5M2.5 15H21.5" stroke="currentColor" stroke-width="1.8"/>`
 }
 
+// Common Iconsax names used by the admin workspace.
+iconsaxPaths['chart-2'] = iconsaxPaths['magic-star']
+iconsaxPaths['document-text'] = iconsaxPaths.copy
+iconsaxPaths['calendar-2'] = iconsaxPaths['copy']
+iconsaxPaths['profile-2user'] = iconsaxPaths.user
+iconsaxPaths['home-2'] = iconsaxPaths.home
+iconsaxPaths['brush-2'] = iconsaxPaths['magic-star']
+iconsaxPaths['refresh-2'] = iconsaxPaths['arrow-right']
+iconsaxPaths['audio-square'] = iconsaxPaths.mail
+
 const iconPath = computed(() => {
   const path = iconsaxPaths[props.name]
   if (path) return path

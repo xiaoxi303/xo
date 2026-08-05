@@ -4,7 +4,8 @@ import { getD1Database } from '../../../utils/db'
 import { getRuntimeDataPath } from '../../../utils/storage'
 
 export default defineEventHandler(async (event) => {
-  const slug = getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0]
+  const slug = String(getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0] || '')
+    .trim().replace(/^\/+|\/+$/g, '').split('/')[0].toLowerCase()
   if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing project slug' })
 
   const cleanSlug = slug.replace(/^\/(projects|blog)\//, '').split('/')[0].split('?')[0]
