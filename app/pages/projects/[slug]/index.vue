@@ -314,7 +314,8 @@
                       height: isFullscreen ? '100%' : '100%',
                       objectFit: 'contain',
                       background: '#000',
-                      filter: enhancementSvgFilters[enhancementMode],
+                      opacity: enhancementMode === 'normal' || !webglAvailable ? 1 : 0,
+                      filter: 'none',
                       imageRendering: '-webkit-optimize-contrast',
                       transform: 'translateZ(0)'
                     }"
@@ -325,6 +326,14 @@
                     @play="onPlay"
                     @pause="onPause"
                     @click="togglePlay"
+                  />
+
+                  <!-- WebGL output for the selected real-time enhancement. -->
+                  <canvas
+                    v-if="enhancementMode !== 'normal' && webglAvailable"
+                    ref="webglCanvasRef"
+                    class="absolute inset-0 z-[12] w-full h-full object-contain pointer-events-none"
+                    aria-hidden="true"
                   />
 
                   <!-- Centered Big Play Button Indicator -->
@@ -1330,9 +1339,9 @@ type EnhancementMode = 'normal' | 'cas' | 'shadow' | 'denoise'
 const enhancementMode = ref<EnhancementMode>('normal')
 
 const enhancementLabels: Record<EnhancementMode, string> = {
-  normal: '原画标准',
-  cas: '4K CAS自适应超分锐化',
-  shadow: '电影级暗部细节提亮',
+  normal: '原画',
+  cas: 'CAS 自适应锐化',
+  shadow: '电影级暗部提亮',
   denoise: '数字降噪与画面修复',
 }
 
@@ -1514,6 +1523,7 @@ const updateStats = () => {
 }
 
 const webglCanvasRef = ref<HTMLCanvasElement | null>(null)
+const webglAvailable = ref(true)
 let glCtx: WebGLRenderingContext | null = null
 let glProgram: WebGLProgram | null = null
 let glTexture: WebGLTexture | null = null
@@ -1525,7 +1535,11 @@ const initWebGLShaderEngine = () => {
   if (!import.meta.client || !webglCanvasRef.value) return
   const canvas = webglCanvasRef.value
   const gl = canvas.getContext('webgl', { preserveDrawingBuffer: false, alpha: false })
-  if (!gl) return
+  if (!gl) {
+    webglAvailable.value = false
+    return
+  }
+  webglAvailable.value = true
   glCtx = gl
 
   const vsSource = `
@@ -1751,6 +1765,12 @@ const renderWebGLFrame = () => {
 
   animationFrameId = requestAnimationFrame(renderWebGLFrame)
 }
+
+watch(enhancementMode, async (mode) => {
+  if (mode === 'normal') return
+  await nextTick()
+  initWebGLShaderEngine()
+})
 
 const measureFps = () => {
   if (!import.meta.client) return

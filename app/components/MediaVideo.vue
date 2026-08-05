@@ -227,8 +227,8 @@
       playsinline
       class="w-full h-full object-cover transition-all duration-300 cursor-pointer"
       :style="{
-        opacity: isVideoReady ? 1 : 0,
-        filter: enhancementSvgFilters[enhancementMode],
+        opacity: isVideoReady && (enhancementMode === 'normal' || !webglAvailable) ? 1 : 0,
+        filter: enhancementMode === 'normal' ? 'none' : enhancementSvgFilters[enhancementMode],
         imageRendering: '-webkit-optimize-contrast',
         transform: 'translateZ(0)'
       }"
@@ -238,6 +238,16 @@
       @timeupdate="onTimeUpdate"
       @ended="isPlaying = false"
       @click="togglePlay"
+    />
+
+    <!-- Real-time WebGL enhancement output. The source video stays hidden
+         while an enhancement mode is active, so the processed frame is the
+         only visible image rather than a decorative status layer. -->
+    <canvas
+      v-if="hasVideo && enhancementMode !== 'normal'"
+      ref="webglCanvasRef"
+      class="absolute inset-0 z-[12] w-full h-full object-contain pointer-events-none"
+      aria-hidden="true"
     />
 
     <!-- Video info overlay (top) -->
@@ -421,7 +431,7 @@
                 ? 'bg-amber-500 text-black font-bold border-amber-400'
                 : 'bg-white/10 text-slate-300 hover:bg-white/20 border-white/10'"
             >
-              <span>画质增强:</span>
+              <span>实时画质:</span>
               <span>{{ enhancementLabels[enhancementMode] }}</span>
             </button>
             <div class="absolute bottom-full right-0 mb-1.5 bg-black/95 border border-white/15 rounded-xl py-1 shadow-2xl min-w-[120px] opacity-0 translate-y-1 pointer-events-none group-hover/enh:opacity-100 group-hover/enh:translate-y-0 group-hover/enh:pointer-events-auto transition-all duration-200 before:content-[''] before:absolute before:top-full before:left-0 before:right-0 before:h-4 before:bg-transparent">
@@ -526,6 +536,7 @@ let uModeLocation: WebGLUniformLocation | null = null
 let uTextureSizeLocation: WebGLUniformLocation | null = null
 
 const isVideoReady = ref(false)
+const webglAvailable = ref(true)
 const isPlaying = ref(false)
 const isLoading = ref(false)
 const isMuted = ref(true)
@@ -550,14 +561,17 @@ const bufferLength = ref(0)
 const activeDecoderEngine = ref('GPU 硬件加速 (MSE)')
 
 // Enhancement Filters
-type EnhancementMode = 'normal' | 'cas' | 'shadow' | 'denoise'
+type EnhancementMode = 'normal' | 'cas' | 'shadow' | 'denoise' | 'vibrance' | 'bilateral_cas' | 'pseudo_hdr'
 const enhancementMode = ref<EnhancementMode>('normal')
 
 const enhancementLabels: Record<EnhancementMode, string> = {
-  normal: '原画标准',
-  cas: '4K CAS自适应超分锐化',
-  shadow: '电影级暗部细节提亮',
+  normal: '原画',
+  cas: 'CAS 自适应锐化',
+  shadow: '电影级暗部提亮',
   denoise: '数字降噪与画面修复',
+  vibrance: '色彩还原',
+  bilateral_cas: '降噪锐化复合',
+  pseudo_hdr: '局部对比度增强',
 }
 
 const enhancementSvgFilters: Record<EnhancementMode, string> = {
@@ -565,6 +579,9 @@ const enhancementSvgFilters: Record<EnhancementMode, string> = {
   cas: 'url(#svg-cas-filter)',
   shadow: 'url(#svg-shadow-filter)',
   denoise: 'url(#svg-denoise-filter)',
+  vibrance: 'none',
+  bilateral_cas: 'none',
+  pseudo_hdr: 'none',
 }
 
 // A-B Loop State
@@ -711,6 +728,15 @@ const initVideoDecodingEngine = async () => {
 
 watch(() => props.src, () => {
   initVideoDecodingEngine()
+})
+
+watch(enhancementMode, async (mode) => {
+  if (mode === 'normal') {
+    webglAvailable.value = true
+    return
+  }
+  await nextTick()
+  initWebGLShaderEngine()
 })
 
 // Real-Time Stats Inspector Loop (FPS, Dropped frames, Codec info)
@@ -906,7 +932,11 @@ const initWebGLShaderEngine = () => {
   if (!process.client || !webglCanvasRef.value) return
   const canvas = webglCanvasRef.value
   const gl = canvas.getContext('webgl', { preserveDrawingBuffer: false, alpha: false })
-  if (!gl) return
+  if (!gl) {
+    webglAvailable.value = false
+    return
+  }
+  webglAvailable.value = true
   glCtx = gl
 
   const vsSource = `
@@ -1000,6 +1030,30 @@ const initWebGLShaderEngine = () => {
       return sum / max(totalWeight, 0.0001);
     }
 
+    // Shadow lift: only lift low luminance pixels and protect highlights.
+    vec3 applyShadowLift(vec3 color) {
+      float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
+      float shadowMask = 1.0 - smoothstep(0.08, 0.62, luma);
+      float lift = shadowMask * 0.24;
+      vec3 lifted = 1.0 - pow(max(vec3(0.0), 1.0 - color), vec3(1.0 + lift));
+      return clamp(mix(color, lifted, shadowMask * 0.86), 0.0, 1.0);
+    }
+
+    // Bilateral denoise followed by restrained edge recovery. This removes
+    // chroma noise while preserving boundaries instead of applying a blur.
+    vec3 applyDenoiseRepair(sampler2D tex, vec2 uv, vec2 size) {
+      vec2 step = 1.0 / size;
+      vec3 center = texture2D(tex, uv).rgb;
+      vec3 clean = applyBilateral(tex, uv, size);
+      vec3 north = texture2D(tex, uv + vec2(0.0, -step.y)).rgb;
+      vec3 south = texture2D(tex, uv + vec2(0.0, step.y)).rgb;
+      vec3 west = texture2D(tex, uv + vec2(-step.x, 0.0)).rgb;
+      vec3 east = texture2D(tex, uv + vec2(step.x, 0.0)).rgb;
+      vec3 edge = center * 4.0 - north - south - west - east;
+      float edgeStrength = smoothstep(0.015, 0.16, length(edge));
+      return clamp(clean + edge * (0.14 * edgeStrength), 0.0, 1.0);
+    }
+
     // 4. ACES Filmic Tone Mapping
     vec3 ACESFilm(vec3 x) {
       float a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;
@@ -1045,6 +1099,12 @@ const initWebGLShaderEngine = () => {
       } else if (u_mode == 4) {
         // Pseudo-HDR Local Contrast & ACES Filmic Tone Mapping
         gl_FragColor = vec4(applyPseudoHDR(u_image, v_texCoord, u_textureSize), color.a);
+      } else if (u_mode == 5) {
+        // Real-time shadow detail recovery
+        gl_FragColor = vec4(applyShadowLift(color.rgb), color.a);
+      } else if (u_mode == 6) {
+        // Bilateral denoise with edge repair
+        gl_FragColor = vec4(applyDenoiseRepair(u_image, v_texCoord, u_textureSize), color.a);
       } else {
         gl_FragColor = color;
       }
@@ -1054,15 +1114,27 @@ const initWebGLShaderEngine = () => {
   const vs = gl.createShader(gl.VERTEX_SHADER)!
   gl.shaderSource(vs, vsSource)
   gl.compileShader(vs)
+  if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+    webglAvailable.value = false
+    return
+  }
 
   const fs = gl.createShader(gl.FRAGMENT_SHADER)!
   gl.shaderSource(fs, fsSource)
   gl.compileShader(fs)
+  if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+    webglAvailable.value = false
+    return
+  }
 
   const prog = gl.createProgram()!
   gl.attachShader(prog, vs)
   gl.attachShader(prog, fs)
   gl.linkProgram(prog)
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    webglAvailable.value = false
+    return
+  }
   glProgram = prog
   gl.useProgram(prog)
 
@@ -1123,6 +1195,8 @@ const renderWebGLFrame = () => {
       else if (enhancementMode.value === 'vibrance') modeInt = 2
       else if (enhancementMode.value === 'bilateral_cas') modeInt = 3
       else if (enhancementMode.value === 'pseudo_hdr') modeInt = 4
+      else if (enhancementMode.value === 'shadow') modeInt = 5
+      else if (enhancementMode.value === 'denoise') modeInt = 6
 
       gl.uniform1i(uModeLocation, modeInt)
       gl.uniform2f(uTextureSizeLocation, canvas.width, canvas.height)

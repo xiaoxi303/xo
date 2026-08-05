@@ -20,15 +20,22 @@ const env = {
   NODE_OPTIONS: '--max-old-space-size=8192'
 }
 
+const buildTimeoutMs = Number(process.env.BUILD_TIMEOUT_MS || 300000)
+
 const run = (args, label) => {
   console.log(`\n[build] ${label}`)
   const result = spawnSync(npmCommand, [npmCli, ...args], {
     stdio: 'inherit',
     env,
-    shell: false
+    shell: false,
+    timeout: buildTimeoutMs,
+    killSignal: 'SIGTERM'
   })
 
   if (result.error) {
+    if (result.error.code === 'ETIMEDOUT') {
+      console.error(`[build] ${label} timed out after ${Math.round(buildTimeoutMs / 1000)}s`)
+    }
     console.error(`[build] ${label} failed: ${result.error.message}`)
     process.exit(result.status || 1)
   }
