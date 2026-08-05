@@ -121,10 +121,32 @@ export const useBlogStore = () => {
     return getPublishedPosts().filter(p => p && (p.category.toLowerCase() === catName || p.category.toLowerCase() === low))
   }
 
+/**
+ * Format read time string into Chinese "预计 X 分钟"
+ */
+export function formatReadTime(readTime?: string, content?: string): string {
+  if (!readTime && content) {
+    const words = content.replace(/<[^>]*>/g, '').trim().length
+    const minutes = Math.max(1, Math.ceil(words / 300))
+    return `预计 ${minutes} 分钟`
+  }
+  const str = String(readTime || '').trim()
+  if (!str) return '预计 1 分钟'
+  if (str.startsWith('预计')) return str
+
+  const match = str.match(/\d+/)
+  if (match) {
+    return `预计 ${match[0]} 分钟`
+  }
+  return `预计 ${str} 分钟`
+}
+
   // Actions
   const createPost = async (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views'>) => {
+    const normalizedReadTime = formatReadTime(post.readTime, post.content)
     const newPost: BlogPost = {
       ...post,
+      readTime: normalizedReadTime,
       id: 'post-' + Date.now(),
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
@@ -148,9 +170,14 @@ export const useBlogStore = () => {
   const updatePost = async (id: string, updatedFields: Partial<BlogPost>) => {
     const idx = posts.value.findIndex(p => p && p.id === id)
     if (idx !== -1) {
+      const mergedContent = updatedFields.content !== undefined ? updatedFields.content : posts.value[idx].content
+      const rawReadTime = updatedFields.readTime !== undefined ? updatedFields.readTime : posts.value[idx].readTime
+      const normalizedReadTime = formatReadTime(rawReadTime, mergedContent)
+
       posts.value[idx] = {
         ...posts.value[idx],
         ...updatedFields,
+        readTime: normalizedReadTime,
         updatedAt: new Date().toISOString().split('T')[0]
       }
       save()

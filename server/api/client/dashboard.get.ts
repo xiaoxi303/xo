@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
   const { password: _p, ...clientProfile } = foundUser
   const clientEmail = (clientProfile.email || '').trim().toLowerCase()
 
-  // 2. Fetch all password requests
+  // 2. Fetch all password requests & projects
   const allRequests = await dbGetPasswordRequests(event).catch(() => [])
   const allProjects = await dbGetProjectsRaw(event).catch(() => [])
 
@@ -38,28 +38,17 @@ export default defineEventHandler(async (event) => {
     return false
   })
 
-  // Set of allowed project slugs (from user profile + approved requests)
-  const allowedSlugsSet = new Set<string>(
-    (clientProfile.allowedProjects || '')
-      .split(',')
-      .map((s: string) => s.trim())
-      .filter(Boolean)
-  )
-
-  // Attach calculated password to approved requests & add to allowedSlugsSet
+  // Attach calculated password for request's application date (r.createdAt)
   const enrichedRequests = clientRequests.map((r: any) => {
     const project = allProjects.find((p: any) => p.slug === r.projectSlug)
     let projectPwd = ''
     if (project) {
       if (project.autoRotatePassword !== false) {
-        projectPwd = getDailyPassword(project.slug)
+        // Calculate password for the exact date the request was submitted (r.createdAt)
+        projectPwd = getDailyPassword(project.slug, 'XO_STUDIO_SALT', r.createdAt)
       } else {
         projectPwd = project.password || ''
       }
-    }
-
-    if (r.status === 'approved') {
-      allowedSlugsSet.add(r.projectSlug)
     }
 
     return {
@@ -69,7 +58,14 @@ export default defineEventHandler(async (event) => {
     }
   })
 
-  // 3. Build allowed projects list with password included
+  // 3. Build allowed projects list STRICTLY from admin User Management selection (clientProfile.allowedProjects)
+  const allowedSlugsSet = new Set<string>(
+    (clientProfile.allowedProjects || '')
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+  )
+
   const allowedProjects = allProjects
     .filter((p: any) => allowedSlugsSet.has(p.slug))
     .map((p: any) => {

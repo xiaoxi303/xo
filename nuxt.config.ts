@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   sourcemap: false,
 
   app: {
-    pageTransition: { name: 'page', mode: 'in-out', appear: true },
+    pageTransition: { name: 'page', mode: 'out-in', appear: true },
     head: {
       htmlAttrs: {
         lang: 'zh-CN'
@@ -67,7 +67,7 @@ export default defineNuxtConfig({
     }
   },
 
-  // Production-only Terser Ultra Obfuscation & Bundle Shielding Configuration
+  // Apple-Grade Terser Ultra Obfuscation & Bundle Shielding Configuration
   $production: {
     vite: {
       build: {
@@ -77,19 +77,23 @@ export default defineNuxtConfig({
           compress: {
             drop_console: true,
             drop_debugger: true,
-            pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
+            pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace', 'console.warn'],
             passes: 5,
             unsafe: true,
             unsafe_comps: true,
             unsafe_math: true,
-            unsafe_proto: true
+            unsafe_proto: true,
+            hoist_funs: true,
+            keep_fargs: false
           },
           mangle: {
             toplevel: true,
-            eval: true
+            eval: true,
+            properties: false
           },
           format: {
-            comments: false
+            comments: false,
+            ascii_only: true
           }
         }
       }
@@ -101,7 +105,7 @@ export default defineNuxtConfig({
     compatibilityVersion: 4
   },
 
-  // Nitro 部署预设与代码混淆/压缩配置
+  // Nitro 部署预设与服务端代码混淆/压缩配置
   nitro: {
     preset: 'node-server',
     minify: true,

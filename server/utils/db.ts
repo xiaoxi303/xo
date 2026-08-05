@@ -908,17 +908,28 @@ export async function dbGetUsers(event: H3Event): Promise<any[]> {
 }
 
 export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
+  const cleanUsername = (data.username || '').trim()
+  const cleanEmail = (data.email || '').trim().toLowerCase()
+
   const db = await getD1Database(event)
   if (db) {
-    // Check duplicate
-    const duplicate = await db.prepare('SELECT id FROM users WHERE username = ?').bind(data.username).first()
-    if (duplicate) {
-      throw createError({ statusCode: 409, statusMessage: '用户名已被注册。' })
+    // Check duplicate username
+    const duplicateUser = await db.prepare('SELECT id FROM users WHERE username = ?').bind(cleanUsername).first()
+    if (duplicateUser) {
+      throw createError({ statusCode: 409, statusMessage: '用户名已被注册，请更换用户名。' })
     }
+    // Check duplicate email
+    if (cleanEmail) {
+      const duplicateEmail = await db.prepare('SELECT id FROM users WHERE LOWER(email) = ?').bind(cleanEmail).first()
+      if (duplicateEmail) {
+        throw createError({ statusCode: 409, statusMessage: '该电子邮箱已被注册，一个邮箱只能注册一个账号。' })
+      }
+    }
+
     await db.prepare(`
       INSERT INTO users (username, email, password, role, allowedProjects)
       VALUES (?, ?, ?, ?, '')
-    `).bind(data.username, data.email, data.password, data.role || 'client').run()
+    `).bind(cleanUsername, cleanEmail, data.password, data.role || 'client').run()
     return
   }
 
@@ -930,14 +941,21 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
       users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
     } catch (e) {}
   }
-  const duplicate = users.find((u: any) => u.username === data.username)
-  if (duplicate) {
-    throw createError({ statusCode: 409, statusMessage: '用户名已被注册。' })
+  const duplicateUser = users.find((u: any) => (u.username || '').trim().toLowerCase() === cleanUsername.toLowerCase())
+  if (duplicateUser) {
+    throw createError({ statusCode: 409, statusMessage: '用户名已被注册，请更换用户名。' })
   }
+  if (cleanEmail) {
+    const duplicateEmail = users.find((u: any) => u.email && u.email.trim().toLowerCase() === cleanEmail)
+    if (duplicateEmail) {
+      throw createError({ statusCode: 409, statusMessage: '该电子邮箱已被注册，一个邮箱只能注册一个账号。' })
+    }
+  }
+
   const newUser = {
     id: Date.now(),
-    username: data.username,
-    email: data.email,
+    username: cleanUsername,
+    email: cleanEmail,
     wechat: data.wechat || '',
     password: data.password,
     role: data.role || 'client',

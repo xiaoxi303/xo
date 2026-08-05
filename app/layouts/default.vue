@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <AppPreloader v-if="!preloaderDone && !isPanelPage" @complete="onPreloaderComplete" @reveal-start="onPreloaderRevealStart" />
 
@@ -107,30 +107,30 @@
       </div>
     </Transition>
 
-    <!-- Client Portal Floating Pill (Bottom-Right) -->
+    <!-- Client Portal Floating Icon Action Button (Bottom-Right) -->
     <div
       v-if="!isPanelPage"
-      class="fixed bottom-6 right-6 z-[50] rounded-full px-4 py-2 border flex items-center gap-2.5 transition-all duration-350 backdrop-blur-xl hover:scale-105 active:scale-95 shadow-md"
-      style="background: rgba(252, 248, 242, 0.88); border-color: rgba(200, 185, 160, 0.25);"
+      class="fixed bottom-6 right-6 z-[60] group flex items-center justify-center"
     >
-      <span class="text-xs">🔑</span>
-      <div v-if="clientLoggedIn" class="flex items-center gap-2 text-[10px] font-sans">
-        <NuxtLink to="/client" class="font-bold text-slate-700 hover:text-amber-700 transition-colors flex items-center gap-1" title="进入客户中心">
-          Hi, {{ clientName }}
-          <span class="text-[9px] px-1 bg-amber-600/10 text-amber-700 rounded-sm font-semibold">控制中心</span>
-        </NuxtLink>
-        <span class="text-slate-300">|</span>
-        <button
-          type="button"
-          @click="handleClientLogout"
-          class="font-semibold text-slate-500 hover:text-rose-500 transition-colors hover:underline"
-        >
-          退出
-        </button>
+      <!-- Hover Tooltip -->
+      <div class="absolute bottom-full right-0 mb-3 px-3 py-1.5 rounded-xl bg-stone-900/90 text-amber-300 text-[11px] font-bold tracking-wide backdrop-blur-md border border-amber-500/30 shadow-xl opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 pointer-events-none whitespace-nowrap flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span>{{ clientLoggedIn ? `客户控制中心 (${clientName})` : '客户登录中心' }}</span>
       </div>
-      <div v-else class="flex items-center text-[10px] font-sans font-semibold">
-        <NuxtLink to="/login" class="text-slate-600 hover:text-amber-700 transition-colors">客户登录</NuxtLink>
-      </div>
+
+      <NuxtLink
+        :to="clientLoggedIn ? '/client' : '/login'"
+        class="relative w-12 h-12 rounded-full border flex items-center justify-center xo-kinetic-btn backdrop-blur-2xl shadow-[0_10px_30px_rgba(180,120,40,0.18)] hover:shadow-[0_16px_40px_rgba(180,120,40,0.32)] cursor-pointer xo-kinetic-layer"
+        style="background: rgba(254, 252, 248, 0.94); border-color: rgba(217, 119, 6, 0.38);"
+        :title="clientLoggedIn ? `Hi, ${clientName} - 点击进入控制中心` : '点击登录客户中心'"
+      >
+        <!-- Indicator Dot -->
+        <span class="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
+
+        <!-- Icon -->
+        <IconSax v-if="clientLoggedIn" name="crown" :size="22" class="text-amber-700 transition-transform duration-300 group-hover:scale-110" />
+        <IconSax v-else name="key" :size="22" class="text-amber-800 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
+      </NuxtLink>
     </div>
 
     <!-- Premium Warm Atmosphere Background -->
@@ -139,40 +139,6 @@
       <div class="bg-orb bg-orb-2" />
       <div class="bg-orb bg-orb-3" />
       <div class="bg-orb bg-orb-4" />
-    </div>
-
-    <!-- Floating Ambient Soundscape Player (Bottom-Center dock) -->
-    <div
-      v-if="musicEnabled && !isPanelPage"
-      class="fixed bottom-4 z-[60] rounded-full px-4 py-2.5 shadow-[0_8px_30px_rgba(80,60,30,0.08)] border flex items-center gap-3 transition-all duration-300 backdrop-blur-xl"
-      style="left: 50%; transform: translateX(-50%); background: rgba(252, 248, 242, 0.9); border-color: rgba(200, 185, 160, 0.25);"
-    >
-      <!-- Audio Beat visualizer -->
-      <div class="flex items-end gap-[2px] h-3.5 w-4 cursor-pointer" @click="toggleMusic">
-        <span
-          v-for="bar in 4"
-          :key="bar"
-          class="w-[2px] bg-[#b45309] rounded-full transition-all duration-300"
-          :class="isPlaying ? 'animate-beat-bar' : 'h-[3px]'"
-          :style="{ animationDelay: `${bar * 0.15}s` }"
-        />
-      </div>
-
-      <div class="flex items-center gap-2 cursor-pointer" @click="toggleMusic">
-        <span class="text-[10px] font-mono font-bold tracking-wider text-[#b45309] uppercase select-none">
-          {{ musicLabel }}
-        </span>
-        <span class="text-[9px] font-mono text-slate-400">
-          {{ isPlaying ? 'PLAYING' : 'PAUSED' }}
-        </span>
-      </div>
-
-      <audio
-        ref="audioRef"
-        :src="musicUrl"
-        loop
-        preload="auto"
-      />
     </div>
 
     <!-- Main Layout Content Slot -->

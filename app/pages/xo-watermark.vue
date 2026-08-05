@@ -6,8 +6,9 @@
     <div class="max-w-4xl mx-auto relative z-10 space-y-8">
       <!-- Top Title Header -->
       <div class="text-center space-y-3">
-        <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold tracking-wider shadow-lg">
-          <span>🛡️ DWT-DCT HYBRID STEGANOGRAPHY TERMINAL</span>
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold tracking-wider shadow-lg">
+          <IconSax name="shield-security" :size="14" class="text-amber-400" />
+          <span>DWT-DCT HYBRID STEGANOGRAPHY TERMINAL</span>
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold font-display tracking-tight text-white">
           顶级 DWT-DCT 盲水印抓取与解密引擎
@@ -23,7 +24,7 @@
         class="max-w-md mx-auto p-8 rounded-3xl bg-slate-900/80 border border-amber-500/30 backdrop-blur-2xl text-center space-y-5 shadow-2xl"
       >
         <div class="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto text-2xl">
-          🔒
+          <IconSax name="lock" :size="28" />
         </div>
         <div class="space-y-2">
           <h2 class="text-xl font-bold text-white">未设置提取密码</h2>
@@ -45,8 +46,8 @@
         class="max-w-md mx-auto p-8 rounded-3xl bg-slate-900/80 border border-slate-700/60 backdrop-blur-2xl space-y-6 shadow-2xl"
       >
         <div class="text-center space-y-2">
-          <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto text-xl">
-            🔑
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
+            <IconSax name="key" :size="24" />
           </div>
           <h2 class="text-xl font-bold text-white">安全身份验证</h2>
           <p class="text-xs text-slate-400">请解密并输入后台设定的盲水印提取专用密码</p>

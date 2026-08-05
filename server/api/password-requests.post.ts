@@ -101,7 +101,6 @@ export default defineEventHandler(async (event) => {
     ip,
     deviceType,
     status,
-    reason,
     isBlacklisted: check.isBlacklisted,
     isAutoBlacklisted: check.isAutoBlacklisted || false
   }

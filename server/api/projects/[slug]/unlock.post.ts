@@ -1,4 +1,4 @@
-import { dbGetProjectsRaw } from '../../../utils/db'
+import { dbGetProjectsRaw, dbGetPasswordRequests } from '../../../utils/db'
 import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
@@ -25,15 +25,35 @@ export default defineEventHandler(async (event) => {
     return { success: true, token: null, public: true }
   }
 
-  // Always use dynamic password based on slug
-  const validPassword = getDailyPassword(slug)
-
-  if (!validPassword || validPassword.trim() === '') {
-    return { success: true, token: null, public: true }
+  // 1. Check static password if configured
+  let isPasswordValid = false
+  if (project.password && verifyProjectPassword(password, project.password)) {
+    isPasswordValid = true
   }
 
-  // Verify password (case-insensitive)
-  if (!verifyProjectPassword(password, validPassword)) {
+  // 2. Check today's dynamic daily password
+  if (!isPasswordValid) {
+    const todayPassword = getDailyPassword(slug)
+    if (todayPassword && verifyProjectPassword(password, todayPassword)) {
+      isPasswordValid = true
+    }
+  }
+
+  // 3. Check historical application date passwords from approved requests
+  if (!isPasswordValid) {
+    const requests = await dbGetPasswordRequests(event).catch(() => [])
+    for (const req of requests) {
+      if (req.projectSlug === slug && req.status === 'approved' && req.createdAt) {
+        const reqPwd = getDailyPassword(slug, 'XO_STUDIO_SALT', req.createdAt)
+        if (verifyProjectPassword(password, reqPwd)) {
+          isPasswordValid = true
+          break
+        }
+      }
+    }
+  }
+
+  if (!isPasswordValid) {
     const ip = getRealClientIP(event)
     logSecurityEvent({
       type: 'Project Password Guard',
@@ -42,7 +62,7 @@ export default defineEventHandler(async (event) => {
       status: 'blocked'
     })
     await new Promise(r => setTimeout(r, 600))
-    throw createError({ statusCode: 401, statusMessage: 'Password incorrect, please contact the author.' })
+    throw createError({ statusCode: 401, statusMessage: '密码错误，请检查输入的授权密码。' })
   }
 
   // Password matches - generate unlock token

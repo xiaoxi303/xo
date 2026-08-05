@@ -124,7 +124,7 @@
             <!-- Top Right Pill Badges -->
             <div class="absolute top-3 right-3 flex items-center gap-1.5">
               <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 backdrop-blur-md shadow-xs border border-white/20">
-                {{ post.readTime }}
+                {{ formatReadTime(post.readTime, post.content || post.excerpt) }}
               </span>
               <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-[#007AFF] text-white shadow-xs">
                 {{ post.category }}

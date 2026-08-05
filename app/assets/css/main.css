@@ -723,12 +723,55 @@ body.no-grain::before {
 }
 .form-label {
   display: block;
-  font-family: var(--font-sans);
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--color-ink-3);
-  margin-bottom: 0.35rem;
-  letter-spacing: 0.01em;
+}
+
+/* ===== Xo Studio Signature Kinetic Motion Engine (Xo 专属极客动态引擎) ===== */
+:root {
+  --xo-ease-kinetic: cubic-bezier(0.22, 1, 0.36, 1);       /* Xo 专属极客电影动效 */
+  --xo-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.25); /* Xo 触感微弹物理 */
+  --xo-ease-fluid: cubic-bezier(0.25, 1, 0.5, 1);          /* Xo 丝滑流动滑行 */
+  --xo-ease-sharp: cubic-bezier(0.7, 0, 0.84, 0);          /* Xo 极速退场 */
+}
+
+/* Xo Hardware GPU Compositor Layer */
+.xo-kinetic-layer {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  perspective: 1000px;
+  contain: layout style paint;
+}
+
+/* Xo Signature Spring Tactile Interactive Button */
+.xo-kinetic-btn {
+  transition: transform 0.35s var(--xo-ease-kinetic), box-shadow 0.35s var(--xo-ease-kinetic), background-color 0.35s var(--xo-ease-kinetic);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.xo-kinetic-btn:hover {
+  transform: translate3d(0, -2.5px, 0) scale3d(1.018, 1.018, 1);
+}
+.xo-kinetic-btn:active {
+  transform: translate3d(0, 1px, 0) scale3d(0.965, 0.965, 1);
+  transition-duration: 0.1s;
+}
+
+.tab-fade-slide-enter-active {
+  transition: opacity 0.25s var(--xo-ease-kinetic), transform 0.25s var(--xo-ease-kinetic);
+  will-change: opacity, transform;
+}
+.tab-fade-slide-leave-active {
+  transition: opacity 0.18s var(--apple-ease-out), transform 0.18s var(--apple-ease-out);
+  position: absolute;
+  width: 100%;
+}
+.tab-fade-slide-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale3d(0.99, 0.99, 1);
+}
+.tab-fade-slide-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -6px, 0) scale3d(0.99, 0.99, 1);
 }
 
 /* ===== Ambilight Video Player (Glow shadow reflects video color) ===== */
@@ -753,18 +796,20 @@ body.no-grain::before {
   transform: translate3d(0, 0, 0); /* 开启硬件加速 */
 }
 
-/* ===== Global Page & Route Transition ===== */
+/* ===== Global Page & Route Transition (60fps GPU Accelerated) ===== */
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+  backface-visibility: hidden;
 }
 .page-enter-from {
   opacity: 0;
-  transform: translateY(12px) scale(0.99);
+  transform: translate3d(0, 6px, 0);
 }
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-8px) scale(0.99);
+  transform: translate3d(0, -5px, 0);
 }
 
 /* ===== Luxury Micro-Animations & Tab Switching Transitions ===== */

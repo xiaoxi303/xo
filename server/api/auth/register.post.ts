@@ -1,6 +1,7 @@
-import { dbCreateUser } from '../../utils/db'
+import { dbCreateUser, dbGetUsers } from '../../utils/db'
 import { hashPassword, createSession, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
 import { verifyAndConsumeCode } from '../../utils/verification'
+import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
 
 const ALLOWED_EMAIL_DOMAINS = [
   'qq.com', 'vip.qq.com', 'foxmail.com',
@@ -9,8 +10,6 @@ const ALLOWED_EMAIL_DOMAINS = [
   'icloud.com', 'yahoo.com', 'sohu.com', 'sina.com', 'sina.cn',
   'aliyun.com', '139.com', '189.com', 'wo.cn'
 ]
-
-import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
 
 export default defineEventHandler(async (event) => {
   let body = await readBody(event)
@@ -74,6 +73,26 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Check if username or email is already registered BEFORE verifying code
+  const existingUsers = await dbGetUsers(event).catch(() => [])
+
+  const duplicateUser = existingUsers.find((u: any) => (u.username || '').trim().toLowerCase() === username.toLowerCase())
+  if (duplicateUser) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: '该用户名已被注册，请更换用户名。'
+    })
+  }
+
+  const cleanEmail = email.trim().toLowerCase()
+  const duplicateEmail = existingUsers.find((u: any) => u.email && u.email.trim().toLowerCase() === cleanEmail)
+  if (duplicateEmail) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: '该电子邮箱已被注册，一个邮箱只能注册一个账号。'
+    })
+  }
+
   if (!code) {
     throw createError({
       statusCode: 400,
@@ -95,7 +114,7 @@ export default defineEventHandler(async (event) => {
   try {
     await dbCreateUser(event, {
       username,
-      email,
+      email: cleanEmail,
       wechat,
       password: hashedPassword,
       role: 'client'

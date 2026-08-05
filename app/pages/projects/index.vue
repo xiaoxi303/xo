@@ -8,35 +8,37 @@
 
     <div class="max-w-6xl mx-auto space-y-12 relative z-10">
 
-      <!-- Page Header -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="space-y-3">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[var(--color-bronze-dark)] text-[10px] font-mono font-bold"
-               style="background: rgba(217,119,6,0.12); border: 1px solid rgba(217,119,6,0.3);">
-            <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-bronze)] animate-pulse" />
-            <span>PORTFOLIO GALLERY (4K HDR)</span>
+      <!-- Header & Filter Bar -->
+      <div class="space-y-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div class="space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[var(--color-bronze-dark)] text-[10px] font-mono font-bold"
+                 style="background: rgba(217,119,6,0.12); border: 1px solid rgba(217,119,6,0.3);">
+              <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-bronze)] animate-pulse" />
+              <span>PORTFOLIO GALLERY (4K HDR)</span>
+            </div>
+            <h1 class="font-display text-5xl lg:text-6xl font-bold leading-none tracking-tight text-[var(--color-ink-1)]">全部作品集</h1>
+            <p class="text-[var(--color-ink-4)] text-sm max-w-md leading-relaxed font-sans">
+              结合极致节奏感的镜头拼贴、电影级调色与科技感三维包装。
+            </p>
           </div>
-          <h1 class="font-display text-5xl lg:text-6xl font-bold leading-none tracking-tight text-[var(--color-ink-1)]">全部作品集</h1>
-          <p class="text-[var(--color-ink-4)] text-sm max-w-md leading-relaxed font-sans">
-            结合极致节奏感的镜头拼贴、电影级调色与科技感三维包装。
-          </p>
         </div>
 
-        <!-- Filter pills -->
-        <div class="flex flex-wrap items-center gap-2 p-2 rounded-full self-start md:self-auto shadow-md backdrop-blur-xl"
-             style="background: rgba(255,255,255,0.85); border: 1px solid rgba(217,119,6,0.25);">
+        <!-- Segmented Glass Filter Bar -->
+        <div class="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl sm:rounded-full bg-white/80 backdrop-blur-2xl border border-amber-600/20 shadow-md max-w-full">
           <button
             v-for="f in visibleFilterOpts"
             :key="f.value"
             @click="currentFilter = f.value"
             :class="[
-              'relative px-5 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ease-out active:scale-95 cursor-pointer',
+              'px-4 py-2 rounded-xl sm:rounded-full text-xs font-bold tracking-wide transition-all duration-200 ease-out cursor-pointer flex items-center gap-1.5 select-none xo-kinetic-btn',
               currentFilter === f.value
-                ? 'bg-[var(--color-bronze)] text-white shadow-md scale-[1.02]'
-                : 'text-[var(--color-ink-3)] hover:bg-black/5 hover:text-[var(--color-ink-1)]'
+                ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-white shadow-md shadow-amber-900/20'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
             ]"
           >
-            {{ f.label }}
+            <IconSax v-if="currentFilter === f.value" name="magic-star" :size="13" class="text-amber-300" />
+            <span>{{ f.label }}</span>
           </button>
         </div>
       </div>

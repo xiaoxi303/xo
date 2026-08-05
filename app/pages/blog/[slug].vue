@@ -36,7 +36,7 @@
             </div>
             <span class="text-xs font-mono font-medium text-slate-500">{{ post.createdAt }}</span>
             <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#F8F8F8] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
-              ⏱️ {{ post.readTime }}
+              ⏱️ {{ formatReadTime(post.readTime, post.content) }}
             </span>
           </div>
         </div>

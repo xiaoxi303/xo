@@ -502,7 +502,9 @@
                               :class="enhancementMode === key ? 'text-amber-400 font-bold' : 'text-slate-300'"
                             >
                               <span>{{ label }}</span>
-                              <span v-if="enhancementMode === key">✓</span>
+                              <span v-if="enhancementMode === key">
+                                <IconSax name="tick" :size="12" class="text-amber-400" />
+                              </span>
                             </button>
                           </div>
                         </div>

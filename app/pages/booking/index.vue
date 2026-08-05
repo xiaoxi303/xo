@@ -3,18 +3,18 @@
     <div class="max-w-4xl mx-auto space-y-12">
       
       <!-- Back button -->
-      <div class="">
+      <div>
         <NuxtLink to="/" class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-            <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/>
-          </svg>
-          返回首页
+          <IconSax name="arrow-left" :size="16" />
+          <span>返回首页</span>
         </NuxtLink>
       </div>
 
       <!-- Hero Section -->
       <div class="text-center space-y-6 reveal">
-        <span class="text-6xl">📅</span>
+        <div class="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 mx-auto">
+          <IconSax name="mail" :size="40" />
+        </div>
         <h1 class="font-display text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
           合作预约
         </h1>
@@ -26,54 +26,62 @@
       <!-- Services Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 reveal">
         <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10">
-          <span class="text-3xl">🎬</span>
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700">
+            <IconSax name="video-play" :size="24" />
+          </div>
           <h3 class="font-display text-xl font-bold text-slate-900">商业TVC广告</h3>
           <p class="text-sm text-slate-500 leading-relaxed">
             专业的商业广告拍摄与后期制作，涵盖产品宣传片、品牌故事片、社交媒体广告等。
           </p>
           <ul class="space-y-2 text-sm text-slate-600">
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 4K/8K超高清拍摄</li>
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 电影级调色处理</li>
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 专业音效设计</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 4K/8K超高清拍摄</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 电影级调色处理</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 专业音效设计</li>
           </ul>
         </div>
 
         <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10">
-          <span class="text-3xl">🎨</span>
+          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-700">
+            <IconSax name="magic-star" :size="24" />
+          </div>
           <h3 class="font-display text-xl font-bold text-slate-900">电影/纪录片调色</h3>
           <p class="text-sm text-slate-500 leading-relaxed">
             DaVinci Resolve专业调色，支持ACES色彩空间管理，打造电影级视觉质感。
           </p>
           <ul class="space-y-2 text-sm text-slate-600">
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> ACEScct色彩管理</li>
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> HDR/SDR双版本交付</li>
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 胶片质感还原</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> ACEScct色彩管理</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> HDR/SDR双版本交付</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 胶片质感还原</li>
           </ul>
         </div>
 
         <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10">
-          <span class="text-3xl">📹</span>
+          <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-700">
+            <IconSax name="security-safe" :size="24" />
+          </div>
           <h3 class="font-display text-xl font-bold text-slate-900">短视频制作</h3>
           <p class="text-sm text-slate-500 leading-relaxed">
             TikTok、抖音、小红书等平台短视频内容策划、拍摄与后期制作。
           </p>
           <ul class="space-y-2 text-sm text-slate-600">
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 竖屏/横屏适配</li>
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 快节奏剪辑</li>
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 平台算法优化</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 竖屏/横屏适配</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 快节奏剪辑</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 平台算法优化</li>
           </ul>
         </div>
 
         <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10">
-          <span class="text-3xl">🎵</span>
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-700">
+            <IconSax name="crown" :size="24" />
+          </div>
           <h3 class="font-display text-xl font-bold text-slate-900">音效/配乐设计</h3>
           <p class="text-sm text-slate-500 leading-relaxed">
             专业的音频后期处理，包括环境音设计、配乐编曲、混音母带等。
           </p>
           <ul class="space-y-2 text-sm text-slate-600">
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 24-bit/96kHz高保真</li>
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 环境音编织</li>
-            <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> 版权音乐库</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 24-bit/96kHz高保真</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 环境音编织</li>
+            <li class="flex items-center gap-2"><IconSax name="tick" :size="14" class="text-emerald-500 shrink-0" /> 版权音乐库</li>
           </ul>
         </div>
       </div>

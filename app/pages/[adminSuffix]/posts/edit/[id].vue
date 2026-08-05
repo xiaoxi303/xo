@@ -325,9 +325,9 @@ const gridColumns = computed(() => {
 })
 
 const computedReadTime = computed(() => {
-  const words = post.content?.length || 0
+  const words = (post.content || '').length
   const minutes = Math.max(1, Math.ceil(words / 300))
-  return `${minutes} min read`
+  return `预计 ${minutes} 分钟`
 })
 
 const SAMPLE_ARTICLE_MARKDOWN = `## 核心设计规范 (Design Principles)

@@ -2,13 +2,34 @@ import crypto from 'crypto';
 
 /**
  * Unified dynamic password generator using SHA256
+ * Supports optional dateInput (ISO string or YYYY-MM-DD) for historical request date passwords.
  */
-export function getDailyPassword(projectSlug: string, secretKey: string = 'XO_STUDIO_SALT'): string {
+export function getDailyPassword(
+  projectSlug: string,
+  secretKey: string = 'XO_STUDIO_SALT',
+  dateInput?: string
+): string {
   const cleanSlug = String(projectSlug || 'default').trim().toLowerCase();
   if (!cleanSlug) return '123456';
 
-  const todayDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
-  const seed = 'project_' + cleanSlug + '*date*' + todayDateStr + '*salt*' + secretKey;
+  let dateStr = ''
+  if (dateInput) {
+    try {
+      const d = new Date(dateInput)
+      if (!isNaN(d.getTime())) {
+        dateStr = d.toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
+      } else {
+        dateStr = dateInput
+      }
+    } catch {
+      dateStr = dateInput
+    }
+  }
+  if (!dateStr) {
+    dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
+  }
+
+  const seed = 'project_' + cleanSlug + '*date*' + dateStr + '*salt*' + secretKey;
 
   const hash = crypto.createHash('sha256').update(seed).digest('hex');
 
@@ -26,7 +47,8 @@ export function getBeijingDateString(): string {
 }
 
 export function verifyProjectPassword(inputPassword: string, validPassword: string): boolean {
-  const normalizedInput = (inputPassword || '').toString().trim().toUpperCase();
-  const normalizedValid = (validPassword || '').toString().trim().toUpperCase();
+  if (!inputPassword || !validPassword) return false;
+  const normalizedInput = inputPassword.toString().trim().toUpperCase();
+  const normalizedValid = validPassword.toString().trim().toUpperCase();
   return normalizedInput === normalizedValid;
 }

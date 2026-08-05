@@ -48,11 +48,13 @@
           </div>
 
           <div class="flex items-center gap-3 shrink-0">
-            <NuxtLink to="/" class="btn-ghost text-xs py-2.5 px-4 rounded-2xl border border-black/[0.08] hover:bg-black/[0.04] transition-colors">
-              🏠 返回首页
+            <NuxtLink to="/" class="btn-ghost text-xs py-2.5 px-4 rounded-2xl border border-black/[0.08] hover:bg-black/[0.04] transition-colors flex items-center gap-1.5">
+              <IconSax name="home" :size="15" class="text-amber-800" />
+              <span>返回首页</span>
             </NuxtLink>
-            <button @click="handleLogout" class="btn-bronze text-xs py-2.5 px-4 rounded-2xl shadow-sm cursor-pointer">
-              🚪 退出登录
+            <button @click="handleLogout" class="btn-bronze text-xs py-2.5 px-4 rounded-2xl shadow-sm cursor-pointer flex items-center gap-1.5">
+              <IconSax name="logout" :size="15" />
+              <span>退出登录</span>
             </button>
           </div>
         </div>
@@ -64,8 +66,8 @@
         <!-- KPI Dashboard Quick Stats Overview (4 Cards Grid) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 reveal">
           <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
-            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl shrink-0">
-              🎬
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 shrink-0">
+              <IconSax name="video-play" :size="24" />
             </div>
             <div>
               <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">专属授权作品</p>
@@ -76,8 +78,8 @@
           </div>
 
           <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xl shrink-0">
-              📨
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-700 shrink-0">
+              <IconSax name="mail" :size="24" />
             </div>
             <div>
               <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">密码申请记录</p>
@@ -88,8 +90,8 @@
           </div>
 
           <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-xl shrink-0">
-              🛡️
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-700 shrink-0">
+              <IconSax name="shield-security" :size="24" />
             </div>
             <div>
               <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">E2EE 加密保护</p>
@@ -101,8 +103,8 @@
           </div>
 
           <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
-            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-xl shrink-0">
-              💎
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-700 shrink-0">
+              <IconSax name="crown" :size="24" />
             </div>
             <div>
               <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">账户身份等级</p>
@@ -194,6 +196,22 @@
                 </button>
 
                 <button 
+                  @click="activeTab = 'projects'"
+                  :class="[
+                    'px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer',
+                    activeTab === 'projects'
+                      ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-white shadow-md'
+                      : 'text-[#82848c] hover:text-[#121316]'
+                  ]"
+                >
+                  <IconSax name="video-play" :size="16" />
+                  <span>专属授权作品</span>
+                  <span :class="['px-2 py-0.5 rounded-full text-[9px] font-mono font-bold', activeTab === 'projects' ? 'bg-white/20 text-white' : 'bg-black/5 text-slate-500']">
+                    {{ dashboardData.allowedProjects?.length || 0 }}
+                  </span>
+                </button>
+
+                <button 
                   @click="activeTab = 'requests'"
                   :class="[
                     'px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer',
@@ -202,7 +220,8 @@
                       : 'text-[#82848c] hover:text-[#121316]'
                   ]"
                 >
-                  <span>📨 密码申请记录</span>
+                  <IconSax name="mail" :size="16" />
+                  <span>密码申请记录</span>
                   <span :class="['px-2 py-0.5 rounded-full text-[9px] font-mono font-bold', activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-black/5 text-slate-500']">
                     {{ dashboardData.requests?.length || 0 }}
                   </span>
@@ -210,13 +229,14 @@
               </div>
 
               <!-- Search Filter Input (For projects tab) -->
-              <div v-if="activeTab === 'projects'" class="px-1">
+              <div v-if="activeTab === 'projects'" class="px-1 relative">
                 <input 
                   v-model="searchQuery" 
                   type="text" 
                   placeholder="搜索专属作品..."
-                  class="form-input text-xs py-2 px-3.5 rounded-xl border border-black/10 w-full sm:w-48 bg-white/90 focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20 transition-all"
+                  class="form-input text-xs py-2 pl-9 pr-3.5 rounded-xl border border-black/10 w-full sm:w-48 bg-white/90 focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20 transition-all"
                 />
+                <IconSax name="search" :size="14" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
             </div>
 
@@ -236,7 +256,9 @@
                       :alt="project.title"
                       class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div v-else class="w-full h-full flex items-center justify-center bg-stone-900 text-4xl">🎬</div>
+                    <div v-else class="w-full h-full flex items-center justify-center bg-stone-900 text-amber-500">
+                      <IconSax name="video-play" :size="48" />
+                    </div>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                     
                     <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
@@ -260,17 +282,21 @@
                     <!-- Actions / Password Copy Bar -->
                     <div class="space-y-3 pt-3 border-t border-black/[0.04]">
                       <div class="flex items-center justify-between p-3 rounded-2xl bg-amber-500/5 border border-amber-500/15">
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-900">专属解密密码</span>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1">
+                          <IconSax name="key" :size="12" />
+                          <span>专属解密密码</span>
+                        </span>
                         <div class="flex items-center gap-2">
                           <span class="font-mono font-bold text-sm tracking-widest text-[#121316] bg-white px-2.5 py-1 rounded-lg border border-black/5">
                             {{ project.password }}
                           </span>
                           <button 
                             @click="copyText(project.password)"
-                            class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-700/10 text-amber-900 hover:bg-amber-700 hover:text-white transition-all cursor-pointer"
+                            class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-700/10 text-amber-900 hover:bg-amber-700 hover:text-white transition-all cursor-pointer flex items-center gap-1"
                             title="复制密码"
                           >
-                            复制
+                            <IconSax name="copy" :size="12" />
+                            <span>复制</span>
                           </button>
                         </div>
                       </div>
@@ -278,10 +304,11 @@
                       <div class="flex gap-2">
                         <NuxtLink 
                           :to="'/projects/' + project.slug + (project.password ? '?pwd=' + encodeURIComponent(project.password) : '')"
-                          class="flex-1 text-center justify-center py-2.5 text-xs rounded-xl font-bold shadow-md text-white transition-transform active:scale-[0.98]"
+                          class="flex-1 text-center justify-center py-2.5 text-xs rounded-xl font-bold shadow-md text-white transition-transform active:scale-[0.98] flex items-center gap-2"
                           style="background: linear-gradient(135deg, #c27a3d, #b45309);"
                         >
-                          🎥 立即观看作品
+                          <IconSax name="video-play" :size="16" />
+                          <span>立即观看作品</span>
                         </NuxtLink>
                       </div>
                     </div>
@@ -291,7 +318,9 @@
 
               <!-- Empty Filtered Projects -->
               <div v-else class="glass-card p-12 rounded-[32px] text-center flex flex-col items-center justify-center space-y-3 border border-black/[0.06]">
-                <span class="text-4xl">🎬</span>
+                <div class="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700">
+                  <IconSax name="video-play" :size="32" />
+                </div>
                 <p class="text-sm font-display font-bold text-[#2d2f34]">
                   {{ searchQuery ? '未搜索到匹配作品' : '暂无专属授权作品' }}
                 </p>
@@ -314,7 +343,7 @@
                 >
                   <div class="space-y-1">
                     <div class="flex items-center gap-2">
-                      <span class="text-sm">🎬</span>
+                      <IconSax name="video-play" :size="16" class="text-amber-700" />
                       <h4 class="font-bold text-xs sm:text-sm text-[#121316]">
                         {{ req.projectTitle }}
                       </h4>
@@ -323,20 +352,24 @@
                       申请时间：{{ formatDate(req.createdAt) }} · 联系方式：{{ req.contact }}
                     </p>
                     <p v-if="req.reason" class="text-[11px] text-[#5e6066] mt-1 bg-black/[0.02] p-2.5 rounded-xl border border-black/[0.03]">
-                      💬 申请原由：{{ req.reason }}
+                      申请原由：{{ req.reason }}
                     </p>
 
                     <!-- Approved Password Display & Quick Copy -->
                     <div v-if="req.status === 'approved' && req.password" class="flex items-center gap-2 mt-2 p-2 px-3 rounded-xl bg-amber-500/10 border border-amber-500/20 w-fit">
-                      <span class="text-[10px] font-mono font-bold text-amber-900 uppercase">🔑 解密密码:</span>
+                      <span class="text-[10px] font-mono font-bold text-amber-900 uppercase flex items-center gap-1">
+                        <IconSax name="key" :size="12" />
+                        <span>解密密码:</span>
+                      </span>
                       <span class="font-mono font-bold text-xs text-[#121316] tracking-widest bg-white px-2 py-0.5 rounded border border-black/5">
                         {{ req.password }}
                       </span>
                       <button 
                         @click.stop="copyText(req.password)" 
-                        class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-700/10 text-amber-900 hover:bg-amber-700 hover:text-white transition-all cursor-pointer"
+                        class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-700/10 text-amber-900 hover:bg-amber-700 hover:text-white transition-all cursor-pointer flex items-center gap-1"
                       >
-                        📋 复制密码
+                        <IconSax name="copy" :size="12" />
+                        <span>复制密码</span>
                       </button>
                     </div>
                   </div>
@@ -345,15 +378,17 @@
                     <!-- Status Badges -->
                     <span 
                       v-if="req.status === 'pending'"
-                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 border border-amber-500/20 text-amber-800 flex items-center gap-1"
+                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 border border-amber-500/20 text-amber-800 flex items-center gap-1.5"
                     >
-                      <span>🟡</span> <span>审核中</span>
+                      <IconSax name="security-safe" :size="12" class="text-amber-600" />
+                      <span>审核中</span>
                     </span>
                     <span 
                       v-else-if="req.status === 'approved'"
-                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 flex items-center gap-1"
+                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 flex items-center gap-1.5"
                     >
-                      <span>🟢</span> <span>已授权通过</span>
+                      <IconSax name="tick" :size="12" class="text-emerald-600" />
+                      <span>已授权通过</span>
                     </span>
                     <span 
                       v-else-if="req.status === 'rejected'"
