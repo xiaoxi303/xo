@@ -43,8 +43,14 @@
         </div>
       </div>
 
+      <!-- Loading state -->
+      <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-4 glass-card rounded-3xl">
+        <div class="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+        <p class="font-display text-xs font-semibold text-[var(--color-ink-3)]">正在加载作品集...</p>
+      </div>
+
       <!-- Empty state -->
-      <div v-if="filteredProjects.length === 0" class="flex flex-col items-center justify-center py-24 gap-4 glass-card rounded-3xl">
+      <div v-else-if="filteredProjects.length === 0" class="flex flex-col items-center justify-center py-24 gap-4 glass-card rounded-3xl">
         <span class="text-5xl animate-bounce">🎬</span>
         <p class="font-display text-xl font-bold text-[var(--color-ink-2)]">暂无匹配的作品分类</p>
         <button @click="currentFilter = 'all'" class="btn-primary text-xs px-6 py-2">返回全部作品</button>
@@ -134,7 +140,8 @@ useHead({
   meta: [{ name: 'description', content: '查看 Xo Studio 的剪辑、调色与后期作品。' }]
 })
 
-const { data: projects } = useFetch<any[]>('/api/projects', { lazy: true })
+const { data: projects, status: projectsStatus } = useFetch<any[]>('/api/projects')
+const isLoading = computed(() => projectsStatus.value === 'pending' || (projects.value === null && projectsStatus.value !== 'error'))
 const currentFilter = ref('all')
 
 const visibleFilterOpts = computed(() => {

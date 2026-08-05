@@ -50,8 +50,16 @@ content/password-requests.json
 # Registered clients data (server-local)
 content/users.json
 
+# Blog posts and categories (created / edited via admin panel)
+content/blog-posts.json
+content/blog-categories.json
+content/events.json
+content/security-logs.json
+content/project-heat.json
+
 # Locally uploaded files (media/avatars)
 public/uploads/
+
 
 
 

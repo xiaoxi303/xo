@@ -769,8 +769,14 @@
         </div>
       </Transition>
 
+      <!-- Loading state -->
+      <div v-if="isLoadingProjects" class="text-center py-20 space-y-4">
+        <div class="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto" />
+        <p style="color: var(--color-ink-3)" class="text-xs font-semibold">正在载入作品数据...</p>
+      </div>
+
       <!-- Not found state -->
-      <div v-if="!project" class="text-center py-20 space-y-4 reveal">
+      <div v-else-if="!project" class="text-center py-20 space-y-4">
         <p class="text-5xl">🎞️</p>
         <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-3)">未找到该作品</h1>
         <p style="color: var(--color-ink-3)">请返回作品集重新选择。</p>
@@ -859,14 +865,25 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const slug = route.params.slug as string
-
-const mainVideoRef = ref<HTMLVideoElement | null>(null)
-const blurVideoRef = ref<HTMLVideoElement | null>(null)
+const currentSlug = computed(() => {
+  let raw = String(route.params.slug || '').trim()
+  try { raw = decodeURIComponent(raw) } catch {}
+  return raw.toLowerCase()
+})
+const slug = computed(() => currentSlug.value)
 
 // Fetch project list (passwords are NEVER returned — only hasPassword:boolean)
-const { data: projects } = useFetch<any[]>('/api/projects', { lazy: true })
-const project = computed(() => (projects.value || []).find(p => p.slug === slug))
+const { data: projects, status: projectsStatus } = useFetch<any[]>('/api/projects')
+const isLoadingProjects = computed(() => projectsStatus.value === 'pending' || (projects.value === null && projectsStatus.value !== 'error'))
+const project = computed(() => {
+  const list = projects.value || []
+  const target = currentSlug.value
+  return list.find((p: any) => {
+    if (!p || !p.slug) return false
+    const s = String(p.slug).trim().toLowerCase()
+    return s === target || encodeURIComponent(s).toLowerCase() === target
+  })
+})
 const activeVideoIndex = ref(0)
 const parseVideoUrls = (input: any) => {
   if (Array.isArray(input)) return input
@@ -1094,7 +1111,7 @@ watch([invisibleText, invisibleOpacity, activeVideoUrl], () => {
   })
 })
 
-const { data: unlockStatus } = useFetch<any>(`/api/projects/${slug}/check`, { lazy: true })
+const { data: unlockStatus } = useFetch<any>(() => `/api/projects/${currentSlug.value}/check`)
 
 const isUnlocked = ref(!!(unlockStatus.value?.unlocked))
 const inputPassword = ref('')
@@ -1106,7 +1123,7 @@ watch(unlockStatus, async (val) => {
   if (val?.unlocked) {
     isUnlocked.value = true
     await nextTick()
-    initReveal()
+    triggerReveal()
   } else {
     // Check URL query parameter ?pwd=... for auto-unlocking from client center
     const pwdParam = route.query.pwd as string
@@ -1118,12 +1135,12 @@ watch(unlockStatus, async (val) => {
 }, { immediate: true })
 
 // Generate daily password (same algorithm as backend)
-const getDailyPassword = async (slug) => {
-  if (!slug) return '------'
+const getDailyPassword = async (slugVal: string) => {
+  if (!slugVal) return '------'
   
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
   const secret = 'XO_STUDIO_SALT'
-  const cleanSlug = String(slug).trim().toLowerCase()
+  const cleanSlug = String(slugVal).trim().toLowerCase()
   const seed = 'project_' + cleanSlug + '*date*' + todayStr + '*salt*' + secret
   
   // Use SubtleCrypto SHA256 (same as server)
@@ -1143,8 +1160,8 @@ const getDailyPassword = async (slug) => {
 }
 
 const dailyPassword = ref('------')
-watch(() => slug, async () => {
-  dailyPassword.value = await getDailyPassword(slug)
+watch(currentSlug, async (newSlug) => {
+  dailyPassword.value = await getDailyPassword(newSlug)
 }, { immediate: true })
 
 const verifyPassword = async () => {
@@ -1974,12 +1991,23 @@ useHead({
 
 let observer: IntersectionObserver | null = null
 
+const triggerReveal = () => {
+  if (!import.meta.client) return
+  initReveal()
+  // Multi-stage fallback timers ensure elements are revealed even during transition / hydration delays
+  ;[50, 150, 300, 600, 1000].forEach(delay => {
+    setTimeout(() => {
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'))
+    }, delay)
+  })
+}
+
 const initReveal = () => {
   if (!import.meta.client) return
   if (observer) observer.disconnect()
   observer = new IntersectionObserver(
     (entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view') }) },
-    { threshold: 0.05, rootMargin: '0px 0px -30px 0px' }
+    { threshold: 0.01, rootMargin: '50px 0px 50px 0px' }
   )
   document.querySelectorAll('.reveal').forEach(el => observer?.observe(el))
 }
@@ -1992,22 +2020,24 @@ const viewedProjectSlugs = new Set<string>()
 
 const recordProjectView = async (targetSlug?: string) => {
   if (!import.meta.client) return
-  const currentSlug = targetSlug || (route.params.slug as string) || slug
-  if (!currentSlug || viewedProjectSlugs.has(currentSlug)) return
-  viewedProjectSlugs.add(currentSlug)
+  const activeSlug = targetSlug || currentSlug.value
+  if (!activeSlug || viewedProjectSlugs.has(activeSlug)) return
+  viewedProjectSlugs.add(activeSlug)
 
   try {
-    await $fetch(`/api/projects/${currentSlug}/view`, { method: 'POST' })
+    await $fetch(`/api/projects/${activeSlug}/view`, { method: 'POST' })
   } catch (e) {
-    viewedProjectSlugs.delete(currentSlug)
+    viewedProjectSlugs.delete(activeSlug)
   }
 }
 
 watch(
   project,
-  (val) => {
+  async (val) => {
     if (val && import.meta.client) {
       recordProjectView()
+      await nextTick()
+      triggerReveal()
     }
   },
   { immediate: true }
@@ -2015,7 +2045,7 @@ watch(
 
 onMounted(async () => {
   await nextTick()
-  initReveal()
+  triggerReveal()
 
   if (import.meta.client) {
     document.addEventListener('fullscreenchange', handleFullscreenChange)
