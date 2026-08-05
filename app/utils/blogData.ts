@@ -35,6 +35,26 @@ const INITIAL_CATEGORIES: BlogCategory[] = [
   { id: '4', name: 'Life', slug: 'life', description: '灵感、读书笔记与剪辑日常', count: 0 }
 ]
 
+/**
+ * Format read time string into Chinese "预计 X 分钟"
+ */
+export function formatReadTime(readTime?: string, content?: string): string {
+  if (!readTime && content) {
+    const words = content.replace(/<[^>]*>/g, '').trim().length
+    const minutes = Math.max(1, Math.ceil(words / 300))
+    return `预计 ${minutes} 分钟`
+  }
+  const str = String(readTime || '').trim()
+  if (!str) return '预计 1 分钟'
+  if (str.startsWith('预计')) return str
+
+  const match = str.match(/\d+/)
+  if (match) {
+    return `预计 ${match[0]} 分钟`
+  }
+  return `预计 ${str} 分钟`
+}
+
 export const useBlogStore = () => {
   const posts = useState<BlogPost[]>('xo-blog-posts-state', () => [])
   const categories = useState<BlogCategory[]>('xo-blog-categories-state', () => INITIAL_CATEGORIES)
@@ -120,26 +140,6 @@ export const useBlogStore = () => {
     const catName = cat ? cat.name.toLowerCase() : low
     return getPublishedPosts().filter(p => p && (p.category.toLowerCase() === catName || p.category.toLowerCase() === low))
   }
-
-/**
- * Format read time string into Chinese "预计 X 分钟"
- */
-export function formatReadTime(readTime?: string, content?: string): string {
-  if (!readTime && content) {
-    const words = content.replace(/<[^>]*>/g, '').trim().length
-    const minutes = Math.max(1, Math.ceil(words / 300))
-    return `预计 ${minutes} 分钟`
-  }
-  const str = String(readTime || '').trim()
-  if (!str) return '预计 1 分钟'
-  if (str.startsWith('预计')) return str
-
-  const match = str.match(/\d+/)
-  if (match) {
-    return `预计 ${match[0]} 分钟`
-  }
-  return `预计 ${str} 分钟`
-}
 
   // Actions
   const createPost = async (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views'>) => {
