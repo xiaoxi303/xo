@@ -58,12 +58,16 @@ export function publicAlipayConfig(config = readAlipayConfig()) {
   return { enabled: config.enabled, appId: config.appId, gateway: config.gateway, notifyUrl: config.notifyUrl, returnUrl: config.returnUrl, subjectPrefix: config.subjectPrefix, productCode: config.productCode, hasPrivateKey: Boolean(config.privateKey), hasAlipayPublicKey: Boolean(config.alipayPublicKey) }
 }
 
+function stringifyAlipayJson(value: unknown) {
+  return JSON.stringify(value).replace(/[^\u0000-\u007f]/g, char => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`)
+}
+
 export function buildAlipayPagePay(config: AlipayConfig, order: { outTradeNo: string; subject: string; totalAmount: string; notifyUrl: string; returnUrl: string }) {
   const params: Record<string, string> = {
     app_id: config.appId, method: 'alipay.trade.page.pay', format: 'JSON', charset: 'utf-8', sign_type: 'RSA2',
     timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '), version: '1.0',
     notify_url: order.notifyUrl, return_url: order.returnUrl,
-    biz_content: JSON.stringify({ out_trade_no: order.outTradeNo, product_code: config.productCode || 'FAST_INSTANT_TRADE_PAY', total_amount: order.totalAmount, subject: order.subject })
+    biz_content: stringifyAlipayJson({ out_trade_no: order.outTradeNo, product_code: config.productCode || 'FAST_INSTANT_TRADE_PAY', total_amount: order.totalAmount, subject: order.subject })
   }
   const signContent = Object.keys(params).sort().map(key => `${key}=${params[key]}`).join('&')
   const privateKey = normalizePrivateKey(config.privateKey)
