@@ -1961,7 +1961,7 @@
                       </div>
                       <div class="grid sm:grid-cols-2 gap-x-4 gap-y-1 text-slate-500">
                         <span>金额：¥{{ item.amount }}</span>
-                        <span>付款账号：{{ item.buyerLogonId || '等待支付宝回调' }}</span>
+                        <span>付款账号：{{ item.buyerLogonId || (item.status === 'paid' ? '同步返回未提供' : '等待支付宝回调') }}</span>
                         <span>订单号：{{ item.outTradeNo }}</span>
                         <span v-if="item.tradeNo">支付宝交易号：{{ item.tradeNo }}</span>
                         <span v-if="item.paidAt">付款时间：{{ item.paidAt }}</span>
