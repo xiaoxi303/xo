@@ -1,7 +1,7 @@
 import crypto from 'node:crypto'
 import { getCookie } from 'h3'
 import { SESSION_COOKIE, validateSession } from '../../utils/auth'
-import { normalizePrivateKey, publicAlipayConfig, saveAlipayConfig } from '../../utils/alipay'
+import { normalizePrivateKey, normalizePublicKey, publicAlipayConfig, saveAlipayConfig } from '../../utils/alipay'
 
 export default defineEventHandler(async event => {
   const token = getCookie(event, SESSION_COOKIE)
@@ -15,6 +15,19 @@ export default defineEventHandler(async event => {
       crypto.createPrivateKey(normalizePrivateKey(String(body.privateKey)))
     } catch {
       throw createError({ statusCode: 400, statusMessage: '应用私钥格式无效，请粘贴完整 PEM 私钥（包含 BEGIN/END 行）' })
+    }
+  }
+  if (body.alipayPublicKey && body.privateKey) {
+    try {
+      const applicationPublicKey = crypto.createPublicKey(crypto.createPrivateKey(normalizePrivateKey(String(body.privateKey))))
+        .export({ type: 'spki', format: 'der' })
+      const enteredPublicKey = crypto.createPublicKey(normalizePublicKey(String(body.alipayPublicKey)))
+        .export({ type: 'spki', format: 'der' })
+      if (applicationPublicKey.equals(enteredPublicKey)) {
+        throw createError({ statusCode: 400, statusMessage: '支付宝公钥不能填写应用公钥，请填写支付宝开放平台提供的支付宝公钥' })
+      }
+    } catch (error: any) {
+      if (error?.statusCode) throw error
     }
   }
   const config = saveAlipayConfig({
