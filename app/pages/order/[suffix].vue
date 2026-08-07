@@ -21,7 +21,7 @@
           <p v-if="page.description" class="order-copy">{{ page.description }}</p>
           <div class="order-divider" />
           <div v-if="paid && paidVerified" class="success-box"><span class="success-icon">✓</span><div><strong>付款已提交</strong><span>{{ page.successText || '感谢付款，我们会按约定完成交付。' }}</span></div></div>
-          <div v-else-if="paid && returnError" class="return-warning"><strong>已返回订单页面</strong><span>{{ returnError }}</span></div>
+          <div v-else-if="isAlipayReturn && returnError" class="return-warning"><strong>已返回订单页面</strong><span>{{ returnError }}</span></div>
           <form v-else @submit.prevent="submitOrder">
             <label>备注 <em>可选</em><textarea v-model="note" maxlength="300" rows="3" placeholder="填写项目名称、联系方式或交付说明…" /></label>
             <p v-if="!page.paymentEnabled" class="muted-box">当前订单暂未开启支付宝付款，请联系管理员。</p>
@@ -46,11 +46,12 @@ const loadingPage = ref(true)
 const loading = ref(false)
 const error = ref('')
 const paid = computed(() => String(route.query.paid || '') === '1')
+const isAlipayReturn = computed(() => Boolean(route.query.out_trade_no && route.query.trade_no && route.query.sign))
 const paidVerified = ref(false)
 const returnError = ref('')
 
 onMounted(async () => {
-  if (paid.value) {
+  if (isAlipayReturn.value) {
     try {
       await $fetch(`/api/order/${encodeURIComponent(suffix.value)}/return`, { query: route.query })
       paidVerified.value = true
