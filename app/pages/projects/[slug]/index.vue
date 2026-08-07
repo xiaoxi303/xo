@@ -918,9 +918,11 @@ const projectVideoUrls = computed(() => {
 })
 const activeVideoUrl = computed(() => {
   const url = projectVideoUrls.value[activeVideoIndex.value] || ''
-  return /^https?:\/\//i.test(url)
-    ? `/api/video-stream?url=${encodeURIComponent(url)}`
-    : url
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) {
+    return `/api/video-stream?url=${encodeURIComponent(url)}&slug=${encodeURIComponent(currentSlug.value)}`
+  }
+  return url
 })
 
 watch(projectVideoUrls, (urls) => {

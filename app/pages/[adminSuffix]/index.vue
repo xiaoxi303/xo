@@ -1694,6 +1694,32 @@
                 <p v-else class="text-[10px] text-slate-400 leading-relaxed">启用后，当管理员在后台审批通过申请，系统会自动向申请者的邮箱发送包含密码和观看链接的通知邮件。客户走直接自动通道获取密码时，也会收到密码备份通知。</p>
               </div>
 
+              <!-- Alipay Order Settings -->
+              <div class="glass-card p-6 space-y-4">
+                <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border)">
+                  <div>
+                    <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">支付宝专属下单</h3>
+                    <p class="text-[10px] mt-1" style="color: var(--color-ink-5)">私钥仅加密保存在服务端，不会返回浏览器。</p>
+                  </div>
+                  <select v-model="alipayConfig.enabled" class="text-xs font-mono py-1 px-2.5 rounded-lg border border-black/10 bg-white">
+                    <option :value="false">已关闭</option>
+                    <option :value="true">已启用</option>
+                  </select>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div class="space-y-1.5"><label class="form-label">App ID</label><input v-model="alipayConfig.appId" class="form-input font-mono" placeholder="2026..." /></div>
+                  <div class="space-y-1.5"><label class="form-label">网关地址</label><input v-model="alipayConfig.gateway" class="form-input font-mono" placeholder="https://openapi.alipay.com/gateway.do" /></div>
+                  <div class="space-y-1.5"><label class="form-label">异步通知地址</label><input v-model="alipayConfig.notifyUrl" class="form-input font-mono" placeholder="https://你的域名/api/order/xxx/notify" /></div>
+                  <div class="space-y-1.5"><label class="form-label">同步返回地址</label><input v-model="alipayConfig.returnUrl" class="form-input font-mono" placeholder="https://你的域名/order/xxx?paid=1" /></div>
+                </div>
+                <div class="space-y-1.5"><label class="form-label">支付宝公钥</label><textarea v-model="alipayConfig.alipayPublicKey" rows="3" class="form-input font-mono text-[10px]" placeholder="仅用于验签，可选填"></textarea></div>
+                <div class="space-y-1.5"><label class="form-label">应用私钥</label><textarea v-model="alipayPrivateKeyInput" rows="4" class="form-input font-mono text-[10px]" placeholder="填写后加密保存；留空表示保持原私钥"></textarea></div>
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-[10px] font-mono" :class="alipayConfig.hasPrivateKey ? 'text-emerald-700' : 'text-amber-700'">{{ alipayConfig.hasPrivateKey ? '私钥已配置（服务端加密保存）' : '尚未配置私钥' }}</span>
+                  <button type="button" class="btn-primary text-xs px-4 py-2" @click="saveAlipayConfig">保存支付宝配置</button>
+                </div>
+              </div>
+
               <!-- AI Model API Settings Card (支持对接真实大模型) -->
               <div class="glass-card p-6 space-y-4">
                 <div class="flex items-center justify-between">
@@ -1761,6 +1787,169 @@
             </div>
           </div>
         </div>
+
+          <div v-else-if="activeTab === 'alipay'" key="alipay-clean" class="space-y-8">
+            <div class="p-6 glass-card flex items-center justify-between">
+              <div><h2 class="text-base font-semibold font-display">支付宝电脑网站支付配置</h2><p class="text-xs mt-1" style="color: var(--color-ink-5)">配置 App ID、网关、公钥、私钥和回调地址；私钥只加密保存在服务端。</p></div>
+              <select v-model="alipayConfig.enabled" class="text-xs py-2 px-3 rounded-lg border border-black/10 bg-white"><option :value="false">关闭支付</option><option :value="true">启用支付</option></select>
+            </div>
+            <div class="glass-card p-6 space-y-4">
+              <div class="grid sm:grid-cols-2 gap-3">
+                <label class="form-label">App ID<input v-model="alipayConfig.appId" class="form-input font-mono" placeholder="2026..." /></label>
+                <label class="form-label">支付宝网关<input v-model="alipayConfig.gateway" class="form-input font-mono" placeholder="https://openapi.alipay.com/gateway.do" /></label>
+                <label class="form-label">异步通知地址<input v-model="alipayConfig.notifyUrl" class="form-input font-mono" placeholder="https://你的域名/api/order/xiao/notify" /></label>
+                <label class="form-label">同步返回地址<input v-model="alipayConfig.returnUrl" class="form-input font-mono" placeholder="https://你的域名/order/xiao?paid=1" /></label>
+              </div>
+              <label class="form-label">支付宝公钥<textarea v-model="alipayConfig.alipayPublicKey" rows="4" class="form-input font-mono text-[10px]" /></label>
+              <label class="form-label">应用私钥<textarea v-model="alipayPrivateKeyInput" rows="5" class="form-input font-mono text-[10px]" placeholder="留空表示保持原私钥" /></label>
+              <div class="flex items-center justify-between"><span class="text-xs" :class="alipayConfig.hasPrivateKey ? 'text-emerald-700' : 'text-amber-700'">{{ alipayConfig.hasPrivateKey ? '私钥已加密保存' : '尚未配置私钥' }}</span><button type="button" class="btn-primary text-xs py-2 px-5" @click="saveAlipayConfig">保存支付宝配置</button></div>
+            </div>
+          </div>
+
+          <div v-else-if="activeTab === 'alipay-legacy'" key="alipay" class="space-y-8">
+            <div class="p-6 glass-card flex items-center justify-between">
+              <div><h2 class="text-base font-semibold font-display">支付宝支付配置</h2><p class="text-xs mt-1" style="color: var(--color-ink-5)">私钥只会加密保存在服务器，不会返回浏览器。</p></div>
+              <select v-model="alipayConfig.enabled" class="text-xs py-2 px-3 rounded-lg border border-black/10 bg-white"><option :value="false">关闭支付</option><option :value="true">启用支付</option></select>
+            </div>
+            <div class="glass-card p-6 space-y-4">
+              <h3 class="text-sm font-semibold">客户交付入口与查看密钥</h3>
+              <div class="grid lg:grid-cols-[1fr_auto_auto] gap-3 items-end">
+                <label class="form-label">客户账号
+                  <select v-model="deliveryEditorId" class="form-input">
+                    <option value="">选择客户</option>
+                    <option v-for="u in registeredUsers.filter((x:any) => x.role !== 'admin')" :key="u.id" :value="String(u.id)">{{ u.username }}{{ u.deliverySuffix ? ` · /delivery/${u.deliverySuffix}` : '' }}</option>
+                  </select>
+                </label>
+                <button type="button" class="btn-primary text-xs py-2.5 px-4" :disabled="!deliveryEditorId || deliveryKeyGenerating" @click="generateDeliveryFromWorkspace">{{ deliveryKeyGenerating ? '生成中…' : '生成/更换密钥' }}</button>
+                <button type="button" class="text-xs py-2.5 px-4 rounded-lg border" :disabled="!deliveryEditorUser?.deliverySuffix" @click="copyWorkspaceDeliveryLink">复制交付地址</button>
+              </div>
+              <p v-if="deliveryEditorUser" class="text-xs text-slate-500">当前入口：/delivery/{{ deliveryEditorUser.deliverySuffix || '未生成' }}。密钥只在生成后显示一次，客户只能访问绑定的独立交付素材。</p>
+            </div>
+            <div class="glass-card p-6 space-y-4">
+              <div class="grid sm:grid-cols-2 gap-3">
+                <label class="form-label">App ID<input v-model="alipayConfig.appId" class="form-input font-mono" placeholder="2026..." /></label>
+                <label class="form-label">支付宝网关<input v-model="alipayConfig.gateway" class="form-input font-mono" placeholder="https://openapi.alipay.com/gateway.do" /></label>
+                <label class="form-label">异步通知地址<input v-model="alipayConfig.notifyUrl" class="form-input font-mono" placeholder="https://你的域名/api/order/xiao/notify" /></label>
+                <label class="form-label">同步返回地址<input v-model="alipayConfig.returnUrl" class="form-input font-mono" placeholder="https://你的域名/order/xiao?paid=1" /></label>
+              </div>
+              <label class="form-label">支付宝公钥<textarea v-model="alipayConfig.alipayPublicKey" rows="4" class="form-input font-mono text-[10px]" /></label>
+              <label class="form-label">应用私钥<textarea v-model="alipayPrivateKeyInput" rows="5" class="form-input font-mono text-[10px]" placeholder="留空表示保持原私钥" /></label>
+              <div class="flex items-center justify-between"><span class="text-xs" :class="alipayConfig.hasPrivateKey ? 'text-emerald-700' : 'text-amber-700'">{{ alipayConfig.hasPrivateKey ? '私钥已加密保存' : '尚未配置私钥' }}</span><button type="button" class="btn-primary text-xs py-2 px-5" @click="saveAlipayConfig">保存支付宝配置</button></div>
+            </div>
+          </div>
+
+          <div v-else-if="activeTab === 'delivery'" key="delivery" class="space-y-8">
+            <div class="p-6 glass-card"><h2 class="text-base font-semibold font-display">专属交付工作区</h2><p class="text-xs mt-1" style="color: var(--color-ink-5)">为指定客户选择作品、生成专属后缀和查看密钥。交付页沿用全站视频播放器水印与隐形 Canvas 水印配置。</p></div>
+            <div class="glass-card p-6 space-y-4">
+              <h3 class="text-sm font-semibold">选择客户并配置作品</h3>
+              <div class="grid lg:grid-cols-[1fr_auto] gap-3 items-end">
+                <label class="form-label">客户账号
+                  <select v-model="deliveryEditorId" class="form-input">
+                    <option value="">选择客户</option>
+                    <option v-for="u in registeredUsers.filter((x:any) => x.role !== 'admin')" :key="u.id" :value="String(u.id)">{{ u.username }}{{ u.deliverySuffix ? ` · /delivery/${u.deliverySuffix}` : '' }}</option>
+                  </select>
+                </label>
+                <button type="button" class="btn-primary text-xs py-2.5 px-5" :disabled="!deliveryEditorId" @click="openDeliveryEditor">编辑作品权限</button>
+              </div>
+              <div v-if="deliveryEditorUser" class="grid sm:grid-cols-2 gap-3 border-t border-black/10 pt-4">
+                <div class="rounded-xl border border-black/10 p-4 text-xs">
+                  <p class="font-bold">{{ deliveryEditorUser.username }} 的交付配置</p>
+                  <p class="mt-2 text-slate-500">后缀：/delivery/{{ deliveryEditorUser.deliverySuffix || '未生成' }}</p>
+                  <div class="flex gap-2 mt-3">
+                    <button type="button" class="px-3 py-1.5 rounded-lg border text-xs" @click="openEditUserModal(deliveryEditorUser)">编辑作品</button>
+                    <button type="button" class="px-3 py-1.5 rounded-lg border text-xs" @click="generateDeliveryFromWorkspace">生成/更换密钥</button>
+                    <button type="button" class="px-3 py-1.5 rounded-lg border text-xs" @click="copyWorkspaceDeliveryLink">复制交付地址</button>
+                  </div>
+                </div>
+                <div class="rounded-xl border border-emerald-700/20 bg-emerald-500/5 p-4 text-xs text-emerald-800">
+                  <strong>已授权作品</strong>
+                  <p class="mt-2">{{ deliveryEditorUser.allowedProjects || '暂未选择作品，请点击“编辑作品”' }}</p>
+                </div>
+              </div>
+              <div class="border-t border-black/10 pt-4 text-xs text-slate-500">视频交付页面继续使用后台的可见 Logo 水印、隐形 Canvas 水印和项目访问控制。</div>
+            </div>
+          </div>
+
+          <div v-else-if="activeTab === 'delivery-library'" key="delivery-library" class="space-y-8">
+            <div class="p-6 glass-card flex items-center justify-between">
+              <div><h2 class="text-base font-semibold font-display">专属交付素材库</h2><p class="text-xs mt-1" style="color: var(--color-ink-5)">独立于首页作品库，仅用于客户视频交付。</p></div>
+              <button type="button" class="btn-primary text-xs py-2 px-4" @click="resetDeliveryItem">新增交付视频</button>
+            </div>
+            <div class="glass-card p-6 space-y-4">
+              <h3 class="text-sm font-semibold">客户交付入口与查看密钥</h3>
+              <div class="grid lg:grid-cols-[1fr_auto_auto] gap-3 items-end">
+                <label class="form-label">客户账号
+                  <select v-model="deliveryEditorId" class="form-input">
+                    <option value="">选择客户</option>
+                    <option v-for="u in registeredUsers.filter((x:any) => x.role !== 'admin')" :key="u.id" :value="String(u.id)">{{ u.username }}{{ u.deliverySuffix ? ` · /delivery/${u.deliverySuffix}` : '' }}</option>
+                  </select>
+                </label>
+                <button type="button" class="btn-primary text-xs py-2.5 px-4" :disabled="!deliveryEditorId || deliveryKeyGenerating" @click="generateDeliveryFromWorkspace">{{ deliveryKeyGenerating ? '生成中…' : '生成/更换密钥' }}</button>
+                <button type="button" class="text-xs py-2.5 px-4 rounded-lg border" :disabled="!deliveryEditorUser?.deliverySuffix" @click="copyWorkspaceDeliveryLink">复制交付地址</button>
+              </div>
+              <p v-if="deliveryEditorUser" class="text-xs text-slate-500">当前入口：/delivery/{{ deliveryEditorUser.deliverySuffix || '未生成' }}。客户只能访问绑定后缀下的独立交付素材。</p>
+            </div>
+            <div class="grid lg:grid-cols-[1fr_1.2fr] gap-6">
+              <div class="glass-card p-6 space-y-4">
+                <h3 class="text-sm font-semibold">编辑交付视频</h3>
+                <label class="form-label">客户交付后缀<input v-model="deliveryItemForm.deliverySuffix" class="form-input font-mono" placeholder="xiaoxi" /></label>
+                <label class="form-label">视频标题<input v-model="deliveryItemForm.title" class="form-input" placeholder="客户专属成片 V1" /></label>
+                <label class="form-label">视频地址<input v-model="deliveryItemForm.videoUrl" class="form-input font-mono" placeholder="/uploads/client-video.mp4 或 https://..." /></label>
+                <label class="form-label">上传视频到服务器<input type="file" accept="video/mp4,video/webm,video/quicktime" class="form-input" @change="uploadDeliveryVideo" /><span v-if="deliveryUploadState" class="text-[10px] text-emerald-700">{{ deliveryUploadState }}</span></label>
+                <label class="form-label">封面地址<input v-model="deliveryItemForm.poster" class="form-input font-mono" placeholder="/uploads/poster.jpg" /></label>
+                <label class="form-label">交付说明<textarea v-model="deliveryItemForm.description" rows="3" class="form-input resize-none" /></label>
+                <label class="flex items-center gap-2 text-xs"><input v-model="deliveryItemForm.enabled" type="checkbox" />启用此素材</label>
+                <button type="button" class="btn-primary w-full py-2.5 text-xs" :disabled="deliveryItemSaving" @click="saveDeliveryItem">{{ deliveryItemSaving ? '保存中…' : '保存交付素材' }}</button>
+              </div>
+              <div class="glass-card p-6 space-y-3">
+                <h3 class="text-sm font-semibold">已配置交付视频</h3>
+                <div v-if="deliveryItems.length" class="space-y-2">
+                  <div v-for="item in deliveryItems" :key="item.id" class="rounded-xl border border-black/10 p-3 flex justify-between gap-3">
+                    <div><strong class="text-sm">{{ item.title }}</strong><p class="text-[11px] text-slate-500">/delivery/{{ item.deliverySuffix }} · {{ item.enabled ? '已启用' : '已关闭' }}</p></div>
+                    <div class="flex gap-2"><button type="button" class="text-xs px-2 py-1 rounded border" @click="editDeliveryItem(item)">编辑</button><button type="button" class="text-xs px-2 py-1 rounded border text-rose-600" @click="deleteDeliveryItem(item.id)">删除</button></div>
+                  </div>
+                </div>
+                <p v-else class="text-xs text-slate-500">还没有独立交付视频。</p>
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="activeTab === 'orders'" key="orders" class="space-y-8">
+            <div class="flex items-center justify-between p-6 glass-card">
+              <div>
+                <h2 class="text-base font-semibold font-display">订单页面与商品配置</h2>
+                <p class="text-xs mt-1" style="color: var(--color-ink-5)">客户只能查看这里保存的商品与固定金额，不能自行改价。</p>
+              </div>
+              <button type="button" class="btn-primary text-xs py-2 px-4" @click="resetOrderPage">新建订单页面</button>
+            </div>
+            <div class="grid lg:grid-cols-[1fr_1.2fr] gap-6">
+              <div class="glass-card p-6 space-y-4">
+                <h3 class="font-semibold text-sm">编辑订单页面</h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <label class="form-label">后缀<input v-model="orderPageForm.suffix" class="form-input font-mono" placeholder="xiao" /></label>
+                  <label class="form-label">固定金额（元）<input v-model="orderPageForm.amount" type="number" min="0.01" step="0.01" class="form-input font-mono" /></label>
+                </div>
+                <label class="form-label">商品名称<input v-model="orderPageForm.subject" class="form-input" placeholder="影视后期制作服务" /></label>
+                <label class="form-label">客户名称<input v-model="orderPageForm.clientName" class="form-input" placeholder="客户或项目名称" /></label>
+                <label class="form-label">商品说明<textarea v-model="orderPageForm.description" rows="3" class="form-input resize-none" /></label>
+                <label class="form-label">支付成功提示<textarea v-model="orderPageForm.successText" rows="2" class="form-input resize-none" /></label>
+                <label class="flex items-center gap-2 text-xs"><input v-model="orderPageForm.enabled" type="checkbox" />启用此订单页面</label>
+                <button type="button" class="btn-primary w-full py-2.5 text-xs" :disabled="orderPageSaving" @click="saveOrderPage">{{ orderPageSaving ? '保存中…' : '保存商品与订单页面' }}</button>
+              </div>
+              <div class="glass-card p-6 space-y-3">
+                <h3 class="font-semibold text-sm">已配置订单页面</h3>
+                <div v-if="orderPages.length" class="space-y-2">
+                  <div v-for="item in orderPages" :key="item.suffix" class="flex items-center justify-between gap-3 rounded-xl border border-black/10 p-3">
+                    <div class="min-w-0"><strong class="text-sm">{{ item.subject }}</strong><p class="text-[11px] text-slate-500">/order/{{ item.suffix }} · ¥{{ item.amount }} · {{ item.enabled ? '已启用' : '已关闭' }}</p></div>
+                    <div class="flex gap-2 shrink-0"><button type="button" class="text-xs px-2 py-1 rounded border" @click="editOrderPage(item)">编辑</button><button type="button" class="text-xs px-2 py-1 rounded border text-rose-600" @click="deleteOrderPage(item.suffix)">删除</button></div>
+                  </div>
+                </div>
+                <p v-else class="text-xs text-slate-500">还没有订单页面配置。</p>
+                <h3 class="font-semibold text-sm pt-4 border-t border-black/10">最近订单</h3>
+                <div v-for="item in orders.slice(0, 8)" :key="item.outTradeNo" class="text-[11px] flex justify-between gap-2"><span>{{ item.subject }} · {{ item.outTradeNo }}</span><span>{{ item.status }} · ¥{{ item.amount }}</span></div>
+              </div>
+            </div>
+          </div>
 
           <div v-else-if="activeTab === 'watermark'" key="watermark" class="space-y-8">
             <div class="flex items-center justify-between p-6 glass-card">
@@ -2552,6 +2741,45 @@
                 </div>
               </div>
             </div>
+
+            <!-- Dedicated delivery credentials -->
+            <div class="space-y-4 pt-2">
+              <div class="flex items-center justify-between gap-3 border-b pb-1">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">专属交付 / 查看密钥</h3>
+                <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">ACCOUNT BOUND</span>
+              </div>
+              <p class="text-[10px] leading-relaxed" style="color: var(--color-ink-4)">
+                系统只保存密钥摘要，完整密钥仅在生成或轮换后显示一次。交付地址只返回该客户被授权的作品。
+              </p>
+              <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+                <code class="min-w-0 truncate px-3 py-2 rounded-xl border bg-black/[0.02] text-[11px] font-mono" style="border-color: var(--color-border-2); color: var(--color-ink-2)">
+                  /delivery/{{ userForm.deliverySuffix || '尚未生成' }}
+                </code>
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-xl text-[10px] font-bold text-emerald-800 border border-emerald-700/20 hover:bg-emerald-500/10"
+                  @click="copyAdminDeliveryLink"
+                >
+                  复制地址
+                </button>
+              </div>
+              <div class="flex items-center gap-2">
+                <code class="flex-1 min-w-0 truncate px-3 py-2 rounded-xl border bg-emerald-500/[0.05] text-[11px] font-mono font-bold tracking-wider" style="border-color: rgba(16,185,129,.2); color: var(--color-ink-2)">
+                  {{ generatedDeliveryKey || `••••••••••••${userForm.deliveryKeyHint || '----'}` }}
+                </code>
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-xl text-[10px] font-bold text-white bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50"
+                  :disabled="deliveryKeyGenerating"
+                  @click="generateAdminDeliveryKey"
+                >
+                  {{ deliveryKeyGenerating ? '生成中...' : (generatedDeliveryKey ? '重新生成' : '生成密钥') }}
+                </button>
+              </div>
+              <p v-if="generatedDeliveryKey" class="text-[10px] text-amber-700">
+                完整密钥仅本次显示，请立即复制并交付给对应客户。
+              </p>
+            </div>
           </div>
 
           <div class="p-6 flex items-center justify-end gap-3" style="border-top: 1px solid var(--color-border)">
@@ -2906,6 +3134,9 @@ const deleteAdminCategory = (id: string) => {
 }
 
 const tabs = [
+  { label: '支付宝配置', value: 'alipay', icon: 'card' },
+  { label: '专属交付', value: 'delivery-library', icon: 'video-play' },
+  { label: '订单管理', value: 'orders', icon: 'receipt-item' },
   { label: '数据看板', value: 'analytics', icon: 'chart-2' },
   { label: '博客文章', value: 'blog', icon: 'document-text' },
   { label: '作品管理', value: 'projects', icon: 'video-play' },
@@ -3141,11 +3372,131 @@ const siteConfig = useState<any>('site-config', () => ({
   }
 }))
 
+const alipayConfig = ref<any>({
+  enabled: false,
+  appId: '',
+  gateway: 'https://openapi.alipay.com/gateway.do',
+  notifyUrl: '',
+  returnUrl: '',
+  subjectPrefix: 'Xo Studio 订单',
+  hasPrivateKey: false,
+  hasAlipayPublicKey: false
+})
+const alipayPrivateKeyInput = ref('')
+const orderPages = ref<any[]>([])
+const orders = ref<any[]>([])
+const orderPageForm = ref<any>({ suffix: '', enabled: true, subject: '', amount: '0.00', description: '', clientName: '', successText: '' })
+const orderPageSaving = ref(false)
+const deliveryEditorId = ref('')
+const deliveryItems = ref<any[]>([])
+const deliveryItemForm = ref<any>({ id: '', deliverySuffix: '', title: '', description: '', videoUrl: '', poster: '', enabled: true })
+const deliveryItemSaving = ref(false)
+const deliveryUploadState = ref('')
+const uploadDeliveryVideo = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  deliveryUploadState.value = '上传中…'
+  try {
+    const form = new FormData()
+    form.append('file', file)
+    const result = await $fetch<any>('/api/admin/delivery-upload', { method: 'POST', body: form })
+    deliveryItemForm.value.videoUrl = result.url
+    deliveryUploadState.value = '已上传到服务器磁盘'
+  } catch (err: any) {
+    deliveryUploadState.value = err.data?.statusMessage || '上传失败'
+  }
+}
+const fetchDeliveryItems = async () => { try { deliveryItems.value = await $fetch<any[]>('/api/admin/delivery-items') } catch {} }
+const resetDeliveryItem = () => { deliveryItemForm.value = { id: '', deliverySuffix: '', title: '', description: '', videoUrl: '', poster: '', enabled: true } }
+const editDeliveryItem = (item: any) => { deliveryItemForm.value = { ...item } }
+const saveDeliveryItem = async () => {
+  deliveryItemSaving.value = true
+  try {
+    const result = await $fetch<any>('/api/admin/delivery-items', { method: 'PUT', body: deliveryItemForm.value })
+    const index = deliveryItems.value.findIndex(item => item.id === result.item.id)
+    if (index >= 0) deliveryItems.value[index] = result.item
+    else deliveryItems.value.unshift(result.item)
+    resetDeliveryItem()
+  } catch (err: any) { alert(err.data?.statusMessage || '保存交付素材失败') }
+  finally { deliveryItemSaving.value = false }
+}
+const deleteDeliveryItem = async (id: string) => {
+  if (!confirm('确定删除这条专属交付素材吗？')) return
+  await $fetch(`/api/admin/delivery-items?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+  deliveryItems.value = deliveryItems.value.filter(item => item.id !== id)
+}
+const deliveryEditorUser = computed(() => registeredUsers.value.find((user: any) => String(user.id) === String(deliveryEditorId.value)) || null)
+const openDeliveryEditor = () => {
+  if (deliveryEditorUser.value) openEditUserModal(deliveryEditorUser.value)
+}
+const generateDeliveryFromWorkspace = async () => {
+  if (!deliveryEditorUser.value || deliveryKeyGenerating.value) return
+  deliveryKeyGenerating.value = true
+  try {
+    const response = await $fetch<any>('/api/admin/users/delivery-credentials', { method: 'POST', body: { id: deliveryEditorUser.value.id, rotate: true } })
+    const index = registeredUsers.value.findIndex((u: any) => String(u.id) === String(deliveryEditorUser.value.id))
+    if (index >= 0) registeredUsers.value[index] = { ...registeredUsers.value[index], deliverySuffix: response.deliverySuffix, deliveryKeyHint: response.keyHint }
+    alert(`密钥已生成：${response.deliveryKey || ''}`)
+  } catch (err: any) { alert(err.data?.statusMessage || '生成密钥失败') }
+  finally { deliveryKeyGenerating.value = false }
+}
+const copyWorkspaceDeliveryLink = async () => {
+  if (!deliveryEditorUser.value?.deliverySuffix || !import.meta.client) return
+  const link = `${window.location.origin}/delivery/${encodeURIComponent(deliveryEditorUser.value.deliverySuffix)}`
+  try { await navigator.clipboard.writeText(link); alert('专属交付地址已复制') } catch { alert(link) }
+}
+const fetchOrderData = async () => {
+  try {
+    orderPages.value = await $fetch<any[]>('/api/admin/order-pages')
+    orders.value = await $fetch<any[]>('/api/admin/orders')
+  } catch {}
+}
+const resetOrderPage = () => { orderPageForm.value = { suffix: '', enabled: true, subject: '', amount: '0.00', description: '', clientName: '', successText: '' } }
+const editOrderPage = (page: any) => { orderPageForm.value = { ...page } }
+const saveOrderPage = async () => {
+  orderPageSaving.value = true
+  try {
+    const result = await $fetch<any>('/api/admin/order-pages', { method: 'PUT', body: orderPageForm.value })
+    const index = orderPages.value.findIndex(item => item.suffix === result.page.suffix)
+    if (index >= 0) orderPages.value[index] = result.page
+    else orderPages.value.unshift(result.page)
+    resetOrderPage()
+  } catch (err: any) { alert(err.data?.statusMessage || '保存订单页面失败') }
+  finally { orderPageSaving.value = false }
+}
+const deleteOrderPage = async (suffix: string) => {
+  if (!confirm(`确定删除订单页面 /order/${suffix} 吗？`)) return
+  await $fetch(`/api/admin/order-pages?suffix=${encodeURIComponent(suffix)}`, { method: 'DELETE' })
+  orderPages.value = orderPages.value.filter(item => item.suffix !== suffix)
+}
+
+const fetchAlipayConfig = async () => {
+  try {
+    alipayConfig.value = await $fetch('/api/admin/alipay-config') as any
+  } catch {}
+}
+
+const saveAlipayConfig = async () => {
+  try {
+    const response = await $fetch<any>('/api/admin/alipay-config', {
+      method: 'PUT',
+      body: { ...alipayConfig.value, privateKey: alipayPrivateKeyInput.value || undefined }
+    })
+    alipayConfig.value = response.config
+    alipayPrivateKeyInput.value = ''
+    alert('支付宝配置已加密保存到服务端。')
+  } catch (err: any) {
+    alert(err.data?.statusMessage || '保存支付宝配置失败。')
+  }
+}
+
 const isModalOpen = ref(false)
 const isEditing = ref(false)
 
 const isUserModalOpen = ref(false)
 const selectedUserProjects = ref<string[]>([])
+const generatedDeliveryKey = ref('')
+const deliveryKeyGenerating = ref(false)
 const userForm = ref({
   id: '',
   username: '',
@@ -3153,7 +3504,9 @@ const userForm = ref({
   wechat: '',
   role: 'client',
   password: '',
-  allowedProjects: ''
+  allowedProjects: '',
+  deliverySuffix: '',
+  deliveryKeyHint: ''
 })
 
 const openEditUserModal = (u: any) => {
@@ -3164,8 +3517,11 @@ const openEditUserModal = (u: any) => {
     wechat: u.wechat || '',
     role: u.role || 'client',
     password: '',
-    allowedProjects: u.allowedProjects || ''
+    allowedProjects: u.allowedProjects || '',
+    deliverySuffix: u.deliverySuffix || '',
+    deliveryKeyHint: u.deliveryKeyHint || ''
   }
+  generatedDeliveryKey.value = ''
   selectedUserProjects.value = u.allowedProjects
     ? u.allowedProjects.split(',').map((s: string) => s.trim()).filter(Boolean)
     : []
@@ -3174,6 +3530,37 @@ const openEditUserModal = (u: any) => {
 
 const closeUserModal = () => {
   isUserModalOpen.value = false
+  generatedDeliveryKey.value = ''
+}
+
+const generateAdminDeliveryKey = async () => {
+  if (!userForm.value.id || deliveryKeyGenerating.value) return
+  deliveryKeyGenerating.value = true
+  try {
+    const response = await $fetch<any>('/api/admin/users/delivery-credentials', {
+      method: 'POST',
+      body: { id: userForm.value.id, rotate: true }
+    })
+    generatedDeliveryKey.value = String(response.deliveryKey || '')
+    userForm.value.deliverySuffix = String(response.deliverySuffix || userForm.value.deliverySuffix || '')
+    userForm.value.deliveryKeyHint = String(response.keyHint || '')
+    await fetchUsers()
+  } catch (err: any) {
+    alert(err.data?.statusMessage || '生成专属查看密钥失败。')
+  } finally {
+    deliveryKeyGenerating.value = false
+  }
+}
+
+const copyAdminDeliveryLink = async () => {
+  if (!userForm.value.deliverySuffix || !import.meta.client) return
+  const link = `${window.location.origin}/delivery/${encodeURIComponent(userForm.value.deliverySuffix)}`
+  try {
+    await navigator.clipboard.writeText(link)
+    alert('专属交付地址已复制。')
+  } catch {
+    alert(link)
+  }
 }
 
 const saveUser = async () => {
@@ -3665,6 +4052,9 @@ onMounted(() => {
 })
 onMounted(() => {
   checkAuth()
+  fetchAlipayConfig()
+  fetchOrderData()
+  fetchDeliveryItems()
   // Restore last active tab from localStorage (SSR-safe: only runs on client)
   const savedTab = localStorage.getItem(ADMIN_TAB_KEY)
   if (savedTab) activeTab.value = savedTab

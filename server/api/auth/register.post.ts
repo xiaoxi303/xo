@@ -112,7 +112,7 @@ export default defineEventHandler(async (event) => {
   const hashedPassword = hashPassword(password)
 
   try {
-    await dbCreateUser(event, {
+    const deliveryCredentials = await dbCreateUser(event, {
       username,
       email: cleanEmail,
       wechat,
@@ -127,7 +127,10 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       username,
-      role: 'client'
+      role: 'client',
+      // The raw key is returned only at creation time; storage persists its hash.
+      deliverySuffix: deliveryCredentials?.deliverySuffix || '',
+      deliveryKey: deliveryCredentials?.deliveryKey || ''
     }
   } catch (error: any) {
     console.error('Failed to register user:', error)

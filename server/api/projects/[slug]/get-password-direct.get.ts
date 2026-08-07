@@ -4,6 +4,7 @@ import { validateSession, CLIENT_SESSION_COOKIE } from '../../../utils/auth'
 import { getDailyPassword } from '../../../utils/password-utils'
 import { sendApprovalEmail } from '../../../utils/email'
 import { dbGetUsers } from '../../../utils/db'
+import { assertDeliveryAccess, normalizeDeliverySlug } from '../../../utils/delivery-access'
 import fs from 'node:fs'
 
 export default defineEventHandler(async (event) => {
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Session expired, please login again.' })
   }
 
-  const slug = event.context.params?.slug
+  const slug = normalizeDeliverySlug(event.context.params?.slug)
   if (!slug) {
     throw createError({ statusCode: 400, statusMessage: 'Missing project slug.' })
   }
@@ -27,6 +28,14 @@ export default defineEventHandler(async (event) => {
   // Get project title for logging
   const projects = await dbGetProjectsRaw(event)
   const project = projects.find(p => p.slug === slug)
+  if (!project) {
+    throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
+  }
+
+  // A logged-in client may only request a delivery password for an assigned
+  // project. The helper keeps anonymous/public project behavior unchanged,
+  // while recording and escalating unauthorized client attempts.
+  await assertDeliveryAccess(event, slug)
   const projectTitle = project ? project.title : slug
 
   // Get real client IP (same logic as booking.post.ts)

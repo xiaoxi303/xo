@@ -115,6 +115,42 @@
           </div>
         </div>
 
+        <!-- Dedicated delivery credentials -->
+        <section class="glass-card p-6 sm:p-7 rounded-[28px] border border-emerald-900/10 shadow-[0_18px_50px_rgba(15,118,110,0.07)] reveal">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="space-y-2 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="section-label text-emerald-800">PRIVATE DELIVERY NODE</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">ACCOUNT BOUND</span>
+              </div>
+              <h2 class="font-display text-xl sm:text-2xl font-bold text-[#121316]">我的专属交付入口</h2>
+              <p class="text-xs leading-relaxed text-[#5e6066] max-w-2xl">把这个入口和一次性查看密钥交给对应客户。系统只展示已授权项目，首次越权会警告，再次越权将拉黑账号且费用不退。</p>
+              <div class="flex flex-wrap items-center gap-2 pt-1">
+                <code class="px-3 py-2 rounded-xl bg-black/[0.035] border border-black/[0.06] text-[11px] font-mono text-[#121316]">/delivery/{{ dashboardData.profile.deliverySuffix || '生成中' }}</code>
+                <NuxtLink v-if="dashboardData.profile.deliverySuffix" :to="`/delivery/${dashboardData.profile.deliverySuffix}`" target="_blank" class="text-[11px] font-bold text-emerald-800 hover:underline">打开交付页 ↗</NuxtLink>
+              </div>
+            </div>
+
+            <div class="w-full lg:w-[360px] shrink-0 space-y-3">
+              <div class="flex items-center justify-between gap-3 p-3 rounded-2xl bg-emerald-500/[0.06] border border-emerald-500/15">
+                <div class="min-w-0">
+                  <p class="text-[9px] font-mono font-bold tracking-wider text-emerald-800 uppercase">查看密钥</p>
+                  <p class="mt-1 text-xs font-mono font-bold tracking-widest text-[#121316] truncate">{{ deliveryKeyDraft || `•••••••••••• 末四位 ${dashboardData.profile.deliveryKeyHint || '----'}` }}</p>
+                </div>
+                <button v-if="deliveryKeyDraft" type="button" class="text-[10px] font-bold text-emerald-800 hover:underline shrink-0" @click="copyDeliveryKey">复制</button>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" class="flex-1 py-2.5 px-3 rounded-xl text-[11px] font-bold text-white bg-emerald-800 hover:bg-emerald-900 transition-colors disabled:opacity-50" :disabled="deliveryGenerating" @click="generateDeliveryKey">
+                  <span v-if="deliveryGenerating">正在生成…</span>
+                  <span v-else>{{ deliveryKeyDraft ? '重新轮换密钥' : '生成我的查看密钥' }}</span>
+                </button>
+                <button v-if="deliveryKeyDraft" type="button" class="py-2.5 px-3 rounded-xl text-[11px] font-bold border border-black/10 hover:bg-black/[0.04]" @click="deliveryKeyDraft = ''">隐藏</button>
+              </div>
+              <p v-if="deliveryKeyDraft" class="text-[10px] leading-relaxed text-amber-700">完整密钥只在本次显示。轮换后旧密钥立即失效，请先复制保存。</p>
+            </div>
+          </div>
+        </section>
+
         <!-- Main Layout: Grid 12 Cols -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
@@ -555,6 +591,8 @@ const toastMessage = ref('')
 const isEditModalOpen = ref(false)
 const modalError = ref('')
 const modalSubmitting = ref(false)
+const deliveryKeyDraft = ref('')
+const deliveryGenerating = ref(false)
 
 const editForm = ref({
   nickname: '',
@@ -624,6 +662,36 @@ const copyText = (text: string) => {
     }).catch(() => {
       showToast('复制失败，请手动复制。')
     })
+  }
+}
+
+const copyDeliveryKey = async () => {
+  if (!deliveryKeyDraft.value || !import.meta.client) return
+  try {
+    await navigator.clipboard.writeText(deliveryKeyDraft.value)
+    showToast('专属查看密钥已复制，请妥善保存。')
+  } catch {
+    showToast('复制失败，请手动选择密钥。')
+  }
+}
+
+const generateDeliveryKey = async () => {
+  if (deliveryGenerating.value) return
+  deliveryGenerating.value = true
+  try {
+    const response = await $fetch<any>('/api/client/delivery-credentials', {
+      method: 'POST',
+      body: { rotate: true }
+    })
+    deliveryKeyDraft.value = String(response.deliveryKey || '')
+    await fetchDashboard()
+    if (deliveryKeyDraft.value) {
+      showToast('新密钥已生成，仅本次显示完整内容。')
+    }
+  } catch (error: any) {
+    showToast(error.data?.statusMessage || '生成密钥失败，请稍后重试。')
+  } finally {
+    deliveryGenerating.value = false
   }
 }
 

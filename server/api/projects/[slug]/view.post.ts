@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import { recordProjectHeat } from '../../../utils/analytics-store'
 import { getD1Database } from '../../../utils/db'
 import { getRuntimeDataPath } from '../../../utils/storage'
+import { assertDeliveryAccess } from '../../../utils/delivery-access'
 
 export default defineEventHandler(async (event) => {
   const slug = String(getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0] || '')
@@ -12,6 +13,11 @@ export default defineEventHandler(async (event) => {
   if (!cleanSlug || cleanSlug === 'projects' || cleanSlug === 'get') {
     return { ok: false, message: 'Invalid slug' }
   }
+
+  // View analytics are also a project access surface. Anonymous visitors keep
+  // the existing public tracking behavior; client sessions are checked against
+  // their assigned delivery projects before anything is recorded.
+  await assertDeliveryAccess(event, cleanSlug)
 
   // 1. Record heat in persistent storage (project-heat.json / D1)
   recordProjectHeat(cleanSlug, 1)

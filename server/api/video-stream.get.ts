@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { dbGetSiteConfig } from '../utils/db'
+import { dbGetSiteConfig, dbGetProjectsRaw } from '../utils/db'
+import { assertDeliveryAccess, normalizeDeliverySlug } from '../utils/delivery-access'
 
 // Server-side video stream processing endpoint
 // When browser extensions, IDM, or users fetch/download the video,
@@ -12,6 +13,27 @@ export default defineEventHandler(async (event) => {
 
   if (!targetUrl) {
     throw createError({ statusCode: 400, message: 'Missing video url' })
+  }
+
+  // Bind proxied project media to the same delivery ownership guard used by
+  // project pages. Existing anonymous/public proxy requests remain compatible;
+  // authenticated clients are checked either by an explicit slug or by
+  // matching the requested URL against the project's published media list.
+  const requestedSlug = normalizeDeliverySlug(query.slug)
+  if (requestedSlug) {
+    await assertDeliveryAccess(event, requestedSlug)
+  } else {
+    const projects = await dbGetProjectsRaw(event).catch(() => [])
+    const target = String(targetUrl)
+    const ownerProject = projects.find((project: any) => {
+      const urls = Array.isArray(project?.videoUrls)
+        ? project.videoUrls
+        : [project?.videoUrl]
+      return urls.some((url: any) => String(url || '').trim() === target)
+    })
+    if (ownerProject?.slug) {
+      await assertDeliveryAccess(event, ownerProject.slug)
+    }
   }
 
   // If local file on server

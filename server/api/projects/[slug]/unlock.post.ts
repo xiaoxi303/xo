@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
 import { getDailyPassword, getBeijingDateString, verifyProjectPassword } from '../../../utils/password-utils'
+import { assertDeliveryAccess } from '../../../utils/delivery-access'
 
 const unlockTokens = new Map()
 const UNLOCK_TTL_MS = 24 * 60 * 60 * 1000
@@ -19,6 +20,11 @@ export default defineEventHandler(async (event) => {
   const projects = await dbGetProjectsRaw(event)
   const project = projects.find((p) => p.slug === slug)
   if (!project) throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
+
+  // Anonymous visitors can still use the public/password flow. Once a client
+  // session exists, enforce that the project belongs to that client's delivery
+  // authorization before checking any password variant.
+  const deliveryAccess = await assertDeliveryAccess(event, slug)
 
   // Check if password protection is enabled
   if (!project.isPasswordProtected) {
@@ -72,7 +78,14 @@ export default defineEventHandler(async (event) => {
   tomorrow.setDate(tomorrow.getDate() + 1)
   const expiresAt = tomorrow.getTime()
 
-  unlockTokens.set(token, { slug, expiresAt, date: getBeijingDateString() })
+  // Bind authenticated unlock tokens to the client that earned them. Public
+  // anonymous unlocks retain the legacy slug-only behavior.
+  unlockTokens.set(token, {
+    slug,
+    expiresAt,
+    date: getBeijingDateString(),
+    username: deliveryAccess.username || ''
+  })
 
   setCookie(event, 'unlock_' + slug, token, {
     httpOnly: true,
@@ -84,10 +97,11 @@ export default defineEventHandler(async (event) => {
   return { success: true, token, date: getBeijingDateString() }
 })
 
-export function validateUnlockToken(slug, token) {
+export function validateUnlockToken(slug, token, username = '') {
   const entry = unlockTokens.get(token)
   if (!entry) return false
   if (entry.slug !== slug) return false
+  if (entry.username && entry.username !== username) return false
 
   const today = getBeijingDateString()
   if (entry.expiresAt < Date.now() || entry.date !== today) {

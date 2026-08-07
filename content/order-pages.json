@@ -1,0 +1,22 @@
+[
+  {
+    "suffix": "cccc",
+    "enabled": true,
+    "subject": "订单测试",
+    "amount": "0.01",
+    "description": "订单测试，请勿付款",
+    "clientName": "",
+    "successText": "付款成功",
+    "updatedAt": "2026-08-07T06:25:48.349Z"
+  },
+  {
+    "suffix": "xiao",
+    "enabled": true,
+    "subject": "影视后期制作服务",
+    "amount": "1.00",
+    "description": "请在后台订单管理中编辑本订单的商品名称、金额和交付说明。",
+    "clientName": "",
+    "successText": "支付成功后，我们会按约定完成交付。",
+    "updatedAt": "2026-08-07T06:25:07.141Z"
+  }
+]

@@ -1,5 +1,61 @@
 [
   {
+    "type": "Admin Access Gate",
+    "ip": "::1",
+    "action": "Admin session issued for \"admin\"",
+    "status": "success",
+    "id": "log-1786076148051-x9qj",
+    "timestamp": 1786076148051
+  },
+  {
+    "type": "Delivery Ownership Guard",
+    "ip": "127.0.0.1",
+    "action": "Blacklisted unauthorized project access by \"xiao\" (project-msbckab1)",
+    "status": "blocked",
+    "id": "log-1785990755940-2d9s",
+    "timestamp": 1785990755940
+  },
+  {
+    "type": "Delivery Ownership Guard",
+    "ip": "127.0.0.1",
+    "action": "Warning unauthorized project access by \"xiao\" (project-msbckab1)",
+    "status": "warning",
+    "id": "log-1785990743195-fahq",
+    "timestamp": 1785990743195
+  },
+  {
+    "type": "Delivery Key Guard",
+    "ip": "127.0.0.1",
+    "action": "Invalid delivery key for suffix xiao",
+    "status": "blocked",
+    "id": "log-1785990714359-yqlh",
+    "timestamp": 1785990714359
+  },
+  {
+    "type": "Delivery Key Guard",
+    "ip": "unknown",
+    "action": "Invalid delivery key for suffix xiao",
+    "status": "blocked",
+    "id": "log-1785990533148-9b87",
+    "timestamp": 1785990533148
+  },
+  {
+    "type": "Client Login Guard",
+    "ip": "unknown",
+    "action": "Login attempt for non-existent user \"not-found\"",
+    "status": "warning",
+    "id": "log-1785990386619-rvt6",
+    "timestamp": 1785990386619
+  },
+  {
+    "type": "Delivery Key Guard",
+    "ip": "unknown",
+    "action": "Invalid delivery key for suffix xiao",
+    "status": "blocked",
+    "id": "log-1785990350573-jc1s",
+    "timestamp": 1785990350573
+  },
+  {
     "type": "Project Password Guard",
     "ip": "127.0.0.1",
     "action": "Failed password attempt for project \"tk-1231\"",

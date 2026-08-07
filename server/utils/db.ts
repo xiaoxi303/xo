@@ -1,6 +1,7 @@
 import { H3Event } from 'h3'
 import fs from 'node:fs'
 import path from 'node:path'
+import { createHash, randomBytes } from 'node:crypto'
 import { getRuntimeDataPath } from './storage'
 
 let isDbInitialized = false
@@ -72,9 +73,18 @@ export async function getD1Database(event: H3Event) {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT UNIQUE NOT NULL,
           email TEXT,
+          wechat TEXT DEFAULT '',
           password TEXT NOT NULL,
           role TEXT DEFAULT 'client',
           allowedProjects TEXT DEFAULT '',
+          deliverySuffix TEXT DEFAULT '',
+          deliveryKeyHash TEXT DEFAULT '',
+          deliveryKeyHint TEXT DEFAULT '',
+          warningCount INTEGER DEFAULT 0,
+          isBlacklisted INTEGER DEFAULT 0,
+          blacklistReason TEXT DEFAULT '',
+          blacklistedAt TEXT,
+          isWhitelisted INTEGER DEFAULT 0,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
       `)
@@ -117,6 +127,38 @@ export async function getD1Database(event: H3Event) {
       } catch (e) {}
       try {
         await db.exec(`ALTER TABLE users ADD COLUMN allowedProjects TEXT DEFAULT '';`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN wechat TEXT DEFAULT '';`)
+      } catch (e) {}
+      // User delivery/security fields were added after the initial D1 schema.
+      // ALTER TABLE is intentionally best-effort so existing deployments remain compatible.
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN deliverySuffix TEXT DEFAULT '';`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN deliveryKeyHash TEXT DEFAULT '';`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN deliveryKeyHint TEXT DEFAULT '';`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN warningCount INTEGER DEFAULT 0;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN isBlacklisted INTEGER DEFAULT 0;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN blacklistReason TEXT DEFAULT '';`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN blacklistedAt TEXT;`)
+      } catch (e) {}
+      try {
+        await db.exec(`ALTER TABLE users ADD COLUMN isWhitelisted INTEGER DEFAULT 0;`)
+      } catch (e) {}
+      try {
+        await db.exec(`CREATE INDEX IF NOT EXISTS idx_users_delivery_suffix ON users(deliverySuffix);`)
       } catch (e) {}
       isDbInitialized = true
     } catch (err) {
@@ -375,6 +417,238 @@ function stringifyYaml(data: any): string {
   }
   
   return lines.join('\n')
+}
+
+// ==========================================
+// User delivery credentials and security state
+// ==========================================
+
+/** A delivery key is only returned at creation/rotation time; persist its hash. */
+export function hashDeliveryKey(value: string): string {
+  return createHash('sha256').update(`xo-delivery:${String(value || '')}`).digest('hex')
+}
+
+function makeDeliveryKey(): string {
+  return `dk_${randomBytes(18).toString('hex')}`
+}
+
+function sanitizeDeliverySuffix(value: string, fallbackUsername: string): string {
+  const raw = String(value || fallbackUsername || '').trim().toLowerCase()
+  const normalized = raw
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '')
+    .slice(0, 48)
+  return normalized || `client-${randomBytes(4).toString('hex')}`
+}
+
+function userHasBlacklistFlag(user: any): boolean {
+  return user?.isBlacklisted === true || user?.isBlacklisted === 1 || user?.isBlacklisted === '1'
+}
+
+function normalizeUserRecord(row: any, includePassword = false): any {
+  if (!row) return null
+  const normalized: any = {
+    ...row,
+    allowedProjects: row.allowedProjects || '',
+    deliverySuffix: row.deliverySuffix || '',
+    deliveryKeyHint: row.deliveryKeyHint || '',
+    warningCount: Math.max(0, Number(row.warningCount) || 0),
+    isWhitelisted: row.isWhitelisted === true || row.isWhitelisted === 1 || row.isWhitelisted === '1',
+    isBlacklisted: userHasBlacklistFlag(row),
+    blacklistReason: row.blacklistReason || '',
+    blacklistedAt: row.blacklistedAt || null
+  }
+  if (!includePassword) {
+    delete normalized.password
+    delete normalized.deliveryKeyHash
+    // Older local records may contain a plaintext key. Never expose it from list APIs.
+    delete normalized.deliveryKey
+  }
+  return normalized
+}
+
+export interface DeliveryCredentials {
+  deliverySuffix: string
+  deliveryKey: string
+  deliveryKeyHash: string
+  deliveryKeyHint: string
+}
+
+function createDeliveryCredentials(username: string, suffix?: string, key?: string): DeliveryCredentials {
+  const deliveryKey = String(key || '').trim() || makeDeliveryKey()
+  return {
+    deliverySuffix: sanitizeDeliverySuffix(suffix || '', username),
+    deliveryKey,
+    deliveryKeyHash: hashDeliveryKey(deliveryKey),
+    deliveryKeyHint: deliveryKey.slice(-4)
+  }
+}
+
+/** Retrieve one raw user, including the password hash and delivery key hash. */
+export async function dbGetUserRecord(event: H3Event, username: string): Promise<any | null> {
+  const cleanUsername = String(username || '').trim()
+  if (!cleanUsername) return null
+
+  const db = await getD1Database(event)
+  if (db) {
+    const row = await db.prepare('SELECT * FROM users WHERE username = ?').bind(cleanUsername).first().catch(() => null)
+    return row ? normalizeUserRecord(row, true) : null
+  }
+
+  const usersPath = getRuntimeDataPath('users.json')
+  if (!fs.existsSync(usersPath)) return null
+  try {
+    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+    const row = users.find((u: any) => String(u.username || '').trim() === cleanUsername)
+    return row ? normalizeUserRecord(row, true) : null
+  } catch (e) {
+    return null
+  }
+}
+
+/** Retrieve one raw user by their delivery URL suffix. */
+export async function dbGetUserByDeliverySuffix(event: H3Event, suffix: string): Promise<any | null> {
+  const cleanSuffix = sanitizeDeliverySuffix(suffix, '')
+  if (!cleanSuffix) return null
+  const db = await getD1Database(event)
+  if (db) {
+    const row = await db.prepare('SELECT * FROM users WHERE deliverySuffix = ?').bind(cleanSuffix).first().catch(() => null)
+    return row ? normalizeUserRecord(row, true) : null
+  }
+
+  const usersPath = getRuntimeDataPath('users.json')
+  if (!fs.existsSync(usersPath)) return null
+  try {
+    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+    const row = users.find((u: any) => String(u.deliverySuffix || '').trim().toLowerCase() === cleanSuffix)
+    return row ? normalizeUserRecord(row, true) : null
+  } catch (e) {
+    return null
+  }
+}
+
+/** Compare a presented delivery key against the persisted hash (legacy plaintext is supported). */
+export function verifyDeliveryKey(user: any, key: string): boolean {
+  const presented = String(key || '').trim()
+  if (!presented || !user) return false
+  if (user.deliveryKeyHash && hashDeliveryKey(presented) === String(user.deliveryKeyHash)) return true
+  return Boolean(user.deliveryKey && presented === String(user.deliveryKey))
+}
+
+/**
+ * Fill delivery credentials for legacy users created before the delivery system.
+ * The generated key is returned only when credentials were newly issued.
+ */
+export async function dbEnsureUserDeliveryCredentials(event: H3Event, user: any): Promise<DeliveryCredentials | null> {
+  if (!user?.id && !user?.username) return null
+  const currentSuffix = String(user.deliverySuffix || '').trim()
+  const currentHash = String(user.deliveryKeyHash || '').trim()
+  if (currentSuffix && currentHash) {
+    return {
+      deliverySuffix: currentSuffix,
+      deliveryKey: '',
+      deliveryKeyHash: currentHash,
+      deliveryKeyHint: String(user.deliveryKeyHint || '')
+    }
+  }
+
+  const credentials = createDeliveryCredentials(String(user.username || ''), currentSuffix, user.deliveryKey)
+  const db = await getD1Database(event)
+  if (db) {
+    const sets: string[] = []
+    const values: any[] = []
+    if (!currentSuffix) {
+      sets.push('deliverySuffix = ?')
+      values.push(credentials.deliverySuffix)
+    }
+    if (!currentHash) {
+      sets.push('deliveryKeyHash = ?')
+      values.push(credentials.deliveryKeyHash)
+      sets.push('deliveryKeyHint = ?')
+      values.push(credentials.deliveryKeyHint)
+    }
+    if (sets.length) {
+      values.push(user.id)
+      await db.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`).bind(...values).run().catch(() => {})
+    }
+  } else {
+    const usersPath = getRuntimeDataPath('users.json')
+    if (fs.existsSync(usersPath)) {
+      try {
+        const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+        const idx = users.findIndex((u: any) => (user.id && String(u.id) === String(user.id)) || (!user.id && u.username === user.username))
+        if (idx !== -1) {
+          if (!currentSuffix) users[idx].deliverySuffix = credentials.deliverySuffix
+          if (!currentHash) {
+            users[idx].deliveryKeyHash = credentials.deliveryKeyHash
+            users[idx].deliveryKeyHint = credentials.deliveryKeyHint
+            delete users[idx].deliveryKey
+          }
+          fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+        }
+      } catch (e) {}
+    }
+  }
+
+  return credentials
+}
+
+/** Increment an unauthorized-delivery warning and blacklist after the threshold (default: 2). */
+export async function dbRecordDeliveryWarning(
+  event: H3Event,
+  userIdOrUsername: number | string,
+  reason = 'Unauthorized delivery access',
+  blacklistAfter = 2
+): Promise<{ warningCount: number; isBlacklisted: boolean; blacklistReason: string }> {
+  const db = await getD1Database(event)
+  if (db) {
+    const isId = typeof userIdOrUsername === 'number'
+    let where = isId ? 'id = ?' : 'username = ?'
+    let current = await db.prepare(`SELECT warningCount, isBlacklisted, blacklistReason FROM users WHERE ${where}`).bind(userIdOrUsername).first().catch(() => null) as any
+    // A numeric-looking username is still a valid username; fall back to username lookup.
+    if (!current && isId === false && /^\d+$/.test(String(userIdOrUsername))) {
+      where = 'id = ?'
+      current = await db.prepare(`SELECT warningCount, isBlacklisted, blacklistReason FROM users WHERE ${where}`).bind(userIdOrUsername).first().catch(() => null) as any
+    }
+    if (!current) return { warningCount: 0, isBlacklisted: false, blacklistReason: '' }
+    const warningCount = Math.max(0, Number(current.warningCount) || 0) + 1
+    const shouldBlacklist = userHasBlacklistFlag(current) || warningCount >= Math.max(1, blacklistAfter)
+    const blacklistReasonValue = shouldBlacklist ? (String(current.blacklistReason || '').trim() || reason) : ''
+    await db.prepare(`
+      UPDATE users SET warningCount = ?, isBlacklisted = ?, blacklistReason = ?, blacklistedAt = CASE WHEN ? = 1 THEN COALESCE(blacklistedAt, ?) ELSE blacklistedAt END
+      WHERE ${where}
+    `).bind(warningCount, shouldBlacklist ? 1 : 0, blacklistReasonValue, shouldBlacklist ? 1 : 0, new Date().toISOString(), userIdOrUsername).run().catch(() => {})
+    return { warningCount, isBlacklisted: shouldBlacklist, blacklistReason: blacklistReasonValue }
+  }
+
+  const usersPath = getRuntimeDataPath('users.json')
+  if (!fs.existsSync(usersPath)) return { warningCount: 0, isBlacklisted: false, blacklistReason: '' }
+  try {
+    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+    const byId = typeof userIdOrUsername === 'number'
+    let idx = users.findIndex((u: any) => byId
+      ? String(u.id) === String(userIdOrUsername)
+      : String(u.username || '') === String(userIdOrUsername))
+    if (idx === -1 && !byId && /^\d+$/.test(String(userIdOrUsername))) {
+      idx = users.findIndex((u: any) => String(u.id) === String(userIdOrUsername))
+    }
+    if (idx === -1) return { warningCount: 0, isBlacklisted: false, blacklistReason: '' }
+    const user = users[idx]
+    user.warningCount = Math.max(0, Number(user.warningCount) || 0) + 1
+    if (userHasBlacklistFlag(user) || user.warningCount >= Math.max(1, blacklistAfter)) {
+      user.isBlacklisted = true
+      user.blacklistReason = user.blacklistReason || reason
+      user.blacklistedAt = user.blacklistedAt || new Date().toISOString()
+    }
+    fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+    return {
+      warningCount: user.warningCount,
+      isBlacklisted: userHasBlacklistFlag(user),
+      blacklistReason: user.blacklistReason || ''
+    }
+  } catch (e) {
+    return { warningCount: 0, isBlacklisted: false, blacklistReason: '' }
+  }
 }
 
 // ==========================================
@@ -890,8 +1164,36 @@ export async function dbDeletePasswordRequest(event: H3Event, id: number | strin
 export async function dbGetUsers(event: H3Event): Promise<any[]> {
   const db = await getD1Database(event)
   if (db) {
-    const { results } = await db.prepare('SELECT id, username, email, role, allowedProjects, createdAt FROM users ORDER BY createdAt DESC').all()
-    return results
+    let rawUsers: any[] = []
+    try {
+      const { results } = await db.prepare(`
+        SELECT id, username, email, wechat, role, allowedProjects,
+               deliverySuffix, deliveryKeyHash, deliveryKeyHint, warningCount,
+               isWhitelisted, isBlacklisted, blacklistReason, blacklistedAt, createdAt
+        FROM users ORDER BY createdAt DESC
+      `).all()
+      rawUsers = results || []
+    } catch (error) {
+      // Keep old D1 deployments readable if a migration is temporarily unavailable.
+      try {
+        const { results } = await db.prepare('SELECT id, username, email, role, allowedProjects, createdAt FROM users ORDER BY createdAt DESC').all()
+        rawUsers = results || []
+      } catch (fallbackError) {
+        rawUsers = []
+      }
+    }
+    // Backfill credentials for users created before the delivery system was enabled.
+    for (const user of rawUsers) {
+      if (!user.deliverySuffix || !user.deliveryKeyHash) {
+        const issued = await dbEnsureUserDeliveryCredentials(event, user)
+        if (issued) {
+          user.deliverySuffix = user.deliverySuffix || issued.deliverySuffix
+          user.deliveryKeyHash = user.deliveryKeyHash || issued.deliveryKeyHash
+          user.deliveryKeyHint = user.deliveryKeyHint || issued.deliveryKeyHint
+        }
+      }
+    }
+    return rawUsers.map((row: any) => normalizeUserRecord(row))
   }
 
   // Local fallback JSON file
@@ -900,16 +1202,35 @@ export async function dbGetUsers(event: H3Event): Promise<any[]> {
   try {
     const raw = fs.readFileSync(usersPath, 'utf-8')
     const users = JSON.parse(raw)
-    // Strip passwords for safety in query list
-    return users.map(({ password, ...rest }: any) => rest)
+    let changed = false
+    // Backfill credentials for local users lazily, preserving the JSON fallback format.
+    for (const user of users) {
+      if (!user.deliverySuffix || !user.deliveryKeyHash) {
+        const credentials = createDeliveryCredentials(user.username, user.deliverySuffix, user.deliveryKey)
+        if (!user.deliverySuffix) {
+          user.deliverySuffix = credentials.deliverySuffix
+          changed = true
+        }
+        if (!user.deliveryKeyHash) {
+          user.deliveryKeyHash = credentials.deliveryKeyHash
+          user.deliveryKeyHint = credentials.deliveryKeyHint
+          delete user.deliveryKey
+          changed = true
+        }
+      }
+    }
+    if (changed) fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+    // Strip passwords and secrets for safety in query list.
+    return users.map((user: any) => normalizeUserRecord(user))
   } catch (e) {
     return []
   }
 }
 
-export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
+export async function dbCreateUser(event: H3Event, data: any): Promise<DeliveryCredentials> {
   const cleanUsername = (data.username || '').trim()
   const cleanEmail = (data.email || '').trim().toLowerCase()
+  const credentials = createDeliveryCredentials(cleanUsername, data.deliverySuffix, data.deliveryKey)
 
   const db = await getD1Database(event)
   if (db) {
@@ -926,11 +1247,32 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
       }
     }
 
+    // Avoid a suffix collision even if an administrator supplied a custom suffix.
+    let suffix = credentials.deliverySuffix
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const duplicateSuffix = await db.prepare('SELECT id FROM users WHERE deliverySuffix = ?').bind(suffix).first().catch(() => null)
+      if (!duplicateSuffix) break
+      suffix = `${credentials.deliverySuffix}-${randomBytes(3).toString('hex')}`.slice(0, 64)
+    }
+    credentials.deliverySuffix = suffix
+
     await db.prepare(`
-      INSERT INTO users (username, email, password, role, allowedProjects)
-      VALUES (?, ?, ?, ?, '')
-    `).bind(cleanUsername, cleanEmail, data.password, data.role || 'client').run()
-    return
+      INSERT INTO users (
+        username, email, password, role, allowedProjects,
+        deliverySuffix, deliveryKeyHash, deliveryKeyHint,
+        warningCount, isBlacklisted, blacklistReason, isWhitelisted
+      )
+      VALUES (?, ?, ?, ?, '', ?, ?, ?, 0, 0, '', 0)
+    `).bind(
+      cleanUsername,
+      cleanEmail,
+      data.password,
+      data.role || 'client',
+      credentials.deliverySuffix,
+      credentials.deliveryKeyHash,
+      credentials.deliveryKeyHint
+    ).run()
+    return credentials
   }
 
   // Local fallback JSON file
@@ -952,6 +1294,14 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
     }
   }
 
+  // Keep delivery suffixes unique in the local JSON fallback as well.
+  let localSuffix = credentials.deliverySuffix
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (!users.some((u: any) => String(u.deliverySuffix || '').toLowerCase() === localSuffix.toLowerCase())) break
+    localSuffix = `${credentials.deliverySuffix}-${randomBytes(3).toString('hex')}`.slice(0, 64)
+  }
+  credentials.deliverySuffix = localSuffix
+
   const newUser = {
     id: Date.now(),
     username: cleanUsername,
@@ -960,10 +1310,18 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<void> {
     password: data.password,
     role: data.role || 'client',
     allowedProjects: '',
+    deliverySuffix: credentials.deliverySuffix,
+    deliveryKeyHash: credentials.deliveryKeyHash,
+    deliveryKeyHint: credentials.deliveryKeyHint,
+    warningCount: 0,
+    isBlacklisted: false,
+    blacklistReason: '',
+    isWhitelisted: false,
     createdAt: new Date().toISOString()
   }
   users.unshift(newUser)
   fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+  return credentials
 }
 
 export async function dbDeleteUser(event: H3Event, id: number | string): Promise<void> {
@@ -986,18 +1344,38 @@ export async function dbDeleteUser(event: H3Event, id: number | string): Promise
 export async function dbUpdateUser(event: H3Event, id: number | string, data: any): Promise<void> {
   const db = await getD1Database(event)
   if (db) {
-    if (data.password) {
-      await db.prepare(`
-        UPDATE users 
-        SET email = ?, role = ?, allowedProjects = ?, password = ?, isWhitelisted = ?, isBlacklisted = ?
-        WHERE id = ?
-      `).bind(data.email, data.role, data.allowedProjects || '', data.password, data.isWhitelisted ? 1 : 0, data.isBlacklisted ? 1 : 0, id).run()
-    } else {
-      await db.prepare(`
-        UPDATE users 
-        SET email = ?, role = ?, allowedProjects = ?, isWhitelisted = ?, isBlacklisted = ?
-        WHERE id = ?
-      `).bind(data.email, data.role, data.allowedProjects || '', data.isWhitelisted ? 1 : 0, data.isBlacklisted ? 1 : 0, id).run()
+    const assignments: string[] = []
+    const values: any[] = []
+    const add = (column: string, value: any) => {
+      assignments.push(`${column} = ?`)
+      values.push(value)
+    }
+    if (data.email !== undefined) add('email', data.email || '')
+    if (data.wechat !== undefined) add('wechat', data.wechat || '')
+    if (data.role !== undefined) add('role', data.role || 'client')
+    if (data.allowedProjects !== undefined) add('allowedProjects', data.allowedProjects || '')
+    if (data.password) add('password', data.password)
+    if (data.deliverySuffix !== undefined) add('deliverySuffix', sanitizeDeliverySuffix(data.deliverySuffix, data.username || 'client'))
+    if (data.deliveryKeyHash !== undefined) add('deliveryKeyHash', data.deliveryKeyHash || '')
+    if (data.deliveryKeyHint !== undefined) add('deliveryKeyHint', data.deliveryKeyHint || '')
+    if (data.deliveryKey) {
+      add('deliveryKeyHash', hashDeliveryKey(data.deliveryKey))
+      add('deliveryKeyHint', String(data.deliveryKey).slice(-4))
+    }
+    if (data.warningCount !== undefined) add('warningCount', Math.max(0, Number(data.warningCount) || 0))
+    if (data.isWhitelisted !== undefined) add('isWhitelisted', data.isWhitelisted ? 1 : 0)
+    if (data.isBlacklisted !== undefined) {
+      const blocked = !!data.isBlacklisted
+      add('isBlacklisted', blocked ? 1 : 0)
+      add('blacklistReason', blocked ? (data.blacklistReason || 'Blocked by administrator') : '')
+      add('blacklistedAt', blocked ? new Date().toISOString() : null)
+    } else if (data.blacklistReason !== undefined) {
+      add('blacklistReason', data.blacklistReason || '')
+    }
+    if (data.blacklistedAt !== undefined) add('blacklistedAt', data.blacklistedAt || null)
+    if (assignments.length) {
+      values.push(id)
+      await db.prepare(`UPDATE users SET ${assignments.join(', ')} WHERE id = ?`).bind(...values).run()
     }
     return
   }
@@ -1009,12 +1387,27 @@ export async function dbUpdateUser(event: H3Event, id: number | string, data: an
     const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
     const idx = users.findIndex((u: any) => String(u.id) === String(id))
     if (idx !== -1) {
-      users[idx].email = data.email
-      users[idx].wechat = data.wechat || ''
-      users[idx].role = data.role
-      users[idx].allowedProjects = data.allowedProjects || ''
+      if (data.email !== undefined) users[idx].email = data.email || ''
+      if (data.wechat !== undefined) users[idx].wechat = data.wechat || ''
+      if (data.role !== undefined) users[idx].role = data.role || 'client'
+      if (data.allowedProjects !== undefined) users[idx].allowedProjects = data.allowedProjects || ''
+      if (data.deliverySuffix !== undefined) users[idx].deliverySuffix = sanitizeDeliverySuffix(data.deliverySuffix, users[idx].username || 'client')
+      if (data.deliveryKeyHash !== undefined) users[idx].deliveryKeyHash = data.deliveryKeyHash || ''
+      if (data.deliveryKeyHint !== undefined) users[idx].deliveryKeyHint = data.deliveryKeyHint || ''
+      if (data.deliveryKey) {
+        users[idx].deliveryKeyHash = hashDeliveryKey(data.deliveryKey)
+        users[idx].deliveryKeyHint = String(data.deliveryKey).slice(-4)
+        delete users[idx].deliveryKey
+      }
+      if (data.warningCount !== undefined) users[idx].warningCount = Math.max(0, Number(data.warningCount) || 0)
       if (data.isWhitelisted !== undefined) users[idx].isWhitelisted = !!data.isWhitelisted
-      if (data.isBlacklisted !== undefined) users[idx].isBlacklisted = !!data.isBlacklisted
+      if (data.isBlacklisted !== undefined) {
+        users[idx].isBlacklisted = !!data.isBlacklisted
+        users[idx].blacklistReason = data.isBlacklisted ? (data.blacklistReason || 'Blocked by administrator') : ''
+        users[idx].blacklistedAt = data.isBlacklisted ? (users[idx].blacklistedAt || new Date().toISOString()) : null
+      }
+      if (data.blacklistReason !== undefined && data.isBlacklisted === undefined) users[idx].blacklistReason = data.blacklistReason || ''
+      if (data.blacklistedAt !== undefined) users[idx].blacklistedAt = data.blacklistedAt || null
       if (data.password) {
         users[idx].password = data.password
       }

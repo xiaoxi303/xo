@@ -5,6 +5,7 @@
 import { dbGetProjectsRaw } from '../../../utils/db'
 import { validateUnlockToken } from './unlock.post'
 import { generateDailyPassword, getBeijingDateString } from '../../../utils/password-utils'
+import { assertDeliveryAccess } from '../../../utils/delivery-access'
 
 export default defineEventHandler(async (event) => {
   const slug = String(getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0] || '')
@@ -14,6 +15,10 @@ export default defineEventHandler(async (event) => {
   const projects = await dbGetProjectsRaw(event)
   const project = projects.find((p: any) => p.slug === slug)
   if (!project) throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
+
+  // Keep anonymous project previews working, but never expose unlock state to
+  // a logged-in client whose account is not assigned this project.
+  const deliveryAccess = await assertDeliveryAccess(event, slug)
 
   // Check if project is password protected
   if (!project.isPasswordProtected) {
@@ -27,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
   // Check unlock cookie
   const token = getCookie(event, 'unlock_' + slug)
-  if (token && validateUnlockToken(slug, token)) {
+  if (token && validateUnlockToken(slug, token, deliveryAccess.username || '')) {
     return { 
       hasPassword: true, 
       unlocked: true,

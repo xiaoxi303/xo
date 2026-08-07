@@ -1,7 +1,5 @@
-import { getD1Database } from '../../utils/db'
-import { getRuntimeDataPath } from '../../utils/storage'
+import { dbGetBlacklist, dbGetUserRecord } from '../../utils/db'
 import { verifyPassword, createSession, getSessionInfo, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
-import fs from 'node:fs'
 import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
 
@@ -27,22 +25,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '请输入用户名和密码。' })
   }
 
-  // Retrieve raw users list to perform password verification
-  // We need to retrieve the user including password hash.
-  let userRecord: any = null
-  const db = await getD1Database(event)
-  if (db) {
-    userRecord = await db.prepare('SELECT * FROM users WHERE username = ?').bind(username).first()
-  } else {
-    // Local JSON fallback
-    const usersPath = getRuntimeDataPath('users.json')
-    if (fs.existsSync(usersPath)) {
-      try {
-        const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-        userRecord = users.find((u: any) => u.username === username)
-      } catch (e) {}
-    }
-  }
+  // Retrieve the raw user record (including password hash) through the shared D1/JSON adapter.
+  const userRecord: any = await dbGetUserRecord(event, username)
 
   if (!userRecord) {
     logSecurityEvent({
@@ -54,6 +38,32 @@ export default defineEventHandler(async (event) => {
     // Artificial delay to prevent brute force timing attacks
     await new Promise(resolve => setTimeout(resolve, 800))
     throw createError({ statusCode: 404, statusMessage: '该账户不存在，请先注册。' })
+  }
+
+  // A blacklisted account cannot create a new client session.
+  const blacklist = await dbGetBlacklist(event).catch(() => [])
+  const usernameValue = String(userRecord.username || username).toLowerCase()
+  const emailValue = String(userRecord.email || '').toLowerCase()
+  const listed = blacklist.some((item: any) => {
+    const value = String(item?.value || '').trim().toLowerCase()
+    if (!value) return false
+    const type = String(item?.type || '').toLowerCase()
+    if (type === 'email' || type === 'mail') return value === emailValue
+    return value === usernameValue || value === emailValue
+  })
+  if (userRecord.isBlacklisted || listed) {
+    const matchingEntry = blacklist.find((item: any) => {
+      const value = String(item?.value || '').trim().toLowerCase()
+      return value && (value === usernameValue || value === emailValue)
+    })
+    const reason = userRecord.blacklistReason || matchingEntry?.reason || 'Account access has been blocked.'
+    logSecurityEvent({
+      type: 'Client Login Guard',
+      ip,
+      action: `Blocked login for blacklisted user "${username}" (${reason})`,
+      status: 'blocked'
+    })
+    throw createError({ statusCode: 403, statusMessage: reason })
   }
 
   // Verify client password
@@ -84,6 +94,8 @@ export default defineEventHandler(async (event) => {
     success: true,
     username: userRecord.username,
     role: userRecord.role,
+    deliverySuffix: userRecord.deliverySuffix || '',
+    deliveryKeyHint: userRecord.deliveryKeyHint || '',
     expiresAt: session?.expiresAt || 0,
     remainingSeconds: session?.remainingSeconds || 0
   }

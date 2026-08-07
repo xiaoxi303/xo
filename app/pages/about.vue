@@ -114,20 +114,17 @@ useHead({
   meta: [{ name: 'description', content: '了解电影调色指导 Xo 的工作年谱、调色流程与后期制作观念。' }]
 })
 
-const { data: siteConfig, refresh: refreshAboutConfig } = useFetch<any>('/api/site-config', {
-  lazy: true,
-  key: 'site-config-about-fresh',
-  getCachedData: () => undefined
-})
-
-onMounted(() => {
-  if (import.meta.client) {
-    refreshAboutConfig()
-  }
+const { data: siteConfig } = useFetch<any>('/api/site-config', {
+  key: 'site-config-about'
 })
 
 const experiences = computed(() => {
-  return siteConfig.value?.about?.experiences || [
+  const configuredExperiences = siteConfig.value?.about?.experiences
+  if (Array.isArray(configuredExperiences) && configuredExperiences.length > 0) {
+    return configuredExperiences
+  }
+
+  return [
     {
       role: '资深剪辑指导 / DI 调色总监',
       company: 'TechCreative Studio',
