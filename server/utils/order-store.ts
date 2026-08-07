@@ -10,6 +10,10 @@ export interface OrderRecord {
   amount: string
   status: 'created' | 'paid' | 'closed'
   tradeNo?: string
+  buyerLogonId?: string
+  buyerUserId?: string
+  buyerPayAmount?: string
+  tradeStatus?: string
   note?: string
   createdAt: string
   paidAt?: string

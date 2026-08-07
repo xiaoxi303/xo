@@ -1946,7 +1946,31 @@
                 </div>
                 <p v-else class="text-xs text-slate-500">还没有订单页面配置。</p>
                 <h3 class="font-semibold text-sm pt-4 border-t border-black/10">最近订单</h3>
-                <div v-for="item in orders.slice(0, 8)" :key="item.outTradeNo" class="text-[11px] flex justify-between gap-2"><span>{{ item.subject }} · {{ item.outTradeNo }}</span><span>{{ item.status }} · ¥{{ item.amount }}</span></div>
+                <div class="pt-4 border-t border-black/10 space-y-3">
+                  <div class="flex items-center justify-between gap-3">
+                    <h3 class="font-semibold text-sm">付款记录</h3>
+                    <button type="button" class="text-[11px] px-2 py-1 rounded border border-black/10" @click="fetchOrderData">刷新</button>
+                  </div>
+                  <div v-if="orders.length" class="space-y-2">
+                    <div v-for="item in orders.slice(0, 20)" :key="item.outTradeNo" class="rounded-xl border border-black/10 p-3 text-[11px] space-y-1.5">
+                      <div class="flex items-center justify-between gap-3">
+                        <strong class="text-xs">{{ item.subject }}</strong>
+                        <span class="rounded-full px-2 py-0.5" :class="item.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
+                          {{ item.status === 'paid' ? '付款成功' : item.status === 'closed' ? '已关闭' : '待付款' }}
+                        </span>
+                      </div>
+                      <div class="grid sm:grid-cols-2 gap-x-4 gap-y-1 text-slate-500">
+                        <span>金额：¥{{ item.amount }}</span>
+                        <span>付款账号：{{ item.buyerLogonId || '等待支付宝回调' }}</span>
+                        <span>订单号：{{ item.outTradeNo }}</span>
+                        <span v-if="item.tradeNo">支付宝交易号：{{ item.tradeNo }}</span>
+                        <span v-if="item.paidAt">付款时间：{{ item.paidAt }}</span>
+                        <span v-if="item.note">备注：{{ item.note }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p v-else class="text-xs text-slate-500">暂无订单记录。</p>
+                </div>
               </div>
             </div>
           </div>

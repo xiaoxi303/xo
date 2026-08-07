@@ -30,7 +30,15 @@ export default defineEventHandler(async (event) => {
   }
   const tradeStatus = String(body.trade_status || '')
   if ((tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'TRADE_FINISHED') && order.status === 'created') {
-    updateOrder(outTradeNo, { status: 'paid', tradeNo: String(body.trade_no || ''), paidAt: new Date().toISOString() })
+    updateOrder(outTradeNo, {
+      status: 'paid',
+      tradeNo: String(body.trade_no || ''),
+      buyerLogonId: String(body.buyer_logon_id || ''),
+      buyerUserId: String(body.buyer_user_id || ''),
+      buyerPayAmount: String(body.buyer_pay_amount || body.receipt_amount || body.total_amount || ''),
+      tradeStatus,
+      paidAt: String(body.gmt_payment || new Date().toISOString())
+    })
   }
   return 'success'
 })
