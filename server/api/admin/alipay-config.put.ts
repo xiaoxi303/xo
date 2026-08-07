@@ -22,7 +22,7 @@ export default defineEventHandler(async event => {
     appId,
     gateway: String(body.gateway || 'https://openapi.alipay.com/gateway.do').trim(),
     privateKey: body.privateKey,
-    alipayPublicKey: body.alipayPublicKey,
+    alipayPublicKey: body.alipayPublicKey ? String(body.alipayPublicKey) : undefined,
     notifyUrl: String(body.notifyUrl || '').trim(),
     returnUrl: String(body.returnUrl || '').trim(),
     subjectPrefix: String(body.subjectPrefix || 'Xo Studio Order').trim()
