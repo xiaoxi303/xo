@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { getQuery, sendRedirect } from 'h3'
+import { getQuery, getRequestURL, sendRedirect } from 'h3'
 import { readAlipayConfig } from '../../utils/alipay'
 import { getOrders, updateOrder } from '../../utils/order-store'
 
@@ -35,5 +35,6 @@ export default defineEventHandler(event => {
     tradeStatus: 'TRADE_SUCCESS',
     paidAt: order.paidAt || new Date().toISOString()
   })
-  return sendRedirect(event, `/order/${encodeURIComponent(order.suffix)}?paid=1`, 302)
+  const requestUrl = getRequestURL(event)
+  return sendRedirect(event, `${requestUrl.origin}/order/${encodeURIComponent(order.suffix)}?paid=1`, 302)
 })
