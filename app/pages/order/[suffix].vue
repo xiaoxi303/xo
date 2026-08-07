@@ -45,6 +45,9 @@ const paid = computed(() => String(route.query.paid || '') === '1')
 
 onMounted(async () => {
   try {
+    if (paid.value) {
+      await $fetch(`/api/order/${encodeURIComponent(suffix.value)}/return`, { query: route.query })
+    }
     page.value = await $fetch(`/api/order/${encodeURIComponent(suffix.value)}`)
   } catch (err: any) {
     error.value = err.data?.statusMessage || '订单信息加载失败'
