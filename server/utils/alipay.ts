@@ -27,6 +27,15 @@ export function normalizePrivateKey(value: string) {
   }
   return key
 }
+export function normalizePublicKey(value: string) {
+  let key = String(value || '').trim().replace(/\\n/g, '\n').replace(/\r/g, '')
+  if (!key) return ''
+  if (!key.includes('BEGIN')) {
+    const compact = key.replace(/\s+/g, '')
+    key = `-----BEGIN PUBLIC KEY-----\n${compact.match(/.{1,64}/g)?.join('\n') || compact}\n-----END PUBLIC KEY-----`
+  }
+  return key
+}
 
 function encrypt(value: string) {
   const iv = crypto.randomBytes(12)
@@ -55,7 +64,7 @@ export function saveAlipayConfig(input: Partial<AlipayConfig>) {
   return next
 }
 export function publicAlipayConfig(config = readAlipayConfig()) {
-  return { enabled: config.enabled, appId: config.appId, gateway: config.gateway, notifyUrl: config.notifyUrl, returnUrl: config.returnUrl, subjectPrefix: config.subjectPrefix, productCode: config.productCode, hasPrivateKey: Boolean(config.privateKey), hasAlipayPublicKey: Boolean(config.alipayPublicKey) }
+  return { enabled: config.enabled, appId: config.appId, gateway: config.gateway, notifyUrl: config.notifyUrl, returnUrl: config.returnUrl, subjectPrefix: config.subjectPrefix, productCode: config.productCode, alipayPublicKey: config.alipayPublicKey, hasPrivateKey: Boolean(config.privateKey), hasAlipayPublicKey: Boolean(config.alipayPublicKey) }
 }
 
 function stringifyAlipayJson(value: unknown) {

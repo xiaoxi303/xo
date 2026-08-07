@@ -1,13 +1,13 @@
 import crypto from 'node:crypto'
 import { getQuery, getRequestURL, sendRedirect } from 'h3'
-import { readAlipayConfig } from '../../utils/alipay'
+import { normalizePublicKey, readAlipayConfig } from '../../utils/alipay'
 import { getOrders, updateOrder } from '../../utils/order-store'
 
 function verifyReturn(query: Record<string, any>, publicKey: string) {
   const sign = String(query.sign || '')
   if (!sign || String(query.sign_type || '') !== 'RSA2' || !publicKey) return false
   const content = Object.keys(query)
-    .filter(key => !['sign', 'sign_type'].includes(key) && query[key] !== '' && query[key] !== undefined && query[key] !== null)
+    .filter(key => !['sign', 'sign_type', 'paid'].includes(key) && query[key] !== '' && query[key] !== undefined && query[key] !== null)
     .sort().map(key => `${key}=${query[key]}`).join('&')
   try {
     const verifier = crypto.createVerify('RSA-SHA256')
@@ -21,7 +21,7 @@ function verifyReturn(query: Record<string, any>, publicKey: string) {
 export default defineEventHandler(event => {
   const query = getQuery(event) as Record<string, any>
   const config = readAlipayConfig()
-  if (!verifyReturn(query, config.alipayPublicKey)) throw createError({ statusCode: 400, statusMessage: '支付宝返回验签失败' })
+  if (!verifyReturn(query, normalizePublicKey(config.alipayPublicKey))) throw createError({ statusCode: 400, statusMessage: '支付宝返回验签失败' })
   const outTradeNo = String(query.out_trade_no || '')
   const order = getOrders().find(item => item.outTradeNo === outTradeNo)
   if (!order) throw createError({ statusCode: 404, statusMessage: '订单不存在' })

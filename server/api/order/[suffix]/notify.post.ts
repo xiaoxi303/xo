@@ -1,6 +1,6 @@
 import crypto from 'node:crypto'
 import { getRouterParam } from 'h3'
-import { readAlipayConfig } from '../../../utils/alipay'
+import { normalizePublicKey, readAlipayConfig } from '../../../utils/alipay'
 import { getOrders, updateOrder } from '../../../utils/order-store'
 
 function verifyNotify(body: Record<string, any>, publicKey: string) {
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
   const suffix = String(getRouterParam(event, 'suffix') || '').trim().replace(/[^a-zA-Z0-9_-]/g, '')
   const body = await readBody(event).catch(() => ({})) as Record<string, any>
   const config = readAlipayConfig()
-  if (!suffix || !verifyNotify(body, config.alipayPublicKey)) {
+  if (!suffix || !verifyNotify(body, normalizePublicKey(config.alipayPublicKey))) {
     throw createError({ statusCode: 400, statusMessage: '支付宝通知验签失败' })
   }
   const outTradeNo = String(body.out_trade_no || '')

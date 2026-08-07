@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { readAlipayConfig } from '../../utils/alipay'
+import { normalizePublicKey, readAlipayConfig } from '../../utils/alipay'
 import { getOrders, updateOrder } from '../../utils/order-store'
 
 function verifyNotify(body: Record<string, any>, publicKey: string) {
@@ -20,7 +20,7 @@ function verifyNotify(body: Record<string, any>, publicKey: string) {
 export default defineEventHandler(async event => {
   const body = await readBody(event).catch(() => ({})) as Record<string, any>
   const config = readAlipayConfig()
-  if (!verifyNotify(body, config.alipayPublicKey)) throw createError({ statusCode: 400, statusMessage: '支付宝通知验签失败' })
+  if (!verifyNotify(body, normalizePublicKey(config.alipayPublicKey))) throw createError({ statusCode: 400, statusMessage: '支付宝通知验签失败' })
   const outTradeNo = String(body.out_trade_no || '')
   const order = getOrders().find(item => item.outTradeNo === outTradeNo)
   if (!order) throw createError({ statusCode: 400, statusMessage: '订单不存在' })
