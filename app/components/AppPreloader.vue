@@ -92,6 +92,7 @@ let presentationMs = 2600
 let networkScore = 18
 let probeTimer: number | null = null
 let finishTimer: number | null = null
+let fallbackTimer: number | null = null
 let finishing = false
 
 const finish = () => {
@@ -125,13 +126,18 @@ onMounted(() => {
     presentationMs = 3200
   }
 
-  loaded = document.readyState === 'complete'
+  // Production hydration can happen after the window load event.
+  loaded = document.readyState !== 'loading'
   if (!loaded) window.addEventListener('load', () => { loaded = true }, { once: true })
+  fallbackTimer = window.setTimeout(() => {
+    loaded = true
+    if (!finishing) finish()
+  }, 7000)
 
   const probeNetwork = async () => {
     const started = performance.now()
     try {
-      await fetch(`/api/system-status?preload=${Date.now()}`, {
+      await fetch(`/api/site-config?preload=${Date.now()}`, {
         cache: 'no-store',
         headers: { 'cache-control': 'no-cache' }
       })
@@ -181,6 +187,7 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(frame)
   if (probeTimer !== null) window.clearTimeout(probeTimer)
   if (finishTimer !== null) window.clearTimeout(finishTimer)
+  if (fallbackTimer !== null) window.clearTimeout(fallbackTimer)
 })
 </script>
 
