@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { encryptE2EE } from '~/utils/e2ee'
+import { encryptRsaHybrid } from '~/utils/rsa-hybrid'
 
 const props = defineProps<{ mode?: 'login' | 'register' }>()
 const route = useRoute()
@@ -160,7 +160,7 @@ const handleLogin = async () => {
   error.value = ''
   loading.value = true
   try {
-    const encryptedPayload = await encryptE2EE(JSON.stringify(loginForm.value))
+    const encryptedPayload = await encryptRsaHybrid(loginForm.value)
     const res = await $fetch<any>('/api/auth/client-login', { method: 'POST', body: encryptedPayload })
     if (res.success) { router.push('/client'); if (import.meta.client) setTimeout(() => { window.location.href = '/client' }, 100) }
   } catch (err: any) { error.value = err.data?.statusMessage || '登录失败，请检查您的用户名和密码。' }
@@ -181,7 +181,13 @@ const handleRegister = async () => {
   if (registerForm.value.password !== registerForm.value.confirmPassword) { error.value = '两次输入的密码不一致，请检查。'; return }
   loading.value = true
   try {
-    const encryptedPayload = await encryptE2EE(JSON.stringify({ username: registerForm.value.username, email: registerForm.value.email, code: registerForm.value.code, wechat: registerForm.value.wechat, password: registerForm.value.password }))
+    const encryptedPayload = await encryptRsaHybrid({
+      username: registerForm.value.username,
+      email: registerForm.value.email,
+      code: registerForm.value.code,
+      wechat: registerForm.value.wechat,
+      password: registerForm.value.password
+    })
     const res = await $fetch<any>('/api/auth/register', { method: 'POST', body: encryptedPayload })
     if (res.success) { router.push('/client'); if (import.meta.client) setTimeout(() => { window.location.href = '/client' }, 100) }
   } catch (err: any) { error.value = err.data?.statusMessage || '注册失败，请稍后重试。' }

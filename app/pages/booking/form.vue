@@ -140,6 +140,8 @@
 </template>
 
 <script setup lang="ts">
+import { encryptRsaHybrid } from '../../utils/rsa-hybrid'
+
 useHead({
   title: '预约表单 - XO Studio'
 })
@@ -167,7 +169,7 @@ const submitForm = async () => {
   try {
     await $fetch('/api/booking', {
       method: 'POST',
-      body: form.value
+      body: await encryptRsaHybrid(form.value)
     })
     submitted.value = true
   } catch (e: any) {

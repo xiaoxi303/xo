@@ -370,7 +370,34 @@
   --ease-in:          cubic-bezier(0.4, 0, 1, 1);
   --ease-out:         cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out:      cubic-bezier(0.4, 0, 0.2, 1);
-}/* ===== Global Reset ===== */
+}
+
+/* Shared Liquid Glass pointer refraction layer. */
+.glass-surface {
+  --glass-x: 50%;
+  --glass-y: 18%;
+  position: relative;
+  isolation: isolate;
+}
+.glass-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    380px circle at var(--glass-x) var(--glass-y),
+    rgba(255,255,255,.34),
+    rgba(255,255,255,.08) 32%,
+    transparent 70%
+  );
+  opacity: .7;
+  transition: opacity .35s ease;
+}
+.glass-surface:hover::after { opacity: 1; }
+
+/* ===== Global Reset ===== */
 *, *::before, *::after { box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }

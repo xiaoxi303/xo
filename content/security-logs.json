@@ -1,6 +1,38 @@
 [
   {
     "type": "Admin Access Gate",
+    "ip": "127.0.0.1",
+    "action": "Admin session issued for \"admin\"",
+    "status": "success",
+    "id": "log-1786255963584-lnwd",
+    "timestamp": 1786255963584
+  },
+  {
+    "type": "Admin Login Guard",
+    "ip": "127.0.0.1",
+    "action": "Wrong password for admin \"admin\"",
+    "status": "blocked",
+    "id": "log-1786255962714-8wwy",
+    "timestamp": 1786255962714
+  },
+  {
+    "type": "Admin Access Gate",
+    "ip": "127.0.0.1",
+    "action": "Admin session issued for \"admin\"",
+    "status": "success",
+    "id": "log-1786255279172-qf55",
+    "timestamp": 1786255279172
+  },
+  {
+    "type": "Admin Login Guard",
+    "ip": "127.0.0.1",
+    "action": "Wrong password for admin \"admin\"",
+    "status": "blocked",
+    "id": "log-1786255278335-sily",
+    "timestamp": 1786255278335
+  },
+  {
+    "type": "Admin Access Gate",
     "ip": "::1",
     "action": "Admin session issued for \"admin\"",
     "status": "success",

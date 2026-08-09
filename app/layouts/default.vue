@@ -293,7 +293,8 @@ const isPanelPage = computed(() => {
   const path = (route.path || '').replace(/^\/|\/$/, '')
   const isClient = path === 'client' || path.startsWith('client/') || path === 'login' || path === 'register'
   const isDelivery = path === 'delivery' || path.startsWith('delivery/')
-  return isAdminPage.value || isClient || isDelivery || path === 'xo-watermark' || path.startsWith('xo-watermark/')
+  const isOrder = path === 'order' || path.startsWith('order/')
+  return isAdminPage.value || isClient || isDelivery || isOrder || path === 'xo-watermark' || path.startsWith('xo-watermark/')
 })
 
 // Ambient Soundscape Player States & Logic
