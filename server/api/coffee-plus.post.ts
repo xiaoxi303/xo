@@ -1,7 +1,9 @@
 import { defineEventHandler, getCookie } from 'h3'
 import { dbGetSiteConfig, dbSaveSiteConfig } from '../utils/db'
+import { requireAdminSession } from '../utils/admin-auth'
 
 export default defineEventHandler(async (event) => {
+  requireAdminSession(event)
   try {
     const config = await dbGetSiteConfig(event)
     if (!config.studioStats) {

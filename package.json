@@ -5,6 +5,8 @@
   "scripts": {
     "build": "node scripts/build-production.mjs",
     "build:nuxt": "nuxt build",
+    "obfuscate:production": "node scripts/obfuscate-production.mjs",
+    "verify:production": "node scripts/verify-production.mjs",
     "init-data": "node init-server-data.js",
     "dev": "node init-server-data.js && nuxt dev",
     "generate": "nuxt generate",
@@ -25,5 +27,8 @@
     "nuxt": "^4.5.0",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^5.5.0"
   }
 }

@@ -2076,7 +2076,7 @@
                   </div>
                   <div class="flex items-center gap-3">
                     <div class="bg-amber-700/5 text-amber-700 text-xs px-3 py-1.5 rounded-lg border border-amber-800/10 font-mono font-bold">
-                      密码: {{ p.activePassword || getDailyPassword(p.slug) }}
+                      密码: {{ p.activePassword || '------' }}
                     </div>
                     <button @click="openEditModal(p)" class="text-xs font-semibold hover:underline" style="color: var(--color-ink-4)">
                       修改
@@ -4517,26 +4517,8 @@ watch(() => form.value?.slug, async (newSlug) => {
 
 const getDailyPassword = async (slug) => {
   if (!slug) return '------'
-  
-  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' })
-  const secret = 'XO_STUDIO_SALT'
-  const cleanSlug = String(slug).trim().toLowerCase()
-  const seed = 'project_' + cleanSlug + '*date*' + todayStr + '*salt*' + secret
-  
-  // Use SubtleCrypto SHA256 (same as server)
-  const encoder = new TextEncoder()
-  const data = encoder.encode(seed)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  
-  const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
-  let pwd = ''
-  for (let i = 0; i < 6; i++) {
-    const charIndex = parseInt(hash.substring(i * 2, i * 2 + 2), 16) % charset.length
-    pwd += charset[charIndex]
-  }
-  return pwd
+  const projects = await $fetch<any[]>('/api/admin/projects')
+  return projects.find((project: any) => project.slug === slug)?.activePassword || '------'
 }
 
 const saveProject = async () => {

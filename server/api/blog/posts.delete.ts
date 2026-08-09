@@ -1,6 +1,8 @@
 import { dbDeleteBlogPost } from '../../utils/db'
+import { requireAdminSession } from '../../utils/admin-auth'
 
 export default defineEventHandler(async (event) => {
+  requireAdminSession(event)
   const query = getQuery(event)
   const body = await readBody(event).catch(() => ({}))
   const id = (query.id as string) || body.id

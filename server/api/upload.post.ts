@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Validate file type (images only)
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml']
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif']
   const fileType = file.type || ''
   if (!allowedTypes.includes(fileType)) {
     throw createError({ statusCode: 400, statusMessage: '只允许上传图片文件（jpeg, png, gif, webp, avif, svg）。' })

@@ -1,6 +1,8 @@
 import { dbAddBlacklist, dbRemoveBlacklist, dbGetBlacklist } from '../../utils/db'
+import { requireAdminSession } from '../../utils/admin-auth'
 
 export default defineEventHandler(async (event) => {
+  requireAdminSession(event)
   const body = await readBody(event)
 
   if (event.node.req.method === 'GET') {

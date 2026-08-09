@@ -196,7 +196,7 @@ pm2 reload xo-portfolio
 
 </div>
 
-> **默认密码**：`xiaoxi`（首次登录后请立即修改）
+> 管理员账号和密码仅从服务端环境变量读取：`XO_ADMIN_USERNAME`、`XO_ADMIN_PASSWORD_HASH`。
 
 ---
 

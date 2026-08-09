@@ -3,8 +3,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { dbGetProjectsRaw, dbGetSiteConfig } from '../../utils/db'
 import { getRuntimeDataPath } from '../../utils/storage'
+import { requireAdminSession } from '../../utils/admin-auth'
 
 export default defineEventHandler(async (event) => {
+  requireAdminSession(event)
   const body = await readBody(event) || {}
   const { action, prompt, projectTitle } = body
 

@@ -6,9 +6,11 @@ import crypto from 'crypto';
  */
 export function getDailyPassword(
   projectSlug: string,
-  secretKey: string = 'XO_STUDIO_SALT',
+  secretKey?: string,
   dateInput?: string
 ): string {
+  secretKey = secretKey || process.env.XO_PROJECT_PASSWORD_SECRET || ''
+  if (!secretKey) throw new Error('XO_PROJECT_PASSWORD_SECRET is not configured')
   const cleanSlug = String(projectSlug || 'default').trim().toLowerCase();
   if (!cleanSlug) return '123456';
 

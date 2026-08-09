@@ -5,8 +5,10 @@ import { execSync } from 'node:child_process'
 import { getRuntimeDataPath } from '../utils/storage'
 import { setResponseHeader } from 'h3'
 import { getProjectHeatMap } from '../utils/analytics-store'
+import { requireAdminSession } from '../utils/admin-auth'
 
 export default defineEventHandler(async (event) => {
+  requireAdminSession(event)
   setResponseHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
   setResponseHeader(event, 'Pragma', 'no-cache')
   setResponseHeader(event, 'Expires', '0')

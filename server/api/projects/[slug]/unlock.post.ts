@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
     const requests = await dbGetPasswordRequests(event).catch(() => [])
     for (const req of requests) {
       if (req.projectSlug === slug && req.status === 'approved' && req.createdAt) {
-        const reqPwd = getDailyPassword(slug, 'XO_STUDIO_SALT', req.createdAt)
+        const reqPwd = getDailyPassword(slug, undefined, req.createdAt)
         if (verifyProjectPassword(password, reqPwd)) {
           isPasswordValid = true
           break

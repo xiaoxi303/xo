@@ -4,12 +4,21 @@ import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
 
 import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
+import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
 
 export default defineEventHandler(async (event) => {
   let body = await readBody(event)
 
+  if (isRsaHybridPayload(body)) {
+    try {
+      body = JSON.parse(decryptRsaHybrid(body))
+    } catch (e: any) {
+      throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 请求解密失败' })
+    }
+  }
+
   // Handle E2EE payload decryption if client sent E2EE encrypted request
-  if (isE2EEPayload(body)) {
+  else if (isE2EEPayload(body)) {
     try {
       const decryptedString = decryptE2EE(body)
       body = JSON.parse(decryptedString)

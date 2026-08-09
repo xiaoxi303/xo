@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { dbGetSiteConfig, dbGetProjectsRaw } from '../utils/db'
 import { assertDeliveryAccess, normalizeDeliverySlug } from '../utils/delivery-access'
+import { fetchSafeUpstream } from '../utils/url-security'
 
 // Server-side video stream processing endpoint
 // When browser extensions, IDM, or users fetch/download the video,
@@ -48,9 +49,8 @@ export default defineEventHandler(async (event) => {
 
   if (/^https?:\/\//i.test(targetUrl)) {
     const range = getHeader(event, 'range')
-    const upstream = await fetch(targetUrl, {
+    const upstream = await fetchSafeUpstream(targetUrl, {
       headers: range ? { range } : undefined,
-      redirect: 'follow'
     }).catch(() => null)
     if (!upstream || (!upstream.ok && upstream.status !== 206)) {
       throw createError({ statusCode: upstream?.status || 502, message: 'Unable to fetch video source' })

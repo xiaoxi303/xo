@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
     if (project) {
       if (project.autoRotatePassword !== false) {
         // Calculate password for the exact date the request was submitted (r.createdAt)
-        projectPwd = getDailyPassword(project.slug, 'XO_STUDIO_SALT', r.createdAt)
+        projectPwd = getDailyPassword(project.slug, undefined, r.createdAt)
       } else {
         projectPwd = project.password || ''
       }

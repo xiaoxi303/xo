@@ -34,8 +34,9 @@ export function generatePassword(length: number = 6): string {
 export function generateDailyPassword(
   projectId: string, 
   date: string, 
-  secret: string = 'xo-studio-secret-2026'
+  secret: string = typeof process !== 'undefined' ? (process.env.XO_PROJECT_PASSWORD_SECRET || '') : ''
 ): string {
+  if (!secret) throw new Error('XO_PROJECT_PASSWORD_SECRET is not configured')
   // 简单的 hash 函数
   const hash = (str: string): number => {
     let hash = 0

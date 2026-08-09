@@ -16,7 +16,7 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
     const config = await dbGetSiteConfig(event)
     const emailSettings = config?.emailSettings
 
-    if (!emailSettings || !emailSettings.enabled) {
+    if (process.env.XO_EMAIL_ENABLED === 'false' || !emailSettings || !emailSettings.enabled) {
       console.log('Email notifications are disabled in site configuration.')
       return false
     }
@@ -41,13 +41,15 @@ export async function sendApprovalEmail(event: H3Event, request: any): Promise<b
     const projectUrl = `${siteUrl}/projects/${request.projectSlug}`
     const logoImgSrc = `${siteUrl}/logo.png?v=312k_v4`
 
+    const smtpPass = process.env.SMTP_PASS || emailSettings.smtpPass
+    if (!smtpPass) return false
     const transporter = nodemailer.createTransport({
       host: emailSettings.smtpHost,
       port: Number(emailSettings.smtpPort) || 465,
       secure: emailSettings.smtpSecure !== false,
       auth: {
         user: emailSettings.smtpUser,
-        pass: emailSettings.smtpPass
+        pass: smtpPass
       }
     })
 
@@ -153,7 +155,8 @@ export async function sendVerificationCodeEmail(
       return { success: false, message: '系统未开启邮件通知功能，请联系管理员配置。' }
     }
 
-    if (!emailSettings.smtpHost || !emailSettings.smtpUser || !emailSettings.smtpPass) {
+    const smtpPass = process.env.SMTP_PASS || emailSettings.smtpPass
+    if (!emailSettings.smtpHost || !emailSettings.smtpUser || !smtpPass) {
       return { success: false, message: '系统 SMTP 发件参数未配置完整，请联系管理员。' }
     }
 
@@ -173,7 +176,7 @@ export async function sendVerificationCodeEmail(
       secure: emailSettings.smtpSecure !== false,
       auth: {
         user: emailSettings.smtpUser,
-        pass: emailSettings.smtpPass
+        pass: smtpPass
       }
     })
 

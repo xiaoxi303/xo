@@ -1,6 +1,8 @@
 import { dbSaveBlogCategories } from '../../utils/db'
+import { requireAdminSession } from '../../utils/admin-auth'
 
 export default defineEventHandler(async (event) => {
+  requireAdminSession(event)
   const body = await readBody(event)
   if (!body || !Array.isArray(body.categories)) {
     throw createError({ statusCode: 400, statusMessage: '缺少分类数据数组。' })

@@ -2,9 +2,17 @@ import fs from 'node:fs'
 import { defineEventHandler, readBody } from 'h3'
 import { getRuntimeDataPath } from '../utils/storage'
 import { logSecurityEvent } from '../utils/security-logger'
+import { decryptRsaHybrid, isRsaHybridPayload } from '../utils/rsa-hybrid'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  let body = await readBody(event)
+  if (isRsaHybridPayload(body)) {
+    try {
+      body = JSON.parse(decryptRsaHybrid(body))
+    } catch (error: any) {
+      throw createError({ statusCode: 400, statusMessage: error?.message || 'RSA 请求解密失败' })
+    }
+  }
   const { name, phone, email, company, serviceType, budget, timeline, description, referenceLinks } = body || {}
 
   // Validation

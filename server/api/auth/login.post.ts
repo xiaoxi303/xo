@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = await dbGetSiteConfig(event)
-  const allowedUsername = config.admin?.username || 'admin'
+  const allowedUsername = process.env.XO_ADMIN_USERNAME || config.admin?.username || ADMIN_USERNAME
   const allowedPasswordHash = config.admin?.passwordHash || ADMIN_PASSWORD_HASH
 
   // Check username first

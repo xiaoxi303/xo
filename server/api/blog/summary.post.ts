@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody } from 'h3'
 import { dbGetSiteConfig } from '../../utils/db'
+import { requireAdminSession } from '../../utils/admin-auth'
 
 function createCleanSummary(content: string, title?: string): string {
   if (!content) return '本文暂无正文描述，欢迎继续关注后续更新。'
@@ -20,6 +21,7 @@ function createCleanSummary(content: string, title?: string): string {
 }
 
 export default defineEventHandler(async (event) => {
+  requireAdminSession(event)
   const body = await readBody(event) || {}
   const { content, title } = body
 

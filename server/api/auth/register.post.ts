@@ -2,6 +2,7 @@ import { dbCreateUser, dbGetUsers } from '../../utils/db'
 import { hashPassword, createSession, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
 import { verifyAndConsumeCode } from '../../utils/verification'
 import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
+import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
 
 const ALLOWED_EMAIL_DOMAINS = [
   'qq.com', 'vip.qq.com', 'foxmail.com',
@@ -14,8 +15,16 @@ const ALLOWED_EMAIL_DOMAINS = [
 export default defineEventHandler(async (event) => {
   let body = await readBody(event)
 
+  if (isRsaHybridPayload(body)) {
+    try {
+      body = JSON.parse(decryptRsaHybrid(body))
+    } catch (e: any) {
+      throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 请求解密失败' })
+    }
+  }
+
   // Handle E2EE payload decryption if client sent E2EE encrypted request
-  if (isE2EEPayload(body)) {
+  else if (isE2EEPayload(body)) {
     try {
       const decryptedString = decryptE2EE(body)
       body = JSON.parse(decryptedString)

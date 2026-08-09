@@ -10,8 +10,8 @@ import { getRuntimeDataPath } from './storage'
 // ───────────────────────────────────────────────
 // Admin Credentials (change password via admin UI)
 // ───────────────────────────────────────────────
-export const ADMIN_USERNAME = 'admin'
-export const ADMIN_PASSWORD_HASH = hashPassword('xiaoxi') // default password
+export const ADMIN_USERNAME = process.env.XO_ADMIN_USERNAME || 'admin'
+export const ADMIN_PASSWORD_HASH = process.env.XO_ADMIN_PASSWORD_HASH || ''
 
 export function hashPassword(plain: string): string {
   // SHA-256 with a fixed site salt for production hardening
@@ -19,6 +19,7 @@ export function hashPassword(plain: string): string {
 }
 
 export function verifyPassword(plain: string, storedHash: string): boolean {
+  if (!storedHash) return false
   return hashPassword(plain) === storedHash
 }
 

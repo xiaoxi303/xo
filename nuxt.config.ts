@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-07-20',
   devtools: { enabled: false },
 
-  // Disable sourcemaps in production so source code cannot be reconstructed or inspected
+  // Do not expose source maps in production bundles.
   sourcemap: false,
 
   app: {
@@ -67,14 +67,12 @@ export default defineNuxtConfig({
     }
   },
 
-  // Production hardening: stable minification with source-map stripping.
+  // Production hardening: Terser mangling with source-map stripping.
   $production: {
     vite: {
       build: {
         sourcemap: false,
-        // esbuild is the reliable default for constrained deployment builders.
-        // Set NUXT_BUILD_MINIFY=terser when maximum client-side hardening is required.
-        minify: process.env.NUXT_BUILD_MINIFY === 'terser' ? 'terser' : 'esbuild',
+        minify: 'terser',
         terserOptions: {
           compress: {
             drop_console: true,

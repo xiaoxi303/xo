@@ -1,6 +1,8 @@
 // Audio proxy API — streams any external audio URL through same-origin so that
 // Web Audio API's createMediaElementSource can do real frequency analysis without CORS errors.
 // Usage: /api/audio-proxy?url=<encoded-url>
+import { fetchSafeUpstream } from '../utils/url-security'
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const targetUrl = query.url as string
@@ -17,13 +19,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Invalid url parameter' })
   }
 
-  // Basic security: only allow http/https URLs
-  if (!decodedUrl.startsWith('http://') && !decodedUrl.startsWith('https://')) {
-    throw createError({ statusCode: 403, message: 'Only http/https URLs are allowed' })
-  }
-
   try {
-    const response = await fetch(decodedUrl, {
+    const response = await fetchSafeUpstream(decodedUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; AudioProxy/1.0)',
         'Accept': 'audio/*,*/*;q=0.9'

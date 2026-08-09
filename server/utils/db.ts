@@ -997,7 +997,7 @@ const defaultConfig = {
   },
   admin: {
     username: "admin",
-    passwordHash: "06bff6534b63ba2a13c446d41a36c52c9269fefb68cf96fbec792ddfac25e44b",
+    passwordHash: "",
     adminPath: "admin"
   },
   emailSettings: {

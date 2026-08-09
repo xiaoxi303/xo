@@ -48,5 +48,7 @@ const run = (args, label) => {
 
 run(['run', 'init-data'], 'prepare runtime data')
 run(['run', 'build:nuxt'], 'compile production bundle')
+run(['run', 'obfuscate:production'], 'obfuscate client bundles')
+run(['run', 'verify:production'], 'verify production artifacts')
 
 console.log('\n[build] Production build completed successfully.')

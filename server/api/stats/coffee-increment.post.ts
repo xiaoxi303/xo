@@ -1,7 +1,9 @@
 import { defineEventHandler } from 'h3'
 import { dbGetSiteConfig, dbSaveSiteConfig } from '../../utils/db'
+import { requireAdminSession } from '../../utils/admin-auth'
 
 export default defineEventHandler(async (event) => {
+  requireAdminSession(event)
   try {
     const siteConfig = await dbGetSiteConfig(event)
     if (!siteConfig.studioStats) {

@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { buildAlipayPagePay, readAlipayConfig } from '../../../utils/alipay'
 import { getOrderPage } from '../../../utils/order-pages'
 import { saveOrder } from '../../../utils/order-store'
+import { decryptRsaHybrid, isRsaHybridPayload, md5Fingerprint } from '../../../utils/rsa-hybrid'
 
 export default defineEventHandler(async (event) => {
   const config = readAlipayConfig()
@@ -14,7 +15,18 @@ export default defineEventHandler(async (event) => {
   if (!suffix || !page || !page.enabled) {
     throw createError({ statusCode: 404, statusMessage: '订单页面不存在或已关闭' })
   }
-  const body = await readBody(event).catch(() => ({})) as any
+  let body = await readBody(event).catch(() => ({})) as any
+  if (isRsaHybridPayload(body)) {
+    try {
+      body = JSON.parse(decryptRsaHybrid(body))
+      body.security = {
+        algorithm: 'RSA-OAEP-256+AES-256-GCM+RSA-PSS-SHA256',
+        md5: md5Fingerprint(JSON.stringify(body))
+      }
+    } catch (error: any) {
+      throw createError({ statusCode: 400, statusMessage: error?.message || 'RSA 请求解密失败' })
+    }
+  }
   const amount = Number(page.amount)
   if (!page.subject || !Number.isFinite(amount)) {
     throw createError({ statusCode: 500, statusMessage: '订单页面配置无效' })
