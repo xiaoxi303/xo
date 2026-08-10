@@ -67,38 +67,12 @@ export default defineNuxtConfig({
     }
   },
 
-  // Production hardening: Terser mangling with source-map stripping.
+  // Production hardening: use the framework minifier with source-map stripping.
   $production: {
     vite: {
       build: {
         sourcemap: false,
-        minify: 'terser',
-        terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
-            pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace', 'console.warn'],
-            // Three passes keep deployment memory/time predictable while still
-            // applying meaningful AST compression and name mangling.
-            passes: 3,
-            unsafe: true,
-            unsafe_comps: true,
-            unsafe_math: true,
-            unsafe_proto: true,
-            hoist_funs: true,
-            keep_fargs: false
-          },
-          mangle: {
-            toplevel: true,
-            eval: true,
-            keep_fnames: false,
-            properties: false
-          },
-          format: {
-            comments: false,
-            ascii_only: true
-          }
-        }
+        minify: 'esbuild'
       }
     }
   },

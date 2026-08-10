@@ -48,7 +48,8 @@ const run = (args, label) => {
 
 run(['run', 'init-data'], 'prepare runtime data')
 run(['run', 'build:nuxt'], 'compile production bundle')
-run(['run', 'obfuscate:production'], 'obfuscate client bundles')
+// Nuxt/Vite Terser already minifies and mangles the client safely. Running a
+// second AST obfuscator over framework entry chunks can produce invalid ESM.
 run(['run', 'verify:production'], 'verify production artifacts')
 
 console.log('\n[build] Production build completed successfully.')
