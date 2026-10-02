@@ -88,8 +88,15 @@ const iconsaxPaths: Record<string, string> = {
   'magic-star': `<path d="M12 2L14.39 8.26L21 9.27L16 13.64L17.47 20.18L12 16.77L6.53 20.18L8 13.64L3 9.27L9.61 8.26L12 2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
 
   // Global / World
-  global: `<path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 12C8 16 10 21 12 21C14 21 16 16 16 12C16 8 14 3 12 3C10 3 8 8 8 12Z" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 9H21.5M2.5 15H21.5" stroke="currentColor" stroke-width="1.8"/>`
+  global: `<path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 12C8 16 10 21 12 21C14 21 16 16 16 12C16 8 14 3 12 3C10 3 8 8 8 12Z" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 9H21.5M2.5 15H21.5" stroke="currentColor" stroke-width="1.8"/>`,
+
+  // Notification / Megaphone / Announcement Bell
+  notification: `<path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
+
+  // Card / Payment
+  card: `<path d="M2 8.5H22M2 12.5H22M7 16.5H9M13 16.5H17M6 4.5H18C20.2091 4.5 22 6.29086 22 8.5V15.5C22 17.7091 20.2091 19.5 18 19.5H6C3.79086 19.5 2 17.7091 2 15.5V8.5C2 6.29086 3.79086 4.5 6 4.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`
 }
+
 
 // Common Iconsax names used by the admin workspace.
 iconsaxPaths['chart-2'] = iconsaxPaths['magic-star']

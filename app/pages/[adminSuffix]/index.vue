@@ -1,6 +1,8 @@
 <template>
   <div class="min-h-screen pt-10 pb-20 px-6 font-sans relative admin-shell">
+    <AdminToast :toasts="toasts" @close="removeToast" />
     <AdminAiCopilot />
+
 
     <!-- AI Interactive Prompt Dialog: Notice Copy -->
     <div v-if="showAiNoticeModal" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none">
@@ -67,43 +69,169 @@
     </div>
     
     <!-- 1. Auth check loading spinner -->
-    <div v-if="isCheckingAuth" class="max-w-6xl mx-auto py-32 flex flex-col items-center justify-center space-y-4">
-      <div class="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style="border-color: var(--color-bronze); border-top-color: transparent;" />
-      <p class="text-xs font-mono tracking-widest uppercase" style="color: var(--color-ink-5)">正在验证安全会话...</p>
+    <div v-if="isCheckingAuth" class="min-h-[75vh] flex flex-col items-center justify-center space-y-5 select-none">
+      <div class="relative w-16 h-16 flex items-center justify-center">
+        <span class="absolute inset-0 rounded-full border-2 border-amber-600/20 border-t-amber-600 animate-spin" />
+        <span class="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+          <IconSax name="shield-security" :size="16" class="text-amber-700 animate-pulse" />
+        </span>
+      </div>
+      <div class="text-center space-y-1">
+        <p class="text-xs font-mono font-bold tracking-widest uppercase text-slate-800">
+          SECURE SESSION HANDSHAKE
+        </p>
+        <p class="text-[11px] font-mono text-slate-400">
+          正在核验安全凭据与加密会话...
+        </p>
+      </div>
     </div>
 
-    <!-- 2. Secure Login Panel -->
-    <div v-else-if="!isLoggedIn" class="max-w-md mx-auto py-12 space-y-8">
-      <div class="glass-card p-8 space-y-6 relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-[2px]" style="background: linear-gradient(90deg, transparent, var(--color-bronze), transparent);" />
-        
-        <div class="text-center space-y-2">
-          <p class="section-label inline-block">Secure Gateway</p>
-          <h2 class="font-display text-2xl font-bold tracking-tight" style="color: var(--color-ink-1)">后台系统验证</h2>
-          <p class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">Enter credentials to manage studio config</p>
+    <!-- 2. Secure Login Panel (全新电影级高奢拟态中控台) -->
+    <div v-else-if="!isLoggedIn" class="min-h-[82vh] flex items-center justify-center py-8 px-4 relative select-none">
+      <!-- Ambient Studio Atmosphere Backdrop Lights -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[450px] bg-gradient-to-tr from-amber-500/15 via-purple-600/10 to-transparent blur-3xl pointer-events-none rounded-full" />
+
+      <div class="max-w-[460px] w-full space-y-6 relative z-10">
+        <!-- Top Nav Utility Bar -->
+        <div class="flex items-center justify-between px-2 text-xs font-mono text-slate-500">
+          <NuxtLink to="/" class="group flex items-center gap-1.5 hover:text-amber-800 transition-colors">
+            <span class="group-hover:-translate-x-0.5 transition-transform">←</span>
+            <span>返回前台主页</span>
+          </NuxtLink>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span class="text-[10px] tracking-wider uppercase font-semibold">TLS 1.3 / E2EE</span>
+          </div>
         </div>
 
-        <form @submit.prevent="handleLogin" class="space-y-4">
-          <div class="space-y-1.5">
-            <label class="form-label font-mono uppercase text-[9px] tracking-wider">输入你的用户名</label>
-            <input v-model="loginForm.username" type="text" required class="form-input" placeholder="输入你的用户名" :disabled="loginLoading" />
+        <!-- Main Glass Card -->
+        <div class="admin-login-card rounded-3xl p-8 sm:p-10 space-y-7 relative overflow-hidden bg-white/92 backdrop-blur-2xl border border-amber-600/25 shadow-[0_24px_64px_-12px_rgba(80,50,20,0.18)]">
+          <!-- Top Specular Shimmer Beam -->
+          <div class="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-amber-500 to-transparent pointer-events-none" />
+
+          <!-- Card Header & Monogram Emblem -->
+          <div class="text-center space-y-3.5">
+            <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-stone-900 to-stone-950 border border-amber-500/40 shadow-xl flex items-center justify-center relative group">
+              <span class="absolute -inset-1 rounded-2xl bg-amber-500/20 blur-sm pointer-events-none group-hover:scale-110 transition-transform" />
+              <IconSax name="shield-security" :size="26" class="text-amber-400 relative z-10" />
+            </div>
+
+            <div class="space-y-1">
+              <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-800 text-[9px] font-mono font-bold tracking-widest uppercase">
+                <span>● RESTRICTED ACCESS</span>
+              </div>
+              <h2 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                工作室管理中枢
+              </h2>
+              <p class="text-xs text-slate-500 font-sans">
+                请输入管理员凭据以接入全站配置与交付数据库
+              </p>
+            </div>
           </div>
 
-          <div class="space-y-1.5">
-            <label class="form-label font-mono uppercase text-[9px] tracking-wider">管理者密码</label>
-            <input v-model="loginForm.password" type="password" required class="form-input" placeholder="••••••••" :disabled="loginLoading" />
-          </div>
+          <!-- Form Area -->
+          <form @submit.prevent="handleLogin" class="space-y-5">
+            <!-- Username Input -->
+            <div class="space-y-1.5 text-left">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="text-amber-600 font-bold">[01]</span>
+                  <span>管理员账号</span>
+                </label>
+                <button
+                  type="button"
+                  @click="quickFillAdmin"
+                  class="text-[10px] text-amber-700 hover:text-amber-800 hover:underline cursor-pointer"
+                  title="点击自动填充默认账号 admin"
+                >
+                  填入 admin
+                </button>
+              </div>
+              <div class="relative flex items-center">
+                <span class="absolute left-4 text-slate-400 pointer-events-none flex items-center">
+                  <IconSax name="user" :size="18" />
+                </span>
+                <input
+                  v-model="loginForm.username"
+                  type="text"
+                  required
+                  autocomplete="username"
+                  class="w-full pl-11 pr-4 py-3 rounded-2xl bg-stone-50/80 border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs text-slate-800 transition-all outline-none font-mono"
+                  placeholder="请输入账号 (如: admin)"
+                  :disabled="loginLoading"
+                />
+              </div>
+            </div>
 
-          <div v-if="loginError" class="p-3.5 rounded-xl text-xs flex items-center gap-2 transition-all duration-300" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: #dc2626;">
-            <span class="text-sm">⚠️</span>
-            <span>{{ loginError }}</span>
-          </div>
+            <!-- Password Input -->
+            <div class="space-y-1.5 text-left">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="text-amber-600 font-bold">[02]</span>
+                  <span>管理安全密钥</span>
+                </label>
+                <span class="text-[9px] text-slate-400">区分大小写</span>
+              </div>
+              <div class="relative flex items-center">
+                <span class="absolute left-4 text-slate-400 pointer-events-none flex items-center">
+                  <IconSax name="key" :size="18" />
+                </span>
+                <input
+                  v-model="loginForm.password"
+                  :type="showLoginPassword ? 'text' : 'password'"
+                  required
+                  autocomplete="current-password"
+                  class="w-full pl-11 pr-12 py-3 rounded-2xl bg-stone-50/80 border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs text-slate-800 transition-all outline-none font-mono"
+                  placeholder="••••••••••••"
+                  :disabled="loginLoading"
+                />
+                <!-- Visibility Toggle Button -->
+                <button
+                  type="button"
+                  @click="showLoginPassword = !showLoginPassword"
+                  class="absolute right-3.5 p-1 rounded-lg text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                  :title="showLoginPassword ? '隐藏密码' : '显示密码'"
+                >
+                  <IconSax :name="showLoginPassword ? 'eye-slash' : 'eye'" :size="17" />
+                </button>
+              </div>
+            </div>
 
-          <button type="submit" class="btn-primary w-full py-2.5 text-xs font-mono uppercase tracking-widest font-bold mt-2 flex items-center justify-center gap-2" :disabled="loginLoading">
-            <span v-if="loginLoading" class="w-3.5 h-3.5 rounded-full border border-t-transparent animate-spin" style="border-color: currentColor; border-top-color: transparent;" />
-            <span>{{ loginLoading ? '正在验证认证...' : '验证并登录' }}</span>
-          </button>
-        </form>
+            <!-- Error Banner -->
+            <Transition name="fade">
+              <div
+                v-if="loginError"
+                class="p-3.5 rounded-2xl text-xs flex items-center gap-2.5 bg-rose-50 border border-rose-200 text-rose-700 animate-in fade-in duration-200"
+                role="alert"
+              >
+                <span class="text-base flex-shrink-0">⚠️</span>
+                <span class="font-medium text-[11px] leading-relaxed">{{ loginError }}</span>
+              </div>
+            </Transition>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-white font-mono font-bold tracking-widest text-xs shadow-lg shadow-amber-950/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed group"
+              :disabled="loginLoading"
+            >
+              <span v-if="loginLoading" class="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              <IconSax v-else name="key" :size="17" class="text-amber-300 group-hover:rotate-12 transition-transform duration-300" />
+              <span>{{ loginLoading ? '正在核验安全凭据...' : '授权并进入中枢' }}</span>
+              <kbd v-if="!loginLoading" class="hidden sm:inline-block text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/30 border border-white/20 text-amber-200 font-normal">
+                ENTER ↵
+              </kbd>
+            </button>
+          </form>
+
+          <!-- Security Footnote -->
+          <div class="pt-2 border-t border-black/[0.06] text-center">
+            <p class="text-[10px] font-mono text-slate-400 flex items-center justify-center gap-1.5">
+              <span>🔒</span>
+              <span>受保护端点 · 启用了防爆破风控拦截与动态 IP 熔断机制</span>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -113,68 +241,132 @@
       <!-- Left Edit Column -->
       <div class="space-y-8 min-w-0 admin-edit-column">
 
-      <!-- Header -->
-      <div class="space-y-1 pb-4 border-b border-black/[0.05] admin-page-header">
-        <p class="section-label">Admin</p>
-        <h1 class="font-display text-3xl font-bold tracking-tight" style="color: var(--color-ink-1)">配置工作台</h1>
-        <p class="text-xs font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">Xo Studio · Site-Wide Configuration Panel</p>
+      <!-- Header with Quick Action Buttons -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/[0.05] admin-page-header">
+        <div class="space-y-1">
+          <p class="section-label">Admin</p>
+          <h1 class="font-display text-3xl font-bold tracking-tight" style="color: var(--color-ink-1)">配置工作台</h1>
+          <p class="text-xs font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">Xo Studio · Site-Wide Configuration Panel</p>
+        </div>
+        <div class="flex items-center gap-2.5 flex-shrink-0">
+          <button
+            type="button"
+            @click="showLivePreview = !showLivePreview"
+            :class="[
+              'px-3.5 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border',
+              showLivePreview ? 'bg-amber-700 text-white border-amber-800 shadow-sm' : 'border-black/10 bg-white/80 hover:bg-white text-slate-700 shadow-sm'
+            ]"
+          >
+            <span>👁️</span>
+            <span>{{ showLivePreview ? '关闭双屏' : '双屏预览' }}</span>
+          </button>
+          <button
+            type="button"
+            @click="saveSiteConfig"
+            :disabled="isSaving"
+            class="btn-primary py-2 px-5 text-xs font-bold font-mono tracking-wider flex items-center gap-2 rounded-xl shadow-md active:scale-95 cursor-pointer transition-all"
+          >
+            <span v-if="isSaving" class="animate-spin text-sm">⏳</span>
+            <span v-else>💾</span>
+            <span>{{ isSaving ? '保存中...' : '保存配置' }}</span>
+            <span v-if="isDirty" class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse ml-0.5" />
+          </button>
+        </div>
       </div>
 
-      <!-- Navigation & Action Row -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2 admin-navigation">
-        <div class="admin-sidebar-brand">
+      <!-- Navigation & Action Row (Left Sidebar on Desktop) -->
+      <div class="space-y-2.5 pt-2 admin-navigation">
+        <!-- Brand & Mode -->
+        <div class="admin-sidebar-brand flex items-center gap-2.5">
           <img
-            class="admin-brand-mark"
+            class="admin-brand-mark w-7 h-7 rounded-lg object-cover border border-amber-600/30"
             :src="siteConfig?.siteInfo?.avatar || '/logo.png'"
             :alt="siteConfig?.siteInfo?.brandName || 'Xo'"
           />
-          <div>
-            <strong>{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</strong>
-            <span>CONTROL CENTER</span>
+          <div class="leading-tight">
+            <strong class="block text-xs text-[#121316] font-bold">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</strong>
+            <span class="text-[9px] font-mono text-amber-800 font-bold uppercase tracking-wider">CONTROL CENTER</span>
           </div>
         </div>
-        <!-- Tabs Menu (Horizontal Scrollable Capsule) -->
-        <div class="flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap scrollbar-none no-scrollbar admin-tabs" @wheel.prevent="handleTabsWheel"
-             style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: none; -ms-overflow-style: none; max-width: 100%;">
+
+        <!-- Instant Search Input (Fitted 100% inside sidebar) -->
+        <div class="relative w-full">
+          <input
+            v-model="tabSearch"
+            type="text"
+            placeholder="🔍 搜索导航..."
+            class="w-full text-xs py-1.5 pl-3 pr-7 rounded-xl border border-black/10 bg-white/80 focus:bg-white focus:border-amber-600/50 focus:ring-1 focus:ring-amber-500/20 transition-all font-sans"
+          />
           <button
-            v-for="t in tabs"
+            v-if="tabSearch"
+            type="button"
+            @click="tabSearch = ''"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black text-xs font-bold p-0.5 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Category Filter Pills (Compact horizontal scroll inside sidebar) -->
+        <div class="flex items-center gap-1 p-1 rounded-xl bg-black/[0.04] border border-black/[0.06] overflow-x-auto no-scrollbar scrollbar-none text-[10px] font-mono select-none w-full">
+          <button
+            v-for="cat in tabCategories"
+            :key="cat.id"
+            type="button"
+            @click="selectedCategory = cat.id"
+            :title="cat.name"
+            :class="[
+              'px-2 py-0.5 rounded-lg transition-all font-semibold flex items-center gap-1 cursor-pointer flex-shrink-0',
+              selectedCategory === cat.id ? 'bg-white text-amber-900 shadow-sm font-bold scale-[1.02]' : 'text-slate-500 hover:text-slate-800'
+            ]"
+          >
+            <span>{{ cat.icon }}</span>
+            <span>{{ cat.name }}</span>
+          </button>
+        </div>
+
+        <!-- Filtered Tabs Bar -->
+        <div class="flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap scrollbar-none no-scrollbar admin-tabs" @wheel.prevent="handleTabsWheel"
+             style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: none; -ms-overflow-style: none;">
+          <button
+            v-for="t in filteredTabs"
             :key="t.value"
             @click="activeTab = t.value"
             :class="[
-              'relative px-3 py-1.5 rounded-lg text-[10px] font-semibold font-mono uppercase tracking-wider transition-all duration-300 ease-out flex items-center gap-1 whitespace-nowrap flex-shrink-0 active:scale-95',
+              'relative px-3 py-2 rounded-lg text-[10px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 ease-out flex items-center gap-2 whitespace-nowrap flex-shrink-0 active:scale-95 cursor-pointer',
               activeTab === t.value
-                ? 'bg-white shadow-sm font-bold scale-[1.02] tab-pill-active'
-                : 'hover:bg-black/[0.03] hover:text-[#121316]'
+                ? 'bg-white shadow-sm font-bold scale-[1.02] tab-pill-active ring-1 ring-amber-600/30'
+                : 'hover:bg-black/[0.04] hover:text-[#121316]'
             ]"
             :style="activeTab === t.value
-              ? { color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.3)' }
+              ? { color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.35)' }
               : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
           >
             <IconSax :name="t.icon" :size="15" custom-class="admin-nav-icon" />
             <span>{{ t.label }}</span>
+            <span v-if="t.value === 'announcement' && siteConfig.announcement?.enabled" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
+            <span v-if="t.value === 'orders' && systemStatus.pendingOrders" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[8px] font-bold">
+              {{ systemStatus.pendingOrders }}
+            </span>
           </button>
+          <div v-if="filteredTabs.length === 0" class="px-3 py-2 text-xs text-slate-400 font-mono text-center">
+            无匹配模块
+          </div>
         </div>
 
-        <!-- Right Side Quick Actions -->
-        <div class="flex items-center gap-3 flex-shrink-0 self-end lg:self-auto admin-quick-actions">
-          <button @click="showLivePreview = !showLivePreview"
-                  :class="[
-                    'px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 flex-shrink-0',
-                    showLivePreview
-                      ? 'bg-amber-700 text-white border border-amber-800 shadow-sm'
-                      : 'hover:text-amber-700'
-                  ]"
-                  :style="showLivePreview
-                    ? {}
-                    : { color: 'var(--color-ink-4)', border: '1px solid var(--color-border-2)', background: 'transparent' }">
-            {{ showLivePreview ? '关闭双屏' : '👁️ 双屏预览' }}
-          </button>
-          <button @click="handleLogout" class="px-3.5 py-2 rounded-lg text-[11px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 hover:text-rose-500 hover:border-rose-500/30 flex-shrink-0"
-                  style="color: var(--color-ink-4); border: 1px solid var(--color-border-2); background: transparent;">
-            安全退出
+        <!-- Sidebar Footer Action -->
+        <div class="admin-quick-actions">
+          <button
+            type="button"
+            @click="handleLogout"
+            class="w-full py-2 px-3 rounded-xl text-xs font-mono font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span>🚪</span>
+            <span>退出登录</span>
           </button>
         </div>
       </div>
+
 
       <!-- Tab Content with Smooth Gliding Transition -->
       <div class="relative min-h-[400px] admin-tab-content">
@@ -399,8 +591,19 @@
         </div>
 
 
+          <!-- TAB: ANNOUNCEMENT SANDBOX -->
+          <div v-else-if="activeTab === 'announcement'" key="announcement" class="space-y-6">
+            <AdminAnnouncementSandbox
+              :site-config="siteConfig"
+              @save="saveSiteConfig"
+              @open-ai="openNoticeAiModal"
+              @toast="showToast"
+            />
+          </div>
+
           <div v-else-if="activeTab === 'requests'" key="requests" class="space-y-6">
             <!-- TAB 1.5: PASSWORD REQUESTS -->
+
           <div class="glass-card p-6 flex items-center justify-between">
             <div class="space-y-1">
               <span class="text-[10px] font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">密码获取申请</span>
@@ -2161,75 +2364,14 @@
             </div>
           </div>
 
-          <!-- 2. Broadcast Announcement Banner Sandbox -->
-          <div class="glass-card p-8 space-y-6">
-            <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
-              <div>
-                <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">📢 顶栏与全局广播通知条</h3>
-                <p class="text-xs mt-1" style="color: var(--color-ink-4)">在全站顶栏跑马灯或左下角浮动胶囊中呈现象征档期预订或重大公告消息。</p>
-              </div>
-              <label class="flex items-center gap-2 cursor-pointer bg-black/[0.03] px-3.5 py-1.5 rounded-full border border-black/10">
-                <span class="text-xs font-bold font-mono" style="color: var(--color-ink-2)">开启广播条</span>
-                <input type="checkbox" v-model="siteConfig.announcement.enabled" class="w-4 h-4 accent-amber-700 cursor-pointer" />
-              </label>
-            </div>
+          <!-- 2. Broadcast Announcement Banner Sandbox (整合全新沙盒系统) -->
+          <AdminAnnouncementSandbox
+            :site-config="siteConfig"
+            @save="saveSiteConfig"
+            @open-ai="openNoticeAiModal"
+            @toast="showToast"
+          />
 
-            <div class="space-y-4" :class="{ 'opacity-50 pointer-events-none': !siteConfig.announcement?.enabled }">
-              <div class="grid md:grid-cols-3 gap-4">
-                <div class="space-y-1 md:col-span-1">
-                  <label class="form-label">展示位置 (Position)</label>
-                  <select v-model="siteConfig.announcement.position" class="form-input text-xs">
-                    <option value="capsule">左下角极奢胶囊 (Bottom Capsule)</option>
-                    <option value="top-bar">全站顶部置顶跑马灯 (Top Sticky Bar)</option>
-                  </select>
-                </div>
-                <div class="space-y-1 md:col-span-1">
-                  <label class="form-label">播放动效 (Animation)</label>
-                  <select v-model="siteConfig.announcement.animation" class="form-input text-xs">
-                    <option value="pulse">微光呼吸 (Pulse)</option>
-                    <option value="marquee">跑马灯流动 (Marquee)</option>
-                    <option value="fade">柔和淡入 (Fade)</option>
-                  </select>
-                </div>
-                <div class="space-y-1 md:col-span-1">
-                  <label class="form-label">徽章配色 (Badge Color)</label>
-                  <select v-model="siteConfig.announcement.badgeColor" class="form-input text-xs">
-                    <option value="amber">香槟哑金 (Amber)</option>
-                    <option value="emerald">极光冷翠 (Emerald)</option>
-                    <option value="rose">炽焰红 (Rose)</option>
-                    <option value="indigo">夜空蓝 (Indigo)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="grid md:grid-cols-3 gap-4">
-                <div class="space-y-1 md:col-span-1">
-                  <label class="form-label">徽章文本 (Badge Text)</label>
-                  <input v-model="siteConfig.announcement.badge" class="form-input font-mono uppercase" placeholder="NOTICE / HOT" />
-                </div>
-                <div class="space-y-1 md:col-span-2">
-                  <div class="flex items-center justify-between">
-                    <label class="form-label">广播文案 (Message Text)</label>
-                    <button type="button" @click.stop.prevent="openNoticeAiModal" class="text-xs font-bold text-purple-700 bg-purple-500/10 hover:bg-purple-500/20 px-2.5 py-1 rounded-lg border border-purple-500/30 flex items-center gap-1 active:scale-95 transition-all cursor-pointer">
-                      <span>✨ AI 一键撰写告示</span>
-                    </button>
-                  </div>
-                  <input v-model="siteConfig.announcement.text" class="form-input" placeholder="例如：🎬 2026 下半年商业 TVC 档期与电影 DI 调色开放预订中" />
-                </div>
-              </div>
-
-              <div class="grid md:grid-cols-3 gap-4">
-                <div class="space-y-1 md:col-span-2">
-                  <label class="form-label">跳转链接 (Link URL)</label>
-                  <input v-model="siteConfig.announcement.link" class="form-input font-mono text-xs" placeholder="mailto:hello@Xo 或 https://..." />
-                </div>
-                <div class="space-y-1 md:col-span-1">
-                  <label class="form-label">CTA 按钮文案 (Action Label)</label>
-                  <input v-model="siteConfig.announcement.ctaText" class="form-input text-xs" placeholder="查看详情 →" />
-                </div>
-              </div>
-            </div>
-          </div>
 
           <!-- 3. Ambient Music Player Configuration -->
           <div class="glass-card p-8 space-y-6" v-if="siteConfig.music">
@@ -2813,8 +2955,60 @@
         </div>
       </div>
     </Transition>
+
+    <!-- Sticky Floating Action Bar (底部智能常驻操作条) -->
+    <div
+      v-if="isLoggedIn"
+      class="fixed bottom-6 right-6 sm:right-10 z-[99990] flex items-center gap-2.5 pointer-events-auto select-none backdrop-blur-2xl p-2 rounded-2xl border shadow-[0_16px_40px_rgba(0,0,0,0.14)] transition-all duration-300"
+      style="background: rgba(254, 252, 248, 0.95); border-color: rgba(180, 140, 90, 0.32);"
+    >
+      <!-- Dirty Indicator -->
+      <div v-if="isDirty" class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-600/20 text-amber-800 text-[11px] font-mono font-bold animate-pulse">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-600" />
+        <span>未保存变更</span>
+      </div>
+
+      <!-- Live Preview Toggle -->
+      <button
+        type="button"
+        @click="showLivePreview = !showLivePreview"
+        :class="[
+          'px-3.5 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer',
+          showLivePreview ? 'bg-amber-700 text-white shadow-sm' : 'hover:bg-black/5 text-slate-700'
+        ]"
+        title="切换双屏实时预览"
+      >
+        <span>👁️</span>
+        <span class="hidden md:inline">{{ showLivePreview ? '双屏开启' : '双屏预览' }}</span>
+      </button>
+
+      <!-- Save Button with Ctrl+S Hint -->
+      <button
+        type="button"
+        @click="saveSiteConfig"
+        :disabled="isSaving"
+        class="btn-primary py-2 px-5 text-xs font-bold font-mono tracking-wider flex items-center gap-2 rounded-xl shadow-md active:scale-95 cursor-pointer transition-all"
+        title="快捷键: Ctrl + S (Windows) / Cmd + S (Mac)"
+      >
+        <span v-if="isSaving" class="animate-spin text-sm">⏳</span>
+        <span v-else>💾</span>
+        <span>{{ isSaving ? '保存中...' : '保存配置' }}</span>
+        <span class="hidden lg:inline text-[9px] opacity-75 font-mono px-1.5 py-0.5 rounded bg-black/20">Ctrl+S</span>
+      </button>
+
+      <!-- Scroll To Top -->
+      <button
+        type="button"
+        @click="scrollToTop"
+        class="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-black/5 transition-all text-xs font-bold cursor-pointer"
+        title="平滑返回顶部"
+      >
+        ▲
+      </button>
+    </div>
   </div>
 </template>
+
 
 <script setup lang="ts">
 const handleTabsWheel = (e: WheelEvent) => {
@@ -2923,6 +3117,10 @@ const isCheckingAuth = ref(true)
 const loginLoading = ref(false)
 const loginError = ref('')
 const loginForm = ref({ username: '', password: '' })
+const showLoginPassword = ref(false)
+const quickFillAdmin = () => {
+  loginForm.value.username = 'admin'
+}
 
 const handlePresetAudioSelect = (e: Event) => {
   const val = (e.target as HTMLSelectElement).value
@@ -3157,22 +3355,126 @@ const deleteAdminCategory = (id: string) => {
   }
 }
 
-const tabs = [
-  { label: '支付宝配置', value: 'alipay', icon: 'card' },
-  { label: '专属交付', value: 'delivery-library', icon: 'video-play' },
-  { label: '订单管理', value: 'orders', icon: 'receipt-item' },
-  { label: '数据看板', value: 'analytics', icon: 'chart-2' },
-  { label: '博客文章', value: 'blog', icon: 'document-text' },
-  { label: '作品管理', value: 'projects', icon: 'video-play' },
-  { label: '授权申请', value: 'requests', icon: 'key' },
-  { label: '合作预约', value: 'bookings', icon: 'calendar-2' },
-  { label: '用户管理', value: 'users', icon: 'profile-2user' },
-  { label: '首页配置', value: 'home', icon: 'home-2' },
-  { label: '个人履历', value: 'about', icon: 'user' },
-  { label: '站点信息', value: 'siteinfo', icon: 'global' },
-  { label: '水印设置', value: 'watermark', icon: 'lock' },
-  { label: '高级设置', value: 'advanced', icon: 'setting' }
+interface ToastItem {
+  id: string
+  message: string
+  type: 'success' | 'error' | 'info' | 'loading'
+  duration: number
+  progress: number
+}
+
+const toasts = ref<ToastItem[]>([])
+
+const showToast = (message: string, type: 'success' | 'error' | 'info' | 'loading' = 'success', duration = 3200) => {
+  const id = Math.random().toString(36).substring(2, 9)
+  const item: ToastItem = {
+    id,
+    message,
+    type,
+    duration,
+    progress: 100
+  }
+  toasts.value.push(item)
+
+  const startTime = Date.now()
+  const interval = setInterval(() => {
+    const elapsed = Date.now() - startTime
+    item.progress = Math.max(0, 100 - (elapsed / duration) * 100)
+    if (elapsed >= duration) {
+      clearInterval(interval)
+      toasts.value = toasts.value.filter(t => t.id !== id)
+    }
+  }, 40)
+}
+
+const removeToast = (id: string) => {
+  toasts.value = toasts.value.filter(t => t.id !== id)
+}
+
+// Graceful bridge from native window.alert to modern non-blocking Glassmorphism Toast
+const alert = (msg: string) => {
+  const str = String(msg || '')
+  const isErr = str.includes('失败') || str.includes('错误') || str.includes('无效') || str.includes('请先') || str.includes('不能为空') || str.includes('⚠️')
+  showToast(str, isErr ? 'error' : 'success', 3600)
+}
+
+
+const tabCategories = [
+  { id: 'all', name: '全部', icon: '🌟' },
+  { id: 'core', name: '经营核心', icon: '📊' },
+  { id: 'content', name: '内容展示', icon: '🎨' },
+  { id: 'business', name: '客户协同', icon: '🤝' },
+  { id: 'system', name: '系统安全', icon: '⚙️' }
 ]
+
+const selectedCategory = ref('all')
+const tabSearch = ref('')
+
+const tabs = [
+  { label: '数据看板', value: 'analytics', icon: 'chart-2', category: 'core', keywords: '流量,监控,访客,pv,uv,分析,统计' },
+  { label: '广播公告', value: 'announcement', icon: 'notification', category: 'core', keywords: '公告,通知,跑马灯,广播,弹窗,banner,胶囊,置顶,消息' },
+  { label: '订单管理', value: 'orders', icon: 'receipt-item', category: 'core', keywords: '订单,支付,交易,收益,账单,金额' },
+  { label: '专属交付', value: 'delivery-library', icon: 'video-play', category: 'core', keywords: '交付,私密,下载,项目分发,客户交付' },
+  { label: '作品管理', value: 'projects', icon: 'video-play', category: 'content', keywords: '视频,作品,案例,portfolio,调色,4k' },
+  { label: '博客文章', value: 'blog', icon: 'document-text', category: 'content', keywords: '文章,博客,资讯,内容,写作' },
+  { label: '首页配置', value: 'home', icon: 'home-2', category: 'content', keywords: '首页,标题,视频,英雄区,标签,slogan' },
+  { label: '个人履历', value: 'about', icon: 'user', category: 'content', keywords: '关于我,简历,经历,哲学,技能,履历' },
+  { label: '合作预约', value: 'bookings', icon: 'calendar-2', category: 'business', keywords: '预约,排期,咨询,档期,日历' },
+  { label: '授权申请', value: 'requests', icon: 'key', category: 'business', keywords: '密码,申请,授权,查看权限,访客申请' },
+  { label: '用户管理', value: 'users', icon: 'profile-2user', category: 'business', keywords: '用户,客户,账号,会员,名单' },
+  { label: '支付宝配置', value: 'alipay', icon: 'card', category: 'business', keywords: '支付,支付宝,商户,签约,交易,收款' },
+  { label: '站点信息', value: 'siteinfo', icon: 'global', category: 'system', keywords: '站点,SEO,邮箱,微信,品牌,社交,联系方式' },
+  { label: '水印设置', value: 'watermark', icon: 'lock', category: 'system', keywords: '水印,防盗,隐形水印,版权,明水印' },
+  { label: '高级设置', value: 'advanced', icon: 'setting', category: 'system', keywords: '高级,音乐,调色盘,邮箱,AI,密码,安全,备份' }
+]
+
+const filteredTabs = computed(() => {
+  let list = tabs
+  if (selectedCategory.value !== 'all') {
+    list = list.filter(t => t.category === selectedCategory.value)
+  }
+  if (tabSearch.value.trim()) {
+    const q = tabSearch.value.trim().toLowerCase()
+    list = list.filter(t =>
+      t.label.toLowerCase().includes(q) ||
+      t.value.toLowerCase().includes(q) ||
+      (t.keywords && t.keywords.toLowerCase().includes(q))
+    )
+  }
+  return list
+})
+
+const scrollToTop = () => {
+
+  if (import.meta.client) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+const isSaving = ref(false)
+
+// Global Save Shortcut Ctrl+S / Cmd+S
+const handleGlobalKeydown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+    e.preventDefault()
+    if (isLoggedIn.value) {
+      saveSiteConfig()
+    }
+  }
+}
+
+onMounted(() => {
+  if (import.meta.client) {
+    window.addEventListener('keydown', handleGlobalKeydown)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (import.meta.client) {
+    window.removeEventListener('keydown', handleGlobalKeydown)
+  }
+})
+
 
 const showLivePreview = ref(false)
 const previewIframe = ref<HTMLIFrameElement | null>(null)
@@ -3396,7 +3698,29 @@ const siteConfig = useState<any>('site-config', () => ({
   }
 }))
 
+// Dirty State Tracker
+const initialConfigHash = ref('')
+const computeConfigHash = (obj: any) => {
+  try {
+    return JSON.stringify(obj || {})
+  } catch {
+    return ''
+  }
+}
+
+watch(siteConfig, () => {
+  if (!initialConfigHash.value && siteConfig.value) {
+    initialConfigHash.value = computeConfigHash(siteConfig.value)
+  }
+}, { immediate: true })
+
+const isDirty = computed(() => {
+  if (!initialConfigHash.value || !siteConfig.value) return false
+  return computeConfigHash(siteConfig.value) !== initialConfigHash.value
+})
+
 const alipayConfig = ref<any>({
+
   enabled: false,
   appId: '',
   gateway: 'https://openapi.alipay.com/gateway.do',
@@ -4120,11 +4444,14 @@ onBeforeUnmount(() => {
 const adminNewPassword = ref('')
 
 const saveSiteConfig = async () => {
+  if (isSaving.value) return
+  isSaving.value = true
   try {
     // Validate adminPath: must be non-empty, lowercase, no spaces or special chars
     const newPath = (siteConfig.value.admin?.adminPath || 'admin').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')
     if (!newPath) {
-      alert('后台路径不能为空，请输入有效的路径名称（仅限英文字母、数字、-、_）。')
+      showToast('后台路径不能为空，请输入有效的路径名称（仅限英文字母、数字、-、_）。', 'error')
+      isSaving.value = false
       return
     }
     siteConfig.value.admin.adminPath = newPath
@@ -4143,7 +4470,19 @@ const saveSiteConfig = async () => {
       delete siteConfig.value.admin.newPassword
     }
 
-    alert('🎉 配置保存成功！')
+    // Clear dismissal suppression cache so new announcement displays immediately
+    if (import.meta.client) {
+      try {
+        localStorage.removeItem('xo_announcement_dismissed')
+        localStorage.removeItem('xo_announcement_dismissed_hash')
+        clearNuxtData('site-config-global')
+      } catch (e) {}
+    }
+
+    // Refresh dirty state hash
+    initialConfigHash.value = computeConfigHash(siteConfig.value)
+
+    showToast('🎉 全站配置保存成功！', 'success')
 
     // If admin path changed, redirect to the new URL
     if (newPath !== oldPath) {
@@ -4151,8 +4490,13 @@ const saveSiteConfig = async () => {
     } else if (showLivePreview.value) {
       setTimeout(refreshPreview, 300)
     }
-  } catch (e: any) { alert(e.statusMessage || '保存失败。') }
+  } catch (e: any) {
+    showToast(e.statusMessage || e.message || '保存失败，请检查网络或会话。', 'error')
+  } finally {
+    isSaving.value = false
+  }
 }
+
 
 const updateTempExpInput = (idx: number, val: string) => { tempExpInputs.value[idx] = val }
 
@@ -4791,12 +5135,13 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     top: 2.5rem;
     left: 1.5rem;
     width: 224px;
-    min-height: calc(100vh - 5rem);
+    height: calc(100vh - 5rem);
     padding: 1.1rem;
+    display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    gap: 1rem;
+    gap: 0.75rem;
     border: 1px solid rgba(160, 130, 90, 0.18);
     border-radius: 1.25rem;
     background: rgba(255, 255, 255, 0.72);
@@ -4808,8 +5153,9 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     display: flex;
     align-items: center;
     gap: 0.7rem;
-    padding: 0.25rem 0.35rem 0.85rem;
+    padding: 0.25rem 0.35rem 0.65rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
   }
 
   .admin-brand-mark {
@@ -4845,20 +5191,26 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
   .admin-tabs {
     width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
     flex-direction: column;
     align-items: stretch;
-    overflow: visible;
+    gap: 0.25rem;
     background: transparent !important;
     border: 0 !important;
-    padding: 0 !important;
+    padding: 0 0.15rem 0 0 !important;
   }
 
   .admin-tabs > button {
     justify-content: flex-start;
     width: 100%;
-    min-height: 2.5rem;
-    padding: 0.65rem 0.75rem;
+    min-height: 2.35rem;
+    padding: 0.5rem 0.65rem;
     border-radius: 0.7rem;
+    flex-shrink: 0;
   }
 
   .admin-tabs > button:not(.tab-pill-active) {
@@ -4871,15 +5223,15 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
   .admin-quick-actions {
     width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    padding-top: 1rem;
+    margin-top: auto;
+    padding-top: 0.65rem;
     border-top: 1px solid rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
   }
 
   .admin-quick-actions > button {
     width: 100%;
-    text-align: left;
+    text-align: center;
   }
 
   .admin-tab-content {

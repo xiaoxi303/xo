@@ -631,7 +631,25 @@ const setupRevealObserver = () => {
 onMounted(async () => {
   await nextTick()
 
-  if (import.meta.client) playHeroEntrance()
+  if (import.meta.client) {
+    const preloaderRevealed = useState('xo_preloader_revealed', () => false)
+    const preloaderDone = useState('xo_preloader_done', () => false)
+
+    if (preloaderRevealed.value || preloaderDone.value) {
+      playHeroEntrance()
+    } else {
+      const stopWatch = watch([preloaderRevealed, preloaderDone], ([revealed, done]) => {
+        if (revealed || done) {
+          playHeroEntrance()
+          stopWatch()
+        }
+      })
+      // Safety fallback
+      setTimeout(() => {
+        if (!heroAnimated) playHeroEntrance()
+      }, 3000)
+    }
+  }
 
   setupRevealObserver()
 })

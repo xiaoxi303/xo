@@ -1,107 +1,220 @@
 <template>
   <div>
     <AppPreloader v-if="!preloaderDone && !isPanelPage" @complete="onPreloaderComplete" @reveal-start="onPreloaderRevealStart" />
-    <!-- 1. Top Sticky Bar Announcement (顶部置顶模式) -->
+    <!-- 1. Top Sticky Bar Announcement (顶部置顶流光通告条) -->
     <Transition name="banner-top">
       <div
-        v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isPanelPage"
-        class="fixed top-0 inset-x-0 z-[100] py-2 px-4 shadow-md border-b flex items-center justify-between text-xs font-sans backdrop-blur-md transition-all"
+        v-if="isAnnouncementActive && announcement?.position === 'top-bar'"
+        class="fixed top-0 inset-x-0 z-[100] py-2 px-4 shadow-[0_4px_24px_rgba(0,0,0,0.18)] border-b flex items-center justify-between text-xs font-sans backdrop-blur-xl transition-all overflow-hidden"
         :class="getTopBarBgClass(announcement?.badgeColor)"
       >
-        <div class="max-w-6xl mx-auto flex-1 flex items-center justify-center gap-3 overflow-hidden px-2">
+        <!-- Subtle Ambient Shimmer Stream -->
+        <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent -translate-x-full animate-shimmer-sweep pointer-events-none" />
+
+        <div class="max-w-6xl mx-auto flex-1 flex items-center justify-center gap-3 overflow-hidden px-2 relative z-10">
           <!-- Badge -->
-          <span class="text-[9px] font-bold font-mono uppercase px-2 py-0.5 rounded-full tracking-wider border flex-shrink-0 relative overflow-hidden" :class="getBadgeClass(announcement?.badgeColor)">
-            <span class="animate-pulse absolute inset-0 bg-white/20 rounded-full" />
-            {{ announcement.badge || '公告' }}
+          <span
+            class="text-[9px] font-bold font-mono uppercase px-2.5 py-0.5 rounded-full tracking-wider border flex items-center gap-1.5 flex-shrink-0 shadow-sm relative overflow-hidden"
+            :class="getBadgeClass(announcement?.badgeColor)"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+            <span>{{ announcement.badge || 'NOTICE' }}</span>
           </span>
 
-          <!-- Text (marquee or static) -->
-          <div class="overflow-hidden relative max-w-full">
-            <p :class="announcement.animation === 'marquee' ? 'animate-marquee whitespace-nowrap' : 'line-clamp-1'" class="font-medium text-xs">
+          <!-- Optional Subtitle -->
+          <span v-if="announcement.subtitle" class="hidden sm:inline-block text-[11px] font-mono opacity-60 font-semibold tracking-wide flex-shrink-0">
+            {{ announcement.subtitle }} ·
+          </span>
+
+          <!-- Text (marquee or static) with Edge Mask Fade -->
+          <div class="overflow-hidden relative max-w-full px-2" style="mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);">
+            <p :class="announcement.animation === 'marquee' ? 'animate-marquee whitespace-nowrap' : (announcement.animation === 'fade' ? 'animate-fade-soft' : 'line-clamp-1')" class="font-medium text-xs tracking-wide">
               {{ announcement.text }}
             </p>
           </div>
 
-          <!-- Link or Detail -->
+          <!-- Link or Detail CTA Button -->
           <a
             v-if="announcement.link"
             :href="announcement.link"
-            class="text-[11px] font-bold hover:underline flex items-center gap-1 flex-shrink-0 opacity-90 hover:opacity-100 transition-opacity"
+            class="text-[11px] font-bold hover:underline flex items-center gap-1 flex-shrink-0 opacity-90 hover:opacity-100 transition-all hover:translate-x-0.5"
           >
-            {{ announcement.ctaText || '查看详情 →' }}
+            <span>{{ announcement.ctaText || '查看详情' }}</span>
+            <span class="font-mono text-xs">→</span>
           </a>
           <button
             v-else
+            type="button"
             @click="showAnnouncementDetail = true"
-            class="text-[11px] font-bold hover:underline flex items-center gap-1 flex-shrink-0 opacity-90 hover:opacity-100 transition-opacity"
+            class="text-[11px] font-bold hover:underline flex items-center gap-1 flex-shrink-0 opacity-90 hover:opacity-100 transition-all hover:translate-x-0.5 cursor-pointer"
           >
-            {{ announcement.ctaText || '查看详情 →' }}
+            <span>{{ announcement.ctaText || '查看详情' }}</span>
+            <span class="font-mono text-xs">→</span>
           </button>
         </div>
 
-        <!-- Close -->
+        <!-- Right Quick Action Controls -->
+        <div class="flex items-center gap-1 flex-shrink-0 ml-2 relative z-10">
+          <button
+            type="button"
+            @click="minimizeBanner"
+            class="opacity-60 hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-white/10 text-[10px] font-mono cursor-pointer"
+            title="最小化收起到角落"
+          >
+            一
+          </button>
+          <button
+            type="button"
+            @click="dismissBanner"
+            class="opacity-60 hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-white/10 cursor-pointer"
+            title="关闭本次广播"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" class="w-3.5 h-3.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 2. Floating Capsule Announcement (左下角极奢悬浮胶囊模式) -->
+    <Transition name="banner-capsule">
+      <div
+        v-if="isAnnouncementActive && (announcement?.position === 'capsule' || !announcement?.position)"
+        class="fixed bottom-6 left-6 z-[60] max-w-[calc(100vw-3rem)] sm:max-w-sm rounded-2xl p-4 shadow-[0_16px_48px_rgba(80,60,30,0.16)] border flex items-start gap-3.5 transition-all duration-500 backdrop-blur-2xl group hover:shadow-[0_20px_56px_rgba(80,60,30,0.22)] hover:-translate-y-0.5"
+        style="background: rgba(254, 252, 248, 0.95); border-color: rgba(200, 185, 160, 0.45);"
+      >
+        <!-- Indicator Ping Dot -->
+        <span class="flex h-2.5 w-2.5 mt-1 relative flex-shrink-0">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="getPingColor(announcement?.badgeColor)" />
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5" :class="getDotColor(announcement?.badgeColor)" />
+        </span>
+
+        <!-- Main Content Body -->
+        <div class="flex-1 space-y-1.5 pr-1">
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] font-bold tracking-widest font-mono uppercase px-2 py-0.5 rounded-full border shadow-xs" :class="getBadgeClass(announcement?.badgeColor)">
+              {{ announcement.badge || 'NOTICE' }}
+            </span>
+            <span v-if="announcement.subtitle" class="text-[10px] font-mono font-medium" style="color: var(--color-ink-4)">
+              {{ announcement.subtitle }}
+            </span>
+          </div>
+
+          <p class="text-xs font-semibold leading-relaxed" style="color: var(--color-ink-1)">
+            {{ announcement.text }}
+          </p>
+
+          <div class="pt-0.5 flex items-center gap-3">
+            <a
+              v-if="announcement.link"
+              :href="announcement.link"
+              class="inline-flex items-center gap-1 text-[11px] font-bold hover:opacity-80 transition-all hover:translate-x-0.5"
+              style="color: var(--color-brand-accent)"
+            >
+              <span>{{ announcement.ctaText || '查看详情' }}</span>
+              <span class="font-mono">→</span>
+            </a>
+            <button
+              v-else
+              type="button"
+              @click="showAnnouncementDetail = true"
+              class="inline-flex items-center gap-1 text-[11px] font-bold hover:opacity-80 transition-all hover:translate-x-0.5 cursor-pointer"
+              style="color: var(--color-brand-accent)"
+            >
+              <span>{{ announcement.ctaText || '查看详情' }}</span>
+              <span class="font-mono">→</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Close / Minimize Button -->
         <button
           type="button"
           @click="dismissBanner"
-          class="opacity-60 hover:opacity-100 transition-opacity p-1 ml-2 flex-shrink-0"
+          class="text-black/30 hover:text-black/70 hover:bg-black/5 p-1 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
+          title="关闭"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
     </Transition>
 
-    <!-- 2. Floating Capsule Announcement (Bottom-Left 胶囊模式) -->
-    <Transition name="banner-capsule">
+    <!-- 3. Popup Modal Mode Announcement (进站首屏震撼弹窗模式) -->
+    <Transition name="banner-modal">
       <div
-        v-if="announcement?.enabled && announcement?.text && showBanner && announcement?.position !== 'top-bar' && !isPanelPage"
-        class="fixed bottom-6 left-6 z-[60] max-w-sm rounded-2xl p-4 shadow-[0_12px_40px_rgba(80,60,30,0.12)] border flex items-start gap-3.5 transition-all duration-500 backdrop-blur-xl"
-        style="background: rgba(252, 248, 242, 0.94); border-color: rgba(200, 185, 160, 0.35);"
+        v-if="isAnnouncementActive && announcement?.position === 'modal'"
+        class="fixed inset-0 z-[999998] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none"
+        @click.self="dismissBanner"
       >
-        <!-- Indicator Dot -->
-        <span class="flex h-2 w-2 mt-1.5 relative flex-shrink-0">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background-color: var(--color-brand-accent)"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2" style="background-color: var(--color-brand-accent)"></span>
-        </span>
-
-        <!-- Content -->
-        <div class="flex-1 space-y-1.5 pr-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-[9px] font-bold tracking-widest font-mono uppercase px-2 py-0.5 rounded-full border" :class="getBadgeClass(announcement?.badgeColor)">
-              {{ announcement.badge || '公告' }}
-            </span>
+        <div class="glass-card p-8 rounded-3xl max-w-lg w-full space-y-6 border-2 border-amber-500/30 bg-white/95 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700" />
+          <div class="flex items-center justify-between border-b pb-4 border-black/10">
+            <div class="flex items-center gap-2.5">
+              <span class="text-2xl">📢</span>
+              <div>
+                <span class="text-[10px] font-mono uppercase font-bold tracking-wider opacity-60">ANNOUNCEMENT</span>
+                <h3 class="font-bold text-base text-[#121316]">
+                  {{ announcement?.subtitle || '重要通知与活动' }}
+                </h3>
+              </div>
+            </div>
+            <button type="button" @click="dismissBanner" class="text-slate-400 hover:text-black font-bold text-lg p-1 cursor-pointer">✕</button>
           </div>
-          <p class="text-xs font-semibold leading-relaxed" style="color: var(--color-ink-1)">
-            {{ announcement.text }}
-          </p>
-          <a
-            v-if="announcement.link"
-            :href="announcement.link"
-            class="inline-block text-[10px] font-bold hover:opacity-80 transition-opacity underline"
-            style="color: var(--color-brand-accent)"
-          >
-            {{ announcement.ctaText || '查看详情 →' }}
-          </a>
-          <button
-            v-else
-            @click="showAnnouncementDetail = true"
-            class="inline-block text-[10px] font-bold hover:opacity-80 transition-opacity underline"
-            style="color: var(--color-brand-accent)"
-          >
-            {{ announcement.ctaText || '查看详情 →' }}
-          </button>
-        </div>
 
-        <!-- Close Button -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold font-mono uppercase px-2.5 py-0.5 rounded-full" :class="getBadgeClass(announcement?.badgeColor)">
+                {{ announcement?.badge || 'NOTICE' }}
+              </span>
+            </div>
+            <p class="text-sm text-slate-800 leading-relaxed font-medium">
+              {{ announcement?.text }}
+            </p>
+          </div>
+
+          <div class="flex items-center justify-between pt-4 border-t border-black/10">
+            <label class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" v-model="rememberDismissal" class="rounded accent-amber-600" />
+              <span>24小时内不再弹出</span>
+            </label>
+            <div class="flex gap-2">
+              <a
+                v-if="announcement.link"
+                :href="announcement.link"
+                class="btn-primary px-5 py-2 text-xs font-bold"
+              >
+                {{ announcement.ctaText || '立即前往 →' }}
+              </a>
+              <button
+                type="button"
+                @click="dismissBanner"
+                class="px-4 py-2 text-xs font-bold rounded-xl border border-black/10 hover:bg-black/5"
+              >
+                知道了
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 4. Collapsible Persistent Bell (收起后常驻极简晶体小挂件) -->
+    <Transition name="fade">
+      <div
+        v-if="!showBanner && announcement?.enabled && announcement?.text && !isPanelPage"
+        class="fixed bottom-6 left-6 z-[59] select-none"
+      >
         <button
           type="button"
-          @click="dismissBanner"
-          class="text-black/30 hover:text-black/70 transition-colors flex-shrink-0"
+          @click="showBanner = true"
+          class="h-9 px-3.5 rounded-full border border-amber-600/35 bg-[#181614]/90 text-amber-200 text-xs font-bold font-mono tracking-wider backdrop-blur-xl shadow-lg flex items-center gap-2 hover:scale-105 hover:bg-[#181614] hover:border-amber-500/60 transition-all active:scale-95 group cursor-pointer"
+          :title="`查看公告: ${announcement.text}`"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span class="group-hover:translate-x-0.5 transition-transform">📢 {{ announcement.badge || '公告' }}</span>
         </button>
       </div>
     </Transition>
@@ -144,8 +257,8 @@
     </div>
 
     <!-- Main Layout Content Slot -->
-    <div :class="{'pt-10': announcement?.enabled && announcement?.text && showBanner && announcement?.position === 'top-bar' && !isPanelPage}">
-      <AppNavbar v-if="!isPanelPage" />
+    <div :class="{'pt-10': isAnnouncementActive && announcement?.position === 'top-bar'}">
+      <AppNavbar v-if="!isPanelPage" :style="isAnnouncementActive && announcement?.position === 'top-bar' ? { top: '38px' } : {}" />
       <main>
         <slot />
       </main>
@@ -153,34 +266,50 @@
     </div>
   </div>
 
-    <!-- Announcement Detail Modal -->
-    <Transition name="banner-modal">
-      <div v-if="showAnnouncementDetail" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" @click.self="showAnnouncementDetail = false">
-        <div class="glass-card p-8 rounded-3xl max-w-lg w-full space-y-6 border-2 border-amber-500/30 bg-white/95 shadow-2xl">
-          <div class="flex items-center justify-between border-b pb-4 border-black/10">
-            <div class="flex items-center gap-3">
-              <span class="text-2xl">📢</span>
-              <h3 class="font-bold text-lg text-[#121316]">广播详情</h3>
+  <!-- Announcement Detail Modal (富文本全景弹窗) -->
+  <Transition name="banner-modal">
+    <div v-if="showAnnouncementDetail" class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none" @click.self="showAnnouncementDetail = false">
+      <div class="glass-card p-8 rounded-3xl max-w-lg w-full space-y-6 border-2 border-amber-500/30 bg-white/95 shadow-2xl relative overflow-hidden">
+        <div class="flex items-center justify-between border-b pb-4 border-black/10">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📢</span>
+            <div>
+              <span class="text-[10px] font-mono uppercase font-bold tracking-wider opacity-60">BROADCAST DETAIL</span>
+              <h3 class="font-bold text-lg text-[#121316]">{{ announcement?.subtitle || '公告广播详情' }}</h3>
             </div>
-            <button type="button" @click="showAnnouncementDetail = false" class="text-slate-400 hover:text-black font-bold text-xl">✕</button>
           </div>
-          <div class="space-y-4">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold font-mono uppercase px-2 py-0.5 rounded-full" :class="getBadgeClass(announcement?.badgeColor)">
-                {{ announcement?.badge || '公告' }}
-              </span>
-            </div>
-            <p class="text-sm text-slate-700 leading-relaxed">{{ announcement?.text }}</p>
+          <button type="button" @click="showAnnouncementDetail = false" class="text-slate-400 hover:text-black font-bold text-xl cursor-pointer">✕</button>
+        </div>
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold font-mono uppercase px-2.5 py-0.5 rounded-full" :class="getBadgeClass(announcement?.badgeColor)">
+              {{ announcement?.badge || 'NOTICE' }}
+            </span>
           </div>
-          <div class="flex justify-end pt-4 border-t border-black/10">
-            <button type="button" @click="showAnnouncementDetail = false" class="btn-primary px-6 py-2 text-sm">知道了</button>
+          <p class="text-sm text-slate-800 leading-relaxed font-medium whitespace-pre-wrap">{{ announcement?.text }}</p>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-black/10">
+          <span class="text-[11px] font-mono text-slate-400">Xo Studio · 实时广播网络</span>
+          <div class="flex gap-2">
+            <a
+              v-if="announcement?.link"
+              :href="announcement.link"
+              class="btn-primary px-5 py-2 text-xs font-bold"
+            >
+              {{ announcement.ctaText || '立即前往 →' }}
+            </a>
+            <button type="button" @click="showAnnouncementDetail = false" class="px-5 py-2 text-xs font-bold rounded-xl border border-black/10 hover:bg-black/5 cursor-pointer">知道了</button>
           </div>
         </div>
       </div>
-    </Transition>
+    </div>
+  </Transition>
+
 </template>
 
 <script setup lang="ts">
+const route = useRoute()
+
 const preloaderDone = useState('xo_preloader_done', () => false)
 const preloaderRevealed = useState('xo_preloader_revealed', () => false)
 
@@ -194,35 +323,120 @@ const onPreloaderComplete = () => {
   if (import.meta.client) document.body.style.overflow = ''
 }
 
-// useState persists across route changes — does NOT reset on navigation
-const { data: siteConfigData } = useFetch('/api/site-config', { lazy: true })
-const siteConfig = useState('site-config', () => siteConfigData.value || {})
+// Load full site configuration with guaranteed SSR hydration
+const { data: siteConfigData } = await useAsyncData('site-config-global', () => $fetch('/api/site-config'))
+const siteConfig = useState<any>('site-config', () => siteConfigData.value || {})
+
+if (siteConfigData.value && typeof siteConfigData.value === 'object') {
+  siteConfig.value = { ...siteConfig.value, ...siteConfigData.value }
+}
+
+const configuredAdminPath = computed(() => siteConfig.value?.admin?.adminPath || 'admin')
+
+const isAdminPage = computed(() => {
+  const path = (route.path || '').replace(/^\/|\/$/, '')
+  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\/$/, '')
+  return path === adminPath || path.startsWith(`${adminPath}/`)
+})
+
+const isPanelPage = computed(() => {
+  const path = (route.path || '').replace(/^\/|\/$/, '')
+  const isClient = path === 'client' || path.startsWith('client/') || path === 'login' || path === 'register'
+  const isDelivery = path === 'delivery' || path.startsWith('delivery/')
+  const isOrder = path === 'order' || path.startsWith('order/')
+  return isAdminPage.value || isClient || isDelivery || isOrder || path === 'xo-watermark' || path.startsWith('xo-watermark/')
+})
+
+const announcement = computed(() => {
+  return siteConfig.value?.announcement || siteConfigData.value?.announcement || null
+})
 
 const showAnnouncementDetail = ref(false)
 const showBanner = ref(true)
+const rememberDismissal = ref(true)
+
+const DISMISSED_KEY = 'xo_announcement_dismissed'
+const DISMISSED_HASH_KEY = 'xo_announcement_dismissed_hash'
+
+const announcementHash = computed(() => {
+  const a = announcement.value
+  if (!a) return ''
+  return `${a.enabled ? '1' : '0'}_${a.text || ''}_${a.badge || ''}_${a.position || ''}`
+})
+
+const checkBannerDismissal = () => {
+  if (import.meta.client) {
+    try {
+      const a = announcement.value
+      const isEnabled = Boolean(a?.enabled === true || a?.enabled === 'true' || a?.enabled === 1)
+      const hasText = Boolean(a?.text && String(a.text).trim().length > 0)
+      if (!isEnabled || !hasText) {
+        showBanner.value = false
+        return
+      }
+
+      const durationHours = Number(a.dismissDuration ?? 24)
+      if (durationHours === 0) {
+        showBanner.value = true
+        return
+      }
+
+      const currentHash = announcementHash.value
+      const lastDismissedHash = localStorage.getItem(DISMISSED_HASH_KEY)
+
+      // Only hide if the visitor specifically dismissed THIS exact announcement content
+      if (lastDismissedHash && lastDismissedHash === currentHash) {
+        const dismissed = localStorage.getItem(DISMISSED_KEY)
+        if (dismissed) {
+          const timestamp = parseInt(dismissed, 10)
+          if (Date.now() - timestamp < durationHours * 60 * 60 * 1000) {
+            showBanner.value = false
+            return
+          }
+        }
+      }
+
+      // In all other cases (new announcement, edited copy, or legacy dismissal), show the banner!
+      showBanner.value = true
+    } catch (e) {
+      showBanner.value = true
+    }
+  }
+}
+
+// Robust unified active status check
+const isAnnouncementActive = computed(() => {
+  const a = announcement.value
+  const isEnabled = Boolean(a?.enabled === true || a?.enabled === 'true' || a?.enabled === 1)
+  const hasText = Boolean(a?.text && String(a.text).trim().length > 0)
+  return isEnabled && hasText && showBanner.value && !isPanelPage.value
+})
+
+watch(siteConfigData, (newData) => {
+  if (newData && typeof newData === 'object' && Object.keys(newData).length > 0) {
+    siteConfig.value = { ...siteConfig.value, ...newData }
+    checkBannerDismissal()
+  }
+}, { immediate: true })
+
+watch(announcementHash, () => {
+  checkBannerDismissal()
+})
 
 const dismissBanner = () => {
   showBanner.value = false
   if (import.meta.client) {
     try {
-      localStorage.setItem('xo_announcement_dismissed', Date.now().toString())
+      if (rememberDismissal.value) {
+        localStorage.setItem(DISMISSED_KEY, Date.now().toString())
+        localStorage.setItem(DISMISSED_HASH_KEY, announcementHash.value)
+      }
     } catch (e) {}
   }
 }
 
-const checkBannerDismissal = () => {
-  if (import.meta.client) {
-    try {
-      const dismissed = localStorage.getItem('xo_announcement_dismissed')
-      if (dismissed) {
-        const timestamp = parseInt(dismissed, 10)
-        // 24 hours dismissal window
-        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-          showBanner.value = false
-        }
-      }
-    } catch (e) {}
-  }
+const minimizeBanner = () => {
+  showBanner.value = false
 }
 
 const accentColors = {
@@ -234,26 +448,52 @@ const accentColors = {
 
 const showOrbs = computed(() => siteConfig.value?.theme?.showOrbs ?? true)
 const showFilmGrain = computed(() => siteConfig.value?.theme?.showFilmGrain ?? true)
-const announcement = computed(() => siteConfig.value?.announcement)
 const preset = computed(() => siteConfig.value?.theme?.accentPreset || 'bronze')
 
 const getBadgeClass = (color?: string) => {
   switch (color) {
-    case 'emerald': return 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
-    case 'rose': return 'bg-rose-500/10 text-rose-700 border-rose-500/20'
-    case 'indigo': return 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20'
-    default: return 'bg-amber-600/10 text-amber-800 border-amber-600/20'
+    case 'emerald': return 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+    case 'rose': return 'bg-rose-500/15 text-rose-700 border-rose-500/30'
+    case 'indigo': return 'bg-indigo-500/15 text-indigo-700 border-indigo-500/30'
+    case 'violet': return 'bg-purple-500/15 text-purple-700 border-purple-500/30'
+    case 'dark': return 'bg-slate-900/10 text-slate-800 border-slate-900/20'
+    default: return 'bg-amber-600/15 text-amber-800 border-amber-600/30'
   }
 }
 
 const getTopBarBgClass = (color?: string) => {
   switch (color) {
-    case 'emerald': return 'bg-emerald-950/90 border-emerald-800/40 text-emerald-100'
-    case 'rose': return 'bg-rose-950/90 border-rose-800/40 text-rose-100'
-    case 'indigo': return 'bg-indigo-950/90 border-indigo-800/40 text-indigo-100'
-    default: return 'bg-[#181614]/95 border-amber-900/30 text-amber-100'
+    case 'emerald': return 'bg-emerald-950/95 border-emerald-700/40 text-emerald-100'
+    case 'rose': return 'bg-rose-950/95 border-rose-700/40 text-rose-100'
+    case 'indigo': return 'bg-indigo-950/95 border-indigo-700/40 text-indigo-100'
+    case 'violet': return 'bg-purple-950/95 border-purple-700/40 text-purple-100'
+    case 'dark': return 'bg-[#121316]/98 border-slate-700/40 text-slate-100'
+    default: return 'bg-[#1a1612]/98 border-amber-800/40 text-amber-100'
   }
 }
+
+const getDotColor = (color?: string) => {
+  switch (color) {
+    case 'emerald': return 'bg-emerald-500'
+    case 'rose': return 'bg-rose-500'
+    case 'indigo': return 'bg-indigo-500'
+    case 'violet': return 'bg-purple-500'
+    case 'dark': return 'bg-slate-700'
+    default: return 'bg-amber-500'
+  }
+}
+
+const getPingColor = (color?: string) => {
+  switch (color) {
+    case 'emerald': return 'bg-emerald-400'
+    case 'rose': return 'bg-rose-400'
+    case 'indigo': return 'bg-indigo-400'
+    case 'violet': return 'bg-purple-400'
+    case 'dark': return 'bg-slate-400'
+    default: return 'bg-amber-400'
+  }
+}
+
 
 watch(preset, (val) => {
   const ac = accentColors[val as keyof typeof accentColors] || accentColors.bronze
@@ -281,24 +521,6 @@ watch(showFilmGrain, (val) => {
     else document.body.classList.remove('no-grain')
   }
 }, { immediate: true })
-
-// Hide player and footer/navbar only on actual admin pages
-const route = useRoute()
-const configuredAdminPath = computed(() => siteConfig.value?.admin?.adminPath || 'admin')
-
-const isAdminPage = computed(() => {
-  const path = (route.path || '').replace(/^\/|\/$/, '')
-  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\/$/, '')
-  return path === adminPath || path.startsWith(`${adminPath}/`)
-})
-
-const isPanelPage = computed(() => {
-  const path = (route.path || '').replace(/^\/|\/$/, '')
-  const isClient = path === 'client' || path.startsWith('client/') || path === 'login' || path === 'register'
-  const isDelivery = path === 'delivery' || path.startsWith('delivery/')
-  const isOrder = path === 'order' || path.startsWith('order/')
-  return isAdminPage.value || isClient || isDelivery || isOrder || path === 'xo-watermark' || path.startsWith('xo-watermark/')
-})
 
 // Ambient Soundscape Player States & Logic
 const isPlaying = ref(false)
@@ -472,4 +694,21 @@ onBeforeUnmount(() => {
 .animate-beat-bar {
   animation: beat-bar 0.8s ease-in-out infinite alternate;
 }
+
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 5s infinite;
+}
+
+@keyframes fade-soft {
+  0%, 100% { opacity: 0.88; }
+  50% { opacity: 1; }
+}
+.animate-fade-soft {
+  animation: fade-soft 3s ease-in-out infinite;
+}
 </style>
+
