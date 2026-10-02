@@ -109,10 +109,13 @@
     <!-- Client Portal Floating Icon Action Button (Bottom-Right) -->
     <div
       v-if="!isPanelPage"
-      class="fixed bottom-6 right-6 z-[60] group flex items-center justify-center"
+      class="fixed bottom-6 right-6 z-[60] group flex items-center justify-center select-none"
     >
-      <!-- Hover Tooltip -->
-      <div class="absolute bottom-full right-0 mb-3 px-3 py-1.5 rounded-xl bg-stone-900/90 text-amber-300 text-[11px] font-bold tracking-wide backdrop-blur-md border border-amber-500/30 shadow-xl opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 pointer-events-none whitespace-nowrap flex items-center gap-1.5">
+      <!-- Soft breathing ambient glow -->
+      <span class="absolute -inset-1.5 rounded-full bg-gradient-to-tr from-amber-500/25 to-amber-600/15 blur-md pointer-events-none group-hover:scale-125 transition-transform duration-500 animate-pulse" />
+
+      <!-- Hover Tooltip with Spring Ease -->
+      <div class="absolute bottom-full right-0 mb-3 px-3 py-1.5 rounded-xl bg-stone-900/90 text-amber-300 text-[11px] font-bold tracking-wide backdrop-blur-md border border-amber-500/30 shadow-xl opacity-0 translate-y-1.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 cubic-bezier(0.175, 0.885, 0.32, 1.25) pointer-events-none whitespace-nowrap flex items-center gap-1.5">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
         <span>{{ clientLoggedIn ? `客户控制中心 (${clientName})` : '客户登录中心' }}</span>
       </div>
@@ -126,9 +129,9 @@
         <!-- Indicator Dot -->
         <span class="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
 
-        <!-- Icon -->
-        <IconSax v-if="clientLoggedIn" name="crown" :size="22" class="text-amber-700 transition-transform duration-300 group-hover:scale-110" />
-        <IconSax v-else name="key" :size="22" class="text-amber-800 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
+        <!-- Icon with Spring Micro-motion -->
+        <IconSax v-if="clientLoggedIn" name="crown" :size="22" class="text-amber-700 transition-transform duration-300 group-hover:scale-115" />
+        <IconSax v-else name="key" :size="22" class="text-amber-800 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-12" />
       </NuxtLink>
     </div>
 

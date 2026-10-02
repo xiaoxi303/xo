@@ -25,11 +25,11 @@
 
       <!-- Services Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 reveal">
-        <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10">
-          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700">
+        <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10 hover:border-amber-500/40 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 ease-[var(--xo-ease-spring)] group">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 group-hover:scale-110 transition-transform duration-300 ease-[var(--xo-ease-spring)]">
             <IconSax name="video-play" :size="24" />
           </div>
-          <h3 class="font-display text-xl font-bold text-slate-900">商业TVC广告</h3>
+          <h3 class="font-display text-xl font-bold text-slate-900 group-hover:text-amber-800 transition-colors">商业TVC广告</h3>
           <p class="text-sm text-slate-500 leading-relaxed">
             专业的商业广告拍摄与后期制作，涵盖产品宣传片、品牌故事片、社交媒体广告等。
           </p>
@@ -40,11 +40,11 @@
           </ul>
         </div>
 
-        <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10">
-          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-700">
+        <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10 hover:border-purple-500/40 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 ease-[var(--xo-ease-spring)] group">
+          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-700 group-hover:scale-110 transition-transform duration-300 ease-[var(--xo-ease-spring)]">
             <IconSax name="magic-star" :size="24" />
           </div>
-          <h3 class="font-display text-xl font-bold text-slate-900">电影/纪录片调色</h3>
+          <h3 class="font-display text-xl font-bold text-slate-900 group-hover:text-purple-800 transition-colors">电影/纪录片调色</h3>
           <p class="text-sm text-slate-500 leading-relaxed">
             DaVinci Resolve专业调色，支持ACES色彩空间管理，打造电影级视觉质感。
           </p>
@@ -55,11 +55,11 @@
           </ul>
         </div>
 
-        <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10">
-          <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-700">
+        <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10 hover:border-indigo-500/40 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 ease-[var(--xo-ease-spring)] group">
+          <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-700 group-hover:scale-110 transition-transform duration-300 ease-[var(--xo-ease-spring)]">
             <IconSax name="security-safe" :size="24" />
           </div>
-          <h3 class="font-display text-xl font-bold text-slate-900">短视频制作</h3>
+          <h3 class="font-display text-xl font-bold text-slate-900 group-hover:text-indigo-800 transition-colors">短视频制作</h3>
           <p class="text-sm text-slate-500 leading-relaxed">
             TikTok、抖音、小红书等平台短视频内容策划、拍摄与后期制作。
           </p>
@@ -70,11 +70,11 @@
           </ul>
         </div>
 
-        <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-700">
+        <div class="glass-card p-8 space-y-4 rounded-3xl border-2 border-black/10 hover:border-emerald-500/40 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 ease-[var(--xo-ease-spring)] group">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-700 group-hover:scale-110 transition-transform duration-300 ease-[var(--xo-ease-spring)]">
             <IconSax name="crown" :size="24" />
           </div>
-          <h3 class="font-display text-xl font-bold text-slate-900">音效/配乐设计</h3>
+          <h3 class="font-display text-xl font-bold text-slate-900 group-hover:text-emerald-800 transition-colors">音效/配乐设计</h3>
           <p class="text-sm text-slate-500 leading-relaxed">
             专业的音频后期处理，包括环境音设计、配乐编曲、混音母带等。
           </p>
@@ -90,23 +90,23 @@
       <div class="glass-card p-8 sm:p-12 space-y-8 rounded-3xl border-2 border-black/10 reveal">
         <h2 class="font-display text-2xl font-bold text-slate-900 text-center">合作流程</h2>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div class="text-center space-y-3">
-            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mx-auto">1</div>
+          <div class="text-center space-y-3 group">
+            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300 ease-[var(--xo-ease-spring)] shadow-sm">1</div>
             <h4 class="font-bold text-slate-900">咨询沟通</h4>
             <p class="text-xs text-slate-500">了解项目需求、预算和时间节点</p>
           </div>
-          <div class="text-center space-y-3">
-            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mx-auto">2</div>
+          <div class="text-center space-y-3 group">
+            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300 ease-[var(--xo-ease-spring)] shadow-sm">2</div>
             <h4 class="font-bold text-slate-900">方案报价</h4>
             <p class="text-xs text-slate-500">提供详细的创意方案和报价单</p>
           </div>
-          <div class="text-center space-y-3">
-            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mx-auto">3</div>
+          <div class="text-center space-y-3 group">
+            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300 ease-[var(--xo-ease-spring)] shadow-sm">3</div>
             <h4 class="font-bold text-slate-900">签订合同</h4>
             <p class="text-xs text-slate-500">确认合作细节并签署正式合同</p>
           </div>
-          <div class="text-center space-y-3">
-            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mx-auto">4</div>
+          <div class="text-center space-y-3 group">
+            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 font-bold text-lg flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300 ease-[var(--xo-ease-spring)] shadow-sm">4</div>
             <h4 class="font-bold text-slate-900">项目交付</h4>
             <p class="text-xs text-slate-500">按约定时间高质量交付成品</p>
           </div>
@@ -115,7 +115,7 @@
 
       <!-- CTA Button -->
       <div class="text-center space-y-4 reveal">
-        <NuxtLink to="/booking/form" class="btn-primary inline-flex items-center gap-2 py-4 px-8 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all">
+        <NuxtLink to="/booking/form" class="xo-kinetic-btn btn-primary inline-flex items-center gap-2 py-4 px-8 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all">
           <span>📝</span>
           立即预约合作
         </NuxtLink>

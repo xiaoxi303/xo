@@ -5,13 +5,6 @@ interface SecureSessionState {
   error: string
 }
 
-const sessionKey = useState<SecureSessionState>('xo_secure_session', () => ({
-  ready: false,
-  algorithm: 'ECDH P-384',
-  fingerprint: '',
-  error: ''
-}))
-
 let keyPair: CryptoKeyPair | null = null
 let initPromise: Promise<void> | null = null
 
@@ -34,6 +27,13 @@ const shortFingerprint = async (publicKey: CryptoKey) => {
 }
 
 export const useSecureSession = () => {
+  const sessionKey = useState<SecureSessionState>('xo_secure_session', () => ({
+    ready: false,
+    algorithm: 'ECDH P-384',
+    fingerprint: '',
+    error: ''
+  }))
+
   const init = async () => {
     if (sessionKey.value.ready || initPromise) return initPromise
     initPromise = (async () => {

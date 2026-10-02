@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- Single Bento card with 3D tilt hover micro-interaction -->
   <div
     ref="cardRef"
@@ -59,16 +59,18 @@ const colSpanClass = computed(() => {
 
 const tiltStyle = computed(() => ({
   transform: isHovered.value
-    ? `perspective(800px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) scale3d(1.015, 1.015, 1.015)`
-    : 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+    ? `perspective(900px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) scale3d(1.018, 1.018, 1.018)`
+    : 'perspective(900px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
   transition: isHovered.value
-    ? 'transform 0.08s ease-out'
-    : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+    ? 'transform 0.12s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease'
+    : 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease',
+  willChange: 'transform',
+  backfaceVisibility: 'hidden' as const
 }))
 
 const shineStyle = computed(() => ({
   background: isHovered.value
-    ? `radial-gradient(circle at ${shineX.value}% ${shineY.value}%, rgba(255,255,255,0.08) 0%, transparent 65%)`
+    ? `radial-gradient(480px circle at ${shineX.value}% ${shineY.value}%, rgba(255,255,255,0.14) 0%, rgba(217,119,6,0.06) 40%, transparent 80%)`
     : 'none',
   opacity: isHovered.value ? 1 : 0,
 }))

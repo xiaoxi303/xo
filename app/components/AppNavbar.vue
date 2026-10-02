@@ -38,31 +38,45 @@
         />
       </NuxtLink>
 
-      <!-- Desktop nav links -->
+      <!-- Desktop nav links with Liquid Magnetic Sliding Pill -->
       <ul
+        ref="navUlRef"
         :class="[
-          'hidden md:flex items-center transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)',
+          'hidden md:flex items-center relative transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1) py-1',
           isScrolled ? 'gap-1' : 'gap-1.5'
         ]"
+        @mouseleave="resetPillToActive"
       >
-        <li v-for="link in navLinks" :key="link.to">
+        <!-- Liquid Sliding Pill Background Indicator -->
+        <span
+          class="absolute top-1 bottom-1 rounded-full pointer-events-none transition-all duration-[340ms] cubic-bezier(0.22, 1, 0.36, 1) z-0"
+          :style="{
+            transform: `translate3d(${pillLeft}px, 0, 0)`,
+            width: `${pillWidth}px`,
+            opacity: pillOpacity,
+            background: 'rgba(255, 255, 255, 0.88)',
+            boxShadow: '0 3px 12px rgba(180, 120, 40, 0.08), inset 0 1px 0 rgba(255,255,255,0.98)',
+            border: '1px solid rgba(0, 0, 0, 0.04)'
+          }"
+        />
+
+        <li
+          v-for="link in navLinks"
+          :key="link.to"
+          :ref="el => setItemRef(link.to, el as HTMLElement)"
+          class="relative z-10"
+          @mouseenter="movePillTo(link.to)"
+        >
           <NuxtLink
             :to="link.to"
             :class="[
-              'relative px-4 py-1.5 text-xs font-semibold tracking-wide transition-all duration-300 rounded-full group flex items-center justify-center',
+              'relative px-4 py-1.5 text-xs font-semibold tracking-wide transition-colors duration-200 rounded-full flex items-center justify-center select-none xo-kinetic-btn',
               isActive(link.to)
-                ? 'text-[var(--color-ink-1)] bg-white/80 shadow-sm font-bold border border-black/[0.04]'
-                : 'text-[var(--color-ink-5)] hover:text-[var(--color-ink-1)] hover:bg-white/40'
+                ? 'text-[var(--color-ink-1)] font-bold'
+                : 'text-[var(--color-ink-4)] hover:text-[var(--color-ink-1)]'
             ]"
           >
             {{ link.label }}
-            <!-- Active indicator dot -->
-            <Transition name="nav-underline">
-              <span
-                v-if="isActive(link.to)"
-                class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[var(--color-bronze)] rounded-full shadow-[0_0_8px_var(--color-bronze-glow)]"
-              />
-            </Transition>
           </NuxtLink>
         </li>
       </ul>
@@ -153,6 +167,45 @@ const navLinks = [
   { label: '关于我', to: '/about' },
 ]
 
+const navUlRef = ref<HTMLElement | null>(null)
+const itemRefs = new Map<string, HTMLElement>()
+const setItemRef = (path: string, el: HTMLElement | null) => {
+  if (el) itemRefs.set(path, el)
+  else itemRefs.delete(path)
+}
+
+const pillLeft = ref(0)
+const pillWidth = ref(0)
+const pillOpacity = ref(0)
+
+const updatePillPosition = (targetPath: string) => {
+  if (!import.meta.client || !navUlRef.value) return
+  const targetEl = itemRefs.get(targetPath)
+  if (!targetEl) {
+    pillOpacity.value = 0
+    return
+  }
+  const ulRect = navUlRef.value.getBoundingClientRect()
+  const elRect = targetEl.getBoundingClientRect()
+  pillLeft.value = elRect.left - ulRect.left
+  pillWidth.value = elRect.width
+  pillOpacity.value = 1
+}
+
+const movePillTo = (path: string) => {
+  updatePillPosition(path)
+}
+
+const resetPillToActive = () => {
+  const currentPath = route.path.replace(/\/$/, '') || '/'
+  const matched = navLinks.find(l => (l.to.replace(/\/$/, '') || '/') === currentPath)
+  if (matched) {
+    updatePillPosition(matched.to)
+  } else {
+    pillOpacity.value = 0
+  }
+}
+
 // Check if link is active (handle trailing slashes)
 const isActive = (path: string) => {
   const currentPath = route.path.replace(/\/$/, '') || '/'
@@ -168,11 +221,12 @@ const toggleMobile = () => {
   }
 }
 
-// Close mobile menu on route change
+// Close mobile menu on route change & update pill
 watch(() => route.path, () => {
   mobileOpen.value = false
   if (import.meta.client) {
     document.body.style.overflow = ''
+    nextTick(() => resetPillToActive())
   }
 })
 
@@ -188,22 +242,33 @@ const animateNavbarIn = async () => {
   )
 }
 
-// Scroll handler
+// Scroll & resize handlers
 let scrollHandler: (() => void) | null = null
+let resizeHandler: (() => void) | null = null
 
 onMounted(() => {
   scrollHandler = () => {
     isScrolled.value = window.scrollY > 60
   }
+  resizeHandler = () => {
+    resetPillToActive()
+  }
   window.addEventListener('scroll', scrollHandler, { passive: true })
+  window.addEventListener('resize', resizeHandler, { passive: true })
   scrollHandler()
 
-  if (import.meta.client) animateNavbarIn()
+  if (import.meta.client) {
+    animateNavbarIn()
+    nextTick(() => resetPillToActive())
+  }
 })
 
 onBeforeUnmount(() => {
   if (scrollHandler) {
     window.removeEventListener('scroll', scrollHandler)
+  }
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler)
   }
   if (import.meta.client) {
     document.body.style.overflow = ''

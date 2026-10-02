@@ -34,7 +34,7 @@
         </div>
         <NuxtLink
           to="/admin"
-          class="inline-flex items-center justify-center gap-2 w-full py-3 px-5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-white text-xs font-bold hover:brightness-110 transition-all shadow-lg cursor-pointer"
+          class="xo-kinetic-btn inline-flex items-center justify-center gap-2 w-full py-3 px-5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-white text-xs font-bold hover:brightness-110 transition-all shadow-lg cursor-pointer"
         >
           前往管理后台设置密码
         </NuxtLink>
@@ -64,14 +64,14 @@
             />
           </div>
 
-          <p v-if="verifyError" class="text-xs text-rose-400 font-semibold text-center">
+          <p v-if="verifyError" class="text-rose-400 font-semibold text-center text-xs">
             {{ verifyError }}
           </p>
 
           <button
             type="submit"
             :disabled="isVerifying"
-            class="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white text-xs font-bold hover:brightness-110 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            class="xo-kinetic-btn w-full py-3 px-5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white text-xs font-bold hover:brightness-110 transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <span v-if="isVerifying" class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
             <span>{{ isVerifying ? '验证中...' : '解锁 DWT-DCT 水印提取终端' }}</span>

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-28 pb-24 px-6 relative overflow-hidden" style="background: var(--color-bg);">
+  <div class="portfolio-page min-h-screen pt-28 pb-24 px-6 relative overflow-hidden" style="background: var(--color-bg);">
     <!-- Ambient Backdrop Light Glows -->
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
@@ -9,7 +9,7 @@
     <div class="max-w-6xl mx-auto space-y-12 relative z-10">
 
       <!-- Header & Filter Bar -->
-      <div class="space-y-6">
+      <div class="portfolio-header space-y-6">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div class="space-y-3">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[var(--color-bronze-dark)] text-[10px] font-mono font-bold"
@@ -25,7 +25,7 @@
         </div>
 
         <!-- Segmented Glass Filter Bar -->
-        <div class="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl sm:rounded-full bg-white/80 backdrop-blur-2xl border border-amber-600/20 shadow-md max-w-full">
+        <div class="portfolio-filter inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl sm:rounded-full bg-white/80 backdrop-blur-2xl border border-amber-600/20 shadow-md max-w-full">
           <button
             v-for="f in visibleFilterOpts"
             :key="f.value"
@@ -44,13 +44,13 @@
       </div>
 
       <!-- Loading state -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-4 glass-card rounded-3xl">
+      <div v-if="isLoading" class="portfolio-state flex flex-col items-center justify-center py-24 gap-4 glass-card rounded-3xl">
         <div class="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
         <p class="font-display text-xs font-semibold text-[var(--color-ink-3)]">正在加载作品集...</p>
       </div>
 
       <!-- Empty state -->
-      <div v-else-if="filteredProjects.length === 0" class="flex flex-col items-center justify-center py-24 gap-4 glass-card rounded-3xl">
+      <div v-else-if="filteredProjects.length === 0" class="portfolio-state flex flex-col items-center justify-center py-24 gap-4 glass-card rounded-3xl">
         <span class="text-5xl animate-bounce">🎬</span>
         <p class="font-display text-xl font-bold text-[var(--color-ink-2)]">暂无匹配的作品分类</p>
         <button @click="currentFilter = 'all'" class="btn-primary text-xs px-6 py-2">返回全部作品</button>
@@ -58,7 +58,7 @@
 
       <!-- Projects Grid -->
       <div v-else class="relative min-h-[400px]">
-        <TransitionGroup name="list" tag="div" class="bento-grid">
+        <TransitionGroup name="list" tag="div" class="portfolio-grid bento-grid">
           <BentoItem
             v-for="(project, i) in filteredProjects"
             :key="project.slug"

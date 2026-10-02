@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen pt-28 pb-24 px-6">
+  <div class="player-page min-h-screen pt-28 pb-24 px-6">
     <div class="max-w-4xl mx-auto space-y-12">
 
       <!-- Back button — always visible -->
-      <div class="reveal">
+      <div class="player-back reveal">
         <NuxtLink
           to="/projects"
           class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4"
@@ -17,7 +17,7 @@
 
       <!-- Password Protection Lock Screen -->
       <Transition name="fade">
-        <div v-if="project && project.hasPassword && !isUnlocked" class="max-w-md mx-auto py-16 text-center space-y-6">
+        <div v-if="project && project.hasPassword && !isUnlocked" class="player-lock-screen max-w-md mx-auto py-16 text-center space-y-6">
           <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm"
                style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
             &#x1f512;
@@ -99,7 +99,7 @@
         <div v-if="project && (!project.hasPassword || isUnlocked)" class="space-y-10">
 
           <!-- Title block -->
-          <div class="space-y-4 reveal">
+          <div class="player-title-block space-y-4 reveal">
             <div class="flex flex-wrap gap-2">
               <span v-for="tag in project.tags" :key="tag" class="badge">{{ tag }}</span>
             </div>

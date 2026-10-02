@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen pt-28 pb-24 px-6 relative overflow-hidden">
+  <div class="about-page min-h-screen pt-28 pb-24 px-6 relative overflow-hidden">
     <!-- Ambient Studio Backdrop Light Glows -->
     <div class="absolute top-10 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-amber-500/20 via-purple-600/10 to-transparent blur-3xl pointer-events-none z-0" />
 
     <div class="max-w-4xl mx-auto space-y-14 relative z-10">
 
       <!-- Profile Header Hero Card -->
-      <div class="glass-card p-8 sm:p-10 rounded-3xl border-2 border-[var(--color-border)] shadow-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all duration-500 bg-[var(--glass-bg)] backdrop-blur-xl">
+      <div class="about-profile-card glass-card p-8 sm:p-10 rounded-3xl border-2 border-[var(--color-border)] shadow-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all duration-500 bg-[var(--glass-bg)] backdrop-blur-xl">
         <div class="flex flex-col sm:flex-row items-center sm:items-start gap-8">
           
           <!-- Avatar Frame -->
@@ -39,7 +39,7 @@
             <div class="pt-2">
               <a 
                 :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')" 
-                class="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-lg hover:from-amber-600 hover:via-amber-500 hover:to-amber-700 hover:border-amber-400/40 hover:shadow-[0_12px_32px_rgba(217,119,6,0.45)] hover:-translate-y-1 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
+                class="xo-kinetic-btn group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-lg hover:from-amber-600 hover:via-amber-500 hover:to-amber-700 hover:border-amber-400/40 hover:shadow-[0_12px_32px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 cursor-pointer"
               >
                 <span>发起合作咨询 (Email)</span>
                 <IconSax name="arrow-right" :size="16" class="ml-1 opacity-90 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:scale-110" />
@@ -50,7 +50,7 @@
       </div>
 
       <!-- Experience Log Timeline Section -->
-      <div class="space-y-8">
+      <div class="about-timeline space-y-8">
         <div class="flex items-center justify-between border-b pb-4 border-[var(--color-border)]">
           <div>
             <span class="text-[var(--color-bronze-dark)] text-xs font-bold tracking-widest font-sans">年谱与履历</span>
@@ -69,12 +69,12 @@
             class="relative flex gap-6 group"
           >
             <!-- timeline bolt node -->
-            <div class="flex-shrink-0 w-10 h-10 rounded-full border-2 border-amber-500/40 bg-white flex items-center justify-center z-10 shadow-md group-hover:scale-110 transition-transform">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full border-2 border-amber-500/40 bg-white flex items-center justify-center z-10 shadow-md group-hover:scale-110 transition-transform duration-300 ease-[var(--xo-ease-spring)]">
               <span class="text-xs font-mono font-bold text-[var(--color-bronze-dark)]">0{{ i + 1 }}</span>
             </div>
 
             <!-- Content Light Glass card -->
-            <div class="glass-card p-7 flex-1 border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 relative overflow-hidden group shadow-xl bg-[var(--glass-bg)] backdrop-blur-xl rounded-2xl">
+            <div class="glass-card p-7 flex-1 border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 ease-[var(--xo-ease-spring)] relative overflow-hidden group shadow-xl bg-[var(--glass-bg)] backdrop-blur-xl rounded-2xl hover:-translate-y-1 hover:shadow-2xl">
               <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
                 <div>
                   <h3 class="text-[var(--color-ink-1)] font-display font-bold text-xl group-hover:text-[var(--color-bronze-dark)] transition-colors duration-300">
