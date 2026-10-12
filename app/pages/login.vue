@@ -1,81 +1,447 @@
 <template>
-  <div :class="['auth-page', `auth-page--${activeTab}`]">
-    <div class="auth-lines" aria-hidden="true" />
+  <div class="auth-page min-h-screen relative flex flex-col justify-between py-6 sm:py-10 px-4 sm:px-8 overflow-x-hidden selection:bg-amber-500 selection:text-white" style="background: var(--color-bg);">
+    <!-- Studio Ambient Luxury Glows -->
+    <div
+      class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
+      style="width: 1100px; height: 500px; background: radial-gradient(circle, rgba(217,119,6,0.18) 0%, rgba(147,51,234,0.12) 45%, transparent 75%); filter: blur(70px);"
+    />
+    <div
+      class="absolute bottom-10 right-10 pointer-events-none z-0"
+      style="width: 500px; height: 500px; background: radial-gradient(circle, rgba(217,119,6,0.12) 0%, transparent 70%); filter: blur(80px);"
+    />
 
-    <header class="auth-header">
-      <NuxtLink to="/" class="wordmark" aria-label="返回 Xo Studio 首页"><strong>xo</strong><i>.</i><small>STUDIO</small></NuxtLink>
-      <div class="header-meta">
-        <span>{{ activeTab === 'login' ? '客户审片专区 / 01' : '项目档案建立 / 02' }}</span>
-        <NuxtLink to="/">返回首页 <b>↗</b></NuxtLink>
+    <!-- Top Navigation Header -->
+    <header class="max-w-5xl w-full mx-auto flex items-center justify-between z-10 relative mb-6 sm:mb-8">
+      <NuxtLink to="/" class="inline-flex items-center gap-2 group cursor-pointer" aria-label="返回 Xo Studio 首页">
+        <span class="font-display font-bold text-2xl sm:text-3xl tracking-tighter text-[#121316] group-hover:text-amber-800 transition-colors">
+          xo<span class="text-amber-600">.</span>
+        </span>
+        <span class="text-[9px] font-mono tracking-[0.2em] uppercase font-bold text-slate-600 border-l border-black/15 pl-2 py-0.5">
+          STUDIO
+        </span>
+      </NuxtLink>
+
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-800 border border-amber-600/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span>{{ activeTab === 'login' ? '客户审片专区 · 登录' : '项目档案建立 · 注册' }}</span>
+        </span>
+        <NuxtLink to="/" class="btn-ghost text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 border border-black/10 hover:bg-black/5 transition-all">
+          <IconSax name="arrow-left" :size="13" />
+          <span>返回首页</span>
+        </NuxtLink>
       </div>
     </header>
 
-    <main class="auth-workbench">
-      <section class="auth-intro">
-        <div class="intro-topline"><span>{{ activeTab === 'login' ? '客户工作台' : '新客户登记' }}</span><span>XO—{{ activeTab === 'login' ? '01' : '02' }}</span></div>
-        <div class="intro-copy">
-          <p class="intro-kicker">{{ activeTab === 'login' ? '继续你的项目' : '建立你的项目档案' }}</p>
-          <h1 v-if="activeTab === 'login'">让每次<br><em>交付清晰可见</em></h1>
-          <h1 v-else>从一次<br><em>准确登记开始</em></h1>
-          <p>{{ activeTab === 'login' ? '进入私人工作区，查看作品、交付信息与项目凭证。' : '填写必要信息，创建你的私人工作区，接收后续交付。' }}</p>
-        </div>
-        <div class="intro-index" aria-hidden="true">
-          <span>01</span><i /><span>{{ activeTab === 'login' ? '系统就绪' : '资料配置' }}</span>
-        </div>
-        <div class="intro-footer"><span>Xo 影视后期 / 客户专区</span><span class="signal"><i /> 安全连接</span></div>
-      </section>
+    <!-- Main Central Card Workbench -->
+    <main class="max-w-5xl w-full mx-auto my-auto relative z-10">
+      <div class="glass-card rounded-[32px] sm:rounded-[38px] overflow-hidden border-2 border-amber-600/20 shadow-[0_25px_80px_rgba(180,120,40,0.14)] bg-white/95 backdrop-blur-2xl grid lg:grid-cols-12 min-h-[640px]">
+        
+        <!-- Left: Cinema Screener Room Showcase Panel (5 cols) -->
+        <section class="lg:col-span-5 relative p-8 sm:p-10 flex flex-col justify-between text-white overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-[#1e150d] select-none">
+          <!-- Background Ambient Flare Orbs -->
+          <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-500/20 blur-3xl pointer-events-none" />
+          <div class="absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-amber-700/25 blur-3xl pointer-events-none" />
 
-      <section class="auth-sheet">
-        <div class="sheet-heading">
-          <div>
-            <p class="sheet-eyebrow">{{ activeTab === 'login' ? '登录' : '注册' }} <span>/</span> 客户专区</p>
-            <h2>{{ activeTab === 'login' ? '欢迎回来' : '创建客户账号' }}</h2>
-            <p>{{ activeTab === 'login' ? '登录后继续管理你的专属作品。' : '注册后即可接收作品与项目更新。' }}</p>
+          <!-- Top: Cinema SMPTE HUD Header -->
+          <div class="relative z-10 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10 text-[10px] font-mono">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                <span class="text-rose-300 font-bold tracking-wider">REC</span>
+                <span class="text-white/30">•</span>
+                <span class="text-amber-300 font-bold tracking-widest">01:24:08:12</span>
+              </div>
+              <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-amber-300/90 text-[9px] font-bold">
+                ACEScct
+              </span>
+            </div>
+
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold tracking-wider uppercase">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>{{ activeTab === 'login' ? 'CLIENT PRIVATE DESK' : 'NEW ONBOARDING' }}</span>
+            </div>
           </div>
-          <div class="sheet-number">{{ activeTab === 'login' ? '01' : '02' }}<small>/02</small></div>
-        </div>
 
-        <nav class="mode-switch" aria-label="账户模式">
-          <button type="button" :class="{ 'is-active': activeTab === 'login' }" @click="switchTab('login')">登录 <small>进入</small></button>
-          <button type="button" :class="{ 'is-active': activeTab === 'register' }" @click="switchTab('register')">注册 <small>加入</small></button>
-        </nav>
-
-        <Transition name="message">
-          <div v-if="error" class="notice notice--error" role="alert"><IconSax name="close" :size="15" /><span>{{ error }}</span></div>
-        </Transition>
-        <Transition name="message">
-          <div v-if="codeSentMsg" class="notice notice--success" role="status"><IconSax name="magic-star" :size="15" /><span>{{ codeSentMsg }}</span></div>
-        </Transition>
-
-        <div class="auth-form-host">
-          <form v-if="activeTab === 'login'" key="login" class="auth-form" @submit.prevent="handleLogin">
-            <div class="field">
-              <label for="login-username">客户用户名 <b>*</b></label>
-              <div class="input-line"><span class="input-index">01</span><input id="login-username" v-model="loginForm.username" type="text" required autocomplete="username" placeholder="输入你的用户名" :disabled="loading"><IconSax name="user" :size="17" /></div>
+          <!-- Middle: High-Impact Typography & Highlights -->
+          <div class="relative z-10 py-8 space-y-6">
+            <div class="space-y-2">
+              <h1 v-if="activeTab === 'login'" class="font-display text-3xl sm:text-4xl font-bold leading-[1.15] tracking-tight">
+                让每一次剪辑<br>
+                <span class="text-gradient italic font-normal">母带清晰交付</span>
+              </h1>
+              <h1 v-else class="font-display text-3xl sm:text-4xl font-bold leading-[1.15] tracking-tight">
+                开启专属档案<br>
+                <span class="text-gradient italic font-normal">尊享母带视界</span>
+              </h1>
+              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans font-medium pt-1">
+                {{ activeTab === 'login' ? '进入私人工作区，随时调取 4K 原片母带、专属解密密码及排期状态。' : '登记您的联系信息以创建私人工作区，成品渲染完成后即可接收推送。' }}
+              </p>
             </div>
-            <div class="field">
-              <label for="login-password">账户密码 <b>*</b></label>
-              <div class="input-line"><span class="input-index">02</span><input id="login-password" v-model="loginForm.password" :type="showLoginPassword ? 'text' : 'password'" required autocomplete="current-password" placeholder="输入你的密码" :disabled="loading"><button class="password-toggle" type="button" :aria-label="showLoginPassword ? '隐藏密码' : '显示密码'" @click="showLoginPassword = !showLoginPassword"><IconSax :name="showLoginPassword ? 'eye-slash' : 'eye'" :size="15" /><span>{{ showLoginPassword ? '隐藏' : '显示' }}</span></button></div>
-            </div>
-            <button class="submit-button" type="submit" :disabled="loading"><span v-if="loading" class="spinner" /><span>{{ loading ? '正在验证登录' : '进入私人工作区' }}</span><IconSax name="arrow-right" :size="17" /></button>
-            <div class="form-bottom"><p>还没有账号？ <button type="button" @click="switchTab('register')">创建账号 <b>↗</b></button></p><NuxtLink to="/"><IconSax name="arrow-left" :size="14" /> 返回首页</NuxtLink></div>
-          </form>
 
-          <form v-else key="register" class="auth-form auth-form--register" @submit.prevent="handleRegister">
-            <div class="field"><label for="register-username">用户名 <b>*</b></label><div class="input-line"><span class="input-index">01</span><input id="register-username" v-model="registerForm.username" type="text" required autocomplete="username" @blur="checkRegistrationAvailability('username')" placeholder="至少 3 位字符" :disabled="loading"><IconSax name="user" :size="17" /></div></div>
-            <div class="field"><label for="register-email">电子邮箱 <b>*</b></label><div class="input-pair"><div class="input-line"><span class="input-index">02</span><input id="register-email" v-model="registerForm.email" type="email" required autocomplete="email" @blur="checkRegistrationAvailability('email')" placeholder="接收验证码的邮箱" :disabled="loading"><IconSax name="mail" :size="17" /></div><button class="code-button" type="button" :disabled="cooldown > 0 || sendingCode" @click="handleSendCode"><span v-if="sendingCode" class="spinner spinner--small" />{{ cooldown > 0 ? `${cooldown}s` : '获取验证码' }}</button></div></div>
-            <div class="field"><label for="register-code">邮箱验证码 <b>*</b><small>60 秒有效</small></label><div class="input-line"><span class="input-index">03</span><input id="register-code" v-model="registerForm.code" type="text" required maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="输入 6 位数字" :disabled="loading"><span class="input-suffix">6 位数字</span></div></div>
-            <div class="field-grid">
-              <div class="field"><label for="register-password">账户密码 <b>*</b></label><div class="input-line"><span class="input-index">04</span><input id="register-password" v-model="registerForm.password" :type="showRegisterPassword ? 'text' : 'password'" required autocomplete="new-password" placeholder="至少 6 位" :disabled="loading"><button class="password-toggle password-toggle--icon" type="button" :aria-label="showRegisterPassword ? '隐藏密码' : '显示密码'" @click="showRegisterPassword = !showRegisterPassword"><IconSax :name="showRegisterPassword ? 'eye-slash' : 'eye'" :size="15" /></button></div></div>
-              <div class="field"><label for="register-confirm">确认密码 <b>*</b></label><div class="input-line"><span class="input-index">05</span><input id="register-confirm" v-model="registerForm.confirmPassword" :type="showRegisterPassword ? 'text' : 'password'" required autocomplete="new-password" placeholder="再次输入" :disabled="loading"><IconSax name="security-safe" :size="17" /></div></div>
+            <!-- Bullet Feature Badges -->
+            <div class="space-y-2.5 pt-2">
+              <div class="flex items-center gap-2.5 text-xs text-slate-200 font-sans">
+                <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-[10px] shrink-0 font-bold">✦</span>
+                <span>4K DCI 原片母带高保真在线放映</span>
+              </div>
+              <div class="flex items-center gap-2.5 text-xs text-slate-200 font-sans">
+                <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-[10px] shrink-0 font-bold">✦</span>
+                <span>ACES 电影级色彩空间与调色节点</span>
+              </div>
+              <div class="flex items-center gap-2.5 text-xs text-slate-200 font-sans">
+                <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-[10px] shrink-0 font-bold">✦</span>
+                <span>端到端非对称加密安全交付通道</span>
+              </div>
             </div>
-            <div class="field"><label for="register-wechat">微信号 <small>选填</small></label><div class="input-line"><span class="input-index">06</span><input id="register-wechat" v-model="registerForm.wechat" type="text" autocomplete="off" placeholder="方便后期沟通" :disabled="loading"><IconSax name="global" :size="17" /></div></div>
-            <button class="submit-button" type="submit" :disabled="loading"><span v-if="loading" class="spinner" /><span>{{ loading ? '正在创建账号' : '创建并进入工作区' }}</span><IconSax name="arrow-right" :size="17" /></button>
-            <div class="form-bottom"><p>已有客户账号？ <button type="button" @click="switchTab('login')">返回登录 <b>↗</b></button></p><NuxtLink to="/"><IconSax name="arrow-left" :size="14" /> 返回首页</NuxtLink></div>
-          </form>
-        </div>
-      </section>
+          </div>
+
+          <!-- Bottom: Security Status -->
+          <div class="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span class="flex items-center gap-1.5 text-emerald-400 font-bold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              E2EE 安全连接
+            </span>
+            <span class="text-white/40">XO STUDIO · 2026</span>
+          </div>
+        </section>
+
+        <!-- Right: Modern Luxury Interactive Form Panel (7 cols) -->
+        <section class="lg:col-span-7 p-7 sm:p-12 flex flex-col justify-center bg-white/95 relative">
+          
+          <!-- Mode Switch Segmented Capsule -->
+          <div class="mb-7">
+            <div class="inline-flex p-1 rounded-2xl bg-black/[0.04] border border-black/[0.06] w-full max-w-xs shadow-inner">
+              <button
+                type="button"
+                :class="[
+                  'flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer',
+                  activeTab === 'login'
+                    ? 'bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md'
+                    : 'text-slate-500 hover:text-slate-900'
+                ]"
+                @click="switchTab('login')"
+              >
+                <IconSax name="key" :size="14" />
+                <span>客户登录</span>
+              </button>
+              <button
+                type="button"
+                :class="[
+                  'flex-1 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer',
+                  activeTab === 'register'
+                    ? 'bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md'
+                    : 'text-slate-500 hover:text-slate-900'
+                ]"
+                @click="switchTab('register')"
+              >
+                <IconSax name="user-add" :size="14" />
+                <span>新客户注册</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section Headings -->
+          <div class="mb-6 space-y-1">
+            <h2 class="font-display text-2xl sm:text-3xl font-bold text-[#121316] tracking-tight">
+              {{ activeTab === 'login' ? '欢迎回来，客户伙伴' : '创建您的客户专属账号' }}
+            </h2>
+            <p class="text-xs text-slate-500 font-sans">
+              {{ activeTab === 'login' ? '请输入已授权的用户名与密码登录工作区。' : '填写基本信息以登记专属档案并接收母带交付。' }}
+            </p>
+          </div>
+
+          <!-- Notification Feedback Banners -->
+          <Transition name="fade">
+            <div v-if="error" class="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2" role="alert">
+              <span class="text-base">⚠️</span>
+              <span>{{ error }}</span>
+            </div>
+          </Transition>
+          <Transition name="fade">
+            <div v-if="codeSentMsg" class="mb-5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2" role="status">
+              <span class="text-base">✨</span>
+              <span>{{ codeSentMsg }}</span>
+            </div>
+          </Transition>
+
+          <!-- Form Area -->
+          <div>
+            <!-- 1. LOGIN FORM -->
+            <form v-if="activeTab === 'login'" key="login" class="space-y-4" @submit.prevent="handleLogin">
+              <!-- Username -->
+              <div class="space-y-1.5 text-left">
+                <label for="login-username" class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                  <span>客户用户名</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative flex items-center">
+                  <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                    <IconSax name="user" :size="16" />
+                  </span>
+                  <input
+                    id="login-username"
+                    v-model="loginForm.username"
+                    type="text"
+                    required
+                    autocomplete="username"
+                    placeholder="请输入你的用户名"
+                    :disabled="loading"
+                    class="w-full pl-10 pr-4 py-3 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs text-slate-900 transition-all font-sans font-medium outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div class="space-y-1.5 text-left">
+                <label for="login-password" class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                  <span>账户密码</span>
+                  <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative flex items-center">
+                  <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                    <IconSax name="lock" :size="16" />
+                  </span>
+                  <input
+                    id="login-password"
+                    v-model="loginForm.password"
+                    :type="showLoginPassword ? 'text' : 'password'"
+                    required
+                    autocomplete="current-password"
+                    placeholder="请输入你的密码"
+                    :disabled="loading"
+                    class="w-full pl-10 pr-12 py-3 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs text-slate-900 transition-all font-mono font-medium outline-none"
+                  />
+                  <button
+                    type="button"
+                    class="absolute right-3.5 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                    :aria-label="showLoginPassword ? '隐藏密码' : '显示密码'"
+                    @click="showLoginPassword = !showLoginPassword"
+                  >
+                    <IconSax :name="showLoginPassword ? 'eye-slash' : 'eye'" :size="16" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="pt-2">
+                <button
+                  type="submit"
+                  :disabled="loading"
+                  class="xo-kinetic-btn w-full py-3.5 px-6 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 hover:from-amber-700 hover:via-amber-600 hover:to-amber-800 border border-white/10 shadow-xl hover:shadow-[0_12px_36px_rgba(217,119,6,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <span v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span v-else class="flex items-center gap-1.5">
+                    <span>{{ loading ? '正在验证登录...' : '进入私人工作区' }}</span>
+                    <IconSax name="arrow-right" :size="14" class="transition-transform group-hover:translate-x-1" />
+                  </span>
+                </button>
+              </div>
+
+              <!-- Bottom Links -->
+              <div class="pt-4 border-t border-black/5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+                <p>还没有账号？ <button type="button" class="text-amber-800 font-bold hover:underline cursor-pointer" @click="switchTab('register')">创建专属账号 ↗</button></p>
+                <NuxtLink to="/" class="hover:text-slate-900 transition-colors flex items-center gap-1">
+                  <span>返回主页</span>
+                </NuxtLink>
+              </div>
+            </form>
+
+            <!-- 2. REGISTER FORM -->
+            <form v-else key="register" class="space-y-3.5" @submit.prevent="handleRegister">
+              <!-- Username -->
+              <div class="space-y-1 text-left">
+                <label for="register-username" class="text-xs font-bold text-slate-800 flex items-center justify-between">
+                  <span>用户名 <span class="text-rose-500">*</span></span>
+                  <span v-if="usernameAvailability === false" class="text-[10px] text-rose-500">用户名已被占用</span>
+                  <span v-else-if="usernameAvailability === true" class="text-[10px] text-emerald-600">用户名可用</span>
+                </label>
+                <div class="relative flex items-center">
+                  <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                    <IconSax name="user" :size="16" />
+                  </span>
+                  <input
+                    id="register-username"
+                    v-model="registerForm.username"
+                    type="text"
+                    required
+                    autocomplete="username"
+                    placeholder="至少 3 位字符"
+                    :disabled="loading"
+                    @blur="checkRegistrationAvailability('username')"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs text-slate-900 transition-all font-sans font-medium outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- Email + Code -->
+              <div class="space-y-1 text-left">
+                <label for="register-email" class="text-xs font-bold text-slate-800 flex items-center justify-between">
+                  <span>电子邮箱 <span class="text-rose-500">*</span></span>
+                  <span v-if="emailAvailability === false" class="text-[10px] text-rose-500">邮箱已被注册</span>
+                  <span v-else-if="emailAvailability === true" class="text-[10px] text-emerald-600">邮箱可用</span>
+                </label>
+                <div class="flex gap-2">
+                  <div class="relative flex-1 flex items-center">
+                    <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                      <IconSax name="mail" :size="16" />
+                    </span>
+                    <input
+                      id="register-email"
+                      v-model="registerForm.email"
+                      type="email"
+                      required
+                      autocomplete="email"
+                      placeholder="接收验证码与通知的邮箱"
+                      :disabled="loading"
+                      @blur="checkRegistrationAvailability('email')"
+                      class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs text-slate-900 transition-all font-sans font-medium outline-none"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="cooldown > 0 || sendingCode"
+                    class="px-4 py-2.5 text-xs font-bold rounded-2xl border border-amber-600/30 bg-amber-500/10 text-amber-900 hover:bg-amber-500/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer shrink-0"
+                    @click="handleSendCode"
+                  >
+                    <span v-if="sendingCode" class="w-3 h-3 border-2 border-amber-800/30 border-t-amber-800 rounded-full animate-spin inline-block mr-1" />
+                    <span>{{ cooldown > 0 ? `${cooldown}s` : '获取验证码' }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Code -->
+              <div class="space-y-1 text-left">
+                <label for="register-code" class="text-xs font-bold text-slate-800 flex items-center justify-between">
+                  <span>邮箱验证码 <span class="text-rose-500">*</span></span>
+                  <span class="text-[10px] text-slate-400 font-mono">60 秒有效</span>
+                </label>
+                <div class="relative flex items-center">
+                  <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                    <IconSax name="shield-security" :size="16" />
+                  </span>
+                  <input
+                    id="register-code"
+                    v-model="registerForm.code"
+                    type="text"
+                    required
+                    maxlength="6"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    placeholder="输入 6 位数字验证码"
+                    :disabled="loading"
+                    class="w-full pl-10 pr-20 py-2.5 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs text-slate-900 transition-all font-mono font-medium outline-none"
+                  />
+                  <span class="absolute right-3.5 text-[10px] font-mono text-slate-400 font-bold pointer-events-none">
+                    6 位数字
+                  </span>
+                </div>
+              </div>
+
+              <!-- Password & Confirm Password (Grid) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1 text-left">
+                  <label for="register-password" class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                    <span>账户密码</span>
+                    <span class="text-rose-500">*</span>
+                  </label>
+                  <div class="relative flex items-center">
+                    <input
+                      id="register-password"
+                      v-model="registerForm.password"
+                      :type="showRegisterPassword ? 'text' : 'password'"
+                      required
+                      autocomplete="new-password"
+                      placeholder="至少 6 位字符"
+                      :disabled="loading"
+                      class="w-full pl-4 pr-10 py-2.5 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs text-slate-900 transition-all font-mono outline-none"
+                    />
+                    <button
+                      type="button"
+                      class="absolute right-3 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                      @click="showRegisterPassword = !showRegisterPassword"
+                    >
+                      <IconSax :name="showRegisterPassword ? 'eye-slash' : 'eye'" :size="15" />
+                    </button>
+                  </div>
+                </div>
+
+                <div class="space-y-1 text-left">
+                  <label for="register-confirm" class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                    <span>确认密码</span>
+                    <span class="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="register-confirm"
+                    v-model="registerForm.confirmPassword"
+                    :type="showRegisterPassword ? 'text' : 'password'"
+                    required
+                    autocomplete="new-password"
+                    placeholder="再次输入相同密码"
+                    :disabled="loading"
+                    class="w-full px-4 py-2.5 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs text-slate-900 transition-all font-mono outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- WeChat Contact (Optional) -->
+              <div class="space-y-1 text-left">
+                <label for="register-wechat" class="text-xs font-bold text-slate-800 flex items-center justify-between">
+                  <span>微信号</span>
+                  <span class="text-[10px] text-slate-400 font-normal">选填 · 便于后期交付沟通</span>
+                </label>
+                <div class="relative flex items-center">
+                  <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+                    <IconSax name="global" :size="16" />
+                  </span>
+                  <input
+                    id="register-wechat"
+                    v-model="registerForm.wechat"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="例如: wechat_id"
+                    :disabled="loading"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-xs text-slate-900 transition-all font-sans font-medium outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="pt-2">
+                <button
+                  type="submit"
+                  :disabled="loading"
+                  class="xo-kinetic-btn w-full py-3.5 px-6 rounded-2xl text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 hover:from-amber-700 hover:via-amber-600 hover:to-amber-800 border border-white/10 shadow-xl hover:shadow-[0_12px_36px_rgba(217,119,6,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <span v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span v-else class="flex items-center gap-1.5">
+                    <span>{{ loading ? '正在创建账号...' : '创建档案并进入工作区' }}</span>
+                    <IconSax name="arrow-right" :size="14" class="transition-transform group-hover:translate-x-1" />
+                  </span>
+                </button>
+              </div>
+
+              <!-- Bottom Links -->
+              <div class="pt-3 border-t border-black/5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+                <p>已有客户账号？ <button type="button" class="text-amber-800 font-bold hover:underline cursor-pointer" @click="switchTab('login')">返回登录 ↗</button></p>
+                <NuxtLink to="/" class="hover:text-slate-900 transition-colors flex items-center gap-1">
+                  <span>返回主页</span>
+                </NuxtLink>
+              </div>
+            </form>
+          </div>
+
+        </section>
+
+      </div>
     </main>
+
+    <!-- Bottom Copyright Tag -->
+    <footer class="max-w-5xl w-full mx-auto text-center z-10 pt-6">
+      <p class="text-[10px] font-mono text-slate-600">
+        © {{ new Date().getFullYear() }} Xo Studio · 好莱坞工业级电影后期调色与母带制作全流程
+      </p>
+    </footer>
   </div>
 </template>
 
@@ -194,164 +560,3 @@ const handleRegister = async () => {
   finally { loading.value = false }
 }
 </script>
-
-<style scoped>
-.auth-page { --paper: #fbfaf7; --ink: #252633; --muted: rgba(37, 38, 51, .54); --accent: #5364b3; position: relative; display: flex; min-height: 100svh; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; overflow-y: auto; padding: 28px clamp(18px, 5vw, 82px); color: var(--ink); background: #e4e5f0; }
-.auth-page--register { --ink: #302a2b; --muted: rgba(48, 42, 43, .54); --accent: #b35d3e; background: #f0e2d9; }
-.auth-lines { position: absolute; inset: 0; opacity: .48; pointer-events: none; background-image: linear-gradient(rgba(37, 38, 51, .055) 1px, transparent 1px), linear-gradient(90deg, rgba(37, 38, 51, .055) 1px, transparent 1px); background-size: 64px 64px; }
-.auth-lines::before, .auth-lines::after { position: absolute; content: ''; pointer-events: none; }.auth-lines::before { inset: 7% 4%; border: 1px solid rgba(37, 38, 51, .12); }.auth-lines::after { top: -25%; right: 18%; width: 1px; height: 150%; background: rgba(83, 100, 179, .24); transform: rotate(26deg); }
-.auth-page--register .auth-lines::after { background: rgba(179, 93, 62, .24); transform: rotate(-24deg); }
-.auth-header { position: relative; z-index: 1; display: flex; width: min(100%, 1180px); align-items: center; justify-content: space-between; margin-bottom: clamp(24px, 4vw, 48px); }.wordmark { display: inline-flex; align-items: baseline; color: var(--ink); text-decoration: none; }.wordmark strong { font-family: var(--font-display, Georgia, serif); font-size: 28px; letter-spacing: -.08em; }.wordmark i { color: var(--accent); font-size: 20px; font-style: normal; }.wordmark small { margin-left: 10px; color: var(--muted); font-family: var(--font-mono, monospace); font-size: 8px; letter-spacing: .18em; }.header-meta { display: flex; align-items: center; gap: 22px; color: var(--muted); font-family: var(--font-mono, monospace); font-size: 8px; letter-spacing: .12em; }.header-meta a { color: var(--ink); text-decoration: none; }.header-meta a b { color: var(--accent); font-size: 13px; font-weight: 400; }
-.auth-workbench { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(320px, .8fr) minmax(500px, 1.2fr); width: min(100%, 1180px); min-height: 620px; border: 1px solid rgba(37, 38, 51, .15); background: var(--paper); box-shadow: 0 24px 70px rgba(60, 60, 80, .12); }
-.auth-intro { display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding: clamp(32px, 5vw, 68px); color: #f9f7f1; background: #343748; }.auth-page--register .auth-intro { color: #332b2b; background: #edcbbb; }
-.intro-topline, .intro-footer { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono, monospace); font-size: 8px; letter-spacing: .15em; }.intro-topline { color: rgba(249, 247, 241, .54); }.auth-page--register .intro-topline { color: rgba(51, 43, 43, .5); }.intro-copy { margin: auto 0; padding: 58px 0; }.intro-kicker { margin: 0 0 20px; color: #a9b5f1; font-family: var(--font-mono, monospace); font-size: 10px; letter-spacing: .15em; }.auth-page--register .intro-kicker { color: #a14f36; }.intro-copy h1 { margin: 0; font-family: var(--font-display, Georgia, serif); font-size: clamp(42px, 5.5vw, 74px); font-weight: 450; letter-spacing: .01em; line-height: 1.06; }.intro-copy h1 em { color: #bdc7ff; font-style: normal; }.auth-page--register .intro-copy h1 em { color: #a14f36; }.intro-copy > p:last-child { max-width: 250px; margin: 25px 0 0; color: rgba(249, 247, 241, .62); font-size: 12px; line-height: 1.9; }.auth-page--register .intro-copy > p:last-child { color: rgba(51, 43, 43, .62); }.intro-index { display: flex; align-items: center; gap: 10px; color: rgba(249, 247, 241, .58); font-family: var(--font-mono, monospace); font-size: 8px; letter-spacing: .12em; }.auth-page--register .intro-index { color: rgba(51, 43, 43, .52); }.intro-index span:first-child { color: #bdc7ff; font-size: 13px; }.auth-page--register .intro-index span:first-child { color: #a14f36; }.intro-index i { width: 28px; height: 1px; background: currentColor; opacity: .55; }.intro-footer { border-top: 1px solid rgba(249, 247, 241, .16); padding-top: 16px; color: rgba(249, 247, 241, .4); }.auth-page--register .intro-footer { border-color: rgba(51, 43, 43, .16); color: rgba(51, 43, 43, .42); }.signal { color: #bdc7ff; }.auth-page--register .signal { color: #a14f36; }.signal i { display: inline-block; width: 5px; height: 5px; margin-right: 5px; border-radius: 50%; background: currentColor; }
-.auth-sheet { display: flex; flex-direction: column; justify-content: center; padding: clamp(32px, 5vw, 74px); }.sheet-heading { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 30px; }.sheet-eyebrow { margin: 0 0 13px; color: var(--accent); font-family: var(--font-mono, monospace); font-size: 9px; letter-spacing: .15em; }.sheet-eyebrow span { margin: 0 5px; opacity: .5; }.sheet-heading h2 { margin: 0; color: var(--ink); font-family: var(--font-display, Georgia, serif); font-size: clamp(30px, 4vw, 50px); font-weight: 450; line-height: 1.08; }.sheet-heading > div:first-child > p:last-child { margin: 11px 0 0; color: var(--muted); font-size: 12px; }.sheet-number { color: var(--accent); font-family: var(--font-mono, monospace); font-size: 22px; letter-spacing: .08em; }.sheet-number small { color: var(--muted); font-size: 9px; }
-.mode-switch { display: flex; gap: 22px; margin-bottom: 28px; border-bottom: 1px solid rgba(37, 38, 51, .14); }.mode-switch button { position: relative; border: 0; padding: 0 0 12px; color: var(--muted); background: transparent; font-size: 14px; font-weight: 650; cursor: pointer; }.mode-switch button + button { margin-left: 10px; }.mode-switch button::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: var(--accent); content: ''; opacity: 0; transform: scaleX(.4); transition: opacity .25s ease, transform .25s ease; }.mode-switch button.is-active { color: var(--ink); }.mode-switch button.is-active::after { opacity: 1; transform: scaleX(1); }.mode-switch small { margin-left: 6px; color: var(--muted); font-family: var(--font-mono, monospace); font-size: 7px; letter-spacing: .12em; }
-.notice { display: flex; align-items: center; gap: 9px; margin: -8px 0 17px; border-left: 3px solid; padding: 10px 12px; font-size: 11px; line-height: 1.5; }.notice--error { border-color: #be514b; color: #9d3f3a; background: rgba(190, 81, 75, .08); }.notice--success { border-color: #4f8b70; color: #3a6d55; background: rgba(79, 139, 112, .08); }
-.auth-form { display: grid; gap: 22px; }.auth-form--register { gap: 15px; }.field { display: grid; gap: 8px; }.field label { color: var(--ink); font-size: 11px; font-weight: 650; }.field label b { color: var(--accent); }.field label small { margin-left: 6px; color: var(--muted); font-size: 9px; font-weight: 400; }.input-line { display: flex; min-height: 46px; align-items: center; gap: 10px; border-bottom: 1px solid rgba(37, 38, 51, .22); color: rgba(37, 38, 51, .42); transition: border-color .2s ease, color .2s ease; }.input-line:focus-within { border-color: var(--accent); color: var(--accent); }.input-index { width: 18px; color: var(--muted); font-family: var(--font-mono, monospace); font-size: 8px; }.input-line input { min-width: 0; flex: 1; border: 0; outline: 0; padding: 9px 0; color: var(--ink); background: transparent; font: inherit; font-size: 12px; }.input-line input::placeholder { color: rgba(37, 38, 51, .32); }.input-line input:disabled { opacity: .5; }.input-suffix { color: var(--muted); font-family: var(--font-mono, monospace); font-size: 7px; letter-spacing: .1em; white-space: nowrap; }.password-toggle { display: inline-flex; align-items: center; gap: 5px; border: 0; color: var(--accent); background: transparent; font-size: 9px; cursor: pointer; }.password-toggle--icon { padding: 5px; }.input-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }.code-button { min-height: 35px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); padding: 0 12px; color: var(--accent); background: transparent; font-size: 10px; font-weight: 650; white-space: nowrap; cursor: pointer; }.code-button:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 10%, transparent); }.code-button:disabled { border-color: rgba(37, 38, 51, .12); color: var(--muted); background: rgba(37, 38, 51, .04); cursor: not-allowed; }.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }.submit-button { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin-top: 7px; border: 0; padding: 14px 18px; color: #fff; background: var(--ink); font-size: 11px; font-weight: 650; letter-spacing: .05em; cursor: pointer; transition: transform .25s ease, background .25s ease, box-shadow .25s ease; }.submit-button:hover:not(:disabled) { background: var(--accent); box-shadow: 0 10px 25px color-mix(in srgb, var(--accent) 28%, transparent); transform: translateY(-2px); }.submit-button:disabled { cursor: wait; opacity: .6; }.spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, .35); border-top-color: #fff; border-radius: 50%; animation: auth-spin .8s linear infinite; }.spinner--small { display: inline-block; width: 11px; height: 11px; border-color: color-mix(in srgb, var(--accent) 25%, transparent); border-top-color: var(--accent); vertical-align: -2px; }.form-bottom { display: grid; gap: 9px; border-top: 1px solid rgba(37, 38, 51, .11); padding-top: 17px; text-align: center; }.form-bottom p { margin: 0; color: var(--muted); font-size: 11px; }.form-bottom button { border: 0; padding: 0; color: var(--accent); background: transparent; font: inherit; font-weight: 650; cursor: pointer; }.form-bottom button b { font-weight: 400; }.form-bottom a { display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: var(--muted); font-size: 10px; text-decoration: none; }.form-bottom a:hover { color: var(--ink); }
-.message-enter-active, .message-leave-active { transition: opacity .16s ease, transform .16s ease; }
-.message-enter-from, .message-leave-to { opacity: 0; transform: translateY(4px); }
-.auth-form-host { position: relative; }
-@keyframes auth-spin { to { transform: rotate(360deg); } }
-@media (max-width: 820px) { .auth-page { align-items: flex-start; padding: 20px 15px 30px; }.auth-header { margin-bottom: 24px; }.header-meta > span { display: none; }.auth-workbench { grid-template-columns: 1fr; min-height: auto; max-width: 560px; }.auth-intro { min-height: 270px; padding: 28px; }.intro-copy { padding: 34px 0; }.intro-copy h1 { font-size: 48px; }.auth-sheet { padding: 31px 28px 30px; } }
-@media (max-width: 480px) { .auth-page { padding: 0 0 26px; }.auth-header { width: 100%; padding: 0 20px; }.wordmark small, .header-meta a { display: none; }.auth-workbench { width: 100%; border-right: 0; border-left: 0; }.auth-intro { min-height: 235px; padding: 24px 22px; }.intro-copy { padding: 27px 0; }.intro-copy h1 { font-size: 42px; }.auth-sheet { padding: 28px 21px; }.sheet-number { font-size: 17px; }.field-grid, .input-pair { grid-template-columns: 1fr; gap: 14px; }.code-button { width: 100%; }.auth-form--register { gap: 16px; } }
-@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
-</style>
-
-<style scoped>
-/* Refined client desk: calmer surfaces, stronger hierarchy, and a distinct register tone. */
-.auth-page {
-  --paper: #fcfbf8;
-  --ink: #202431;
-  --muted: rgba(32, 36, 49, .58);
-  --accent: #5167c9;
-  min-height: 100svh;
-  padding: clamp(20px, 3.5vw, 52px) clamp(16px, 5vw, 88px);
-  background: #e9ebf4;
-}
-.auth-page--register {
-  --ink: #322a2b;
-  --muted: rgba(50, 42, 43, .58);
-  --accent: #bd6849;
-  background: #f3e8e0;
-}
-.auth-lines { opacity: .3; background-size: 72px 72px; }
-.auth-lines::before { inset: 5% 3%; border-color: rgba(32, 36, 49, .1); }
-.auth-header { margin-bottom: clamp(22px, 3vw, 36px); }
-.wordmark strong { font-size: 31px; letter-spacing: -.1em; }
-.header-meta { gap: 18px; font-size: 9px; }
-.header-meta a {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  padding-bottom: 4px;
-}
-.auth-workbench {
-  width: min(100%, 1160px);
-  min-height: 650px;
-  overflow: hidden;
-  border: 1px solid rgba(32, 36, 49, .13);
-  border-radius: 22px;
-  background: var(--paper);
-  box-shadow: 0 28px 80px rgba(39, 43, 66, .16), 0 4px 16px rgba(39, 43, 66, .08);
-}
-.auth-intro {
-  position: relative;
-  isolation: isolate;
-  padding: clamp(30px, 4.5vw, 62px);
-  background: #303448;
-}
-.auth-intro::after {
-  position: absolute;
-  right: -18%;
-  bottom: -14%;
-  width: 72%;
-  aspect-ratio: 1;
-  border: 1px solid rgba(180, 193, 255, .23);
-  border-radius: 50%;
-  content: '';
-  box-shadow: 0 0 0 26px rgba(180, 193, 255, .035), 0 0 0 52px rgba(180, 193, 255, .025);
-  pointer-events: none;
-}
-.auth-page--register .auth-intro {
-  background: #e9c6b5;
-}
-.auth-page--register .auth-intro::after {
-  border-color: rgba(117, 59, 42, .2);
-  box-shadow: 0 0 0 26px rgba(117, 59, 42, .035), 0 0 0 52px rgba(117, 59, 42, .025);
-}
-.intro-copy { position: relative; z-index: 1; }
-.intro-copy h1 {
-  max-width: 390px;
-  font-size: clamp(44px, 5.2vw, 72px);
-  letter-spacing: -.015em;
-}
-.intro-copy > p:last-child { max-width: 290px; font-size: 13px; }
-.auth-sheet {
-  justify-content: flex-start;
-  padding: clamp(34px, 5vw, 72px) clamp(28px, 6vw, 78px);
-}
-.sheet-heading { margin-bottom: 28px; }
-.sheet-heading h2 { font-size: clamp(34px, 4vw, 54px); letter-spacing: -.02em; }
-.sheet-heading > div:first-child > p:last-child { font-size: 13px; }
-.sheet-number { margin-top: 4px; font-size: 25px; }
-.mode-switch { gap: 28px; margin-bottom: 30px; }
-.mode-switch button { padding-bottom: 13px; font-size: 15px; }
-.notice { border-radius: 10px; margin-top: -5px; }
-.auth-form { gap: 24px; }
-.auth-form--register { gap: 17px; }
-.field { gap: 9px; }
-.field label { font-size: 12px; }
-.input-line {
-  min-height: 52px;
-  gap: 12px;
-  border: 1px solid rgba(32, 36, 49, .14);
-  border-radius: 11px;
-  padding: 0 13px;
-  background: rgba(255, 255, 255, .56);
-}
-.input-line:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 70%, white);
-  background: #fff;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
-}
-.input-index { color: color-mix(in srgb, var(--accent) 70%, var(--muted)); }
-.input-line input { font-size: 13px; }
-.input-pair { gap: 10px; }
-.code-button {
-  min-height: 52px;
-  border-radius: 11px;
-  padding: 0 15px;
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-.field-grid { gap: 14px; }
-.submit-button {
-  min-height: 54px;
-  margin-top: 4px;
-  border-radius: 11px;
-  background: #202431;
-  box-shadow: 0 8px 18px rgba(32, 36, 49, .12);
-}
-.auth-page--register .submit-button { background: #322a2b; }
-.submit-button:hover:not(:disabled) { transform: translateY(-2px); }
-.form-bottom { margin-top: 3px; padding-top: 20px; }
-.form-bottom p { font-size: 12px; }
-.form-bottom a { font-size: 11px; }
-
-@media (max-width: 820px) {
-  .auth-workbench { border-radius: 18px; }
-  .auth-intro { min-height: 300px; }
-  .auth-sheet { padding: 34px 30px 32px; }
-}
-@media (max-width: 480px) {
-  .auth-page { background: #eef0f7; }
-  .auth-page--register { background: #f5ebe5; }
-  .auth-header { padding: 0 18px; }
-  .auth-workbench { border-radius: 0; }
-  .auth-intro { min-height: 245px; }
-  .auth-sheet { padding: 30px 20px 28px; }
-  .sheet-heading h2 { font-size: 36px; }
-  .input-line, .code-button { min-height: 50px; }
-}
-</style>
