@@ -1,37 +1,44 @@
 <template>
-  <div class="min-h-screen pt-28 pb-24 px-6">
-    <div class="max-w-2xl mx-auto space-y-8">
+  <div class="min-h-screen pt-28 pb-24 px-6 relative overflow-hidden" style="background: var(--color-bg);">
+    <!-- Ambient Studio Luxury Backdrop Glows -->
+    <div
+      class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
+      style="width: 900px; height: 500px; background: radial-gradient(circle, rgba(217,119,6,0.18) 0%, rgba(147,51,234,0.1) 45%, transparent 75%); filter: blur(60px);"
+    />
+
+    <div class="max-w-2xl mx-auto space-y-8 relative z-10">
       
       <!-- Back button -->
       <div class="reveal">
-        <NuxtLink to="/booking" class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-            <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/>
-          </svg>
-          返回预约说明
+        <NuxtLink to="/booking" class="btn-ghost inline-flex items-center gap-2 text-xs py-2 px-4 shadow-xs">
+          <IconSax name="arrow-left" :size="14" />
+          <span>返回预约说明</span>
         </NuxtLink>
       </div>
 
       <!-- Success Message -->
       <Transition name="fade">
-        <div v-if="submitted" class="glass-card p-12 text-center space-y-6 rounded-3xl border-2 border-emerald-200 bg-emerald-50/50">
-          <span class="text-6xl">✅</span>
-          <h2 class="font-display text-2xl font-bold text-emerald-800">预约提交成功！</h2>
-          <p class="text-emerald-600">感谢您的预约，我们会在24小时内通过邮件或电话与您联系。</p>
+        <div v-if="submitted" class="glass-card p-12 text-center space-y-6 rounded-3xl border-2 border-emerald-300 bg-white/95 shadow-2xl">
+          <span class="text-6xl animate-bounce">✨</span>
+          <h2 class="font-display text-3xl font-bold text-slate-900">预约意向已送达！</h2>
+          <p class="text-slate-600 text-sm max-w-md mx-auto">感谢您的预约，我们会在 24 小时内通过邮件或电话与您取得联系，推进技术排期。</p>
           <div class="flex items-center justify-center gap-4 pt-4">
-            <NuxtLink to="/" class="btn-ghost py-2 px-6 text-sm">返回首页</NuxtLink>
-            <NuxtLink to="/projects" class="btn-primary py-2 px-6 text-sm">查看作品集</NuxtLink>
+            <NuxtLink to="/" class="btn-ghost py-2.5 px-6 text-xs">返回首页</NuxtLink>
+            <NuxtLink to="/projects" class="btn-primary py-2.5 px-6 text-xs shadow-lg">查看作品集</NuxtLink>
           </div>
         </div>
       </Transition>
 
       <!-- Form -->
       <Transition name="fade">
-        <div v-if="!submitted" class="glass-card p-8 sm:p-10 space-y-8 rounded-3xl border-2 border-black/10 shadow-2xl">
-          <div class="text-center space-y-2">
-            <span class="text-4xl">📝</span>
-            <h1 class="font-display text-2xl font-bold text-slate-900">合作预约表单</h1>
-            <p class="text-sm text-slate-500">请填写以下信息，我们会尽快与您联系</p>
+        <div v-if="!submitted" class="glass-card p-8 sm:p-12 space-y-8 rounded-3xl border-2 border-black/10 shadow-2xl bg-white/95">
+          <div class="text-center space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 text-[10px] font-mono font-bold border border-amber-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+              <span>PROJECT INQUIRY FORM</span>
+            </div>
+            <h1 class="font-display text-3xl font-bold text-slate-900 tracking-tight">合作预约意向表单</h1>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">请填写以下项目基本信息，我们将快速评估周期与预算方案。</p>
           </div>
 
           <form @submit.prevent="submitForm" class="space-y-6">
@@ -123,14 +130,18 @@
 
             <!-- Submit -->
             <div class="pt-4">
-              <button type="submit" :disabled="submitting" class="btn-primary w-full py-4 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-lg hover:shadow-xl transition-all">
-                <span v-if="submitting" class="animate-spin">⏳</span>
-                <span v-else>📨</span>
-                {{ submitting ? '提交中...' : '提交预约' }}
+              <button
+                type="submit"
+                :disabled="submitting"
+                class="xo-kinetic-btn w-full py-4 text-sm font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 hover:from-amber-600 hover:via-amber-500 hover:to-amber-700 border border-white/10 rounded-2xl shadow-xl hover:shadow-[0_12px_36px_rgba(217,119,6,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span v-if="submitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <IconSax v-else name="send-2" :size="16" class="opacity-90" />
+                <span>{{ submitting ? '正在提交意向...' : '提交合作预约意向' }}</span>
               </button>
             </div>
 
-            <p v-if="error" class="text-sm text-rose-500 text-center">❌ {{ error }}</p>
+            <p v-if="error" class="text-xs font-semibold text-rose-500 text-center">❌ {{ error }}</p>
           </form>
         </div>
       </Transition>

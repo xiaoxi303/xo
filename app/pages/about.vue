@@ -36,7 +36,7 @@
               “{{ siteConfig?.about?.bioSub || '我相信镜头是会呼吸的。每一个颜色调性，每一段声音速度都是对情感的尊贵引导。让画面本身说话，细节剪辑更向光绽放故事。' }}”
             </blockquote>
 
-            <div class="pt-2">
+            <div class="pt-2 flex flex-wrap items-center gap-3">
               <a 
                 :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')" 
                 class="xo-kinetic-btn group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-lg hover:from-amber-600 hover:via-amber-500 hover:to-amber-700 hover:border-amber-400/40 hover:shadow-[0_12px_32px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 cursor-pointer"
@@ -44,7 +44,90 @@
                 <span>发起合作咨询 (Email)</span>
                 <IconSax name="arrow-right" :size="16" class="ml-1 opacity-90 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:scale-110" />
               </a>
+
+              <NuxtLink
+                to="/booking"
+                class="xo-kinetic-btn inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-xs font-bold text-[var(--color-ink-1)] bg-white/90 border border-amber-600/25 shadow-md hover:bg-amber-50 hover:border-amber-600/50 transition-all"
+              >
+                <span>预约合作排期</span>
+              </NuxtLink>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Creative Philosophies (3-Column Cinema Aesthetic) -->
+      <div class="space-y-6">
+        <div class="border-b pb-3 border-[var(--color-border)]">
+          <span class="text-[var(--color-bronze-dark)] text-xs font-bold tracking-widest font-sans uppercase">PHILOSOPHY & AESTHETICS</span>
+          <h2 class="font-display text-2xl sm:text-3xl font-bold text-[var(--color-ink-1)] tracking-tight">后期创作哲学</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="glass-card p-7 rounded-2xl border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 bg-[var(--glass-bg)] space-y-3 hover:-translate-y-1 shadow-lg">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-700 font-mono font-bold text-sm">
+              01
+            </div>
+            <h3 class="font-display font-bold text-lg text-slate-900">镜头韵律与节奏微雕</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
+              每一处切点都是心理时间的拉伸与压缩。通过微妙的帧级进退与运动速度曲率，赋予镜头呼吸与故事张力。
+            </p>
+          </div>
+
+          <div class="glass-card p-7 rounded-2xl border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 bg-[var(--glass-bg)] space-y-3 hover:-translate-y-1 shadow-lg">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-700 font-mono font-bold text-sm">
+              02
+            </div>
+            <h3 class="font-display font-bold text-lg text-slate-900">ACES 广色域色彩科学</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
+              摒弃粗制滥造的千篇一律滤镜。基于 ACEScct 与 35mm 胶片光化学曲线微雕高光滚落与肤色层次，传递直击心灵的情绪色调。
+            </p>
+          </div>
+
+          <div class="glass-card p-7 rounded-2xl border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 bg-[var(--glass-bg)] space-y-3 hover:-translate-y-1 shadow-lg">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-700 font-mono font-bold text-sm">
+              03
+            </div>
+            <h3 class="font-display font-bold text-lg text-slate-900">视听共振与沉浸声场</h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
+              画面为骨，声效为魂。音画同步对位与环境音层叠交融，为商业广告与纪录片构建全景式情绪共鸣。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Studio Hardware & Monitoring Environment -->
+      <div class="glass-card p-8 rounded-3xl border-2 border-[var(--color-border)] bg-[var(--glass-bg)] shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4 border-black/5">
+          <div>
+            <span class="text-[var(--color-bronze-dark)] text-xs font-bold tracking-widest font-sans uppercase">STUDIO HARDWARE</span>
+            <h2 class="font-display text-2xl font-bold text-[var(--color-ink-1)] tracking-tight">电影工业级监看与调色台配置</h2>
+          </div>
+          <span class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-800 border border-amber-600/20 self-start sm:self-auto">
+            100% DCI-P3 CALIBRATED
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1">
+            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">调色台控制器</div>
+            <div class="font-bold text-sm text-slate-900">Resolve Mini Panel</div>
+            <div class="text-[11px] text-amber-800 font-mono">三轨迹球微米调校</div>
+          </div>
+          <div class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1">
+            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">母带参考级监视器</div>
+            <div class="font-bold text-sm text-slate-900">FSI 31" 4K 12G-SDI</div>
+            <div class="text-[11px] text-amber-800 font-mono">100% DCI-P3 / HDR</div>
+          </div>
+          <div class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1">
+            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">后期渲染工作站</div>
+            <div class="font-bold text-sm text-slate-900">Mac Studio M2 Ultra</div>
+            <div class="text-[11px] text-amber-800 font-mono">128GB Unified / 76C GPU</div>
+          </div>
+          <div class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1">
+            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">母带交付格式</div>
+            <div class="font-bold text-sm text-slate-900">ProRes 4444 XQ</div>
+            <div class="text-[11px] text-amber-800 font-mono">Dolby Vision / ACEScct</div>
           </div>
         </div>
       </div>
@@ -53,10 +136,9 @@
       <div class="about-timeline space-y-8">
         <div class="flex items-center justify-between border-b pb-4 border-[var(--color-border)]">
           <div>
-            <span class="text-[var(--color-bronze-dark)] text-xs font-bold tracking-widest font-sans">年谱与履历</span>
+            <span class="text-[var(--color-bronze-dark)] text-xs font-bold tracking-widest font-sans uppercase">CHRONOLOGY</span>
             <h2 class="font-display text-3xl font-bold text-[var(--color-ink-1)] tracking-tight">影视制作年谱</h2>
           </div>
-          
         </div>
 
         <div class="relative space-y-8">

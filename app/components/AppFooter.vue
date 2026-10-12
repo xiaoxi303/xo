@@ -9,16 +9,21 @@
       <!-- Main Row -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
 
-        <!-- Left: Brand Block -->
-        <div class="flex items-center gap-3 group cursor-default">
+        <!-- Left: Brand Block & Color Science tribute -->
+        <div class="flex flex-wrap items-center gap-3 group cursor-default">
           <img
             src="/logo.png?v=312k_v4"
             alt="Xo Logo"
             class="h-6 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
-          <div class="flex items-center">
-            <span class="text-[9px] font-mono font-bold tracking-[0.1em] uppercase ml-2"
-                  style="color: var(--color-ink-5);">Xo · 视频剪辑与调色工作室</span>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono font-bold tracking-[0.1em] uppercase text-slate-700">
+              {{ siteConfig?.siteInfo?.title || 'Xo' }} · 电影剪辑与调色工作室
+            </span>
+            <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-500/10 text-amber-900 border border-amber-600/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+              <span>ACEScct / Rec.709</span>
+            </span>
           </div>
         </div>
 

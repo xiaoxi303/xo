@@ -1,25 +1,33 @@
 <template>
-  <div class="min-h-screen pt-28 pb-24 px-6">
-    <div class="max-w-4xl mx-auto space-y-12">
+  <div class="min-h-screen pt-28 pb-24 px-6 relative overflow-hidden" style="background: var(--color-bg);">
+    <!-- Ambient Studio Luxury Backdrop Glows -->
+    <div
+      class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
+      style="width: 1000px; height: 500px; background: radial-gradient(circle, rgba(217,119,6,0.2) 0%, rgba(147,51,234,0.12) 45%, transparent 75%); filter: blur(60px);"
+    />
+
+    <div class="max-w-4xl mx-auto space-y-12 relative z-10">
       
       <!-- Back button -->
       <div>
-        <NuxtLink to="/" class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4">
-          <IconSax name="arrow-left" :size="16" />
+        <NuxtLink to="/" class="btn-ghost inline-flex items-center gap-2 text-xs py-2 px-4 shadow-xs">
+          <IconSax name="arrow-left" :size="14" />
           <span>返回首页</span>
         </NuxtLink>
       </div>
 
-      <!-- Hero Section -->
-      <div class="text-center space-y-6 reveal">
-        <div class="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 mx-auto">
-          <IconSax name="mail" :size="40" />
+      <!-- Hero Section (Hollywood Editorial Style) -->
+      <div class="text-center space-y-5 reveal">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[var(--color-bronze-dark)] text-xs font-mono font-bold"
+             style="background: rgba(217,119,6,0.12); border: 1px solid rgba(217,119,6,0.3);">
+          <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-bronze)] animate-pulse" />
+          <span>PRODUCTION & GRADING BOOKING (2026)</span>
         </div>
-        <h1 class="font-display text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
-          合作预约
+        <h1 class="font-display text-4xl lg:text-6xl font-bold tracking-tight text-[var(--color-ink-1)]">
+          商业合作与后期排期
         </h1>
-        <p class="text-lg text-slate-500 max-w-2xl mx-auto">
-          期待与您的合作！无论是商业TVC、电影调色、短视频制作还是其他视觉项目，都欢迎预约咨询。
+        <p class="text-sm sm:text-base text-[var(--color-ink-4)] max-w-xl mx-auto font-sans leading-relaxed">
+          专注于商业 TVC、品牌形象宣传片、概念短片与院线级调色。24 小时内快速响应，评估制作周期与技术方案。
         </p>
       </div>
 

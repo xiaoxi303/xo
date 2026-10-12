@@ -80,30 +80,38 @@
             </div>
           </div>
 
-          <!-- Right: Minimalist Floating Monitor (DaVinci Resolve Style Monitor) -->
+          <!-- Right: Minimalist Floating Monitor (DaVinci Resolve Cinema Monitor) -->
           <div ref="heroCardRef" class="home-hero-visual relative">
-            <!-- Ambient warm gold glow -->
+            <!-- Ambient warm gold & anamorphic glow -->
             <div class="absolute -inset-4 rounded-3xl blur-2xl pointer-events-none"
-                 style="background: linear-gradient(135deg, rgba(217,119,6,0.35) 0%, rgba(147,51,234,0.25) 50%, rgba(217,119,6,0.15) 100%); filter: blur(30px);" />
+                 style="background: linear-gradient(135deg, rgba(217,119,6,0.35) 0%, rgba(147,51,234,0.22) 50%, rgba(217,119,6,0.15) 100%); filter: blur(32px);" />
             
-            <div class="glass-card relative p-0 overflow-hidden aspect-[4/3] flex flex-col justify-between group shadow-2xl"
-                 style="border: 2px solid rgba(0,0,0,0.15); background: rgba(255,255,255,0.95); box-shadow: 0 20px 40px rgba(0,0,0,0.12);">
+            <div class="cinema-monitor-frame relative p-0 overflow-hidden aspect-[4/3] flex flex-col justify-between group shadow-2xl">
               
-              <!-- Monitor Style Clean Minimal Header -->
-              <div class="px-4 py-2.5 font-mono text-[10px] flex items-center justify-between z-20 select-none"
-                   style="background: #0b0d12; color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.15);">
-                <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" style="box-shadow: 0 0 10px rgba(244,63,94,0.9);" />
-                  <span class="font-bold tracking-wider text-slate-100 font-sans">作品集预览 MP4</span>
+              <!-- Monitor Style Clean Cinema Header -->
+              <div class="px-4 py-2.5 font-mono text-[10px] flex items-center justify-between z-20 select-none bg-[#090b10] text-slate-100 border-b border-white/10">
+                <!-- Left: REC pulse and live SMPTE timecode -->
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.9)]" />
+                  <span class="font-bold tracking-wider text-rose-300 font-mono text-[11px]">REC</span>
+                  <span class="text-white/30">•</span>
+                  <span class="font-mono text-[11px] font-bold text-amber-300/90 tracking-widest">{{ displayTimecode }}</span>
                 </div>
-                <div class="flex items-center gap-3">
-                  <span class="font-bold text-amber-400/90">{{ heroVideoCodec }}</span>
-                  <span class="text-white/40">|</span>
-                  <span class="font-bold text-slate-300">{{ heroVideoFps }}</span>
+                <!-- Middle: Color Space tag -->
+                <div class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] font-mono text-slate-300">
+                  <span class="text-amber-400 font-bold">ACEScct</span>
+                  <span class="text-white/40">/</span>
+                  <span>DCI-P3 D65</span>
+                </div>
+                <!-- Right: Codec and Framerate -->
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-amber-400/90 text-[10px]">{{ heroVideoCodec }}</span>
+                  <span class="text-white/30">|</span>
+                  <span class="font-bold text-slate-300 text-[10px]">{{ heroVideoFps }}</span>
                 </div>
               </div>
 
-              <!-- Video Area -->
+              <!-- Video Area with Studio Overlays -->
               <div class="flex-1 relative bg-slate-950 flex items-center justify-center overflow-hidden">
                 <MediaVideo
                   :src="siteConfig?.home?.heroVideoUrl || 'https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4'"
@@ -120,11 +128,39 @@
                   :watermark-invisible-opacity="siteConfig?.watermark?.invisibleOpacity ?? 3"
                   class="w-full h-full object-cover"
                 />
+
+                <!-- Cinema 2.39:1 Framing Corner Marks (Subtle Film Guides) -->
+                <div class="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
+                  <div class="w-4 h-4 relative opacity-30">
+                    <span class="absolute top-1/2 left-0 right-0 h-px bg-white/70" />
+                    <span class="absolute left-1/2 top-0 bottom-0 w-px bg-white/70" />
+                  </div>
+                  <div class="absolute top-3 left-3 w-3 h-3 border-t border-l border-white/30" />
+                  <div class="absolute top-3 right-3 w-3 h-3 border-t border-r border-white/30" />
+                  <div class="absolute bottom-3 left-3 w-3 h-3 border-b border-l border-white/30" />
+                  <div class="absolute bottom-3 right-3 w-3 h-3 border-b border-r border-white/30" />
+                </div>
+
+                <!-- Live Audio Stereo VU Meter Bar (Simulated Mixing Readout) -->
+                <div class="absolute bottom-3 left-3 z-20 flex items-end gap-1 px-2.5 py-1 rounded bg-black/60 backdrop-blur-md border border-white/10 pointer-events-none">
+                  <span class="text-[8px] font-mono font-bold text-slate-400 mr-1">VU CH1/2</span>
+                  <div class="flex items-end gap-0.5 h-3">
+                    <span class="w-1 bg-emerald-400 rounded-xs animate-[pulse_1.2s_ease-in-out_infinite]" style="height: 75%;" />
+                    <span class="w-1 bg-emerald-400 rounded-xs animate-[pulse_0.8s_ease-in-out_infinite]" style="height: 90%;" />
+                    <span class="w-1 bg-amber-400 rounded-xs animate-[pulse_1.5s_ease-in-out_infinite]" style="height: 60%;" />
+                    <span class="w-1 bg-rose-500 rounded-xs animate-[pulse_2s_ease-in-out_infinite]" style="height: 35%;" />
+                  </div>
+                </div>
+
+                <!-- DaVinci Node Tree status chip (bottom right) -->
+                <div class="absolute bottom-3 right-3 z-20 hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-black/60 backdrop-blur-md border border-white/10 pointer-events-none text-[9px] font-mono text-amber-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span>NODE 16 • PRIMARY BAL</span>
+                </div>
               </div>
 
               <!-- Clean Stats footer -->
-              <div class="px-6 py-4 backdrop-blur-md flex items-center justify-between z-20"
-                   style="background: rgba(255,255,255,0.96); border-top: 1px solid rgba(0,0,0,0.1);">
+              <div class="px-6 py-4 backdrop-blur-md flex items-center justify-between z-20 bg-white/95 border-t border-black/10">
                 <div class="space-y-0.5">
                   <div class="text-2xl font-display font-bold text-[var(--color-ink-1)] leading-none">{{ siteConfig?.home?.statValue1 || '120+' }}</div>
                   <div class="text-[var(--color-ink-4)] text-[9px] uppercase font-mono tracking-wider font-bold">{{ siteConfig?.home?.statLabel1 || '剪辑交付量' }}</div>
@@ -466,6 +502,109 @@
         </div>
       </div>
     </section>
+
+    <!-- ===== CINEMA POST-PRODUCTION PIPELINE SECTION ===== -->
+    <section class="home-pipeline-section py-24 px-6 relative z-10">
+      <div class="max-w-6xl mx-auto space-y-14">
+        <!-- Section Header -->
+        <div class="space-y-3 text-center reveal">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-[var(--color-bronze-dark)] text-xs font-mono font-bold border border-amber-500/20">
+            <span class="w-2 h-2 rounded-full bg-[var(--color-bronze)] animate-pulse" />
+            <span>POST-PRODUCTION WORKFLOW</span>
+          </div>
+          <h2 class="font-display text-4xl lg:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight">
+            好莱坞工业级后期全流程
+          </h2>
+          <p class="text-[var(--color-ink-4)] text-xs sm:text-sm max-w-xl mx-auto font-sans leading-relaxed">
+            从离线粗剪节奏、达芬奇 ACES 广色域科学管理，到精雕微调与杜比视界高规格母带，每一个节点都精益求精。
+          </p>
+        </div>
+
+        <!-- 4 Steps Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
+          <div
+            v-for="step in cinemaPipelineSteps"
+            :key="step.num"
+            class="pipeline-step-card flex flex-col justify-between group"
+          >
+            <div class="space-y-4">
+              <!-- Top Step Index & Accent Tag -->
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-2xl font-extrabold text-[var(--color-bronze)] tracking-tight">
+                  {{ step.num }}
+                </span>
+                <span class="w-2 h-2 rounded-full bg-amber-400/40 group-hover:bg-amber-500 transition-colors" />
+              </div>
+
+              <!-- Titles -->
+              <div class="space-y-1">
+                <h3 class="font-display text-lg font-bold text-[var(--color-ink-1)] group-hover:text-[var(--color-bronze-dark)] transition-colors">
+                  {{ step.title }}
+                </h3>
+                <p class="font-mono text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                  {{ step.enTitle }}
+                </p>
+              </div>
+
+              <!-- Description -->
+              <p class="text-xs sm:text-sm text-[var(--color-ink-4)] leading-relaxed font-sans">
+                {{ step.desc }}
+              </p>
+            </div>
+
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-1.5 pt-6 border-t border-black/[0.06] mt-6">
+              <span
+                v-for="tag in step.tags"
+                :key="tag"
+                class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-900 border border-amber-600/15"
+              >
+                {{ tag }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CLOSING DIRECT INQUIRY BANNER ===== -->
+    <section class="home-cta-section py-20 px-6 relative z-10">
+      <div class="max-w-5xl mx-auto">
+        <div class="relative rounded-3xl p-8 sm:p-14 overflow-hidden border border-amber-600/25 shadow-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 text-white text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-8 reveal">
+          <!-- Ambient gold flare -->
+          <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-500/20 blur-3xl pointer-events-none" />
+          <div class="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-amber-600/20 blur-3xl pointer-events-none" />
+
+          <div class="space-y-3 max-w-xl relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-[10px] font-mono font-bold border border-white/10">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span>BOOKING AVAILABLE 2026</span>
+            </div>
+            <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              准备好开启你的下一个视觉大片了吗？
+            </h2>
+            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-sans">
+              无论是品牌商业 TVC、院线纪录片还是概念短片，我们为你提供从离线剪辑到电影级 DI 调色的全流程保障。
+            </p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-3 relative z-10 flex-shrink-0">
+            <NuxtLink
+              to="/booking/form"
+              class="xo-kinetic-btn px-7 py-3.5 rounded-full text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 shadow-xl hover:shadow-[0_10px_30px_rgba(251,191,36,0.4)] transition-all hover:scale-105"
+            >
+              填写预约意向
+            </NuxtLink>
+            <NuxtLink
+              to="/projects"
+              class="xo-kinetic-btn px-6 py-3.5 rounded-full text-xs font-bold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all"
+            >
+              浏览全部作品
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -503,6 +642,50 @@ const statValue3 = computed(() => siteConfig.value?.home?.statValue3 || 'ACEScct
 const statLabel3 = computed(() => siteConfig.value?.home?.statLabel3 || '色彩科学')
 const tvcProjectNodes = computed(() => siteConfig.value?.home?.tvcProjectNodes || '16 NODES')
 const tvcProjectBadge = computed(() => siteConfig.value?.home?.tvcProjectBadge || 'FEATURED')
+
+// Live SMPTE Timecode Counter Simulation (01:24:08:12)
+const tcHours = 1
+const tcMinutes = 24
+const tcSeconds = ref(8)
+const tcFrames = ref(12)
+let tcInterval: ReturnType<typeof setInterval> | null = null
+
+const displayTimecode = computed(() => {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${pad(tcHours)}:${pad(tcMinutes)}:${pad(tcSeconds.value)}:${pad(tcFrames.value)}`
+})
+
+// Cinema Post-Production Pipeline Steps
+const cinemaPipelineSteps = [
+  {
+    num: '01',
+    title: '粗剪节奏与叙事构建',
+    enTitle: 'Offline Editing & Pace',
+    desc: '深入挖掘脚本内核，精准把控镜头运动加速度与切点，确立故事张力与情绪起伏曲线。',
+    tags: ['镜头节奏', '叙事结构', '多机位同步']
+  },
+  {
+    num: '02',
+    title: 'ACES 广色域色彩管理',
+    enTitle: 'Color Management (ACEScct)',
+    desc: '构建广色域影视级色彩管线，统一 ARRI / RED / Sony Cine 摄影机 RAW 原始素材的高保真色彩基准。',
+    tags: ['IDT 转换', 'ACEScct', '宽容度保留']
+  },
+  {
+    num: '03',
+    title: '达芬奇微雕节点调色',
+    enTitle: 'DI Micro-Grading & Nodes',
+    desc: '精细分离肤色区域、对比度曲率、胶片模拟粒子与光晕晕映，雕琢具有强烈电影感的光影质感。',
+    tags: ['32 节点树', '肤色微雕', '35mm 胶片光晕']
+  },
+  {
+    num: '04',
+    title: '杜比视界高规格交付',
+    enTitle: 'Dolby Vision & Master Delivery',
+    desc: '严格执行 DCI-P3 / Rec.2020 标准色域与 HDR 1000 nits 高动态范围母带质检，适配全终端极致观感。',
+    tags: ['ProRes 4444 XQ', 'Dolby Vision', 'DCI 母带']
+  }
+]
 
 // Default Brands Fallback for Ribbon
 const defaultBrands = computed(() => {
@@ -632,6 +815,14 @@ onMounted(async () => {
   await nextTick()
 
   if (import.meta.client) {
+    // Start SMPTE Timecode live simulation (~24 FPS)
+    tcInterval = setInterval(() => {
+      tcFrames.value = (tcFrames.value + 1) % 24
+      if (tcFrames.value === 0) {
+        tcSeconds.value = (tcSeconds.value + 1) % 60
+      }
+    }, 42)
+
     const preloaderRevealed = useState('xo_preloader_revealed', () => false)
     const preloaderDone = useState('xo_preloader_done', () => false)
 
@@ -661,6 +852,10 @@ watch([projects, siteConfig], async () => {
 })
 
 onBeforeUnmount(() => {
+  if (tcInterval) {
+    clearInterval(tcInterval)
+    tcInterval = null
+  }
   if (revealObserver) {
     revealObserver.disconnect()
   }

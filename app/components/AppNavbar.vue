@@ -11,39 +11,50 @@
       :class="[
         'transition-all duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1) flex items-center justify-between',
         isScrolled
-          ? 'w-[92%] max-w-[700px] h-14 px-6 md:px-7 rounded-full backdrop-blur-xl border'
+          ? 'w-[94%] max-w-[760px] h-14 px-5 md:px-7 rounded-full backdrop-blur-2xl border'
           : 'w-full max-w-6xl h-16 md:h-20 px-4 md:px-6 bg-transparent border-b border-transparent'
       ]"
       :style="isScrolled
         ? { 
-            background: 'rgba(252, 248, 242, 0.75)', 
-            borderColor: 'rgba(180, 160, 130, 0.15)',
-            boxShadow: '0 4px 20px -2px rgba(80,60,30,0.06), 0 12px 36px -6px rgba(80,60,30,0.08), inset 0 1px 0 rgba(255,255,255,0.9)'
+            background: 'rgba(253, 250, 246, 0.82)', 
+            borderColor: 'rgba(190, 160, 120, 0.22)',
+            boxShadow: '0 8px 32px -4px rgba(80,60,30,0.08), 0 20px 48px -8px rgba(80,60,30,0.06), inset 0 1px 0 rgba(255,255,255,0.95)'
           }
         : {}"
     >
-      <!-- Brand Logo -->
-      <NuxtLink
-        to="/"
-        class="group flex items-center gap-2 no-underline flex-shrink-0 transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)"
-        aria-label="Xo 首页"
-      >
-        <img
-          src="/logo.png?v=312k_v4"
-          alt="Xo Logo"
-          :class="[
-            'w-auto object-contain transition-all duration-500',
-            isScrolled ? 'h-7' : 'h-8'
-          ]"
-        />
-      </NuxtLink>
+      <!-- Brand Logo & Studio Live Badge -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <NuxtLink
+          to="/"
+          class="group flex items-center gap-2 no-underline flex-shrink-0 transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)"
+          aria-label="Xo 首页"
+        >
+          <img
+            src="/logo.png?v=312k_v4"
+            alt="Xo Logo"
+            :class="[
+              'w-auto object-contain transition-all duration-500',
+              isScrolled ? 'h-7' : 'h-8'
+            ]"
+          />
+        </NuxtLink>
+
+        <!-- Studio status micro chip (Desktop) -->
+        <div
+          v-if="!isScrolled"
+          class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none animate-fadeIn"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span>OPEN FOR BOOKING</span>
+        </div>
+      </div>
 
       <!-- Desktop nav links with Liquid Magnetic Sliding Pill -->
       <ul
         ref="navUlRef"
         :class="[
           'hidden md:flex items-center relative transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1) py-1',
-          isScrolled ? 'gap-1' : 'gap-1.5'
+          isScrolled ? 'gap-0.5' : 'gap-1'
         ]"
         @mouseleave="resetPillToActive"
       >
@@ -54,9 +65,9 @@
             transform: `translate3d(${pillLeft}px, 0, 0)`,
             width: `${pillWidth}px`,
             opacity: pillOpacity,
-            background: 'rgba(255, 255, 255, 0.88)',
-            boxShadow: '0 3px 12px rgba(180, 120, 40, 0.08), inset 0 1px 0 rgba(255,255,255,0.98)',
-            border: '1px solid rgba(0, 0, 0, 0.04)'
+            background: 'rgba(255, 255, 255, 0.94)',
+            boxShadow: '0 4px 16px rgba(180, 120, 40, 0.12), inset 0 1px 0 rgba(255,255,255,0.98)',
+            border: '1px solid rgba(217, 119, 6, 0.22)'
           }"
         />
 
@@ -70,7 +81,7 @@
           <NuxtLink
             :to="link.to"
             :class="[
-              'relative px-4 py-1.5 text-xs font-semibold tracking-wide transition-colors duration-200 rounded-full flex items-center justify-center select-none xo-kinetic-btn',
+              'relative px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-colors duration-200 rounded-full flex items-center justify-center select-none xo-kinetic-btn',
               isActive(link.to)
                 ? 'text-[var(--color-ink-1)] font-bold'
                 : 'text-[var(--color-ink-4)] hover:text-[var(--color-ink-1)]'
@@ -89,8 +100,8 @@
           :customClass="[
             'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-sm group cursor-pointer border',
             isScrolled 
-              ? 'px-4 py-1.5 text-slate-900 bg-amber-500/15 border-amber-600/30'
-              : 'px-5 py-2 text-white bg-slate-900 border-white/10'
+              ? 'px-4 py-1.5 text-slate-900 bg-amber-500/15 border-amber-600/30 hover:bg-amber-500/25'
+              : 'px-5 py-2 text-white bg-slate-900 border-white/10 hover:bg-slate-800'
           ].join(' ')"
         />
 
@@ -113,9 +124,9 @@
         v-if="mobileOpen"
         class="md:hidden absolute top-full left-4 right-4 mt-2 rounded-3xl p-3 flex flex-col gap-1 backdrop-blur-2xl"
         :style="{
-          background: 'var(--glass-bg)',
-          border: '1px solid var(--glass-border-inner)',
-          boxShadow: 'var(--glass-shadow-lg)'
+          background: 'rgba(253, 250, 246, 0.94)',
+          border: '1px solid rgba(190, 160, 120, 0.25)',
+          boxShadow: '0 20px 48px -10px rgba(80,60,30,0.18)'
         }"
       >
         <NuxtLink
@@ -123,28 +134,26 @@
           :key="link.to"
           :to="link.to"
           :class="[
-            'px-5 py-3 rounded-full text-sm font-medium transition-all duration-200 flex items-center justify-between',
+            'px-5 py-3 rounded-2xl text-sm font-medium transition-all duration-200 flex items-center justify-between',
             isActive(link.to)
-              ? 'text-[var(--color-ink-1)] bg-white/90 font-semibold shadow-sm'
-              : 'text-[var(--color-ink-5)] hover:text-[var(--color-ink-2)] hover:bg-white/40'
+              ? 'text-[var(--color-ink-1)] bg-amber-500/10 font-bold border border-amber-600/20 shadow-xs'
+              : 'text-[var(--color-ink-4)] hover:text-[var(--color-ink-2)] hover:bg-white/60'
           ]"
           @click="mobileOpen = false"
         >
           <span>{{ link.label }}</span>
-          <Transition name="check-mark">
-            <span v-if="isActive(link.to)" class="w-2 h-2 rounded-full bg-[var(--color-bronze)]" />
-          </Transition>
+          <span v-if="isActive(link.to)" class="w-2 h-2 rounded-full bg-[var(--color-bronze)]" />
         </NuxtLink>
-        <div class="border-t mt-2 pt-2 px-1" :style="{ borderColor: 'var(--color-border)' }">
+        <div class="border-t mt-2 pt-2 px-1" style="border-color: rgba(0,0,0,0.06);">
           <a 
             :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" 
-            class="group flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-bold text-white bg-gradient-to-r from-slate-900 to-slate-800 hover:from-amber-600 hover:to-amber-700 shadow-md hover:shadow-[0_8px_25px_rgba(217,119,6,0.4)] transition-all duration-300 active:scale-[0.98]"
+            class="group flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-slate-900 to-slate-800 hover:from-amber-600 hover:to-amber-700 shadow-md hover:shadow-[0_8px_25px_rgba(217,119,6,0.4)] transition-all duration-300 active:scale-[0.98]"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 opacity-90 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
             </svg>
-            <span>联系我</span>
+            <span>发起合作咨询</span>
           </a>
         </div>
       </div>
@@ -163,8 +172,9 @@ const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
 const navLinks = [
   { label: '首页', to: '/' },
   { label: '作品集', to: '/projects' },
-  { label: '博客', to: '/blog' },
+  { label: '合作预约', to: '/booking' },
   { label: '关于我', to: '/about' },
+  { label: '博客', to: '/blog' },
 ]
 
 const navUlRef = ref<HTMLElement | null>(null)
