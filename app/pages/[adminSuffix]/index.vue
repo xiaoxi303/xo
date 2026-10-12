@@ -727,227 +727,665 @@
           </div>
         </div>
 
-          <!-- Bookings Tab -->
-          <div v-else-if="activeTab === 'bookings'" key="bookings" class="space-y-6">
-            <div class="glass-card p-8 space-y-6">
+          <!-- Bookings Tab (商业合作预约与展示配置) -->
+          <div v-else-if="activeTab === 'bookings'" key="bookings" class="space-y-8">
+            
+            <!-- Top Master Header Card -->
+            <div class="glass-card p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-amber-600/15">
+              <div class="space-y-1">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 text-[10px] font-mono font-bold border border-amber-500/20">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                  <span>COMMERCIAL BOOKING & DELIVERY HUB</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold font-display text-slate-900 tracking-tight">合作预约与客户交付中心</h2>
+                <p class="text-xs text-slate-500 font-sans">集中管理客户预约需求、无缝一键打通专属交付放映室，并配置前端展示视觉。</p>
+              </div>
+
               <!-- Sub-tab switch bar -->
-              <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
-                <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-black/[0.04] border border-black/[0.05]">
+                <button
+                  type="button"
+                  @click="bookingSubTab = 'records'"
+                  :class="[
+                    'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
+                    bookingSubTab === 'records'
+                      ? 'bg-amber-700 text-white shadow-md'
+                      : 'text-slate-600 hover:bg-black/5'
+                  ]"
+                >
+                  <span>📋 预约意向受理</span>
+                  <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono" :class="bookingSubTab === 'records' ? 'bg-black/20 text-white' : 'bg-black/[0.06] text-slate-700'">{{ bookings.length }}</span>
+                </button>
+                <button
+                  type="button"
+                  @click="bookingSubTab = 'settings'"
+                  :class="[
+                    'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
+                    bookingSubTab === 'settings'
+                      ? 'bg-amber-700 text-white shadow-md'
+                      : 'text-slate-600 hover:bg-black/5'
+                  ]"
+                >
+                  <span>⚙️ 预约展示页面配置</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- VIEW 1: RECORDS (预约意向记录与交付打通) -->
+            <div v-if="bookingSubTab === 'records'" class="space-y-6">
+              
+              <!-- 5 Top Metric Stat Badges -->
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div 
+                  @click="bookingFilterStatus = 'all'"
+                  class="p-4 rounded-2xl bg-white border border-black/[0.06] shadow-xs cursor-pointer hover:border-amber-600/40 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-amber-600/30 border-amber-600': bookingFilterStatus === 'all' }"
+                >
+                  <div class="text-[11px] font-mono font-bold text-slate-500">全部预约总数</div>
+                  <div class="text-2xl font-bold font-mono text-slate-900">{{ bookings.length }}</div>
+                </div>
+
+                <div 
+                  @click="bookingFilterStatus = 'pending'"
+                  class="p-4 rounded-2xl bg-amber-500/5 border border-amber-600/20 shadow-xs cursor-pointer hover:border-amber-600/40 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-amber-600/40 border-amber-600': bookingFilterStatus === 'pending' }"
+                >
+                  <div class="text-[11px] font-mono font-bold text-amber-800 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                    <span>待跟进处理</span>
+                  </div>
+                  <div class="text-2xl font-bold font-mono text-amber-900">
+                    {{ bookings.filter(b => b.status === 'pending').length }}
+                  </div>
+                </div>
+
+                <div 
+                  @click="bookingFilterStatus = 'confirmed'"
+                  class="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-600/20 shadow-xs cursor-pointer hover:border-emerald-600/40 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-emerald-600/40 border-emerald-600': bookingFilterStatus === 'confirmed' }"
+                >
+                  <div class="text-[11px] font-mono font-bold text-emerald-800 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    <span>已确认洽谈</span>
+                  </div>
+                  <div class="text-2xl font-bold font-mono text-emerald-900">
+                    {{ bookings.filter(b => b.status === 'confirmed').length }}
+                  </div>
+                </div>
+
+                <div 
+                  @click="bookingFilterStatus = 'converted'"
+                  class="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-600/20 shadow-xs cursor-pointer hover:border-indigo-600/40 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-indigo-600/40 border-indigo-600': bookingFilterStatus === 'converted' }"
+                >
+                  <div class="text-[11px] font-mono font-bold text-indigo-800 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                    <span>已转专属交付</span>
+                  </div>
+                  <div class="text-2xl font-bold font-mono text-indigo-900">
+                    {{ bookings.filter(b => b.status === 'converted').length }}
+                  </div>
+                </div>
+
+                <div 
+                  @click="bookingFilterStatus = 'archived'"
+                  class="p-4 rounded-2xl bg-slate-100/60 border border-black/[0.06] shadow-xs cursor-pointer hover:border-slate-400 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-slate-400 border-slate-500': bookingFilterStatus === 'archived' }"
+                >
+                  <div class="text-[11px] font-mono font-bold text-slate-500">已归档记录</div>
+                  <div class="text-2xl font-bold font-mono text-slate-700">
+                    {{ bookings.filter(b => b.status === 'archived').length }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filter & Search Bar -->
+              <div class="glass-card p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <div class="relative flex-1 sm:w-72">
+                    <input
+                      v-model="bookingSearchQuery"
+                      type="text"
+                      class="form-input text-xs pl-8 pr-3 py-2 w-full"
+                      placeholder="搜索姓名、公司、手机号、需求..."
+                    />
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+                  </div>
+
+                  <select v-model="bookingFilterStatus" class="form-input text-xs py-2 w-32 cursor-pointer">
+                    <option value="all">全部状态</option>
+                    <option value="pending">🟡 待跟进处理</option>
+                    <option value="confirmed">🟢 已确认洽谈</option>
+                    <option value="converted">🚀 已转专属交付</option>
+                    <option value="archived">⚪ 已归档</option>
+                  </select>
+                </div>
+
+                <div class="flex items-center gap-2 self-end sm:self-auto">
                   <button
                     type="button"
-                    @click="bookingSubTab = 'records'"
-                    :class="[
-                      'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
-                      bookingSubTab === 'records'
-                        ? 'bg-amber-600 text-white shadow-md'
-                        : 'text-slate-600 hover:bg-black/5'
-                    ]"
+                    @click="fetchBookings"
+                    class="btn-ghost text-xs py-2 px-3 border rounded-xl flex items-center gap-1.5"
+                    title="刷新列表"
                   >
-                    📋 预约申请记录 ({{ bookings.length }})
+                    <span>🔄 刷新</span>
                   </button>
                   <button
                     type="button"
-                    @click="bookingSubTab = 'settings'"
-                    :class="[
-                      'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
-                      bookingSubTab === 'settings'
-                        ? 'bg-amber-600 text-white shadow-md'
-                        : 'text-slate-600 hover:bg-black/5'
-                    ]"
+                    @click="createSampleBooking"
+                    class="btn-ghost text-xs py-2 px-3 border border-amber-600/30 text-amber-800 hover:bg-amber-500/10 rounded-xl flex items-center gap-1.5"
+                    title="生成一条示例数据以供测试"
                   >
-                    ⚙️ 预约展示页面配置
+                    <span>➕ 模拟测试数据</span>
                   </button>
                 </div>
+              </div>
+
+              <!-- Empty State -->
+              <div v-if="filteredBookings.length === 0" class="glass-card p-14 text-center space-y-4">
+                <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-700 flex items-center justify-center text-3xl mx-auto shadow-sm">
+                  📋
+                </div>
+                <div class="space-y-1">
+                  <h3 class="text-base font-bold text-slate-900">暂无匹配的预约记录</h3>
+                  <p class="text-xs text-slate-500 max-w-sm mx-auto">客户在前台 /booking 提交意向后将实时收录于此，或点击右上角生成测试数据。</p>
+                </div>
                 <button
-                  v-if="bookingSubTab === 'settings'"
-                  @click="saveSiteConfig"
-                  class="btn-primary text-xs py-2 px-5"
+                  type="button"
+                  @click="createSampleBooking"
+                  class="btn-primary text-xs py-2 px-4 shadow-md inline-flex items-center gap-1.5"
                 >
-                  保存预约页面配置
+                  <span>立即生成一条测试预约</span>
                 </button>
               </div>
 
-              <!-- VIEW 1: RECORDS -->
-              <div v-if="bookingSubTab === 'records'" class="space-y-4">
-                <div v-if="bookings.length === 0" class="text-center py-12">
-                  <span class="text-4xl">📋</span>
-                  <p class="text-sm mt-3" style="color: var(--color-ink-4)">暂无预约记录</p>
-                </div>
-
-                <div v-else class="space-y-4">
-                  <div v-for="b in bookings" :key="b.id" class="p-5 rounded-2xl border" style="border-color: var(--color-border); background: var(--color-bg-2)">
-                    <div class="flex items-start justify-between mb-3">
-                      <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: var(--color-accent-10)">
-                          {{ b.serviceType === 'tvc' ? '🎬' : b.serviceType === 'color' ? '🎨' : b.serviceType === 'short' ? '📹' : b.serviceType === 'audio' ? '🎵' : '📁' }}
+              <!-- Cards List -->
+              <div v-else class="space-y-4">
+                <div
+                  v-for="b in filteredBookings"
+                  :key="b.id"
+                  class="glass-card p-6 rounded-2xl border border-black/10 hover:border-amber-500/30 shadow-sm hover:shadow-md transition-all space-y-4 relative"
+                >
+                  <!-- Top Row: Avatar, Name, Badges, Status -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/[0.05]">
+                    <div class="flex items-center gap-3">
+                      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-xs shrink-0"
+                        :class="b.serviceType === 'tvc' ? 'bg-amber-100 text-amber-800' : b.serviceType === 'color' ? 'bg-purple-100 text-purple-800' : b.serviceType === 'short' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'">
+                        {{ b.serviceType === 'tvc' ? '🎬' : b.serviceType === 'color' ? '🎨' : b.serviceType === 'short' ? '📹' : b.serviceType === 'audio' ? '🎵' : '📁' }}
+                      </div>
+                      <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold text-base text-slate-900">{{ b.name }}</span>
+                          <span v-if="b.company" class="text-xs px-2.5 py-0.5 rounded-full bg-black/[0.05] text-slate-700 font-medium">
+                            {{ b.company }}
+                          </span>
+                          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-800 font-bold">
+                            {{ getServiceLabel(b.serviceType) }}
+                          </span>
                         </div>
-                        <div>
-                          <span class="font-bold text-sm" style="color: var(--color-ink-1)">{{ b.name }}</span>
-                          <span class="text-xs ml-2" style="color: var(--color-ink-4)">{{ b.company || '无公司' }}</span>
+                        <div class="text-[11px] font-mono text-slate-400">
+                          ID: {{ b.id }} · 提交于 {{ formatBookingDate(b.createdAt) }} (IP: {{ b.ip || '未知' }})
                         </div>
                       </div>
-                      <span class="text-[10px] font-mono px-2 py-0.5 rounded" 
-                        :class="b.status === 'pending' ? 'bg-amber-500/10 text-amber-700' : b.status === 'approved' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-slate-100 text-slate-500'">
-                        {{ b.status === 'pending' ? '🟡 待处理' : b.status === 'approved' ? '🟢 已确认' : '⚪ 已归档' }}
+                    </div>
+
+                    <!-- Status Pill -->
+                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                      <span
+                        class="text-xs font-mono font-bold px-3 py-1 rounded-full flex items-center gap-1.5"
+                        :class="[
+                          b.status === 'pending' ? 'bg-amber-500/15 text-amber-800 border border-amber-500/30' :
+                          b.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-800 border border-emerald-500/30' :
+                          b.status === 'converted' ? 'bg-indigo-500/15 text-indigo-800 border border-indigo-500/30' :
+                          'bg-slate-100 text-slate-600 border border-slate-200'
+                        ]"
+                      >
+                        <span class="w-1.5 h-1.5 rounded-full" :class="b.status === 'pending' ? 'bg-amber-600 animate-pulse' : b.status === 'confirmed' ? 'bg-emerald-600' : b.status === 'converted' ? 'bg-indigo-600' : 'bg-slate-400'" />
+                        <span>{{ b.status === 'pending' ? '待跟进' : b.status === 'confirmed' ? '已确认' : b.status === 'converted' ? '已转专属交付' : '已归档' }}</span>
                       </span>
                     </div>
-                    
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-3">
-                      <div><span style="color: var(--color-ink-4)">电话:</span> <span class="font-mono" style="color: var(--color-ink-1)">{{ b.phone }}</span></div>
-                      <div><span style="color: var(--color-ink-4)">邮箱:</span> <span class="font-mono" style="color: var(--color-ink-1)">{{ b.email }}</span></div>
-                      <div><span style="color: var(--color-ink-4)">预算:</span> <span style="color: var(--color-ink-1)">{{ b.budget || '未填写' }}</span></div>
-                      <div><span style="color: var(--color-ink-4)">时间:</span> <span style="color: var(--color-ink-1)">{{ b.timeline || '未填写' }}</span></div>
+                  </div>
+
+                  <!-- 4-Column Specs Grid -->
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs p-3.5 rounded-xl bg-slate-50 border border-black/[0.04]">
+                    <div class="space-y-0.5">
+                      <span class="text-[10px] text-slate-400 font-mono">联系电话</span>
+                      <div class="font-mono font-bold text-slate-800 flex items-center gap-1.5 group cursor-pointer" @click="copyBookingText(b.phone, '手机号码')">
+                        <span>{{ b.phone }}</span>
+                        <span class="text-[10px] text-amber-700 opacity-60 group-hover:opacity-100">📋</span>
+                      </div>
                     </div>
-                    
-                    <p class="text-xs p-3 rounded-lg mb-3" style="background: var(--color-bg-1); color: var(--color-ink-2)">{{ b.description }}</p>
-                    
-                    <div class="flex items-center justify-between">
-                      <span class="text-[10px]" style="color: var(--color-ink-5)">{{ new Date(b.createdAt).toLocaleString('zh-CN') }} | IP: {{ b.ip }}</span>
-                      <div class="flex gap-2">
-                        <button v-if="b.status === 'pending'" @click="updateBookingStatus(b.id, 'approved')" class="text-[10px] px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20">✅ 确认</button>
-                        <button v-if="b.status !== 'archived'" @click="updateBookingStatus(b.id, 'archived')" class="text-[10px] px-3 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200">⚪ 归档</button>
+                    <div class="space-y-0.5">
+                      <span class="text-[10px] text-slate-400 font-mono">电子邮箱</span>
+                      <div class="font-mono text-slate-800 flex items-center gap-1.5 truncate group cursor-pointer" @click="copyBookingText(b.email, '电子邮箱')">
+                        <span class="truncate">{{ b.email }}</span>
+                        <span class="text-[10px] text-amber-700 opacity-60 group-hover:opacity-100 shrink-0">📋</span>
+                      </div>
+                    </div>
+                    <div class="space-y-0.5">
+                      <span class="text-[10px] text-slate-400 font-mono">预估预算</span>
+                      <div class="font-bold text-amber-800">{{ formatBudgetLabel(b.budget) }}</div>
+                    </div>
+                    <div class="space-y-0.5">
+                      <span class="text-[10px] text-slate-400 font-mono">期望交期</span>
+                      <div class="font-bold flex items-center gap-1" :class="b.timeline === 'urgent' ? 'text-rose-600' : 'text-slate-800'">
+                        <span v-if="b.timeline === 'urgent'">⚡</span>
+                        <span>{{ formatTimelineLabel(b.timeline) }}</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <!-- VIEW 2: PAGE SETTINGS -->
-              <div v-else-if="bookingSubTab === 'settings'" class="space-y-6">
-                <!-- Hero Info -->
-                <div class="space-y-4">
-                  <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">📌 预约页面首屏文案</h4>
-                  <div class="grid sm:grid-cols-2 gap-3">
-                    <div class="space-y-1.5">
-                      <label class="form-label">顶部微标 (Badge)</label>
-                      <input v-model="siteConfig.booking.heroBadge" class="form-input text-xs font-mono" placeholder="PRODUCTION & GRADING BOOKING (2026)" />
-                    </div>
-                    <div class="space-y-1.5">
-                      <label class="form-label">主标题</label>
-                      <input v-model="siteConfig.booking.heroTitle" class="form-input text-xs font-bold" placeholder="商业合作与后期排期" />
-                    </div>
-                  </div>
+                  <!-- Client Demand Description -->
                   <div class="space-y-1.5">
-                    <label class="form-label">副文案说明</label>
-                    <textarea v-model="siteConfig.booking.heroSub" rows="2" class="form-input resize-none text-xs" placeholder="专注于商业 TVC、品牌形象宣传片..." />
+                    <span class="text-[11px] font-mono text-slate-500 font-bold">项目制作诉求与需求简述:</span>
+                    <p class="text-xs p-3.5 rounded-xl bg-white border border-black/[0.06] text-slate-700 leading-relaxed font-sans select-text">
+                      {{ b.description }}
+                    </p>
                   </div>
-                </div>
 
-                <!-- Services List -->
-                <div class="space-y-4 pt-4 border-t border-black/10">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">🎬 服务项目卡片配置 (Services Grid)</h4>
-                      <p class="text-[10px] text-slate-500">展示在预约页的服务卡片、图标与核心卖点。</p>
-                    </div>
-                    <button type="button" @click="addBookingService" class="btn-ghost text-xs py-1.5 px-3 border rounded-xl">+ 添加服务</button>
+                  <!-- Reference Links if any -->
+                  <div v-if="b.referenceLinks" class="flex items-center gap-2 text-xs p-2.5 rounded-xl bg-black/[0.02] border border-black/[0.05]">
+                    <span class="text-slate-500 shrink-0">🔗 参考样片/网盘:</span>
+                    <a :href="b.referenceLinks" target="_blank" rel="noopener noreferrer" class="text-amber-700 hover:text-amber-900 underline truncate font-mono">
+                      {{ b.referenceLinks }}
+                    </a>
+                    <button type="button" @click="copyBookingText(b.referenceLinks, '参考链接')" class="text-[10px] px-2 py-0.5 rounded bg-black/5 hover:bg-black/10 shrink-0">复制</button>
                   </div>
-                  <div class="space-y-3">
-                    <div
-                      v-for="(srv, idx) in (siteConfig.booking.services || [])"
-                      :key="idx"
-                      class="p-4 rounded-xl border border-black/10 bg-white/70 space-y-3 relative group"
-                    >
+
+                  <!-- CONNECTED EXCLUSIVE DELIVERY CARD (打通专属交付展现) -->
+                  <div v-if="b.status === 'converted' || b.deliverySuffix" class="p-4 rounded-xl bg-gradient-to-r from-indigo-50/80 via-purple-50/50 to-indigo-50/80 border border-indigo-200/80 space-y-3">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="text-base">🚀</span>
+                        <span class="text-xs font-bold text-indigo-900">已打通专属交付放映室</span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-600 text-white font-bold">CONNECTED</span>
+                      </div>
                       <button
                         type="button"
-                        @click="removeBookingService(idx)"
-                        class="absolute top-3 right-3 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                        @click="jumpToDeliveryLibrary(b)"
+                        class="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 hover:underline cursor-pointer"
                       >
-                        ✕ 删除
+                        <span>进入专属交付素材库上传视频 →</span>
                       </button>
-                      <div class="grid grid-cols-4 gap-2 pr-12">
-                        <div class="col-span-1 space-y-1">
-                          <span class="text-[9px] font-mono text-slate-400">图标名 (IconSax)</span>
-                          <input v-model="srv.icon" class="form-input text-xs font-mono" placeholder="video-play" />
+                    </div>
+
+                    <div class="grid sm:grid-cols-2 gap-3 text-xs">
+                      <div class="flex items-center justify-between p-2.5 rounded-lg bg-white/90 border border-indigo-100">
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="text-slate-400">交付地址:</span>
+                          <span class="font-mono font-bold text-indigo-800 truncate">/delivery/{{ b.deliverySuffix }}</span>
                         </div>
-                        <div class="col-span-3 space-y-1">
-                          <span class="text-[9px] font-mono text-slate-400">服务标题</span>
-                          <input v-model="srv.title" class="form-input text-xs font-bold" placeholder="商业TVC广告" />
+                        <button type="button" @click="copyDeliveryLinkForBooking(b.deliverySuffix)" class="text-[10px] px-2 py-1 rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 font-bold shrink-0 ml-2">复制完整链接</button>
+                      </div>
+
+                      <div class="flex items-center justify-between p-2.5 rounded-lg bg-white/90 border border-indigo-100">
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="text-slate-400">提取密钥:</span>
+                          <span class="font-mono font-bold text-indigo-800 truncate">{{ b.deliveryKey || '已加密保存' }}</span>
                         </div>
-                      </div>
-                      <div class="space-y-1">
-                        <span class="text-[9px] font-mono text-slate-400">服务简介</span>
-                        <input v-model="srv.desc" class="form-input text-xs" placeholder="专业的商业广告拍摄与后期制作..." />
-                      </div>
-                      <div class="space-y-1">
-                        <span class="text-[9px] font-mono text-slate-400">核心亮点列表（以逗号分隔）</span>
-                        <input
-                          :value="Array.isArray(srv.items) ? srv.items.join(', ') : srv.items"
-                          @input="srv.items = ($event.target as HTMLInputElement).value.split(/[,，]\s*/).filter(Boolean)"
-                          class="form-input text-xs"
-                          placeholder="例如: 4K/8K超高清拍摄, 电影级调色处理, 专业音效设计"
-                        />
+                        <button v-if="b.deliveryKey" type="button" @click="copyBookingText(b.deliveryKey, '交付密钥')" class="text-[10px] px-2 py-1 rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 font-bold shrink-0 ml-2">复制密钥</button>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Process Steps -->
-                <div class="space-y-4 pt-4 border-t border-black/10">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">🔄 合作流程卡片 (Process Steps)</h4>
-                      <p class="text-[10px] text-slate-500">展示客户从咨询到最终交付的标准服务流程。</p>
-                    </div>
-                    <button type="button" @click="addBookingProcessStep" class="btn-ghost text-xs py-1.5 px-3 border rounded-xl">+ 添加流程步</button>
-                  </div>
-                  <div class="grid sm:grid-cols-2 gap-3">
-                    <div
-                      v-for="(st, idx) in (siteConfig.booking.processSteps || [])"
-                      :key="idx"
-                      class="p-3.5 rounded-xl border border-black/10 bg-white/70 space-y-2 relative"
-                    >
+                  <!-- Admin Follow-up Notes -->
+                  <div class="space-y-1.5 pt-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[11px] font-mono text-slate-500 font-bold">📝 管理员跟进备忘:</span>
                       <button
+                        v-if="adminNoteEditingId !== b.id"
                         type="button"
-                        @click="removeBookingProcessStep(idx)"
-                        class="absolute top-2.5 right-2.5 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                        @click="startEditBookingNote(b)"
+                        class="text-[10px] text-amber-700 hover:underline"
                       >
-                        ✕
+                        {{ b.adminNotes ? '修改备忘' : '+ 添加跟进记录' }}
                       </button>
-                      <div class="flex items-center gap-2 pr-6">
-                        <input v-model="st.num" class="form-input text-xs font-mono font-bold w-12 text-center" placeholder="01" />
-                        <input v-model="st.title" class="form-input text-xs font-bold flex-1" placeholder="步骤标题" />
-                      </div>
-                      <input v-model="st.desc" class="form-input text-xs" placeholder="步骤说明" />
                     </div>
+                    <div v-if="adminNoteEditingId === b.id" class="flex gap-2">
+                      <input
+                        v-model="adminNoteInput"
+                        type="text"
+                        class="form-input text-xs py-1.5 flex-1"
+                        placeholder="如：已电话确认报价 2.5 万，周五交付第一版粗剪..."
+                      />
+                      <button type="button" @click="saveBookingNote(b.id)" class="btn-primary text-xs py-1 px-3">保存</button>
+                      <button type="button" @click="adminNoteEditingId = ''" class="btn-ghost text-xs py-1 px-2.5 border">取消</button>
+                    </div>
+                    <p v-else-if="b.adminNotes" class="text-xs p-2.5 rounded-lg bg-amber-500/5 border border-amber-600/15 text-amber-900 font-sans">
+                      {{ b.adminNotes }}
+                    </p>
                   </div>
-                </div>
 
-                <!-- FAQs -->
-                <div class="space-y-4 pt-4 border-t border-black/10">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">❓ 常见问题答疑 (FAQ)</h4>
-                      <p class="text-[10px] text-slate-500">解答客户最常关心的起订量、交付周期、远程合作等问题。</p>
-                    </div>
-                    <button type="button" @click="addBookingFaq" class="btn-ghost text-xs py-1.5 px-3 border rounded-xl">+ 添加问答</button>
-                  </div>
-                  <div class="space-y-3">
-                    <div
-                      v-for="(faq, idx) in (siteConfig.booking.faqs || [])"
-                      :key="idx"
-                      class="p-3.5 rounded-xl border border-black/10 bg-white/70 space-y-2 relative"
-                    >
+                  <!-- Actions Bar -->
+                  <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-black/[0.05]">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <!-- One-Click Convert to Delivery Button -->
                       <button
+                        v-if="b.status !== 'converted'"
                         type="button"
-                        @click="removeBookingFaq(idx)"
-                        class="absolute top-2.5 right-2.5 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                        @click="openConvertToDeliveryModal(b)"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-800 hover:to-purple-800 shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="为该客户一键生成专属交付后缀与独立查看密钥"
                       >
-                        ✕ 删除
+                        <span>🚀 一键转为专属交付</span>
                       </button>
-                      <div class="space-y-1 pr-10">
-                        <span class="text-[9px] font-mono text-slate-400">问题</span>
-                        <input v-model="faq.q" class="form-input text-xs font-bold" placeholder="最低起订量是多少？" />
-                      </div>
-                      <div class="space-y-1">
-                        <span class="text-[9px] font-mono text-slate-400">回答</span>
-                        <textarea v-model="faq.a" rows="2" class="form-input text-xs resize-none" placeholder="我们接受单条视频的合作，没有最低起订量限制。" />
-                      </div>
+                      <button
+                        v-else
+                        type="button"
+                        @click="jumpToDeliveryLibrary(b)"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <span>📁 管理交付素材</span>
+                      </button>
+
+                      <button
+                        v-if="b.status === 'pending'"
+                        type="button"
+                        @click="updateBookingStatus(b.id, 'confirmed')"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer"
+                      >
+                        ✅ 标为已确认
+                      </button>
+                      <button
+                        v-else-if="b.status === 'confirmed'"
+                        type="button"
+                        @click="updateBookingStatus(b.id, 'pending')"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-800 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer"
+                      >
+                        🟡 设为待处理
+                      </button>
+
+                      <button
+                        v-if="b.status !== 'archived'"
+                        type="button"
+                        @click="updateBookingStatus(b.id, 'archived')"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-black/5 border border-black/10 transition-all cursor-pointer"
+                      >
+                        ⚪ 归档
+                      </button>
                     </div>
+
+                    <button
+                      type="button"
+                      @click="deleteBooking(b.id)"
+                      class="text-xs text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg font-bold transition-all"
+                    >
+                      🗑️ 删除
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
+
+            <!-- VIEW 2: PAGE SETTINGS (预约展示页面配置) -->
+            <div v-else-if="bookingSubTab === 'settings'" class="space-y-8">
+              
+              <!-- Top Save Action Bar -->
+              <div class="flex items-center justify-between p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">⚙️</span>
+                  <span class="text-xs font-bold text-amber-900">配置前台 /booking 展示的标题、服务矩阵、流程与答疑</span>
+                </div>
+                <button
+                  type="button"
+                  @click="saveSiteConfig"
+                  :disabled="isSaving"
+                  class="btn-primary text-xs py-2 px-6 shadow-md"
+                >
+                  {{ isSaving ? '保存中...' : '💾 保存预约页面配置' }}
+                </button>
+              </div>
+
+              <!-- Section 1: Hero & Availability -->
+              <div class="glass-card p-6 sm:p-8 space-y-6">
+                <div class="flex items-center justify-between pb-3 border-b border-black/[0.06]">
+                  <div>
+                    <h3 class="font-display font-bold text-base text-slate-900">📌 首屏视效与排期档期状态</h3>
+                    <p class="text-xs text-slate-500">控制前台预约通道的开放状态与头部文案。</p>
+                  </div>
+                  <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" v-model="siteConfig.booking.bookingOpen" class="w-4 h-4 rounded text-amber-600 cursor-pointer" />
+                    <span class="text-xs font-bold" :class="siteConfig.booking.bookingOpen ? 'text-emerald-700' : 'text-slate-500'">
+                      {{ siteConfig.booking.bookingOpen ? '🟢 档期开放预约中' : '🔴 档期暂告段落' }}
+                    </span>
+                  </label>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="form-label">顶部微标 (Badge)</label>
+                    <input v-model="siteConfig.booking.heroBadge" class="form-input text-xs font-mono" placeholder="XO POST-PRODUCTION · COMMERCIAL INQUIRY" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">首屏主标题</label>
+                    <input v-model="siteConfig.booking.heroTitle" class="form-input text-xs font-bold" placeholder="商业合作与母带后期排期" />
+                  </div>
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="form-label">副文案说明</label>
+                  <textarea v-model="siteConfig.booking.heroSub" rows="2" class="form-input resize-none text-xs" placeholder="专注商业 TVC、品牌形象宣传片、概念大片与院线级调色..." />
+                </div>
+              </div>
+
+              <!-- Section 2: Services Grid -->
+              <div class="glass-card p-6 sm:p-8 space-y-6">
+                <div class="flex items-center justify-between pb-3 border-b border-black/[0.06]">
+                  <div>
+                    <h3 class="font-display font-bold text-base text-slate-900">🎬 精选后期服务矩阵 (Services Portfolio)</h3>
+                    <p class="text-xs text-slate-500">展示在前台的核心王牌服务卡片、图标与卖点。</p>
+                  </div>
+                  <button type="button" @click="addBookingService" class="btn-ghost text-xs py-1.5 px-3 border border-amber-600/30 text-amber-800 hover:bg-amber-50 rounded-xl">
+                    + 添加服务类别
+                  </button>
+                </div>
+
+                <div class="space-y-4">
+                  <div
+                    v-for="(srv, idx) in (siteConfig.booking.services || [])"
+                    :key="idx"
+                    class="p-5 rounded-2xl border border-black/10 bg-white/80 space-y-3 relative group"
+                  >
+                    <button
+                      type="button"
+                      @click="removeBookingService(idx)"
+                      class="absolute top-4 right-4 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                    >
+                      ✕ 删除
+                    </button>
+                    <div class="grid grid-cols-4 gap-3 pr-12">
+                      <div class="col-span-1 space-y-1">
+                        <span class="text-[10px] font-mono text-slate-400">图标名 (IconSax)</span>
+                        <input v-model="srv.icon" class="form-input text-xs font-mono" placeholder="video-play" />
+                      </div>
+                      <div class="col-span-3 space-y-1">
+                        <span class="text-[10px] font-mono text-slate-400">服务标题</span>
+                        <input v-model="srv.title" class="form-input text-xs font-bold" placeholder="商业 TVC 与品牌大片" />
+                      </div>
+                    </div>
+                    <div class="space-y-1">
+                      <span class="text-[10px] font-mono text-slate-400">服务简介</span>
+                      <input v-model="srv.desc" class="form-input text-xs" placeholder="专注高端商业广告、数码硬件主视觉的剪辑与后期包装..." />
+                    </div>
+                    <div class="space-y-1">
+                      <span class="text-[10px] font-mono text-slate-400">核心亮点列表（以逗号分隔）</span>
+                      <input
+                        :value="Array.isArray(srv.items) ? srv.items.join(', ') : srv.items"
+                        @input="srv.items = ($event.target as HTMLInputElement).value.split(/[,，]\s*/).filter(Boolean)"
+                        class="form-input text-xs"
+                        placeholder="例如: 4K/8K 超高清工程精修, 工业级节奏剪辑, 全网全终端多画幅分发"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 3: Process Steps -->
+              <div class="glass-card p-6 sm:p-8 space-y-6">
+                <div class="flex items-center justify-between pb-3 border-b border-black/[0.06]">
+                  <div>
+                    <h3 class="font-display font-bold text-base text-slate-900">🔄 工业化协作流程 (Pipeline Steps)</h3>
+                    <p class="text-xs text-slate-500">展示客户从初步接洽到最终母带交付的4阶段流程。</p>
+                  </div>
+                  <button type="button" @click="addBookingProcessStep" class="btn-ghost text-xs py-1.5 px-3 border border-amber-600/30 text-amber-800 hover:bg-amber-50 rounded-xl">
+                    + 添加流程阶段
+                  </button>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div
+                    v-for="(st, idx) in (siteConfig.booking.processSteps || [])"
+                    :key="idx"
+                    class="p-4 rounded-2xl border border-black/10 bg-white/80 space-y-2 relative"
+                  >
+                    <button
+                      type="button"
+                      @click="removeBookingProcessStep(idx)"
+                      class="absolute top-3 right-3 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                    >
+                      ✕
+                    </button>
+                    <div class="flex items-center gap-2 pr-6">
+                      <input v-model="st.num" class="form-input text-xs font-mono font-bold w-14 text-center" placeholder="01" />
+                      <input v-model="st.title" class="form-input text-xs font-bold flex-1" placeholder="阶段标题" />
+                    </div>
+                    <textarea v-model="st.desc" rows="2" class="form-input text-xs resize-none" placeholder="阶段说明与交付事项..." />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 4: FAQs -->
+              <div class="glass-card p-6 sm:p-8 space-y-6">
+                <div class="flex items-center justify-between pb-3 border-b border-black/[0.06]">
+                  <div>
+                    <h3 class="font-display font-bold text-base text-slate-900">❓ 常见合作疑问答疑 (FAQ)</h3>
+                    <p class="text-xs text-slate-500">解答客户最关心的起订门槛、交付周期、素材格式等问题。</p>
+                  </div>
+                  <button type="button" @click="addBookingFaq" class="btn-ghost text-xs py-1.5 px-3 border border-amber-600/30 text-amber-800 hover:bg-amber-50 rounded-xl">
+                    + 添加问答
+                  </button>
+                </div>
+
+                <div class="space-y-4">
+                  <div
+                    v-for="(faq, idx) in (siteConfig.booking.faqs || [])"
+                    :key="idx"
+                    class="p-4 rounded-2xl border border-black/10 bg-white/80 space-y-2 relative"
+                  >
+                    <button
+                      type="button"
+                      @click="removeBookingFaq(idx)"
+                      class="absolute top-3 right-3 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                    >
+                      ✕ 删除
+                    </button>
+                    <div class="space-y-1 pr-10">
+                      <span class="text-[10px] font-mono text-slate-400 font-bold">问题 Q:</span>
+                      <input v-model="faq.q" class="form-input text-xs font-bold" placeholder="最低起订门槛是多少？" />
+                    </div>
+                    <div class="space-y-1">
+                      <span class="text-[10px] font-mono text-slate-400 font-bold">解答 A:</span>
+                      <textarea v-model="faq.a" rows="2" class="form-input text-xs resize-none" placeholder="我们接受单条精品商业广告的合作..." />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom Save Button -->
+              <div class="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  @click="saveSiteConfig"
+                  :disabled="isSaving"
+                  class="btn-primary text-xs py-3 px-8 shadow-xl"
+                >
+                  {{ isSaving ? '保存中...' : '💾 保存所有预约页面配置' }}
+                </button>
+              </div>
+
+            </div>
+
+            <!-- MODAL: Convert Booking to Exclusive Delivery (一键转为专属交付弹窗) -->
+            <Transition name="fade">
+              <div
+                v-if="convertBookingModal.open"
+                class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+              >
+                <div class="w-full max-w-lg rounded-3xl bg-white p-8 space-y-6 shadow-2xl border border-amber-500/30">
+                  <div class="flex items-start justify-between">
+                    <div class="space-y-1">
+                      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-mono font-bold">
+                        <span>🚀 EXCLUSIVE DELIVERY BRIDGE</span>
+                      </div>
+                      <h3 class="text-xl font-bold font-display text-slate-900">转为专属交付项目</h3>
+                    </div>
+                    <button
+                      type="button"
+                      @click="convertBookingModal.open = false"
+                      class="text-slate-400 hover:text-slate-700 font-bold text-lg p-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div class="space-y-4 text-xs">
+                    <div class="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-2">
+                      <div class="flex justify-between">
+                        <span class="text-slate-500">客户称呼:</span>
+                        <strong class="text-slate-900">{{ convertBookingModal.booking?.name }}</strong>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-500">公司/机构:</span>
+                        <span class="text-slate-900">{{ convertBookingModal.booking?.company || '无公司' }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-500">需求类型:</span>
+                        <span class="text-slate-900 font-bold">{{ getServiceLabel(convertBookingModal.booking?.serviceType) }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-500">联系电话:</span>
+                        <span class="font-mono text-slate-900">{{ convertBookingModal.booking?.phone }}</span>
+                      </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label class="block font-bold text-slate-700">
+                        自定义专属交付后缀 (URL Suffix)
+                      </label>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono text-slate-400 bg-slate-100 px-3 py-2 rounded-xl border">/delivery/</span>
+                        <input
+                          v-model="convertBookingModal.customSuffix"
+                          type="text"
+                          class="form-input text-xs font-mono flex-1"
+                          placeholder="例如: xiaoxi 或 tencent-tvc"
+                        />
+                      </div>
+                      <p class="text-[10px] text-slate-400">将为该客户生成独享访问链接与端到端提取密钥，打通审片与素材交付。</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      @click="convertBookingModal.open = false"
+                      class="btn-ghost text-xs py-2.5 px-5 border rounded-xl"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="button"
+                      @click="confirmConvertToDelivery"
+                      :disabled="convertBookingModal.loading"
+                      class="btn-primary text-xs py-2.5 px-6 shadow-lg bg-gradient-to-r from-indigo-700 to-purple-700"
+                    >
+                      {{ convertBookingModal.loading ? '正在生成密钥与专属入口...' : '立即生成专属交付入口' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Transition>
+
           </div>
 
           <div v-else-if="activeTab === 'users'" key="users" class="space-y-6">
@@ -4439,6 +4877,17 @@ const fetchPasswordRequests = async () => {
 }
 const registeredUsers = ref<any[]>([])
 const bookings = ref<any[]>([])
+const bookingFilterStatus = ref<'all' | 'pending' | 'confirmed' | 'converted' | 'archived'>('all')
+const bookingSearchQuery = ref('')
+const adminNoteEditingId = ref('')
+const adminNoteInput = ref('')
+const convertBookingModal = ref({
+  open: false,
+  booking: null as any,
+  customSuffix: '',
+  loading: false
+})
+
 const fetchBookings = async () => {
   try {
     const res = await $fetch('/api/admin/bookings?t=' + Date.now()) as any
@@ -4446,10 +4895,197 @@ const fetchBookings = async () => {
   } catch {}
 }
 
+const filteredBookings = computed(() => {
+  let list = bookings.value || []
+  if (bookingFilterStatus.value !== 'all') {
+    list = list.filter((b: any) => b.status === bookingFilterStatus.value)
+  }
+  if (bookingSearchQuery.value.trim()) {
+    const q = bookingSearchQuery.value.trim().toLowerCase()
+    list = list.filter((b: any) => 
+      (b.name || '').toLowerCase().includes(q) ||
+      (b.company || '').toLowerCase().includes(q) ||
+      (b.phone || '').toLowerCase().includes(q) ||
+      (b.email || '').toLowerCase().includes(q) ||
+      (b.description || '').toLowerCase().includes(q) ||
+      (b.deliverySuffix || '').toLowerCase().includes(q)
+    )
+  }
+  return list
+})
+
+const getServiceLabel = (type: string) => {
+  const map: Record<string, string> = {
+    tvc: '商业TVC广告',
+    color: '院线/短片调色',
+    short: '品牌概念/短视频',
+    audio: '声场/配乐设计',
+    vfx: '三维/后期视效',
+    other: '全案/其他定制'
+  }
+  return map[type] || '全案定制'
+}
+
+const formatBudgetLabel = (budget: string) => {
+  const map: Record<string, string> = {
+    under5k: '5,000 元以下',
+    '5k-10k': '5,000 - 10,000 元',
+    '10k-30k': '10,000 - 30,000 元',
+    '30k-50k': '30,000 - 50,000 元',
+    over50k: '50,000 元以上',
+    negotiable: '面议'
+  }
+  return map[budget] || (budget || '未填写')
+}
+
+const formatTimelineLabel = (timeline: string) => {
+  const map: Record<string, string> = {
+    urgent: '紧急加急（3天内）',
+    '1week': '1周内交付',
+    '2weeks': '2周内交付',
+    '1month': '1个月内交付',
+    flexible: '时间充裕'
+  }
+  return map[timeline] || (timeline || '未填写')
+}
+
+const formatBookingDate = (dateStr: string) => {
+  if (!dateStr) return '未知时间'
+  try {
+    const d = new Date(dateStr)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  } catch {
+    return dateStr
+  }
+}
+
+const copyBookingText = async (text: string, label: string = '内容') => {
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+    alert(`已复制${label}：${text}`)
+  } catch {
+    alert(text)
+  }
+}
+
+const copyDeliveryLinkForBooking = async (suffix: string) => {
+  if (!suffix || !import.meta.client) return
+  const url = `${window.location.origin}/delivery/${encodeURIComponent(suffix)}`
+  await copyBookingText(url, '专属交付完整地址')
+}
+
 const updateBookingStatus = async (id: string, status: string) => {
-  // For now just update locally
-  const booking = bookings.value.find(b => b.id === id)
-  if (booking) booking.status = status
+  try {
+    await $fetch('/api/admin/bookings', {
+      method: 'POST',
+      body: { action: 'update-status', id, status }
+    })
+    const b = bookings.value.find((item: any) => item.id === id)
+    if (b) b.status = status
+  } catch (err: any) {
+    alert(err.statusMessage || '更新预约状态失败')
+  }
+}
+
+const startEditBookingNote = (b: any) => {
+  adminNoteEditingId.value = b.id
+  adminNoteInput.value = b.adminNotes || ''
+}
+
+const saveBookingNote = async (id: string) => {
+  try {
+    await $fetch('/api/admin/bookings', {
+      method: 'POST',
+      body: { action: 'update-notes', id, adminNotes: adminNoteInput.value }
+    })
+    const b = bookings.value.find((item: any) => item.id === id)
+    if (b) b.adminNotes = adminNoteInput.value
+    adminNoteEditingId.value = ''
+  } catch (err: any) {
+    alert(err.statusMessage || '保存备注失败')
+  }
+}
+
+const deleteBooking = async (id: string) => {
+  if (!confirm('确定要删除这条预约记录吗？删除后不可恢复。')) return
+  try {
+    await $fetch('/api/admin/bookings', {
+      method: 'POST',
+      body: { action: 'delete', id }
+    })
+    bookings.value = bookings.value.filter((b: any) => b.id !== id)
+  } catch (err: any) {
+    alert(err.statusMessage || '删除失败')
+  }
+}
+
+const createSampleBooking = async () => {
+  try {
+    const res: any = await $fetch('/api/admin/bookings', {
+      method: 'POST',
+      body: { action: 'create-sample' }
+    })
+    if (res?.booking) {
+      bookings.value.unshift(res.booking)
+      alert('已成功生成示例预约数据！')
+    }
+  } catch (err: any) {
+    alert(err.statusMessage || '生成示例数据失败')
+  }
+}
+
+const openConvertToDeliveryModal = (b: any) => {
+  const defaultSuffix = (b.company || b.name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 20) || `proj-${b.id.slice(-5)}`
+  
+  convertBookingModal.value = {
+    open: true,
+    booking: b,
+    customSuffix: defaultSuffix,
+    loading: false
+  }
+}
+
+const confirmConvertToDelivery = async () => {
+  const b = convertBookingModal.value.booking
+  if (!b) return
+  convertBookingModal.value.loading = true
+  try {
+    const res: any = await $fetch('/api/admin/bookings', {
+      method: 'POST',
+      body: {
+        action: 'convert-to-delivery',
+        id: b.id,
+        deliverySuffix: convertBookingModal.value.customSuffix
+      }
+    })
+    
+    // Update booking locally
+    const target = bookings.value.find((item: any) => item.id === b.id)
+    if (target) {
+      target.status = 'converted'
+      target.deliverySuffix = res.deliverySuffix
+      target.deliveryKey = res.deliveryKey
+    }
+    
+    // Refresh users
+    await fetchUsers()
+    
+    convertBookingModal.value.open = false
+    alert(`🎉 专属交付放映室创建成功！\n\n交付地址: /delivery/${res.deliverySuffix}\n提取密钥: ${res.deliveryKey || '已安全配置'}\n\n已自动打通专属交付流程。`)
+  } catch (err: any) {
+    alert(err.statusMessage || err.data?.message || '转为专属交付失败')
+  } finally {
+    convertBookingModal.value.loading = false
+  }
+}
+
+const jumpToDeliveryLibrary = (b: any) => {
+  deliveryItemForm.value.deliverySuffix = b.deliverySuffix || ''
+  activeTab.value = 'delivery-library'
 }
 
 const fetchUsers = async () => {
@@ -4615,6 +5251,16 @@ const fetchSiteConfig = async () => {
       apiEndpoint: 'https://api.deepseek.com/v1',
       modelName: 'deepseek-chat',
       ...data.aiSettings
+    },
+    booking: {
+      bookingOpen: true,
+      heroBadge: 'XO POST-PRODUCTION · COMMERCIAL INQUIRY',
+      heroTitle: '商业合作与母带后期排期',
+      heroSub: '专注商业 TVC、品牌形象宣传片、概念大片与院线级调色。24 小时内快速响应，评估制作周期与色彩科学方案。',
+      services: [],
+      processSteps: [],
+      faqs: [],
+      ...data.booking
     }
   }
   initSocialSlots()
