@@ -62,8 +62,14 @@
         </svg>
       </div>
 
-      <!-- Sweeping Anamorphic Laser Lens Flare Beam -->
-      <div class="poster-anamorphic-beam absolute inset-0 pointer-events-none" />
+      <!-- 正常银幕激光扫描 (Standard Screen Cinema Laser Sweep) -->
+      <div class="poster-screen-laser absolute inset-x-0 pointer-events-none">
+        <div class="laser-beam-glow w-full h-8" />
+        <div class="laser-beam-core w-full h-[1.5px]" />
+      </div>
+
+      <!-- 正常银幕自然高光流光 (Standard Screen Surface Sheen) -->
+      <div class="poster-screen-sheen absolute inset-0 pointer-events-none" />
 
       <!-- Floating Cinema Dust Particles / Luminous Bokeh -->
       <div class="absolute inset-0 pointer-events-none overflow-hidden">
@@ -386,35 +392,78 @@ const englishSub = computed(() => {
   animation: auroraFloatViolet 9s ease-in-out infinite alternate;
 }
 
-/* Sweeping Anamorphic Lens Flare Beam */
-@keyframes anamorphicSweep {
+/* 正常银幕激光平扫动效 (Standard Screen Cinema Laser Sweep) */
+@keyframes screenLaserScan {
   0% {
-    transform: translateX(-160%) skewX(-25deg);
+    top: -10%;
     opacity: 0;
   }
-  20% {
-    opacity: 0.75;
+  15% {
+    opacity: 0.95;
   }
-  80% {
-    opacity: 0.75;
+  85% {
+    opacity: 0.95;
   }
   100% {
-    transform: translateX(260%) skewX(-25deg);
+    top: 110%;
     opacity: 0;
   }
 }
 
-.poster-anamorphic-beam {
+.poster-screen-laser {
+  animation: screenLaserScan 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.laser-beam-core {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(6, 182, 212, 0.25) 20%,
-    rgba(255, 255, 255, 0.85) 50%,
-    rgba(245, 158, 11, 0.5) 75%,
+    rgba(245, 158, 11, 0.4) 15%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(245, 158, 11, 0.4) 85%,
     transparent 100%
   );
-  filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.8));
-  animation: anamorphicSweep 5.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 20px rgba(245, 158, 11, 0.7);
+}
+
+.laser-beam-glow {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(245, 158, 11, 0.12) 60%,
+    rgba(255, 255, 255, 0.22) 100%
+  );
+  filter: blur(4px);
+}
+
+/* 正常银幕自然高光平扫 (Natural Clean Screen Surface Sheen) */
+@keyframes normalScreenSheen {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.35;
+  }
+  75% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateX(220%);
+    opacity: 0;
+  }
+}
+
+.poster-screen-sheen {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(245, 158, 11, 0.12) 65%,
+    transparent 100%
+  );
+  animation: normalScreenSheen 6.2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
 }
 
 /* DaVinci Scope Wave Paths Flow */
