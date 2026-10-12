@@ -26,7 +26,7 @@
               </span>
               <span class="text-[var(--color-bronze-dark)] text-[10px] font-sans font-bold border-l pl-2.5 px-2 py-0.5 rounded"
                     style="border-color: var(--color-bronze-glow); background: var(--color-bronze-bg);">
-                AVAILABLE
+                可预约
               </span>
             </div>
 
@@ -114,7 +114,7 @@
                 <MediaVideo
                   :src="siteConfig?.home?.heroVideoUrl || 'https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4'"
                   :poster="siteConfig?.home?.heroVideoPoster || 'https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?w=800&q=80'"
-                  title="SHOWREEL"
+                  title="作品精选秀"
                   index="01"
                   category=""
                   :description="siteConfig?.home?.heroSub"
@@ -242,7 +242,7 @@
 
       <div class="relative max-w-6xl mx-auto px-6 mb-4 z-10">
         <p class="section-label text-center font-sans text-xs font-bold text-[var(--color-ink-4)] tracking-widest uppercase">
-          合作品牌与技术标准 / Trusted Brands & Industry Tools
+          合作品牌与技术标准
         </p>
       </div>
 
@@ -443,7 +443,7 @@
           <div class="space-y-2">
             <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-bold font-sans">
               <span class="w-2 h-2 rounded-full bg-[#007AFF] animate-ping" />
-              <span>最新动态 / Insights</span>
+              <span>最新动态</span>
             </div>
             <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-[var(--color-ink-1)]">
               最新博客文章
@@ -508,7 +508,7 @@
         <div class="space-y-3 text-center reveal">
           <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-[var(--color-bronze-dark)] text-xs font-mono font-bold border border-amber-500/20">
             <span class="w-2 h-2 rounded-full bg-[var(--color-bronze)] animate-pulse" />
-            <span>{{ siteConfig?.home?.cinemaPipelineBadge || 'POST-PRODUCTION WORKFLOW' }}</span>
+            <span>{{ siteConfig?.home?.cinemaPipelineBadge || '电影工业后期流程' }}</span>
           </div>
           <h2 class="font-display text-4xl lg:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight">
             {{ siteConfig?.home?.cinemaPipelineTitle || '好莱坞工业级后期全流程' }}
@@ -576,7 +576,7 @@
           <div class="space-y-3 max-w-xl relative z-10">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-[10px] font-mono font-bold border border-white/10">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              <span>{{ siteConfig?.home?.closingCtaBadge || 'BOOKING AVAILABLE 2026' }}</span>
+              <span>{{ siteConfig?.home?.closingCtaBadge || '开放预约 2026' }}</span>
             </div>
             <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
               {{ siteConfig?.home?.closingCtaTitle || '准备好开启你的下一个视觉大片了吗？' }}
@@ -639,7 +639,7 @@ const heroVideoFps = computed(() => siteConfig.value?.home?.heroVideoFps || '23.
 const statValue3 = computed(() => siteConfig.value?.home?.statValue3 || 'ACEScct')
 const statLabel3 = computed(() => siteConfig.value?.home?.statLabel3 || '色彩科学')
 const tvcProjectNodes = computed(() => siteConfig.value?.home?.tvcProjectNodes || '16 NODES')
-const tvcProjectBadge = computed(() => siteConfig.value?.home?.tvcProjectBadge || 'FEATURED')
+const tvcProjectBadge = computed(() => siteConfig.value?.home?.tvcProjectBadge || '精选推荐')
 
 // Live SMPTE Timecode Counter Simulation (01:24:08:12)
 const tcHours = 1

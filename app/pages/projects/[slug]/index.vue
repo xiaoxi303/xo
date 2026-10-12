@@ -20,7 +20,7 @@
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span class="font-bold">4K DCI · ACEScct</span>
             <span class="text-black/20">|</span>
-            <span>DOLBY VISION READY</span>
+            <span>杜比视界母带规范</span>
           </div>
         </div>
       </div>
@@ -44,7 +44,7 @@
             <div>
               <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest text-amber-800 bg-amber-500/10 border border-amber-500/25">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
-                VIP SCREENER · 绝密受限内容
+                内部授权放映 · 受限内容
               </span>
             </div>
 
@@ -136,7 +136,7 @@
             <div class="flex flex-wrap items-center gap-2">
               <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/10 text-amber-800 border border-amber-500/20">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                <span>FILM ARCHIVE</span>
+                <span>影视母带作品</span>
               </span>
               <span
                 v-for="tag in project.tags"
@@ -156,19 +156,19 @@
             <div class="flex flex-wrap items-center gap-3 pt-1 text-xs font-mono">
               <!-- Release Year -->
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
-                <span class="text-slate-400">RELEASE:</span>
+                <span class="text-slate-400">公映年份:</span>
                 <span class="font-bold text-slate-900">{{ project.releaseYear || '2026' }}</span>
               </div>
 
               <!-- Post Specs -->
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
-                <span class="text-slate-400">SPECS:</span>
+                <span class="text-slate-400">制作规格:</span>
                 <span class="font-bold text-slate-900">{{ project.postSpecs || (siteConfig?.home?.colorSpecText ? siteConfig.home.colorSpecText : '4K 60FPS HDR / ACEScct') }}</span>
               </div>
 
               <!-- Director -->
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
-                <span class="text-slate-400">DIR:</span>
+                <span class="text-slate-400">后期导演:</span>
                 <span class="font-bold text-slate-900">{{ project.director || 'Xo' }}</span>
               </div>
 
@@ -793,8 +793,8 @@
 
                 <div class="flex items-center justify-between pt-2">
                   <div>
-                    <span class="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-700">TECHNICAL HUD</span>
-                    <h2 class="font-display text-base font-bold text-slate-900">DI 调色制作参数</h2>
+                    <span class="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-700">后期制作参数</span>
+                    <h2 class="font-display text-base font-bold text-slate-900">DI 调色制作规范</h2>
                   </div>
                   <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full"
                        :class="project.isColorGraded !== false ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-500/10 border border-slate-500/20'">
@@ -811,8 +811,8 @@
                     <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.director || 'Xo' }}</span>
                   </div>
                   <div class="flex justify-between items-center py-3">
-                    <span class="text-slate-600 font-sans font-medium">色彩科学 (Color Science)</span>
-                    <span class="font-bold text-amber-800 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">ACEScct / AP1 Wide Gamut</span>
+                    <span class="text-slate-600 font-sans font-medium">色彩科学规范</span>
+                    <span class="font-bold text-amber-800 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">ACEScct / AP1 广色域</span>
                   </div>
                   <div v-if="project.software?.[0]" class="flex justify-between items-center py-3">
                     <span class="text-slate-600 font-sans font-medium">剪辑与动效制作</span>
@@ -837,7 +837,7 @@
               <div class="glass-card p-7 space-y-4 overflow-hidden relative rounded-3xl border-2 border-amber-500/30 shadow-2xl bg-gradient-to-br from-white via-amber-500/5 to-white backdrop-blur-xl">
                 <div class="space-y-1.5 relative z-10">
                   <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/15 text-amber-800 border border-amber-500/20">
-                    <span>COMMERCIAL INQUIRY</span>
+                    <span>商业定制服务</span>
                   </div>
                   <h3 class="font-display text-lg font-bold text-slate-900">
                     需要同级别影视后期制作？
@@ -864,7 +864,7 @@
           <div v-if="relatedProjects && relatedProjects.length" class="space-y-6 pt-12 border-t border-black/10 reveal">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-700">MORE ARCHIVES</p>
+                <p class="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-700">精选探索</p>
                 <h3 class="font-display text-2xl font-bold text-slate-900">更多精选放映</h3>
               </div>
               <NuxtLink to="/projects" class="text-xs font-bold text-slate-600 hover:text-amber-700 transition-colors inline-flex items-center gap-1 group">

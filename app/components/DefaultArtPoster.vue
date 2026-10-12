@@ -50,7 +50,7 @@
           class="text-[9px] font-mono tracking-widest uppercase font-bold"
           :class="theme === 'linen' ? 'text-neutral-800' : 'text-slate-300'"
         >
-          {{ theme === 'linen' ? 'STUDIO REEL' : 'ACEScct / 4K DCI' }}
+          {{ theme === 'linen' ? '工作室放映' : '电影级母带' }}
         </span>
       </div>
 
@@ -85,7 +85,7 @@
             class="text-[9px] font-mono block"
             :class="theme === 'linen' ? 'text-neutral-600' : 'text-slate-400'"
           >
-            CINEMA REEL
+            母带放映
           </span>
         </div>
       </div>
@@ -157,7 +157,7 @@ const numberFontSize = computed(() => {
 })
 
 const englishSub = computed(() => {
-  return props.category ? props.category.toUpperCase() : 'HOLLYWOOD POST'
+  return props.category ? props.category : '影视后期母带'
 })
 </script>
 

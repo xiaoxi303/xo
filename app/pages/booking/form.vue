@@ -35,7 +35,7 @@
           <div class="text-center space-y-3">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 text-[10px] font-mono font-bold border border-amber-500/20">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
-              <span>PROJECT INQUIRY FORM</span>
+              <span>项目合作意向表</span>
             </div>
             <h1 class="font-display text-3xl font-bold text-slate-900 tracking-tight">合作预约意向表单</h1>
             <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">请填写以下项目基本信息，我们将快速评估周期与预算方案。</p>

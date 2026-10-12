@@ -21,7 +21,7 @@
                  style="background: var(--glass-bg); border: 1px solid var(--color-bronze-glow);">
               <span class="w-2 h-2 rounded-full bg-[var(--color-bronze)] animate-ping" />
               <span class="text-[var(--color-ink-2)] text-[11px] font-sans font-bold">
-                PORTFOLIO MASTER ARCHIVE
+                影视母带作品库
               </span>
               <span class="text-[var(--color-bronze-dark)] text-[10px] font-mono border-l pl-2" style="border-color: var(--color-bronze-glow);">
                 4K HDR · ACEScct
@@ -318,7 +318,7 @@
               <div class="absolute top-3.5 left-3.5 z-20 flex items-center gap-2">
                 <div class="px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/15 text-[10px] font-mono text-amber-200 flex items-center gap-1.5 shadow-md">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                  <span class="font-bold tracking-wider font-mono">SLATE {{ String(project.displayNumber || project.sortOrder || (i + 1)).padStart(2, '0') }}</span>
+                  <span class="font-bold tracking-wider font-mono">场次 {{ String(project.displayNumber || project.sortOrder || (i + 1)).padStart(2, '0') }}</span>
                   <span class="text-white/25">•</span>
                   <span class="text-white/80 text-[9px]">{{ project.postSpecs ? '4K DCI' : 'ACEScct' }}</span>
                 </div>
@@ -332,7 +332,7 @@
                   style="background: linear-gradient(135deg, #d97706, #b45309); border: 1px solid rgba(251,191,36,0.5);"
                 >
                   <span>✦</span>
-                  <span>FEATURED</span>
+                  <span>精选推荐</span>
                 </span>
                 <span
                   v-if="project.isColorGraded"
@@ -548,7 +548,7 @@
           <div class="space-y-2.5 max-w-xl relative z-10 text-center sm:text-left">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-[10px] font-mono font-bold">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              <span>CUSTOM POST-PRODUCTION</span>
+              <span>全流程后期定制</span>
             </div>
             <h3 class="font-display text-2xl sm:text-3xl font-bold text-white">
               有全新商业片或调色项目需要交付？

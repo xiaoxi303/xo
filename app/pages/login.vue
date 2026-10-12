@@ -5,14 +5,14 @@
     <header class="auth-header">
       <NuxtLink to="/" class="wordmark" aria-label="返回 Xo Studio 首页"><strong>xo</strong><i>.</i><small>STUDIO</small></NuxtLink>
       <div class="header-meta">
-        <span>{{ activeTab === 'login' ? 'PRIVATE REVIEW / 01' : 'PROJECT SETUP / 02' }}</span>
+        <span>{{ activeTab === 'login' ? '客户审片专区 / 01' : '项目档案建立 / 02' }}</span>
         <NuxtLink to="/">返回首页 <b>↗</b></NuxtLink>
       </div>
     </header>
 
     <main class="auth-workbench">
       <section class="auth-intro">
-        <div class="intro-topline"><span>{{ activeTab === 'login' ? 'CLIENT DESK' : 'CLIENT ONBOARDING' }}</span><span>XO—{{ activeTab === 'login' ? '01' : '02' }}</span></div>
+        <div class="intro-topline"><span>{{ activeTab === 'login' ? '客户工作台' : '新客户登记' }}</span><span>XO—{{ activeTab === 'login' ? '01' : '02' }}</span></div>
         <div class="intro-copy">
           <p class="intro-kicker">{{ activeTab === 'login' ? '继续你的项目' : '建立你的项目档案' }}</p>
           <h1 v-if="activeTab === 'login'">让每次<br><em>交付清晰可见</em></h1>
@@ -20,15 +20,15 @@
           <p>{{ activeTab === 'login' ? '进入私人工作区，查看作品、交付信息与项目凭证。' : '填写必要信息，创建你的私人工作区，接收后续交付。' }}</p>
         </div>
         <div class="intro-index" aria-hidden="true">
-          <span>01</span><i /><span>{{ activeTab === 'login' ? 'SESSION READY' : 'PROFILE SETUP' }}</span>
+          <span>01</span><i /><span>{{ activeTab === 'login' ? '系统就绪' : '资料配置' }}</span>
         </div>
-        <div class="intro-footer"><span>XO STUDIO / CLIENT AREA</span><span class="signal"><i /> SECURE</span></div>
+        <div class="intro-footer"><span>Xo 影视后期 / 客户专区</span><span class="signal"><i /> 安全连接</span></div>
       </section>
 
       <section class="auth-sheet">
         <div class="sheet-heading">
           <div>
-            <p class="sheet-eyebrow">{{ activeTab === 'login' ? 'SIGN IN' : 'SIGN UP' }} <span>/</span> Xo CLIENT</p>
+            <p class="sheet-eyebrow">{{ activeTab === 'login' ? '登录' : '注册' }} <span>/</span> 客户专区</p>
             <h2>{{ activeTab === 'login' ? '欢迎回来' : '创建客户账号' }}</h2>
             <p>{{ activeTab === 'login' ? '登录后继续管理你的专属作品。' : '注册后即可接收作品与项目更新。' }}</p>
           </div>
@@ -36,8 +36,8 @@
         </div>
 
         <nav class="mode-switch" aria-label="账户模式">
-          <button type="button" :class="{ 'is-active': activeTab === 'login' }" @click="switchTab('login')">登录 <small>ACCESS</small></button>
-          <button type="button" :class="{ 'is-active': activeTab === 'register' }" @click="switchTab('register')">注册 <small>JOIN</small></button>
+          <button type="button" :class="{ 'is-active': activeTab === 'login' }" @click="switchTab('login')">登录 <small>进入</small></button>
+          <button type="button" :class="{ 'is-active': activeTab === 'register' }" @click="switchTab('register')">注册 <small>加入</small></button>
         </nav>
 
         <Transition name="message">
@@ -64,7 +64,7 @@
           <form v-else key="register" class="auth-form auth-form--register" @submit.prevent="handleRegister">
             <div class="field"><label for="register-username">用户名 <b>*</b></label><div class="input-line"><span class="input-index">01</span><input id="register-username" v-model="registerForm.username" type="text" required autocomplete="username" @blur="checkRegistrationAvailability('username')" placeholder="至少 3 位字符" :disabled="loading"><IconSax name="user" :size="17" /></div></div>
             <div class="field"><label for="register-email">电子邮箱 <b>*</b></label><div class="input-pair"><div class="input-line"><span class="input-index">02</span><input id="register-email" v-model="registerForm.email" type="email" required autocomplete="email" @blur="checkRegistrationAvailability('email')" placeholder="接收验证码的邮箱" :disabled="loading"><IconSax name="mail" :size="17" /></div><button class="code-button" type="button" :disabled="cooldown > 0 || sendingCode" @click="handleSendCode"><span v-if="sendingCode" class="spinner spinner--small" />{{ cooldown > 0 ? `${cooldown}s` : '获取验证码' }}</button></div></div>
-            <div class="field"><label for="register-code">邮箱验证码 <b>*</b><small>60 秒有效</small></label><div class="input-line"><span class="input-index">03</span><input id="register-code" v-model="registerForm.code" type="text" required maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="输入 6 位数字" :disabled="loading"><span class="input-suffix">6 DIGITS</span></div></div>
+            <div class="field"><label for="register-code">邮箱验证码 <b>*</b><small>60 秒有效</small></label><div class="input-line"><span class="input-index">03</span><input id="register-code" v-model="registerForm.code" type="text" required maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="输入 6 位数字" :disabled="loading"><span class="input-suffix">6 位数字</span></div></div>
             <div class="field-grid">
               <div class="field"><label for="register-password">账户密码 <b>*</b></label><div class="input-line"><span class="input-index">04</span><input id="register-password" v-model="registerForm.password" :type="showRegisterPassword ? 'text' : 'password'" required autocomplete="new-password" placeholder="至少 6 位" :disabled="loading"><button class="password-toggle password-toggle--icon" type="button" :aria-label="showRegisterPassword ? '隐藏密码' : '显示密码'" @click="showRegisterPassword = !showRegisterPassword"><IconSax :name="showRegisterPassword ? 'eye-slash' : 'eye'" :size="15" /></button></div></div>
               <div class="field"><label for="register-confirm">确认密码 <b>*</b></label><div class="input-line"><span class="input-index">05</span><input id="register-confirm" v-model="registerForm.confirmPassword" :type="showRegisterPassword ? 'text' : 'password'" required autocomplete="new-password" placeholder="再次输入" :disabled="loading"><IconSax name="security-safe" :size="17" /></div></div>

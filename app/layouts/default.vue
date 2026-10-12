@@ -18,7 +18,7 @@
             :class="getBadgeClass(announcement?.badgeColor)"
           >
             <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-            <span>{{ announcement.badge || 'NOTICE' }}</span>
+            <span>{{ announcement.badge || '通知' }}</span>
           </span>
 
           <!-- Optional Subtitle -->
@@ -94,7 +94,7 @@
         <div class="flex-1 space-y-1.5 pr-1">
           <div class="flex items-center gap-2">
             <span class="text-[9px] font-bold tracking-widest font-mono uppercase px-2 py-0.5 rounded-full border shadow-xs" :class="getBadgeClass(announcement?.badgeColor)">
-              {{ announcement.badge || 'NOTICE' }}
+              {{ announcement.badge || '通知' }}
             </span>
             <span v-if="announcement.subtitle" class="text-[10px] font-mono font-medium" style="color: var(--color-ink-4)">
               {{ announcement.subtitle }}
@@ -155,7 +155,7 @@
             <div class="flex items-center gap-2.5">
               <span class="text-2xl">📢</span>
               <div>
-                <span class="text-[10px] font-mono uppercase font-bold tracking-wider opacity-60">ANNOUNCEMENT</span>
+                <span class="text-[10px] font-mono uppercase font-bold tracking-wider opacity-60">官方公告</span>
                 <h3 class="font-bold text-base text-[#121316]">
                   {{ announcement?.subtitle || '重要通知与活动' }}
                 </h3>
@@ -167,7 +167,7 @@
           <div class="space-y-3">
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold font-mono uppercase px-2.5 py-0.5 rounded-full" :class="getBadgeClass(announcement?.badgeColor)">
-                {{ announcement?.badge || 'NOTICE' }}
+                {{ announcement?.badge || '通知' }}
               </span>
             </div>
             <p class="text-sm text-slate-800 leading-relaxed font-medium">
@@ -274,7 +274,7 @@
           <div class="flex items-center gap-3">
             <span class="text-2xl">📢</span>
             <div>
-              <span class="text-[10px] font-mono uppercase font-bold tracking-wider opacity-60">BROADCAST DETAIL</span>
+              <span class="text-[10px] font-mono uppercase font-bold tracking-wider opacity-60">公告详情</span>
               <h3 class="font-bold text-lg text-[#121316]">{{ announcement?.subtitle || '公告广播详情' }}</h3>
             </div>
           </div>
@@ -283,7 +283,7 @@
         <div class="space-y-4">
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold font-mono uppercase px-2.5 py-0.5 rounded-full" :class="getBadgeClass(announcement?.badgeColor)">
-              {{ announcement?.badge || 'NOTICE' }}
+              {{ announcement?.badge || '通知' }}
             </span>
           </div>
           <p class="text-sm text-slate-800 leading-relaxed font-medium whitespace-pre-wrap">{{ announcement?.text }}</p>

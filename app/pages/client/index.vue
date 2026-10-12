@@ -30,13 +30,13 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div class="space-y-2">
             <div class="flex items-center gap-2.5 flex-wrap">
-              <span class="section-label">CLIENT CONTROL HUB</span>
+              <span class="section-label">客户控制中枢</span>
               <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-500/20">
-                PRO CLIENT MEMBER
+                尊享客户会员
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                E2EE SAFE SESSION
+                端到端安全会话
               </span>
             </div>
             <h1 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#121316]">
@@ -120,8 +120,8 @@
           <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <div class="space-y-2 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="section-label text-emerald-800">PRIVATE DELIVERY NODE</span>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">ACCOUNT BOUND</span>
+                <span class="section-label text-emerald-800">专属交付节点</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">已绑定账号</span>
               </div>
               <h2 class="font-display text-xl sm:text-2xl font-bold text-[#121316]">我的专属交付入口</h2>
               <p class="text-xs leading-relaxed text-[#5e6066] max-w-2xl">把这个入口和一次性查看密钥交给对应客户。系统只展示已授权项目，首次越权会警告，再次越权将拉黑账号且费用不退。</p>
@@ -225,21 +225,6 @@
                       : 'text-[#82848c] hover:text-[#121316]'
                   ]"
                 >
-                  <span>🎥 专属授权项目</span>
-                  <span :class="['px-2 py-0.5 rounded-full text-[9px] font-mono font-bold', activeTab === 'projects' ? 'bg-white/20 text-white' : 'bg-black/5 text-slate-500']">
-                    {{ dashboardData.allowedProjects?.length || 0 }}
-                  </span>
-                </button>
-
-                <button 
-                  @click="activeTab = 'projects'"
-                  :class="[
-                    'px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer',
-                    activeTab === 'projects'
-                      ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-white shadow-md'
-                      : 'text-[#82848c] hover:text-[#121316]'
-                  ]"
-                >
                   <IconSax name="video-play" :size="16" />
                   <span>专属授权作品</span>
                   <span :class="['px-2 py-0.5 rounded-full text-[9px] font-mono font-bold', activeTab === 'projects' ? 'bg-white/20 text-white' : 'bg-black/5 text-slate-500']">
@@ -299,7 +284,7 @@
                     
                     <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
                       <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-600/90 text-white backdrop-blur-md uppercase tracking-wider">
-                        EXCLUSIVE PASS
+                        专属通行权限
                       </span>
                     </div>
                   </div>

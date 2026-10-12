@@ -21,7 +21,7 @@
         <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[var(--color-bronze-dark)] text-xs font-mono font-bold"
              style="background: rgba(217,119,6,0.12); border: 1px solid rgba(217,119,6,0.3);">
           <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-bronze)] animate-pulse" />
-          <span>{{ siteConfig?.booking?.heroBadge || 'PRODUCTION & GRADING BOOKING (2026)' }}</span>
+          <span>{{ siteConfig?.booking?.heroBadge || '影视后期与调色预约 (2026)' }}</span>
         </div>
         <h1 class="font-display text-4xl lg:text-6xl font-bold tracking-tight text-[var(--color-ink-1)]">
           {{ siteConfig?.booking?.heroTitle || '商业合作与后期排期' }}

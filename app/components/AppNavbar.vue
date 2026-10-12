@@ -52,7 +52,7 @@
           ]"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-          <span class="whitespace-nowrap">{{ siteConfig?.siteInfo?.navbarBookingBadge || 'OPEN FOR BOOKING' }}</span>
+          <span class="whitespace-nowrap">{{ siteConfig?.siteInfo?.navbarBookingBadge || '接受档期预约' }}</span>
         </div>
       </div>
 
