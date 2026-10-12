@@ -10,7 +10,7 @@
         'pointer-events-auto relative flex items-center justify-between transition-[max-width,width,height,border-radius,background-color,border-color,box-shadow,padding] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
         isScrolled
           ? 'w-[92%] max-w-[740px] h-14 px-4 md:px-5 rounded-full border shadow-xl'
-          : 'w-full max-w-7xl h-16 md:h-18 px-6 md:px-8 rounded-none border-b border-black/[0.06] shadow-none'
+          : 'w-full max-w-7xl h-16 md:h-18 px-6 md:px-8 rounded-none border-b border-transparent shadow-none'
       ]"
       :style="isScrolled
         ? {
@@ -21,11 +21,11 @@
             WebkitBackdropFilter: 'blur(20px)'
           }
         : {
-            background: 'rgba(253, 250, 246, 0.72)',
-            borderColor: 'rgba(0, 0, 0, 0.06)',
+            background: 'transparent',
+            borderColor: 'transparent',
             boxShadow: 'none',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)'
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none'
           }"
     >
       <!-- Left: Brand Logo & Studio Live Badge -->

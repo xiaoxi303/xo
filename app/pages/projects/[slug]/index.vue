@@ -6,9 +6,9 @@
       <div class="player-back reveal flex flex-wrap items-center justify-between gap-4">
         <NuxtLink
           to="/projects"
-          class="xo-kinetic-btn inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-slate-800 bg-white/90 border border-amber-600/20 backdrop-blur-md shadow-xs hover:border-amber-600/50 hover:bg-white transition-all group"
+          class="xo-kinetic-btn inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold text-slate-800 bg-white/95 border border-amber-900/10 backdrop-blur-xl shadow-xs hover:border-amber-600/40 hover:bg-white hover:text-amber-900 transition-all group"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-amber-700 group-hover:-translate-x-0.5 transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-amber-700 group-hover:-translate-x-1 transition-transform">
             <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/>
           </svg>
           <span>返回全部作品集</span>
@@ -16,11 +16,12 @@
 
         <!-- Right: Cinema HUD Chips -->
         <div class="flex items-center gap-2 text-[11px] font-mono select-none">
-          <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/[0.04] border border-black/5 text-slate-600">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-amber-900/10 text-slate-700 backdrop-blur-md shadow-xs">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span class="font-bold">4K DCI · ACEScct</span>
-            <span class="text-black/20">|</span>
-            <span>杜比视界母带规范</span>
+            <span class="font-bold text-slate-900">4K DCI · ACEScct</span>
+            <span class="text-slate-300">|</span>
+            <span class="hidden sm:inline text-slate-600">杜比视界高动态母带规范</span>
+            <span class="sm:hidden text-slate-600">杜比视界</span>
           </div>
         </div>
       </div>
@@ -196,62 +197,84 @@
       <Transition name="fade">
         <div v-if="project && (!project.hasPassword || isUnlocked)" class="space-y-10">
 
-          <!-- Title block -->
-          <div class="player-title-block space-y-5 reveal">
-            <!-- Top tag & meta pills -->
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/10 text-amber-800 border border-amber-500/20">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                <span>影视母带作品</span>
-              </span>
-              <span
-                v-for="tag in project.tags"
-                :key="tag"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/[0.04] text-slate-700 border border-black/5 hover:border-amber-600/30 hover:bg-amber-50/50 transition-colors"
-              >
-                {{ tag }}
-              </span>
+          <!-- Title block: Porcelain Glass Cinema Slate -->
+          <div class="player-title-block relative rounded-[2rem] bg-white/95 backdrop-blur-2xl border border-amber-900/10 shadow-[0_20px_50px_-15px_rgba(180,83,9,0.1),0_0_0_1px_rgba(255,255,255,0.9)_inset] p-6 sm:p-8 space-y-6 overflow-hidden reveal">
+            <!-- Top hairline gold accent -->
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#d97706] to-transparent" />
+
+            <!-- Header Row: Category Badge, Tags, and Color Grade Status -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/10 text-amber-900 border border-amber-500/30 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                  <span>影视商业母带</span>
+                </span>
+                <span
+                  v-for="tag in project.tags"
+                  :key="tag"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-black/[0.03] text-slate-700 border border-black/5 hover:border-amber-600/30 hover:bg-amber-50/50 transition-colors"
+                >
+                  {{ tag }}
+                </span>
+              </div>
+
+              <!-- Color Grade Status Badge -->
+              <div class="flex items-center gap-2">
+                <span
+                  v-if="project.isColorGraded"
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-800 border border-emerald-500/30 shadow-xs"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>ACEScct 达芬奇调色微雕</span>
+                </span>
+                <span
+                  v-else
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-medium bg-black/[0.04] text-slate-600 border border-black/5"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                  <span>RAW / LOG 原片</span>
+                </span>
+              </div>
             </div>
 
             <!-- Main Headline -->
-            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] text-slate-900">
-              {{ project.title }}
-            </h1>
+            <div class="space-y-2">
+              <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.18] text-slate-900">
+                {{ project.title }}
+              </h1>
+              <p v-if="project.description" class="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans max-w-3xl">
+                {{ project.description }}
+              </p>
+            </div>
 
-            <!-- Editorial Cinema Metadata HUD -->
-            <div class="flex flex-wrap items-center gap-3 pt-1 text-xs font-mono">
+            <!-- Editorial Cinema Metadata Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-xs font-mono">
               <!-- Release Year -->
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
-                <span class="text-slate-400">公映年份:</span>
-                <span class="font-bold text-slate-900">{{ project.releaseYear || '2026' }}</span>
+              <div class="p-3 rounded-2xl bg-black/[0.02] border border-black/5 flex flex-col justify-center">
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider">公映年份</span>
+                <span class="font-bold text-slate-900 text-sm mt-0.5">{{ project.releaseYear || '2026' }}</span>
               </div>
 
               <!-- Post Specs -->
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
-                <span class="text-slate-400">制作规格:</span>
-                <span class="font-bold text-slate-900">{{ project.postSpecs || (siteConfig?.home?.colorSpecText ? siteConfig.home.colorSpecText : '4K 60FPS HDR / ACEScct') }}</span>
+              <div class="p-3 rounded-2xl bg-black/[0.02] border border-black/5 flex flex-col justify-center">
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider">画面规格</span>
+                <span class="font-bold text-slate-900 text-xs sm:text-sm mt-0.5 truncate" :title="project.postSpecs || '4K 24FPS (Scope 2.39:1)'">
+                  {{ project.postSpecs || '4K 24FPS (Scope 2.39:1)' }}
+                </span>
               </div>
 
               <!-- Director -->
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
-                <span class="text-slate-400">后期导演:</span>
-                <span class="font-bold text-slate-900">{{ project.director || 'Xo' }}</span>
+              <div class="p-3 rounded-2xl bg-black/[0.02] border border-black/5 flex flex-col justify-center">
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider">调色指导 / 导演</span>
+                <span class="font-bold text-slate-900 text-sm mt-0.5">{{ project.director || 'Xo' }}</span>
               </div>
 
-              <!-- Color Grading Status -->
-              <div
-                v-if="project.isColorGraded"
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-emerald-800 bg-emerald-500/10 border border-emerald-500/25 font-bold"
-              >
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>ACEScct 已调色</span>
-              </div>
-              <div
-                v-else
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-slate-600 bg-black/[0.03] border border-black/5 font-medium"
-              >
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                <span>未调色</span>
+              <!-- Deliver Format -->
+              <div class="p-3 rounded-2xl bg-black/[0.02] border border-black/5 flex flex-col justify-center">
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider">母版封装格式</span>
+                <span class="font-bold text-amber-900 text-xs sm:text-sm mt-0.5 truncate">
+                  {{ project.deliverFormat || 'ProRes 4444 XQ' }}
+                </span>
               </div>
             </div>
           </div>
@@ -259,8 +282,8 @@
           <!-- Media block: video player OR cover image fallback -->
           <div class="reveal">
             <!-- If has videoUrl: show custom premium player with ambilight -->
-            <div v-if="activeVideoUrl" class="space-y-3">
-              <div class="ambilight-container">
+            <div v-if="activeVideoUrl" class="space-y-4">
+              <div class="ambilight-container relative">
                 <!-- Ambient backdrop blur video -->
                 <video
                   ref="blurVideoRef"
@@ -271,20 +294,45 @@
                   class="ambilight-shadow"
                 />
                 
-                <!-- Custom Premium Player Container -->
+                <!-- Master Cinema Theater Player Container -->
                 <div 
                   ref="playerContainerRef" 
-                  class="relative w-full rounded-2xl overflow-hidden bg-black select-none z-10 max-h-[700px]" style="border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 25px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05); aspect-ratio: auto;"
+                  class="cinema-player-shell relative w-full rounded-[2rem] overflow-hidden bg-slate-950 select-none z-10 max-h-[720px] transition-all duration-500" 
+                  style="border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 30px 90px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06) inset; aspect-ratio: auto;"
                   @mousemove="resetControlsTimer"
                   @mouseleave="showControls = false"
                   @contextmenu.prevent
                 >
-                  <!-- Top-Right Status Badges (GPU Decoder Badge & Filter Status) -->
-                  <div class="absolute top-3 right-3 z-30 flex items-center gap-2">
+                  <!-- Ambient Mirrored Dynamic Fill Layer for Non-16:9 videos to eliminate dead black pillarbox voids -->
+                  <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-40 blur-3xl scale-125 z-0">
+                    <video
+                      :src="activeVideoUrl"
+                      preload="none"
+                      muted loop playsinline
+                      class="w-full h-full object-cover"
+                      :style="{ filter: 'brightness(0.65) saturate(1.4)' }"
+                    />
+                  </div>
+
+                  <!-- Cinema Viewfinder HUD Framing Guides (corners fade out on play) -->
+                  <div class="absolute inset-4 pointer-events-none z-20 transition-opacity duration-500 flex flex-col justify-between" :class="{ 'opacity-0': isPlaying, 'opacity-35': !isPlaying }">
+                    <div class="flex justify-between items-center text-[9px] font-mono text-white/70">
+                      <span class="border-t-2 border-l-2 border-amber-400/70 w-3.5 h-3.5" />
+                      <span class="px-2 py-0.5 rounded bg-black/60 border border-white/10 uppercase tracking-widest text-[9px]">2.39:1 DCI FRAME GUIDE</span>
+                      <span class="border-t-2 border-r-2 border-amber-400/70 w-3.5 h-3.5" />
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="border-b-2 border-l-2 border-amber-400/70 w-3.5 h-3.5" />
+                      <span class="border-b-2 border-r-2 border-amber-400/70 w-3.5 h-3.5" />
+                    </div>
+                  </div>
+
+                  <!-- Top-Right Inside-Player Badges (Enhancement & GPU Stats) -->
+                  <div class="absolute top-4 right-4 z-30 flex items-center gap-2">
                     <!-- Active Video Enhancement Badge -->
                     <span
                       v-if="enhancementMode !== 'normal'"
-                      class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-md flex items-center gap-1"
+                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-md flex items-center gap-1.5"
                     >
                       <span>✨</span>
                       <span>{{ enhancementLabels[enhancementMode] }}</span>
@@ -294,18 +342,18 @@
                     <button
                       type="button"
                       @click="showStatsPanel = !showStatsPanel"
-                      class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold transition-all backdrop-blur-md shadow-md flex items-center gap-1.5 cursor-pointer"
+                      class="px-3 py-1 rounded-full text-[10px] font-mono font-bold transition-all backdrop-blur-md shadow-md flex items-center gap-1.5 cursor-pointer"
                       :class="showStatsPanel
                         ? 'bg-emerald-500 text-black border border-emerald-400'
-                        : 'bg-black/50 text-emerald-400 hover:bg-black/70 border border-emerald-500/40'"
+                        : 'bg-black/60 text-emerald-400 hover:bg-black/80 border border-emerald-500/40'"
                       title="切换 GPU 硬件解码极客面板 (Stats for Nerds)"
                     >
-                      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                       <span>⚡ GPU解码</span>
                     </button>
                   </div>
 
-                  <!-- 1. Visible Site Logo Watermark (Only Logo, Semi-Transparent, Larger Size) -->
+                  <!-- 1. Visible Site Logo Watermark (Semi-Transparent) -->
                   <div
                     v-if="logoWatermarkEnabled"
                     class="absolute z-30 pointer-events-none flex items-center justify-center p-2 rounded-2xl bg-black/35 backdrop-blur-md border border-white/15 select-none shadow-md opacity-85 transition-all duration-300"
@@ -318,7 +366,7 @@
                     </svg>
                   </div>
 
-                  <!-- 2. Invisible Steganographic Watermark Layer (Canvas Overlay over Video Frame) -->
+                  <!-- 2. Invisible Steganographic Watermark Layer -->
                   <canvas
                     v-if="invisibleWatermarkEnabled"
                     ref="watermarkCanvasRef"
@@ -329,15 +377,15 @@
                   <Transition name="fade">
                     <div
                       v-if="showStatsPanel"
-                      class="absolute top-12 right-3 z-40 p-3.5 rounded-2xl bg-black/90 border border-emerald-500/40 text-emerald-300 font-mono text-[11px] backdrop-blur-xl shadow-2xl space-y-2 min-w-[290px] select-text"
+                      class="absolute top-14 right-4 z-40 p-4 rounded-2xl bg-black/92 border border-emerald-500/40 text-emerald-300 font-mono text-[11px] backdrop-blur-xl shadow-2xl space-y-2.5 min-w-[300px] select-text"
                     >
-                      <div class="flex items-center justify-between border-b border-emerald-500/30 pb-1.5">
-                        <span class="font-bold text-white flex items-center gap-1">
-                          <span>⚡ 顶级 GPU 解码极客面板</span>
+                      <div class="flex items-center justify-between border-b border-emerald-500/30 pb-2">
+                        <span class="font-bold text-white flex items-center gap-1.5">
+                          <span>⚡ 工业级 GPU 解码极客面板</span>
                         </span>
                         <button @click="showStatsPanel = false" class="text-emerald-400 hover:text-white cursor-pointer">✕</button>
                       </div>
-                      <div class="space-y-1">
+                      <div class="space-y-1.5">
                         <div class="flex justify-between">
                           <span class="text-slate-400">解码架构:</span>
                           <span class="font-bold text-emerald-400">{{ activeDecoderEngine }}</span>
@@ -378,7 +426,7 @@
                           <span class="text-slate-400">画质复原引擎:</span>
                           <span class="text-amber-300">{{ enhancementLabels[enhancementMode] }}</span>
                         </div>
-                        <div v-if="pointA !== null || pointB !== null" class="flex justify-between border-t border-emerald-500/20 pt-1">
+                        <div v-if="pointA !== null || pointB !== null" class="flex justify-between border-t border-emerald-500/20 pt-1.5">
                           <span class="text-amber-400">A-B 循环区间:</span>
                           <span class="text-amber-300 font-bold">
                             {{ pointA !== null ? formatTime(pointA) : '0:00' }} - {{ pointB !== null ? formatTime(pointB) : 'END' }}
@@ -388,10 +436,9 @@
                     </div>
                   </Transition>
 
-                  <!-- SVG GPU Hardware Convolution Matrix Filters (Zero-Color-Distortion Engine) -->
+                  <!-- SVG GPU Hardware Convolution Matrix Filters -->
                   <svg class="hidden" width="0" height="0" style="position: absolute; width: 0; height: 0; overflow: hidden;">
                     <defs>
-                      <!-- 1. 4K CAS 自适应超分锐化 (Sub-pixel High-Pass Edge Contrast Sharpening) -->
                       <filter id="svg-cas-filter-detail" x="-20%" y="-20%" width="140%" height="140%">
                         <feConvolveMatrix 
                           order="3" 
@@ -405,7 +452,6 @@
                         />
                       </filter>
 
-                      <!-- 2. 电影级暗部细节提亮 (Pure Shadow Lift, 100% Color & Skin Protection) -->
                       <filter id="svg-shadow-filter-detail" x="-20%" y="-20%" width="140%" height="140%">
                         <feComponentTransfer>
                           <feFuncR type="gamma" amplitude="1.0" exponent="0.94" offset="0"/>
@@ -414,7 +460,6 @@
                         </feComponentTransfer>
                       </filter>
 
-                      <!-- 3. 数字降噪与画面修复 (Clean Spatial Bilateral Denoise) -->
                       <filter id="svg-denoise-filter-detail" x="-20%" y="-20%" width="140%" height="140%">
                         <feGaussianBlur stdDeviation="0.4" result="clean"/>
                         <feConvolveMatrix 
@@ -441,12 +486,12 @@
                     preload="metadata"
                     :muted="isMuted"
                     playsinline
-                    class="w-full h-full block cursor-pointer transition-all duration-300"
+                    class="w-full h-full block cursor-pointer transition-all duration-300 relative z-10"
                     :style="{
-                      maxHeight: isFullscreen ? 'none' : '700px',
+                      maxHeight: isFullscreen ? 'none' : '720px',
                       height: isFullscreen ? '100%' : '100%',
                       objectFit: 'contain',
-                      background: '#000',
+                      background: 'transparent',
                       opacity: enhancementMode === 'normal' || !webglAvailable ? 1 : 0,
                       filter: 'none',
                       imageRendering: '-webkit-optimize-contrast',
@@ -461,7 +506,7 @@
                     @click="togglePlay"
                   />
 
-                  <!-- WebGL output for the selected real-time enhancement. -->
+                  <!-- WebGL Output Canvas for Real-time Enhancement -->
                   <canvas
                     v-if="enhancementMode !== 'normal' && webglAvailable"
                     ref="webglCanvasRef"
@@ -469,30 +514,30 @@
                     aria-hidden="true"
                   />
 
-                  <!-- Centered Big Play Button Indicator -->
+                  <!-- Centered Luxury Kinetic Play Button Indicator -->
                   <div 
                     class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300 z-20"
                     :class="{ 'opacity-0 scale-95': isPlaying, 'opacity-100 scale-100': !isPlaying }"
                   >
                     <button 
                       type="button"
-                      class="play-btn-main pointer-events-auto cursor-pointer"
+                      class="play-btn-main pointer-events-auto cursor-pointer group"
                       @click="togglePlay"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10 ml-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10 ml-1 text-white group-hover:scale-110 transition-transform">
                         <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
                       </svg>
                     </button>
                   </div>
 
-                  <!-- Custom Bottom Controls (Glassmorphism Overlay) -->
+                  <!-- Custom Bottom Controls (Floating Obsidian Glass Deck) -->
                   <div 
-                    class="absolute bottom-0 inset-x-0 px-5 pb-4 pt-16 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-all duration-500 transform flex flex-col justify-end pointer-events-auto z-20"
-                    :class="{ 'opacity-100 translate-y-0': showControls, 'opacity-0 translate-y-2 pointer-events-none': !showControls }"
+                    class="absolute bottom-0 inset-x-0 px-5 sm:px-7 pb-5 pt-20 bg-gradient-to-t from-black/95 via-black/65 to-transparent transition-all duration-400 transform flex flex-col justify-end pointer-events-auto z-20"
+                    :class="{ 'opacity-100 translate-y-0': showControls, 'opacity-0 translate-y-3 pointer-events-none': !showControls }"
                   >
                     <!-- Scrub Progress Bar -->
                     <div 
-                      class="progress-bar-container group/progress relative"
+                      class="progress-bar-container group/progress relative mb-4"
                       @mousedown="startScrub"
                       @mousemove="onProgressHover"
                       @mouseleave="onProgressLeave"
@@ -532,29 +577,48 @@
                       <!-- Progress Thumb Knob -->
                       <div 
                         class="progress-thumb"
-                        :style="{ left: 'calc(' + (currentTime / (duration || 1)) * 100 + '% - 6px)' }"
+                        :style="{ left: 'calc(' + (currentTime / (duration || 1)) * 100 + '% - 7px)' }"
                       />
                     </div>
 
                     <!-- Bottom Controls Buttons row -->
-                    <div class="flex items-center justify-between text-white text-xs select-none">
-                      <div class="flex items-center gap-4">
+                    <div class="flex items-center justify-between text-white text-xs select-none gap-2 flex-wrap sm:flex-nowrap">
+                      <!-- Left Group: Play/Pause, 10s skips, Frame steps, Timecode, Volume -->
+                      <div class="flex items-center gap-2 sm:gap-3">
                         <!-- Play/Pause toggle -->
-                        <button type="button" @click="togglePlay" class="video-ctrl-btn cursor-pointer" aria-label="Play/Pause">
-                          <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-white">
+                        <button type="button" @click="togglePlay" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 hover:text-amber-300 flex items-center justify-center transition-all cursor-pointer text-white" aria-label="Play/Pause">
+                          <svg v-if="!isPlaying" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 ml-0.5">
                             <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                           </svg>
-                          <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-white">
+                          <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 7.75a.75.75 0 01.75-.75h.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-.5a.75.75 0 01-.75-.75v-4.5zm5 0a.75.75 0 01.75-.75h.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-.5a.75.75 0 01-.75-.75v-4.5z" clip-rule="evenodd" />
                           </svg>
                         </button>
 
+                        <!-- Quick 10s Rewind & Forward -->
+                        <button
+                          type="button"
+                          @click="seekRelative(-10)"
+                          class="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-mono text-slate-300 hover:text-white transition-colors cursor-pointer"
+                          title="快退 10 秒"
+                        >
+                          ↺ 10s
+                        </button>
+                        <button
+                          type="button"
+                          @click="seekRelative(10)"
+                          class="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-mono text-slate-300 hover:text-white transition-colors cursor-pointer"
+                          title="快进 10 秒"
+                        >
+                          10s ↻
+                        </button>
+
                         <!-- Frame Stepping Controls (< 逐帧 / 逐帧 >) -->
-                        <div class="flex items-center gap-1 bg-white/10 rounded-lg p-0.5 border border-white/10">
+                        <div class="hidden md:flex items-center gap-1 bg-white/10 rounded-xl p-0.5 border border-white/10">
                           <button
                             type="button"
                             @click="stepFrame(-1)"
-                            class="px-1.5 py-0.5 text-[10px] font-mono hover:bg-white/20 rounded transition-colors text-slate-300 hover:text-white cursor-pointer"
+                            class="px-2 py-1 text-[10px] font-mono hover:bg-white/20 rounded-lg transition-colors text-slate-300 hover:text-white cursor-pointer"
                             title="退回 1 帧"
                           >
                             ⏮ -1帧
@@ -562,7 +626,7 @@
                           <button
                             type="button"
                             @click="stepFrame(1)"
-                            class="px-1.5 py-0.5 text-[10px] font-mono hover:bg-white/20 rounded transition-colors text-slate-300 hover:text-white cursor-pointer"
+                            class="px-2 py-1 text-[10px] font-mono hover:bg-white/20 rounded-lg transition-colors text-slate-300 hover:text-white cursor-pointer"
                             title="前进 1 帧"
                           >
                             +1帧 ⏭
@@ -570,8 +634,8 @@
                         </div>
 
                         <!-- Timeline Time counter -->
-                        <span class="time-display font-mono">
-                          {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+                        <span class="font-mono text-xs text-amber-200/90 font-bold tracking-wider pl-1">
+                          {{ formatTime(currentTime) }} <span class="text-white/40">/</span> {{ formatTime(duration) }}
                         </span>
 
                         <!-- Volume with Slider -->
@@ -594,22 +658,23 @@
                         </div>
                       </div>
 
-                      <div class="flex items-center gap-4">
+                      <!-- Right Group: A-B Loop, Quality, Speed, PiP, Fullscreen -->
+                      <div class="flex items-center gap-2 sm:gap-3">
                         <!-- A-B Loop Button -->
                         <div class="relative group/ab">
                           <button
                             type="button"
                             @click="toggleABLoop"
-                            class="px-2 py-1 rounded text-[10px] font-mono transition-colors border cursor-pointer"
+                            class="px-2.5 py-1 rounded-lg text-[10px] font-mono transition-colors border cursor-pointer"
                             :class="pointA !== null || pointB !== null
                               ? 'bg-amber-500 text-black font-bold border-amber-400'
                               : 'bg-white/10 text-slate-300 hover:bg-white/20 border-white/10'"
                           >
                             A-B 循环
                           </button>
-                          <div class="absolute bottom-full right-0 mb-1.5 bg-black/95 border border-white/15 rounded-xl p-2 shadow-2xl min-w-[140px] opacity-0 translate-y-1 pointer-events-none group-hover/ab:opacity-100 group-hover/ab:translate-y-0 group-hover/ab:pointer-events-auto transition-all duration-200 text-center space-y-1.5 before:content-[''] before:absolute before:top-full before:left-0 before:right-0 before:h-4 before:bg-transparent">
-                            <div class="text-[10px] text-slate-400 font-mono">A-B 复播切断器</div>
-                            <div class="flex gap-1 justify-center">
+                          <div class="absolute bottom-full right-0 mb-2 bg-black/95 border border-white/15 rounded-xl p-2.5 shadow-2xl min-w-[150px] opacity-0 translate-y-1 pointer-events-none group-hover/ab:opacity-100 group-hover/ab:translate-y-0 group-hover/ab:pointer-events-auto transition-all duration-200 text-center space-y-2">
+                            <div class="text-[10px] text-slate-400 font-mono">A-B 循环复播切片</div>
+                            <div class="flex gap-1.5 justify-center">
                               <button type="button" @click="setPointA" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 rounded text-[10px] font-mono border border-emerald-500/30 cursor-pointer">
                                 设 A 点
                               </button>
@@ -617,7 +682,7 @@
                                 设 B 点
                               </button>
                             </div>
-                            <button v-if="pointA !== null || pointB !== null" type="button" @click="clearABLoop" class="w-full py-0.5 text-rose-400 hover:text-rose-300 text-[10px] font-mono cursor-pointer">
+                            <button v-if="pointA !== null || pointB !== null" type="button" @click="clearABLoop" class="w-full py-1 text-rose-400 hover:text-rose-300 text-[10px] font-mono cursor-pointer border-t border-white/10 pt-1.5">
                               清除循环区间
                             </button>
                           </div>
@@ -627,15 +692,15 @@
                         <div class="relative group/enh">
                           <button
                             type="button"
-                            class="px-2 py-1 rounded text-[10px] font-mono transition-colors border flex items-center gap-1 cursor-pointer"
+                            class="px-2.5 py-1 rounded-lg text-[10px] font-mono transition-colors border flex items-center gap-1 cursor-pointer"
                             :class="enhancementMode !== 'normal'
                               ? 'bg-amber-500 text-black font-bold border-amber-400'
                               : 'bg-white/10 text-slate-300 hover:bg-white/20 border-white/10'"
                           >
-                            <span>画质增强:</span>
+                            <span>画质:</span>
                             <span>{{ enhancementLabels[enhancementMode] }}</span>
                           </button>
-                          <div class="absolute bottom-full right-0 mb-1.5 bg-black/95 border border-white/15 rounded-xl py-1 shadow-2xl min-w-[120px] opacity-0 translate-y-1 pointer-events-none group-hover/enh:opacity-100 group-hover/enh:translate-y-0 group-hover/enh:pointer-events-auto transition-all duration-200 before:content-[''] before:absolute before:top-full before:left-0 before:right-0 before:h-4 before:bg-transparent">
+                          <div class="absolute bottom-full right-0 mb-2 bg-black/95 border border-white/15 rounded-xl py-1.5 shadow-2xl min-w-[130px] opacity-0 translate-y-1 pointer-events-none group-hover/enh:opacity-100 group-hover/enh:translate-y-0 group-hover/enh:pointer-events-auto transition-all duration-200">
                             <button
                               v-for="(label, key) in enhancementLabels"
                               :key="key"
@@ -645,9 +710,7 @@
                               :class="enhancementMode === key ? 'text-amber-400 font-bold' : 'text-slate-300'"
                             >
                               <span>{{ label }}</span>
-                              <span v-if="enhancementMode === key">
-                                <IconSax name="tick" :size="12" class="text-amber-400" />
-                              </span>
+                              <span v-if="enhancementMode === key" class="text-amber-400">✓</span>
                             </button>
                           </div>
                         </div>
@@ -657,13 +720,13 @@
                           <button type="button" class="speed-btn cursor-pointer">
                             {{ playbackRate.toFixed(2) }}x
                           </button>
-                          <div class="absolute bottom-full right-0 mb-1.5 bg-black/90 border border-white/10 rounded-xl py-1 shadow-2xl min-w-[70px] opacity-0 translate-y-1 pointer-events-none group-hover/speed:opacity-100 group-hover/speed:translate-y-0 group-hover/speed:pointer-events-auto transition-all duration-200 before:content-[''] before:absolute before:top-full before:left-0 before:right-0 before:h-4 before:bg-transparent">
+                          <div class="absolute bottom-full right-0 mb-2 bg-black/95 border border-white/15 rounded-xl py-1.5 shadow-2xl min-w-[80px] opacity-0 translate-y-1 pointer-events-none group-hover/speed:opacity-100 group-hover/speed:translate-y-0 group-hover/speed:pointer-events-auto transition-all duration-200">
                             <button 
                               v-for="r in [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0]" :key="r" 
                               type="button" 
                               @click="setPlaybackRate(r)"
-                              class="w-full text-center py-1.5 hover:bg-white/10 transition-colors text-[10px] font-mono cursor-pointer"
-                              :class="{ 'text-amber-500 font-bold': playbackRate === r }"
+                              class="w-full text-center py-1 hover:bg-white/10 transition-colors text-[10px] font-mono cursor-pointer"
+                              :class="{ 'text-amber-400 font-bold': playbackRate === r }"
                             >
                               {{ r.toFixed(2) }}x
                             </button>
@@ -678,7 +741,7 @@
                         </button>
 
                         <!-- Fullscreen Toggle -->
-                        <button type="button" @click="toggleFullscreen" class="video-ctrl-btn cursor-pointer">
+                        <button type="button" @click="toggleFullscreen" class="video-ctrl-btn cursor-pointer" title="全屏放映">
                           <svg v-if="!isFullscreen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                             <path d="M3.25 4A.75.75 0 014 3.25h3.5a.75.75 0 010 1.5H5v2.5a.75.75 0 01-1.5 0v-3.5zM12.5 3.25a.75.75 0 01.75-.75h3.5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0V5h-2.75a.75.75 0 01-.75-.75zM3.25 12.5a.75.75 0 01.75.75V15h2.75a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75v-3.5a.75.75 0 01.75-.75zM16.75 12.5a.75.75 0 01.75.75v3.5a.75.75 0 01-.75.75h-3.5a.75.75 0 010-1.5H15v-2.5a.75.75 0 01.75-.75z" />
                           </svg>
@@ -692,26 +755,59 @@
                 </div>
               </div>
 
-              <div
-                v-if="projectVideoUrls.length > 1"
-                class="flex flex-wrap gap-2 rounded-2xl p-2"
-                style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18);"
-              >
-                <button
-                  v-for="(url, idx) in projectVideoUrls"
-                  :key="url"
-                  type="button"
-                  @click="activeVideoIndex = idx"
-                  :class="[
-                    'px-3 py-2 rounded-xl text-[10px] font-mono font-semibold transition-all cursor-pointer',
-                    activeVideoIndex === idx ? 'shadow-sm' : 'hover:opacity-80'
-                  ]"
-                  :style="activeVideoIndex === idx
-                    ? { background: 'rgba(252,248,242,0.95)', color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.25)' }
-                    : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
-                >
-                  视频版本 {{ String(idx + 1).padStart(2, '0') }}
-                </button>
+              <!-- Multi-Cut Version Switcher & Master Utility Toolbar -->
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <!-- Multi-Version Reel Buttons -->
+                <div v-if="projectVideoUrls.length > 1" class="flex flex-wrap items-center gap-2">
+                  <button
+                    v-for="(url, idx) in projectVideoUrls"
+                    :key="url"
+                    type="button"
+                    @click="activeVideoIndex = idx"
+                    class="px-3.5 py-1.5 rounded-full text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    :class="activeVideoIndex === idx
+                      ? 'bg-amber-500/20 text-amber-900 border border-amber-500/40 shadow-sm'
+                      : 'bg-white/80 text-slate-600 border border-black/5 hover:bg-white'"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full" :class="activeVideoIndex === idx ? 'bg-amber-600' : 'bg-slate-400'" />
+                    <span>母带版本 {{ String(idx + 1).padStart(2, '0') }}</span>
+                  </button>
+                </div>
+                <div v-else />
+
+                <!-- Master Action Tools: Capture Still, Copy Link, Inquire Booking -->
+                <div class="flex items-center gap-2 text-xs font-mono">
+                  <!-- Still Snapshot Extraction -->
+                  <button
+                    type="button"
+                    @click="captureStillFrame"
+                    class="px-3 py-1.5 rounded-full bg-white/85 hover:bg-white border border-black/5 text-slate-700 hover:text-amber-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    title="截图提取当前 4K 调色静帧"
+                  >
+                    <span>📸</span>
+                    <span class="font-sans font-medium text-xs">提取 4K 静帧</span>
+                  </button>
+
+                  <!-- Copy Screener Link -->
+                  <button
+                    type="button"
+                    @click="copyScreenerLink"
+                    class="px-3 py-1.5 rounded-full bg-white/85 hover:bg-white border border-black/5 text-slate-700 hover:text-amber-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    title="复制当前母带作品链接"
+                  >
+                    <span>🔗</span>
+                    <span class="font-sans font-medium text-xs">{{ copyLinkSuccess ? '已复制！' : '分享母带' }}</span>
+                  </button>
+
+                  <!-- Inquire Booking -->
+                  <NuxtLink
+                    to="/booking"
+                    class="px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-900 font-sans font-bold text-xs transition-all flex items-center gap-1.5 shadow-xs"
+                  >
+                    <span>✨</span>
+                    <span>预约同款调色</span>
+                  </NuxtLink>
+                </div>
               </div>
             </div>
 
@@ -1555,6 +1651,46 @@ const stepFrame = (delta: number) => {
   const frameTime = 1 / targetFps.value
   mainVideoRef.value.currentTime = Math.max(0, Math.min(duration.value, mainVideoRef.value.currentTime + delta * frameTime))
   currentTime.value = mainVideoRef.value.currentTime
+}
+
+// Quick seek offset in seconds
+const seekRelative = (deltaSeconds: number) => {
+  if (!mainVideoRef.value) return
+  const newTime = Math.max(0, Math.min(duration.value, mainVideoRef.value.currentTime + deltaSeconds))
+  mainVideoRef.value.currentTime = newTime
+  currentTime.value = newTime
+}
+
+// 4K Still Frame Snapshot Extraction
+const captureStillFrame = () => {
+  if (!mainVideoRef.value || !process.client) return
+  try {
+    const video = mainVideoRef.value
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth || 1920
+    canvas.height = video.videoHeight || 1080
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      const link = document.createElement('a')
+      const timeStr = formatTime(currentTime.value).replace(/[:\.]/g, '-')
+      link.download = `${project.value?.title || 'screener'}_frame_${timeStr}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    }
+  } catch (e) {
+    console.warn('Frame snapshot capture error:', e)
+  }
+}
+
+// Copy Screener Link with Toast
+const copyLinkSuccess = ref(false)
+const copyScreenerLink = () => {
+  if (process.client) {
+    navigator.clipboard.writeText(window.location.href)
+    copyLinkSuccess.value = true
+    setTimeout(() => { copyLinkSuccess.value = false }, 2000)
+  }
 }
 
 // A-B Loop controls
