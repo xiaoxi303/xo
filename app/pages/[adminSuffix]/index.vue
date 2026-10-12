@@ -3319,57 +3319,6 @@
         </div>
       </div>
     </Transition>
-
-    <!-- Sticky Floating Action Bar (底部智能常驻操作条) -->
-    <div
-      v-if="isLoggedIn"
-      class="fixed bottom-6 right-6 sm:right-10 z-[99990] flex items-center gap-2.5 pointer-events-auto select-none backdrop-blur-2xl p-2 rounded-2xl border shadow-[0_16px_40px_rgba(0,0,0,0.14)] transition-all duration-300"
-      style="background: rgba(254, 252, 248, 0.95); border-color: rgba(180, 140, 90, 0.32);"
-    >
-      <!-- Dirty Indicator -->
-      <div v-if="isDirty" class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-600/20 text-amber-800 text-[11px] font-mono font-bold animate-pulse">
-        <span class="w-1.5 h-1.5 rounded-full bg-amber-600" />
-        <span>未保存变更</span>
-      </div>
-
-      <!-- Live Preview Toggle -->
-      <button
-        type="button"
-        @click="showLivePreview = !showLivePreview"
-        :class="[
-          'px-3.5 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer',
-          showLivePreview ? 'bg-amber-700 text-white shadow-sm' : 'hover:bg-black/5 text-slate-700'
-        ]"
-        title="切换双屏实时预览"
-      >
-        <span>👁️</span>
-        <span class="hidden md:inline">{{ showLivePreview ? '双屏开启' : '双屏预览' }}</span>
-      </button>
-
-      <!-- Save Button with Ctrl+S Hint -->
-      <button
-        type="button"
-        @click="saveSiteConfig"
-        :disabled="isSaving"
-        class="btn-primary py-2 px-5 text-xs font-bold font-mono tracking-wider flex items-center gap-2 rounded-xl shadow-md active:scale-95 cursor-pointer transition-all"
-        title="快捷键: Ctrl + S (Windows) / Cmd + S (Mac)"
-      >
-        <span v-if="isSaving" class="animate-spin text-sm">⏳</span>
-        <span v-else>💾</span>
-        <span>{{ isSaving ? '保存中...' : '保存配置' }}</span>
-        <span class="hidden lg:inline text-[9px] opacity-75 font-mono px-1.5 py-0.5 rounded bg-black/20">Ctrl+S</span>
-      </button>
-
-      <!-- Scroll To Top -->
-      <button
-        type="button"
-        @click="scrollToTop"
-        class="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-black/5 transition-all text-xs font-bold cursor-pointer"
-        title="平滑返回顶部"
-      >
-        ▲
-      </button>
-    </div>
   </div>
 </template>
 
