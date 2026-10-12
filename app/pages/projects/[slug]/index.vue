@@ -2,93 +2,125 @@
   <div class="player-page min-h-screen pt-28 pb-24 px-6">
     <div class="max-w-4xl mx-auto space-y-12">
 
-      <!-- Back button — always visible -->
-      <div class="player-back reveal">
+      <!-- Back button & Cinema Status HUD — always visible -->
+      <div class="player-back reveal flex flex-wrap items-center justify-between gap-4">
         <NuxtLink
           to="/projects"
-          class="btn-ghost inline-flex items-center gap-2 text-sm py-2 px-4"
+          class="xo-kinetic-btn inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-slate-800 bg-white/90 border border-amber-600/20 backdrop-blur-md shadow-xs hover:border-amber-600/50 hover:bg-white transition-all group"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-amber-700 group-hover:-translate-x-0.5 transition-transform">
             <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd"/>
           </svg>
-          返回作品集
+          <span>返回全部作品集</span>
         </NuxtLink>
+
+        <!-- Right: Cinema HUD Chips -->
+        <div class="flex items-center gap-2 text-[11px] font-mono select-none">
+          <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/[0.04] border border-black/5 text-slate-600">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span class="font-bold">4K DCI · ACEScct</span>
+            <span class="text-black/20">|</span>
+            <span>DOLBY VISION READY</span>
+          </div>
+        </div>
       </div>
 
       <!-- Password Protection Lock Screen -->
       <Transition name="fade">
-        <div v-if="project && project.hasPassword && !isUnlocked" class="player-lock-screen max-w-md mx-auto py-16 text-center space-y-6">
-          <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm"
-               style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
-            &#x1f512;
-          </div>
-          <div class="space-y-2">
-            <h1 class="font-display text-2xl font-bold" style="color: var(--color-ink-3)">&#x1f512; 访问保护</h1>
-            <p class="text-xs leading-relaxed" style="color: var(--color-ink-3)">
-              本作品受到访问保护，请输入密码解锁<br>
-              &#x1f4a1; 密码每24小时（每天凌晨 00:00）自动更新一次
+        <div v-if="project && project.hasPassword && !isUnlocked" class="player-lock-screen max-w-lg mx-auto py-12 px-6 sm:px-10 space-y-7 glass-card rounded-3xl border-2 border-amber-600/20 shadow-2xl bg-white/90 backdrop-blur-xl relative overflow-hidden">
+          <!-- Top subtle gold glow accent -->
+          <div class="absolute top-0 inset-x-0 h-1.5" style="background: linear-gradient(90deg, #d97706 0%, #b45309 50%, #f59e0b 100%);" />
+          
+          <div class="text-center space-y-3 pt-2">
+            <!-- Icon with ambient backlight -->
+            <div class="relative inline-flex items-center justify-center">
+              <div class="absolute inset-0 rounded-full bg-amber-500/20 blur-xl"></div>
+              <div class="relative w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg border border-amber-500/30 bg-gradient-to-br from-amber-50 to-amber-100/60">
+                🔒
+              </div>
+            </div>
+
+            <!-- VIP screener badge -->
+            <div>
+              <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest text-amber-800 bg-amber-500/10 border border-amber-500/25">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                VIP SCREENER · 绝密受限内容
+              </span>
+            </div>
+
+            <h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              受保护放映厅
+            </h1>
+            <p class="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
+              此母带作品处于私密评审或商业版权保护状态，请输入 6 位专属授权密钥解锁放映。
             </p>
           </div>
 
-          <!-- 每日密码更新提示 -->
-          <div class="p-4 rounded-xl text-left space-y-2" style="background: var(--color-bg-2); border: 1px solid var(--color-border)">
-            <div class="flex items-start gap-2">
-              <span class="text-lg">&#x1f4a1;</span>
-              <div class="space-y-1">
-                <p class="text-xs font-semibold" style="color: var(--color-ink-3)">访问说明</p>
-                <p class="text-xs leading-relaxed" style="color: var(--color-ink-3)">
-                  本作品设置了访问保护，密码每 24 小时（每天凌晨 00:00）会自动更新一次。旧密码失效后需重新获取最新密码。
-                </p>
-              </div>
+          <!-- Dynamic Cipher Notice -->
+          <div class="p-4 rounded-2xl bg-amber-500/[0.06] border border-amber-500/20 flex items-start gap-3">
+            <span class="text-lg flex-shrink-0 text-amber-700">⏱️</span>
+            <div class="space-y-0.5 text-left">
+              <p class="text-xs font-bold text-amber-900">24小时动态轮换密钥</p>
+              <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
+                为保护商业成片资产，放映密钥每 24 小时（北京时间每天 00:00）动态轮转。旧密钥失效后可随时免费重新提取。
+              </p>
             </div>
           </div>
 
-          <form @submit.prevent="verifyPassword" class="space-y-4 pt-4">
-            <input
-              v-model="inputPassword"
-              type="text"
-              class="form-input text-center font-mono tracking-widest py-3 rounded-xl w-full"
-              placeholder="请输入 6 位访问密码"
-              required
-              autofocus
+          <form @submit.prevent="verifyPassword" class="space-y-4">
+            <div class="relative">
+              <input
+                v-model="inputPassword"
+                type="text"
+                class="form-input text-center font-mono font-bold text-lg tracking-[0.35em] py-3.5 rounded-2xl w-full bg-slate-50 border-slate-300 focus:bg-white focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15 transition-all uppercase placeholder:normal-case placeholder:tracking-normal placeholder:font-sans placeholder:text-xs placeholder:text-slate-400"
+                placeholder="输入 6 位放映密钥"
+                required
+                autofocus
+                :disabled="passwordLoading"
+                maxlength="6"
+                style="text-transform: uppercase"
+              />
+            </div>
+            
+            <button
+              type="submit"
+              class="xo-kinetic-btn w-full justify-center py-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-800 hover:to-amber-800 shadow-lg shadow-amber-700/20 active:scale-[0.99] transition-all disabled:opacity-50"
               :disabled="passwordLoading"
-              maxlength="6"
-              style="text-transform: uppercase"
-            />
-            <button type="submit" class="btn-primary w-full justify-center py-3 text-xs font-semibold flex items-center gap-2" :disabled="passwordLoading">
-              <span v-if="passwordLoading" class="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin" style="border-color: currentColor; border-top-color: transparent;" />
-              {{ passwordLoading ? '正在验证...' : '验证密码并解锁' }}
+            >
+              <span v-if="passwordLoading" class="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/>
+              </svg>
+              <span>{{ passwordLoading ? '正在核对密钥...' : '验证密钥并进入放映厅' }}</span>
             </button>
           </form>
 
-          <p v-if="passwordError" class="text-xs text-rose-500 font-semibold">
-            &#x274c; {{ passwordError }}
+          <p v-if="passwordError" class="text-xs text-rose-600 font-semibold text-center bg-rose-50 border border-rose-200 py-2 px-3 rounded-xl">
+            ❌ {{ passwordError }}
           </p>
 
-          <!-- 获取密码按钮 -->
-          <div class="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-semibold">
+          <!-- Action buttons for getting password -->
+          <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs">
             <NuxtLink
               :to="`/projects/${slug}/get`"
-              class="hover:opacity-80 transition-opacity underline flex items-center gap-1"
-              style="color: var(--color-bronze)"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-800 border border-amber-500/20 hover:bg-amber-500/20 font-bold transition-colors w-full sm:w-auto justify-center"
             >
-              <span>&#x1f511;</span>
-              <span>在线直接获取密码</span>
+              <span>🔑</span>
+              <span>在线直接获取密钥</span>
             </NuxtLink>
-            <span class="hidden sm:inline" style="color: var(--color-ink-3)">|</span>
             <NuxtLink
               :to="`/projects/${slug}/request`"
-              class="hover:opacity-80 transition-opacity underline flex items-center gap-1"
-              style="color: var(--color-ink-3)"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/[0.03] text-slate-700 border border-black/5 hover:bg-black/[0.06] font-semibold transition-colors w-full sm:w-auto justify-center"
             >
-              <span>&#x1f4dd;</span>
-              <span>填写表单手动申请</span>
+              <span>📝</span>
+              <span>商业观摩申请表</span>
             </NuxtLink>
           </div>
 
-          <div class="pt-4 border-t border-black/[0.05]">
-            <NuxtLink to="/projects" class="text-xs hover:underline" style="color: var(--color-ink-3)">
-              &larr; 返回作品集
+          <div class="pt-3 border-t border-black/[0.05] text-center">
+            <NuxtLink to="/projects" class="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors inline-flex items-center gap-1">
+              <span>&larr;</span>
+              <span>返回公开作品集列表</span>
             </NuxtLink>
           </div>
         </div>
@@ -99,27 +131,62 @@
         <div v-if="project && (!project.hasPassword || isUnlocked)" class="space-y-10">
 
           <!-- Title block -->
-          <div class="player-title-block space-y-4 reveal">
-            <div class="flex flex-wrap gap-2">
-              <span v-for="tag in project.tags" :key="tag" class="badge">{{ tag }}</span>
+          <div class="player-title-block space-y-5 reveal">
+            <!-- Top tag & meta pills -->
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/10 text-amber-800 border border-amber-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                <span>FILM ARCHIVE</span>
+              </span>
+              <span
+                v-for="tag in project.tags"
+                :key="tag"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/[0.04] text-slate-700 border border-black/5 hover:border-amber-600/30 hover:bg-amber-50/50 transition-colors"
+              >
+                {{ tag }}
+              </span>
             </div>
 
-            <h1 class="font-display text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-slate-900">
+            <!-- Main Headline -->
+            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] text-slate-900">
               {{ project.title }}
             </h1>
 
-            <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-500 pt-1">
-              <span>发布日期：{{ project.releaseYear || '2026' }} 年</span>
-              <span class="text-slate-300">·</span>
-              <span>后期规格：{{ project.postSpecs || (siteConfig?.home?.colorSpecText ? siteConfig.home.colorSpecText : '4K 60FPS HDR / ACEScct') }}</span>
-                    <span v-if="project.isColorGraded" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold" style="background: rgba(5, 150, 105, 0.1); color: #059669; border: 1px solid rgba(5, 150, 105, 0.2);">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      已调色
-                    </span>
-                    <span v-else class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold" style="background: rgba(107, 114, 128, 0.1); color: #6b7280; border: 1px solid rgba(107, 114, 128, 0.2);">
-                      <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                      未调色
-                    </span>
+            <!-- Editorial Cinema Metadata HUD -->
+            <div class="flex flex-wrap items-center gap-3 pt-1 text-xs font-mono">
+              <!-- Release Year -->
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
+                <span class="text-slate-400">RELEASE:</span>
+                <span class="font-bold text-slate-900">{{ project.releaseYear || '2026' }}</span>
+              </div>
+
+              <!-- Post Specs -->
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
+                <span class="text-slate-400">SPECS:</span>
+                <span class="font-bold text-slate-900">{{ project.postSpecs || (siteConfig?.home?.colorSpecText ? siteConfig.home.colorSpecText : '4K 60FPS HDR / ACEScct') }}</span>
+              </div>
+
+              <!-- Director -->
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/[0.03] border border-black/5 text-slate-700">
+                <span class="text-slate-400">DIR:</span>
+                <span class="font-bold text-slate-900">{{ project.director || 'Xo' }}</span>
+              </div>
+
+              <!-- Color Grading Status -->
+              <div
+                v-if="project.isColorGraded"
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-emerald-800 bg-emerald-500/10 border border-emerald-500/25 font-bold"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>ACEScct 已调色</span>
+              </div>
+              <div
+                v-else
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-slate-600 bg-black/[0.03] border border-black/5 font-medium"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <span>未调色</span>
+              </div>
             </div>
           </div>
 
@@ -719,61 +786,130 @@
             <div class="space-y-6">
 
               <!-- DI Console Specs card -->
-              <div class="glass-card p-7 space-y-6 relative overflow-hidden rounded-3xl border-2 border-black/10 shadow-2xl bg-white/90 backdrop-blur-xl">
+              <div class="glass-card p-7 space-y-6 relative overflow-hidden rounded-3xl border-2 border-black/10 shadow-2xl bg-white/90 backdrop-blur-xl hover:border-amber-500/40 transition-all duration-300">
                 <!-- Top luxury gold accent bar -->
                 <div class="absolute top-0 inset-x-0 h-1.5 rounded-t-[inherit]"
                      style="background: linear-gradient(90deg, #d97706 0%, #b45309 50%, #f59e0b 100%);" />
 
                 <div class="flex items-center justify-between pt-2">
-                  <h2 class="font-display text-base font-bold uppercase tracking-wider text-slate-900">后期制作技术参数</h2>
+                  <div>
+                    <span class="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-700">TECHNICAL HUD</span>
+                    <h2 class="font-display text-base font-bold text-slate-900">DI 调色制作参数</h2>
+                  </div>
                   <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full"
-                       :class="project.isGraded !== false ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-500/10 border border-slate-500/20'">
+                       :class="project.isColorGraded !== false ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-500/10 border border-slate-500/20'">
                     <span class="w-2 h-2 rounded-full" :class="project.isColorGraded ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'" />
                     <span class="text-[10px] uppercase font-mono font-bold" :class="project.isColorGraded ? 'text-emerald-800' : 'text-slate-500'">
-                      {{ project.isColorGraded ? '已调色' : '未调色' }}
+                      {{ project.isColorGraded ? 'ACEScct 已校准' : '未调色' }}
                     </span>
                   </div>
                 </div>
 
-                <div class="space-y-0 font-mono text-xs border-t border-black/10">
-                  <div class="flex justify-between items-center py-3 border-b border-black/10">
-                    <span class="text-slate-600 font-sans font-medium">后期导演 (Director)</span>
+                <div class="space-y-0 font-mono text-xs border-t border-black/10 divide-y divide-black/5">
+                  <div class="flex justify-between items-center py-3">
+                    <span class="text-slate-600 font-sans font-medium">后期导演 / 调色</span>
                     <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.director || 'Xo' }}</span>
                   </div>
-                  <div v-if="project.software?.[0]" class="flex justify-between items-center py-3 border-b border-black/10">
-                    <span class="text-slate-600 font-sans font-medium">剪辑与包装软件</span>
+                  <div class="flex justify-between items-center py-3">
+                    <span class="text-slate-600 font-sans font-medium">色彩科学 (Color Science)</span>
+                    <span class="font-bold text-amber-800 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">ACEScct / AP1 Wide Gamut</span>
+                  </div>
+                  <div v-if="project.software?.[0]" class="flex justify-between items-center py-3">
+                    <span class="text-slate-600 font-sans font-medium">剪辑与动效制作</span>
                     <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.software[0] }}</span>
                   </div>
-                  <div v-if="project.software?.[1]" class="flex justify-between items-center py-3 border-b border-black/10">
-                    <span class="text-slate-600 font-sans font-medium">色彩分级调色</span>
+                  <div v-if="project.software?.[1]" class="flex justify-between items-center py-3">
+                    <span class="text-slate-600 font-sans font-medium">色彩分级系统</span>
                     <span class="font-bold text-amber-800 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{{ project.software[1] }}</span>
                   </div>
-                  <div class="flex justify-between items-center py-3 border-b border-black/10">
-                    <span class="text-slate-600 font-sans font-medium">交付格式</span>
-                    <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.deliverFormat || 'ProRes 422 HQ' }}</span>
+                  <div class="flex justify-between items-center py-3">
+                    <span class="text-slate-600 font-sans font-medium">交付母带格式</span>
+                    <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.deliverFormat || 'Apple ProRes 422 HQ / 4K' }}</span>
                   </div>
                   <div class="flex justify-between items-center py-3">
-                    <span class="text-slate-600 font-sans font-medium">声音编码</span>
-                    <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.audioFormat || '24-bit 48kHz' }}</span>
+                    <span class="text-slate-600 font-sans font-medium">音频母带规格</span>
+                    <span class="font-bold text-slate-900 bg-black/5 px-2 py-0.5 rounded">{{ project.audioFormat || '24-bit 48kHz Stereo' }}</span>
                   </div>
                 </div>
               </div>
 
-              <!-- CTA card -->
+              <!-- Commercial Inquiry CTA card -->
               <div class="glass-card p-7 space-y-4 overflow-hidden relative rounded-3xl border-2 border-amber-500/30 shadow-2xl bg-gradient-to-br from-white via-amber-500/5 to-white backdrop-blur-xl">
                 <div class="space-y-1.5 relative z-10">
+                  <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/15 text-amber-800 border border-amber-500/20">
+                    <span>COMMERCIAL INQUIRY</span>
+                  </div>
                   <h3 class="font-display text-lg font-bold text-slate-900">
-                    需要同类视频制作？
+                    需要同级别影视后期制作？
                   </h3>
                   <p class="text-xs text-slate-600 leading-relaxed font-sans font-medium">
-                    支持从视频分镜、后期精剪、调色降噪到动效合成的全流程定制服务。
+                    支持从商业分镜、后期精剪、电影级调色降噪到动效合成的全流程定制交付。
                   </p>
                 </div>
-                <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="btn-primary w-full justify-center text-xs py-3 relative z-10 shadow-lg hover:shadow-amber-600/30">
-                  发起项目咨询
-                </a>
+                <div class="pt-2 flex flex-col gap-2 relative z-10">
+                  <NuxtLink to="/booking/form" class="xo-kinetic-btn w-full justify-center py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-800 hover:to-amber-800 shadow-lg shadow-amber-700/20 flex items-center gap-2">
+                    <span>🎬 预约商业档期 / 提案</span>
+                  </NuxtLink>
+                  <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-amber-700 py-2 transition-colors">
+                    <span>发送邮件咨询</span>
+                    <span>&rarr;</span>
+                  </a>
+                </div>
               </div>
 
+            </div>
+          </div>
+
+          <!-- Related Projects Gallery Section -->
+          <div v-if="relatedProjects && relatedProjects.length" class="space-y-6 pt-12 border-t border-black/10 reveal">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-700">MORE ARCHIVES</p>
+                <h3 class="font-display text-2xl font-bold text-slate-900">更多精选放映</h3>
+              </div>
+              <NuxtLink to="/projects" class="text-xs font-bold text-slate-600 hover:text-amber-700 transition-colors inline-flex items-center gap-1 group">
+                <span>浏览全部作品</span>
+                <span class="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+              </NuxtLink>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <NuxtLink
+                v-for="rel in relatedProjects"
+                :key="rel.slug"
+                :to="`/projects/${rel.slug}`"
+                class="group block glass-card rounded-2xl overflow-hidden border border-black/10 hover:border-amber-600/40 hover:shadow-xl transition-all duration-300 bg-white"
+              >
+                <!-- Thumbnail -->
+                <div class="relative aspect-video overflow-hidden bg-slate-950">
+                  <img
+                    v-if="rel.image"
+                    :src="rel.image"
+                    :alt="rel.title"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <DefaultArtPoster v-else :title="rel.title" :tags="rel.tags" theme="cinema" class="w-full h-full" />
+                  
+                  <!-- Slate Tag -->
+                  <div class="absolute bottom-2 left-2 z-10 px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-black/70 text-white/90 backdrop-blur-md">
+                    {{ rel.releaseYear || '2026' }} · {{ rel.director || 'Xo' }}
+                  </div>
+                  <div v-if="rel.hasPassword" class="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500 text-slate-950">
+                    🔒 受限
+                  </div>
+                </div>
+
+                <!-- Info -->
+                <div class="p-4 space-y-1.5">
+                  <h4 class="font-display font-bold text-sm text-slate-900 group-hover:text-amber-700 transition-colors line-clamp-1">
+                    {{ rel.title }}
+                  </h4>
+                  <p class="text-xs text-slate-500 font-sans line-clamp-1">
+                    {{ rel.description || '影视后期与调色母带作品' }}
+                  </p>
+                </div>
+              </NuxtLink>
             </div>
           </div>
         </div>
@@ -893,6 +1029,15 @@ const project = computed(() => {
     const s = String(p.slug).trim().toLowerCase()
     return s === target || encodeURIComponent(s).toLowerCase() === target
   })
+})
+const relatedProjects = computed(() => {
+  const list = projects.value || []
+  const target = currentSlug.value
+  return list.filter((p: any) => {
+    if (!p || !p.slug) return false
+    const s = String(p.slug).trim().toLowerCase()
+    return s !== target && encodeURIComponent(s).toLowerCase() !== target
+  }).slice(0, 3)
 })
 const activeVideoIndex = ref(0)
 const parseVideoUrls = (input: any) => {

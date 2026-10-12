@@ -1,74 +1,124 @@
 <template>
-  <div class="default-art-poster relative w-full h-full overflow-hidden select-none font-sans flex flex-col justify-between p-4 md:p-6"
-       style="background: #f4efdf; color: #222;">
-    <!-- Grid Line Background -->
-    <div class="poster-grid absolute inset-0 opacity-15 pointer-events-none"
-         style="background-image: linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px); background-size: 20px 20px;" />
-    <div class="poster-scan absolute inset-0 pointer-events-none" />
-
-    <!-- Top Decorative Line & Color Blocks -->
-    <div class="relative z-10 flex items-center justify-between">
-      <div class="flex items-center gap-1.5">
-        <div class="w-8 md:w-10 h-[2px] bg-neutral-800" />
-        <div class="w-1.5 h-1.5 rotate-45 bg-rose-400" />
+  <div
+    class="default-art-poster relative w-full h-full overflow-hidden select-none font-sans flex flex-col justify-between p-4 md:p-6 transition-colors duration-500"
+    :class="theme === 'linen' ? 'poster-linen' : 'poster-cinema'"
+  >
+    <!-- Background Texture & Ambient Glows (Cinema Mode) -->
+    <template v-if="theme !== 'linen'">
+      <div class="absolute inset-0 bg-gradient-to-br from-[#07090e] via-[#0d1017] to-[#14101c] pointer-events-none" />
+      <div
+        class="absolute -top-10 -right-10 w-48 h-48 rounded-full pointer-events-none blur-3xl opacity-30"
+        style="background: radial-gradient(circle, rgba(217,119,6,0.6) 0%, transparent 70%);"
+      />
+      <div
+        class="absolute -bottom-10 -left-10 w-48 h-48 rounded-full pointer-events-none blur-3xl opacity-20"
+        style="background: radial-gradient(circle, rgba(147,51,234,0.5) 0%, transparent 70%);"
+      />
+      <!-- Subtle Anamorphic Scope Line -->
+      <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-gradient-to-r from-transparent via-amber-500/15 to-transparent pointer-events-none" />
+      <!-- DaVinci 2.39:1 Framing Crosshairs -->
+      <div class="absolute inset-0 pointer-events-none opacity-20 flex items-center justify-center">
+        <div class="w-3 h-3 relative">
+          <span class="absolute top-1/2 left-0 right-0 h-px bg-white" />
+          <span class="absolute left-1/2 top-0 bottom-0 w-px bg-white" />
+        </div>
+        <div class="absolute top-3 left-3 w-2.5 h-2.5 border-t border-l border-white" />
+        <div class="absolute top-3 right-3 w-2.5 h-2.5 border-t border-r border-white" />
+        <div class="absolute bottom-3 left-3 w-2.5 h-2.5 border-b border-l border-white" />
+        <div class="absolute bottom-3 right-3 w-2.5 h-2.5 border-b border-r border-white" />
       </div>
-      <!-- Color Bars Array -->
-      <div class="flex flex-col gap-1 items-end">
-        <div class="poster-bar w-16 md:w-20 h-1 bg-rose-400 rounded-full flex items-center justify-end pr-0.5">
-          <div class="w-1 h-1 rounded-full bg-emerald-400" />
-        </div>
-        <div class="poster-bar poster-bar-delay w-24 md:w-28 h-1 bg-emerald-300 rounded-full flex items-center justify-end pr-0.5">
-          <div class="w-1 h-1 rounded-full bg-sky-400" />
-        </div>
-        <div class="poster-bar poster-bar-slow w-14 md:w-16 h-1 bg-sky-400 rounded-full flex items-center justify-end pr-0.5">
-          <div class="w-1 h-1 rounded-full bg-amber-400" />
-        </div>
+    </template>
+
+    <!-- Background Grid (Linen Mode) -->
+    <template v-else>
+      <div
+        class="poster-grid absolute inset-0 opacity-15 pointer-events-none"
+        style="background-image: linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px); background-size: 20px 20px;"
+      />
+      <div class="poster-scan absolute inset-0 pointer-events-none" />
+    </template>
+
+    <!-- Top Bar: Cinema SMPTE Readout or Linen Decorative Lines -->
+    <div class="relative z-10 flex items-center justify-between">
+      <!-- Left: Indicator -->
+      <div class="flex items-center gap-2">
+        <span
+          class="w-2 h-2 rounded-full animate-pulse"
+          :class="theme === 'linen' ? 'bg-rose-500' : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]'"
+        />
+        <span
+          class="text-[9px] font-mono tracking-widest uppercase font-bold"
+          :class="theme === 'linen' ? 'text-neutral-800' : 'text-slate-300'"
+        >
+          {{ theme === 'linen' ? 'STUDIO REEL' : 'ACEScct / 4K DCI' }}
+        </span>
+      </div>
+
+      <!-- Right: Live SMPTE Timecode Pill -->
+      <div
+        class="flex items-center gap-1.5 px-2 py-0.5 rounded-full font-mono text-[9px] font-bold"
+        :class="theme === 'linen' ? 'bg-black/5 text-neutral-700 border border-black/10' : 'bg-white/10 text-amber-300 border border-white/15 backdrop-blur-md'"
+      >
+        <span>TC 01:24:08:{{ displayIndex }}</span>
       </div>
     </div>
 
-    <!-- Center Typography & Number Block -->
-    <div class="relative z-10 my-auto py-1 space-y-1">
+    <!-- Center Typography & Slate Number -->
+    <div class="relative z-10 my-auto py-2 space-y-1">
       <div class="flex items-baseline gap-3">
-        <span class="font-display font-black tracking-tighter leading-none text-neutral-900" :style="{ fontSize: numberFontSize }">
+        <span
+          class="font-display font-black tracking-tighter leading-none"
+          :class="theme === 'linen' ? 'text-neutral-900' : 'text-gradient drop-shadow-md'"
+          :style="{ fontSize: numberFontSize }"
+        >
           {{ displayIndex }}
         </span>
         <div class="space-y-0.5">
-          <span v-if="category" class="text-[9px] md:text-[10px] font-mono tracking-widest uppercase block text-neutral-500 font-bold">
+          <span
+            v-if="category"
+            class="text-[9px] md:text-[10px] font-mono tracking-widest uppercase block font-bold"
+            :class="theme === 'linen' ? 'text-neutral-500' : 'text-amber-400/90'"
+          >
             {{ category }}
           </span>
-          <span class="text-[10px] font-mono text-neutral-600 block">Autoplay Visuals</span>
+          <span
+            class="text-[9px] font-mono block"
+            :class="theme === 'linen' ? 'text-neutral-600' : 'text-slate-400'"
+          >
+            CINEMA REEL
+          </span>
         </div>
       </div>
 
-      <!-- Main Title -->
-      <h3 class="font-display font-extrabold text-2xl md:text-3xl text-neutral-900 tracking-tight leading-tight line-clamp-1">
-        {{ title || '创意视频' }}
+      <!-- Main Film Title -->
+      <h3
+        class="font-display font-extrabold text-xl md:text-2xl lg:text-3xl tracking-tight leading-tight line-clamp-1"
+        :class="theme === 'linen' ? 'text-neutral-900' : 'text-white drop-shadow-sm'"
+      >
+        {{ title || '精选视频项目' }}
       </h3>
-      <p class="text-[10px] font-mono uppercase tracking-widest text-neutral-500">
+      <p
+        class="text-[9px] font-mono uppercase tracking-widest"
+        :class="theme === 'linen' ? 'text-neutral-500' : 'text-slate-400'"
+      >
         {{ englishSub }}
       </p>
     </div>
 
-    <!-- Bottom Abstract Oval & Lines & Subtitle (Always visible!) -->
-    <div class="relative z-10 flex items-end justify-between pt-2 border-t border-neutral-900/15">
-      <p class="text-[10px] md:text-[11px] font-sans text-neutral-700 max-w-[80%] leading-snug line-clamp-2">
-        {{ description || '用创意点亮灵感，用镜头讲述故事，让每一个帧率都成为打动人心的瞬间。' }}
+    <!-- Bottom Meta Readout -->
+    <div
+      class="relative z-10 flex items-end justify-between pt-2 border-t"
+      :class="theme === 'linen' ? 'border-neutral-900/15 text-neutral-700' : 'border-white/10 text-slate-300'"
+    >
+      <p class="text-[10px] md:text-[11px] font-sans max-w-[80%] leading-snug line-clamp-2">
+        {{ description || '融合极致的镜头节奏与达芬奇电影级色彩科学，微雕视听艺术。' }}
       </p>
 
-      <!-- Minimal Capsule Accent -->
-      <div class="flex items-center gap-1.5 flex-shrink-0">
-        <div class="w-6 h-3 rounded-full bg-neutral-900" />
-        <div class="w-10 h-1 bg-neutral-300 rounded-full" />
+      <!-- Minimal Status Capsule -->
+      <div class="flex items-center gap-1.5 flex-shrink-0 font-mono text-[9px] font-bold text-amber-400/80">
+        <span>HDR 1000</span>
       </div>
     </div>
-
-    <!-- Abstract SVG Flow Line Graphic (Overlaid) -->
-    <svg class="poster-flow absolute bottom-1 right-2 w-36 h-20 opacity-20 pointer-events-none overflow-visible" viewBox="0 0 200 100" fill="none">
-      <path d="M 10 80 Q 80 -20 180 60 T 40 90" stroke="#111" stroke-width="1.5" fill="none" />
-      <ellipse cx="140" cy="70" rx="35" ry="18" stroke="#111" stroke-width="1.2" transform="rotate(-15 140 70)" fill="none" />
-      <rect x="110" y="55" width="25" height="4" fill="#333" />
-      <circle cx="140" cy="57" r="2.5" fill="#f43f5e" />
-    </svg>
   </div>
 </template>
 
@@ -78,11 +128,13 @@ const props = withDefaults(defineProps<{
   index?: number | string
   category?: string
   description?: string
+  theme?: 'cinema' | 'linen'
 }>(), {
-  title: '创意视频',
+  title: '精选视频项目',
   index: '01',
   category: '',
-  description: '用创意点亮灵感，用镜头讲述故事，让每一个帧率都成为打动人心的瞬间。'
+  description: '融合极致的镜头节奏与达芬奇电影级色彩科学，微雕视听艺术。',
+  theme: 'cinema'
 })
 
 const displayIndex = computed(() => {
@@ -101,56 +153,45 @@ const displayIndex = computed(() => {
 const numberFontSize = computed(() => {
   const len = String(displayIndex.value || '').length
   if (len >= 3) return 'clamp(1.8rem, 4vw, 3.2rem)'
-  return 'clamp(2.5rem, 5vw, 4.5rem)'
+  return 'clamp(2.4rem, 5vw, 4.2rem)'
 })
 
 const englishSub = computed(() => {
-  return props.category ? props.category.toUpperCase() : 'PORTFOLIO'
+  return props.category ? props.category.toUpperCase() : 'HOLLYWOOD POST'
 })
 </script>
 
 <style scoped>
+.poster-linen {
+  background: #f4efdf;
+  color: #222;
+}
+
+.poster-cinema {
+  background: #080a10;
+  color: #f1f5f9;
+}
+
 .poster-grid {
   mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
 }
+
 @keyframes posterScan {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100%); }
 }
+
 .poster-scan {
   background: linear-gradient(180deg, transparent 0%, rgba(180,83,9,0.06) 50%, transparent 100%);
   animation: posterScan 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-.poster-bar {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-  animation: posterPulse 3.5s ease-in-out infinite alternate;
-}
-.group:hover .poster-bar {
-  transform: scaleX(1.1) translateX(-2px);
-}
-.poster-bar-delay {
-  animation-delay: 0.8s;
-}
-.poster-bar-slow {
-  animation-delay: 1.6s;
-}
-@keyframes posterPulse {
-  0% { transform: scaleX(0.92); opacity: 0.85; }
-  100% { transform: scaleX(1.08); opacity: 1; }
 }
 
 .default-art-poster h3 {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
 }
-.group:hover .default-art-poster h3 {
-  transform: translateX(4px);
-  color: var(--color-bronze, #b45309);
-}
 
-.default-art-poster .font-black {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.group:hover .default-art-poster .font-black {
-  transform: scale(1.05) translateY(-2px);
+.group:hover .default-art-poster h3 {
+  transform: translateX(3px);
+  color: var(--color-bronze, #d97706);
 }
 </style>

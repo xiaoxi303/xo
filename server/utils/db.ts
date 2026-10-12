@@ -293,10 +293,10 @@ function parseYaml(yamlStr: string): any {
 
 function parseMarkdownFile(filePath: string) {
   const content = fs.readFileSync(filePath, 'utf-8')
-  const parts = content.split('---')
-  if (parts.length >= 3) {
-    const yamlStr = parts[1]
-    const body = parts.slice(2).join('---').trim()
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/)
+  if (match) {
+    const yamlStr = match[1]
+    const body = match[2] ? match[2].trim() : ''
     const meta = parseYaml(yamlStr)
     return {
       slug: path.basename(filePath, '.md'),
