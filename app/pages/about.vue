@@ -64,33 +64,17 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="glass-card p-7 rounded-2xl border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 bg-[var(--glass-bg)] space-y-3 hover:-translate-y-1 shadow-lg">
+          <div
+            v-for="(phi, idx) in philosophies"
+            :key="idx"
+            class="glass-card p-7 rounded-2xl border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 bg-[var(--glass-bg)] space-y-3 hover:-translate-y-1 shadow-lg"
+          >
             <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-700 font-mono font-bold text-sm">
-              01
+              0{{ idx + 1 }}
             </div>
-            <h3 class="font-display font-bold text-lg text-slate-900">镜头韵律与节奏微雕</h3>
+            <h3 class="font-display font-bold text-lg text-slate-900">{{ phi.title }}</h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
-              每一处切点都是心理时间的拉伸与压缩。通过微妙的帧级进退与运动速度曲率，赋予镜头呼吸与故事张力。
-            </p>
-          </div>
-
-          <div class="glass-card p-7 rounded-2xl border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 bg-[var(--glass-bg)] space-y-3 hover:-translate-y-1 shadow-lg">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-700 font-mono font-bold text-sm">
-              02
-            </div>
-            <h3 class="font-display font-bold text-lg text-slate-900">ACES 广色域色彩科学</h3>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
-              摒弃粗制滥造的千篇一律滤镜。基于 ACEScct 与 35mm 胶片光化学曲线微雕高光滚落与肤色层次，传递直击心灵的情绪色调。
-            </p>
-          </div>
-
-          <div class="glass-card p-7 rounded-2xl border-2 border-[var(--color-border)] hover:border-amber-500/40 transition-all duration-300 bg-[var(--glass-bg)] space-y-3 hover:-translate-y-1 shadow-lg">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-700 font-mono font-bold text-sm">
-              03
-            </div>
-            <h3 class="font-display font-bold text-lg text-slate-900">视听共振与沉浸声场</h3>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
-              画面为骨，声效为魂。音画同步对位与环境音层叠交融，为商业广告与纪录片构建全景式情绪共鸣。
+              {{ phi.desc }}
             </p>
           </div>
         </div>
@@ -101,33 +85,22 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4 border-black/5">
           <div>
             <span class="text-[var(--color-bronze-dark)] text-xs font-bold tracking-widest font-sans uppercase">STUDIO HARDWARE</span>
-            <h2 class="font-display text-2xl font-bold text-[var(--color-ink-1)] tracking-tight">电影工业级监看与调色台配置</h2>
+            <h2 class="font-display text-2xl font-bold text-[var(--color-ink-1)] tracking-tight">{{ siteConfig?.about?.hardwareTitle || '电影工业级监看与调色台配置' }}</h2>
           </div>
           <span class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-800 border border-amber-600/20 self-start sm:self-auto">
-            100% DCI-P3 CALIBRATED
+            {{ siteConfig?.about?.hardwareBadge || '100% DCI-P3 CALIBRATED' }}
           </span>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1">
-            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">调色台控制器</div>
-            <div class="font-bold text-sm text-slate-900">Resolve Mini Panel</div>
-            <div class="text-[11px] text-amber-800 font-mono">三轨迹球微米调校</div>
-          </div>
-          <div class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1">
-            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">母带参考级监视器</div>
-            <div class="font-bold text-sm text-slate-900">FSI 31" 4K 12G-SDI</div>
-            <div class="text-[11px] text-amber-800 font-mono">100% DCI-P3 / HDR</div>
-          </div>
-          <div class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1">
-            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">后期渲染工作站</div>
-            <div class="font-bold text-sm text-slate-900">Mac Studio M2 Ultra</div>
-            <div class="text-[11px] text-amber-800 font-mono">128GB Unified / 76C GPU</div>
-          </div>
-          <div class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1">
-            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">母带交付格式</div>
-            <div class="font-bold text-sm text-slate-900">ProRes 4444 XQ</div>
-            <div class="text-[11px] text-amber-800 font-mono">Dolby Vision / ACEScct</div>
+          <div
+            v-for="(item, idx) in hardwareSpecs"
+            :key="idx"
+            class="p-4 rounded-xl bg-white/70 border border-black/5 space-y-1"
+          >
+            <div class="text-[10px] font-mono font-bold text-slate-400 uppercase">{{ item.category }}</div>
+            <div class="font-bold text-sm text-slate-900">{{ item.model }}</div>
+            <div class="text-[11px] text-amber-800 font-mono">{{ item.spec }}</div>
           </div>
         </div>
       </div>
@@ -229,5 +202,39 @@ const experiences = computed(() => {
       tags: ['独立剪辑', '镜头感太强', '声音设计', '创意短片']
     }
   ]
+})
+
+const defaultPhilosophies = [
+  {
+    title: '镜头韵律与节奏微雕',
+    desc: '每一处切点都是心理时间的拉伸与压缩。通过微妙的帧级进退与运动速度曲率，赋予镜头呼吸与故事张力。'
+  },
+  {
+    title: 'ACES 广色域色彩科学',
+    desc: '摒弃粗制滥造的千篇一律滤镜。基于 ACEScct 与 35mm 胶片光化学曲线微雕高光滚落与肤色层次，传递直击心灵的情绪色调。'
+  },
+  {
+    title: '视听共振与沉浸声场',
+    desc: '画面为骨，声效为魂。音画同步对位与环境音层叠交融，为商业广告与纪录片构建全景式情绪共鸣。'
+  }
+]
+
+const philosophies = computed(() => {
+  const p = siteConfig.value?.about?.philosophies
+  if (Array.isArray(p) && p.length > 0) return p
+  return defaultPhilosophies
+})
+
+const defaultHardwareSpecs = [
+  { category: '调色台控制器', model: 'Resolve Mini Panel', spec: '三轨迹球微米调校' },
+  { category: '母带参考级监视器', model: 'FSI 31" 4K 12G-SDI', spec: '100% DCI-P3 / HDR' },
+  { category: '后期渲染工作站', model: 'Mac Studio M2 Ultra', spec: '128GB Unified / 76C GPU' },
+  { category: '母带交付格式', model: 'ProRes 4444 XQ', spec: 'Dolby Vision / ACEScct' }
+]
+
+const hardwareSpecs = computed(() => {
+  const h = siteConfig.value?.about?.hardwareSpecs
+  if (Array.isArray(h) && h.length > 0) return h
+  return defaultHardwareSpecs
 })
 </script>

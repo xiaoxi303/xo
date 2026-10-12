@@ -902,7 +902,9 @@ const defaultConfig = {
     linkedinUrl: "https://linkedin.com",
     seoTitle: "Xo Studio · 影视后期剪辑与调色",
     seoDescription: "专注于 TVC 广告、品牌形象宣传片、科技感产品动效包装，以及高画质纪录片的后期全流程开发。",
-    footerTagline: "基于达芬奇色彩科学规范开发"
+    footerTagline: "基于达芬奇色彩科学规范开发",
+    navbarBookingBadge: "OPEN FOR BOOKING",
+    footerColorScienceBadge: "ACEScct / Rec.709"
   },
   theme: {
     accentPreset: "bronze",
@@ -942,12 +944,63 @@ const defaultConfig = {
     bookingStatus: "Booking Open (2026)",
     heroVideoUrl: "https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4",
     heroVideoPoster: "https://images.pexels.com/photos/1563356/pexels-photo-1563356.jpeg?w=800&q=80",
-    heroTechStack: ["Pr / Resolve / AE", "Cinema 4D", "VFX Compositing", "DI Color Science"]
+    heroTechStack: ["Pr / Resolve / AE", "Cinema 4D", "VFX Compositing", "DI Color Science"],
+    heroColorSpaceTag: "ACEScct / DCI-P3 D65",
+    heroNodeTag: "NODE 16 • PRIMARY BAL",
+    heroVuLabel: "VU CH1/2",
+    cinemaPipelineBadge: "POST-PRODUCTION WORKFLOW",
+    cinemaPipelineTitle: "好莱坞工业级后期全流程",
+    cinemaPipelineSub: "从离线粗剪节奏、达芬奇 ACES 广色域科学管理，到精雕微调与杜比视界高规格母带，每一个节点都精益求精。",
+    cinemaPipelineSteps: [
+      {
+        num: "01",
+        title: "粗剪节奏与叙事构建",
+        enTitle: "Offline Editing & Pace",
+        desc: "深入挖掘脚本内核，精准把控镜头运动加速度与切点，确立故事张力与情绪起伏曲线。",
+        tags: ["镜头节奏", "叙事结构", "多机位同步"]
+      },
+      {
+        num: "02",
+        title: "ACES 广色域色彩管理",
+        enTitle: "Color Management (ACEScct)",
+        desc: "构建广色域影视级色彩管线，统一 ARRI / RED / Sony Cine 摄影机 RAW 原始素材的高保真色彩基准。",
+        tags: ["IDT 转换", "ACEScct", "宽容度保留"]
+      },
+      {
+        num: "03",
+        title: "达芬奇微雕节点调色",
+        enTitle: "DI Micro-Grading & Nodes",
+        desc: "精细分离肤色区域、对比度曲率、胶片模拟粒子与光晕晕映，雕琢具有强烈电影感的光影质感。",
+        tags: ["32 节点树", "肤色微雕", "35mm 胶片光晕"]
+      },
+      {
+        num: "04",
+        title: "杜比视界高规格交付",
+        enTitle: "Dolby Vision & Master Delivery",
+        desc: "严格执行 DCI-P3 / Rec.2020 标准色域与 HDR 1000 nits 高动态范围母带质检，适配全终端极致观感。",
+        tags: ["ProRes 4444 XQ", "Dolby Vision", "DCI 母带"]
+      }
+    ],
+    closingCtaBadge: "BOOKING AVAILABLE 2026",
+    closingCtaTitle: "准备好开启你的下一个视觉大片了吗？",
+    closingCtaSub: "无论是品牌商业 TVC、院线纪录片还是概念短片，我们为你提供从离线剪辑到电影级 DI 调色的全流程保障。",
+    closingCtaBtn1: "填写预约意向",
+    closingCtaBtn1Link: "/booking/form",
+    closingCtaBtn2: "浏览全部作品",
+    closingCtaBtn2Link: "/projects"
   },
   about: {
     role: "影视后期剪辑指导 & DI 调色总监",
     bio: "你好，我是 Xo，一名专注于极致视觉体验与叙事节奏的后期制作人。拥有 5 年影视及商业视频后期制作经验，曾为多个头部数码硬件、高奢潮牌及汽车品牌交付主视觉概念片。",
     bioSub: "我相信镜头是有呼吸的，每一个调色色键、每一段声音过渡都是对情感的潜意识引导。让画面本身说话，用节奏感编织出令人印象深刻的数字故事，是我持之以恒的追求。",
+    hardwareBadge: "100% DCI-P3 CALIBRATED",
+    hardwareTitle: "电影工业级监看与调色台配置",
+    hardwareSpecs: [
+      { category: "调色台控制器", model: "Resolve Mini Panel", spec: "三轨迹球微米调校" },
+      { category: "母带参考级监视器", model: "FSI 31\" 4K 12G-SDI", spec: "100% DCI-P3 / HDR" },
+      { category: "后期渲染工作站", model: "Mac Studio M2 Ultra", spec: "128GB Unified / 76C GPU" },
+      { category: "母带交付格式", model: "ProRes 4444 XQ", spec: "Dolby Vision / ACEScct" }
+    ],
     skills: [
       { name: "Video Editing", level: 95 },
       { name: "Color Grading", level: 90 },
@@ -979,20 +1032,62 @@ const defaultConfig = {
     ],
     philosophies: [
       {
-        emoji: "⚡",
-        title: "节奏即灵魂",
-        desc: "剪辑是对时间的微雕。切准那一帧画面的呼吸点，才能让故事在观众心里产生化学反应。"
+        emoji: "01",
+        title: "镜头韵律与节奏微雕",
+        desc: "每一处切点都是心理时间的拉伸与压缩。通过微妙的帧级进退与运动速度曲率，赋予镜头呼吸与故事张力。"
       },
       {
-        emoji: "🎨",
-        title: "色彩传递情绪",
-        desc: "调色不仅是色彩还原，更是通过冷暖虚实的色彩空间，潜意识引导剧情张力与氛围感。"
+        emoji: "02",
+        title: "ACES 广色域色彩科学",
+        desc: "摒弃粗制滥造的千篇一律滤镜。基于 ACEScct 与 35mm 胶片光化学曲线微雕高光滚落与肤色层次，传递直击心灵的情绪色调。"
       },
       {
-        emoji: "🔊",
-        title: "声画不可分割",
-        desc: "声音是画面的另一半翅膀。通过拟音与音效设计，让平面的屏幕呈现出三维物理深度。"
+        emoji: "03",
+        title: "视听共振与沉浸声场",
+        desc: "画面为骨，声效为魂。音画同步对位与环境音层叠交融，为商业广告与纪录片构建全景式情绪共鸣。"
       }
+    ]
+  },
+  booking: {
+    heroBadge: "PRODUCTION & GRADING BOOKING (2026)",
+    heroTitle: "商业合作与后期排期",
+    heroSub: "专注于商业 TVC、品牌形象宣传片、概念短片与院线级调色。24 小时内快速响应，评估制作周期与技术方案。",
+    services: [
+      {
+        icon: "video-play",
+        title: "商业TVC广告",
+        desc: "专业的商业广告拍摄与后期制作，涵盖产品宣传片、品牌故事片、社交媒体广告等。",
+        items: ["4K/8K超高清拍摄", "电影级调色处理", "专业音效设计"]
+      },
+      {
+        icon: "magic-star",
+        title: "电影/纪录片调色",
+        desc: "DaVinci Resolve专业调色，支持ACES色彩空间管理，打造电影级视觉质感。",
+        items: ["ACEScct色彩管理", "HDR/SDR双版本交付", "胶片质感还原"]
+      },
+      {
+        icon: "security-safe",
+        title: "短视频制作",
+        desc: "TikTok、抖音、小红书等平台短视频内容策划、拍摄与后期制作。",
+        items: ["竖屏/横屏适配", "快节奏剪辑", "平台算法优化"]
+      },
+      {
+        icon: "crown",
+        title: "音效/配乐设计",
+        desc: "专业的音频后期处理，包括环境音设计、配乐编曲、混音母带等。",
+        items: ["24-bit/96kHz高保真", "环境音编织", "版权音乐库"]
+      }
+    ],
+    processSteps: [
+      { num: "01", title: "咨询沟通", desc: "了解项目需求、预算和时间节点" },
+      { num: "02", title: "方案报价", desc: "提供详细的创意方案和报价单" },
+      { num: "03", title: "签订合同", desc: "确认合作细节并签署正式合同" },
+      { num: "04", title: "项目交付", desc: "按约定时间高质量交付成品" }
+    ],
+    faqs: [
+      { q: "最低起订量是多少？", a: "我们接受单条视频的合作，没有最低起订量限制。" },
+      { q: "交付周期一般多久？", a: "根据项目复杂度，一般3-15个工作日不等，具体会在合同中约定。" },
+      { q: "支持远程合作吗？", a: "是的，我们支持全国范围的远程合作，通过线上沟通即可完成项目。" }
     ]
   },
   admin: {
@@ -1012,13 +1107,53 @@ const defaultConfig = {
   }
 }
 
+function mergeSiteConfigWithDefaults(parsed: any) {
+  if (!parsed || typeof parsed !== 'object') return JSON.parse(JSON.stringify(defaultConfig))
+  return {
+    ...defaultConfig,
+    ...parsed,
+    siteInfo: { ...defaultConfig.siteInfo, ...(parsed.siteInfo || {}) },
+    theme: { ...defaultConfig.theme, ...(parsed.theme || {}) },
+    home: {
+      ...defaultConfig.home,
+      ...(parsed.home || {}),
+      cinemaPipelineSteps: (parsed.home?.cinemaPipelineSteps && parsed.home.cinemaPipelineSteps.length > 0)
+        ? parsed.home.cinemaPipelineSteps
+        : defaultConfig.home.cinemaPipelineSteps
+    },
+    about: {
+      ...defaultConfig.about,
+      ...(parsed.about || {}),
+      philosophies: (parsed.about?.philosophies && parsed.about.philosophies.length > 0)
+        ? parsed.about.philosophies
+        : defaultConfig.about.philosophies,
+      hardwareSpecs: (parsed.about?.hardwareSpecs && parsed.about.hardwareSpecs.length > 0)
+        ? parsed.about.hardwareSpecs
+        : defaultConfig.about.hardwareSpecs
+    },
+    booking: {
+      ...defaultConfig.booking,
+      ...(parsed.booking || {}),
+      services: (parsed.booking?.services && parsed.booking.services.length > 0)
+        ? parsed.booking.services
+        : defaultConfig.booking.services,
+      processSteps: (parsed.booking?.processSteps && parsed.booking.processSteps.length > 0)
+        ? parsed.booking.processSteps
+        : defaultConfig.booking.processSteps,
+      faqs: (parsed.booking?.faqs && parsed.booking.faqs.length > 0)
+        ? parsed.booking.faqs
+        : defaultConfig.booking.faqs
+    },
+    emailSettings: { ...defaultConfig.emailSettings, ...(parsed.emailSettings || {}) }
+  }
+}
+
 export async function dbGetSiteConfig(event: H3Event): Promise<any> {
   const db = await getD1Database(event)
   if (db) {
     const row = await db.prepare('SELECT value FROM site_config WHERE key = ?').bind('site_config').first()
     if (row?.value) {
-      return JSON.parse(row.value)
-      console.log('[dbGetSiteConfig] parsed config keys:', Object.keys(JSON.parse(row.value)))
+      return mergeSiteConfigWithDefaults(JSON.parse(row.value))
     }
     // Seed initial values in D1
     await db.prepare('INSERT OR REPLACE INTO site_config (key, value) VALUES (?, ?)').bind('site_config', JSON.stringify(defaultConfig)).run()
@@ -1031,21 +1166,7 @@ export async function dbGetSiteConfig(event: H3Event): Promise<any> {
     if (fs.existsSync(configPath)) {
       const data = fs.readFileSync(configPath, 'utf-8')
       const parsed = JSON.parse(data)
-      if (!parsed.emailSettings) {
-        parsed.emailSettings = {
-          enabled: false,
-          smtpHost: 'smtp.qq.com',
-          smtpPort: 465,
-          smtpSecure: true,
-          smtpUser: '',
-          smtpPass: '',
-          senderName: 'Xo Studio',
-          senderEmail: ''
-        }
-      } else if (parsed.emailSettings.senderEmail === undefined) {
-        parsed.emailSettings.senderEmail = ''
-      }
-      return parsed
+      return mergeSiteConfigWithDefaults(parsed)
     } else {
       const dir = path.dirname(configPath)
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })

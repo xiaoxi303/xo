@@ -719,51 +719,219 @@
           <!-- Bookings Tab -->
           <div v-else-if="activeTab === 'bookings'" key="bookings" class="space-y-6">
             <div class="glass-card p-8 space-y-6">
+              <!-- Sub-tab switch bar -->
               <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
-                <div>
-                  <h3 class="font-display font-bold text-lg" style="color: var(--color-ink-1)">📅 合作预约管理</h3>
-                  <p class="text-xs mt-1" style="color: var(--color-ink-4)">查看和管理客户的合作预约申请</p>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    @click="bookingSubTab = 'records'"
+                    :class="[
+                      'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
+                      bookingSubTab === 'records'
+                        ? 'bg-amber-600 text-white shadow-md'
+                        : 'text-slate-600 hover:bg-black/5'
+                    ]"
+                  >
+                    📋 预约申请记录 ({{ bookings.length }})
+                  </button>
+                  <button
+                    type="button"
+                    @click="bookingSubTab = 'settings'"
+                    :class="[
+                      'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
+                      bookingSubTab === 'settings'
+                        ? 'bg-amber-600 text-white shadow-md'
+                        : 'text-slate-600 hover:bg-black/5'
+                    ]"
+                  >
+                    ⚙️ 预约展示页面配置
+                  </button>
                 </div>
-                <span class="text-xs font-mono px-3 py-1 rounded-full" style="background: var(--color-accent-10); color: var(--color-accent)">共 {{ bookings.length }} 条预约</span>
+                <button
+                  v-if="bookingSubTab === 'settings'"
+                  @click="saveSiteConfig"
+                  class="btn-primary text-xs py-2 px-5"
+                >
+                  保存预约页面配置
+                </button>
               </div>
 
-              <div v-if="bookings.length === 0" class="text-center py-12">
-                <span class="text-4xl">📋</span>
-                <p class="text-sm mt-3" style="color: var(--color-ink-4)">暂无预约记录</p>
-              </div>
+              <!-- VIEW 1: RECORDS -->
+              <div v-if="bookingSubTab === 'records'" class="space-y-4">
+                <div v-if="bookings.length === 0" class="text-center py-12">
+                  <span class="text-4xl">📋</span>
+                  <p class="text-sm mt-3" style="color: var(--color-ink-4)">暂无预约记录</p>
+                </div>
 
-              <div v-else class="space-y-4">
-                <div v-for="b in bookings" :key="b.id" class="p-5 rounded-2xl border" style="border-color: var(--color-border); background: var(--color-bg-2)">
-                  <div class="flex items-start justify-between mb-3">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: var(--color-accent-10)">
-                        {{ b.serviceType === 'tvc' ? '🎬' : b.serviceType === 'color' ? '🎨' : b.serviceType === 'short' ? '📹' : b.serviceType === 'audio' ? '🎵' : '📁' }}
+                <div v-else class="space-y-4">
+                  <div v-for="b in bookings" :key="b.id" class="p-5 rounded-2xl border" style="border-color: var(--color-border); background: var(--color-bg-2)">
+                    <div class="flex items-start justify-between mb-3">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background: var(--color-accent-10)">
+                          {{ b.serviceType === 'tvc' ? '🎬' : b.serviceType === 'color' ? '🎨' : b.serviceType === 'short' ? '📹' : b.serviceType === 'audio' ? '🎵' : '📁' }}
+                        </div>
+                        <div>
+                          <span class="font-bold text-sm" style="color: var(--color-ink-1)">{{ b.name }}</span>
+                          <span class="text-xs ml-2" style="color: var(--color-ink-4)">{{ b.company || '无公司' }}</span>
+                        </div>
                       </div>
-                      <div>
-                        <span class="font-bold text-sm" style="color: var(--color-ink-1)">{{ b.name }}</span>
-                        <span class="text-xs ml-2" style="color: var(--color-ink-4)">{{ b.company || '无公司' }}</span>
+                      <span class="text-[10px] font-mono px-2 py-0.5 rounded" 
+                        :class="b.status === 'pending' ? 'bg-amber-500/10 text-amber-700' : b.status === 'approved' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-slate-100 text-slate-500'">
+                        {{ b.status === 'pending' ? '🟡 待处理' : b.status === 'approved' ? '🟢 已确认' : '⚪ 已归档' }}
+                      </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-3">
+                      <div><span style="color: var(--color-ink-4)">电话:</span> <span class="font-mono" style="color: var(--color-ink-1)">{{ b.phone }}</span></div>
+                      <div><span style="color: var(--color-ink-4)">邮箱:</span> <span class="font-mono" style="color: var(--color-ink-1)">{{ b.email }}</span></div>
+                      <div><span style="color: var(--color-ink-4)">预算:</span> <span style="color: var(--color-ink-1)">{{ b.budget || '未填写' }}</span></div>
+                      <div><span style="color: var(--color-ink-4)">时间:</span> <span style="color: var(--color-ink-1)">{{ b.timeline || '未填写' }}</span></div>
+                    </div>
+                    
+                    <p class="text-xs p-3 rounded-lg mb-3" style="background: var(--color-bg-1); color: var(--color-ink-2)">{{ b.description }}</p>
+                    
+                    <div class="flex items-center justify-between">
+                      <span class="text-[10px]" style="color: var(--color-ink-5)">{{ new Date(b.createdAt).toLocaleString('zh-CN') }} | IP: {{ b.ip }}</span>
+                      <div class="flex gap-2">
+                        <button v-if="b.status === 'pending'" @click="updateBookingStatus(b.id, 'approved')" class="text-[10px] px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20">✅ 确认</button>
+                        <button v-if="b.status !== 'archived'" @click="updateBookingStatus(b.id, 'archived')" class="text-[10px] px-3 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200">⚪ 归档</button>
                       </div>
                     </div>
-                    <span class="text-[10px] font-mono px-2 py-0.5 rounded" 
-                      :class="b.status === 'pending' ? 'bg-amber-500/10 text-amber-700' : b.status === 'approved' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-slate-100 text-slate-500'">
-                      {{ b.status === 'pending' ? '🟡 待处理' : b.status === 'approved' ? '🟢 已确认' : '⚪ 已归档' }}
-                    </span>
                   </div>
-                  
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-3">
-                    <div><span style="color: var(--color-ink-4)">电话:</span> <span class="font-mono" style="color: var(--color-ink-1)">{{ b.phone }}</span></div>
-                    <div><span style="color: var(--color-ink-4)">邮箱:</span> <span class="font-mono" style="color: var(--color-ink-1)">{{ b.email }}</span></div>
-                    <div><span style="color: var(--color-ink-4)">预算:</span> <span style="color: var(--color-ink-1)">{{ b.budget || '未填写' }}</span></div>
-                    <div><span style="color: var(--color-ink-4)">时间:</span> <span style="color: var(--color-ink-1)">{{ b.timeline || '未填写' }}</span></div>
+                </div>
+              </div>
+
+              <!-- VIEW 2: PAGE SETTINGS -->
+              <div v-else-if="bookingSubTab === 'settings'" class="space-y-6">
+                <!-- Hero Info -->
+                <div class="space-y-4">
+                  <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">📌 预约页面首屏文案</h4>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                      <label class="form-label">顶部微标 (Badge)</label>
+                      <input v-model="siteConfig.booking.heroBadge" class="form-input text-xs font-mono" placeholder="PRODUCTION & GRADING BOOKING (2026)" />
+                    </div>
+                    <div class="space-y-1.5">
+                      <label class="form-label">主标题</label>
+                      <input v-model="siteConfig.booking.heroTitle" class="form-input text-xs font-bold" placeholder="商业合作与后期排期" />
+                    </div>
                   </div>
-                  
-                  <p class="text-xs p-3 rounded-lg mb-3" style="background: var(--color-bg-1); color: var(--color-ink-2)">{{ b.description }}</p>
-                  
+                  <div class="space-y-1.5">
+                    <label class="form-label">副文案说明</label>
+                    <textarea v-model="siteConfig.booking.heroSub" rows="2" class="form-input resize-none text-xs" placeholder="专注于商业 TVC、品牌形象宣传片..." />
+                  </div>
+                </div>
+
+                <!-- Services List -->
+                <div class="space-y-4 pt-4 border-t border-black/10">
                   <div class="flex items-center justify-between">
-                    <span class="text-[10px]" style="color: var(--color-ink-5)">{{ new Date(b.createdAt).toLocaleString('zh-CN') }} | IP: {{ b.ip }}</span>
-                    <div class="flex gap-2">
-                      <button v-if="b.status === 'pending'" @click="updateBookingStatus(b.id, 'approved')" class="text-[10px] px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20">✅ 确认</button>
-                      <button v-if="b.status !== 'archived'" @click="updateBookingStatus(b.id, 'archived')" class="text-[10px] px-3 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200">⚪ 归档</button>
+                    <div>
+                      <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">🎬 服务项目卡片配置 (Services Grid)</h4>
+                      <p class="text-[10px] text-slate-500">展示在预约页的服务卡片、图标与核心卖点。</p>
+                    </div>
+                    <button type="button" @click="addBookingService" class="btn-ghost text-xs py-1.5 px-3 border rounded-xl">+ 添加服务</button>
+                  </div>
+                  <div class="space-y-3">
+                    <div
+                      v-for="(srv, idx) in (siteConfig.booking.services || [])"
+                      :key="idx"
+                      class="p-4 rounded-xl border border-black/10 bg-white/70 space-y-3 relative group"
+                    >
+                      <button
+                        type="button"
+                        @click="removeBookingService(idx)"
+                        class="absolute top-3 right-3 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                      >
+                        ✕ 删除
+                      </button>
+                      <div class="grid grid-cols-4 gap-2 pr-12">
+                        <div class="col-span-1 space-y-1">
+                          <span class="text-[9px] font-mono text-slate-400">图标名 (IconSax)</span>
+                          <input v-model="srv.icon" class="form-input text-xs font-mono" placeholder="video-play" />
+                        </div>
+                        <div class="col-span-3 space-y-1">
+                          <span class="text-[9px] font-mono text-slate-400">服务标题</span>
+                          <input v-model="srv.title" class="form-input text-xs font-bold" placeholder="商业TVC广告" />
+                        </div>
+                      </div>
+                      <div class="space-y-1">
+                        <span class="text-[9px] font-mono text-slate-400">服务简介</span>
+                        <input v-model="srv.desc" class="form-input text-xs" placeholder="专业的商业广告拍摄与后期制作..." />
+                      </div>
+                      <div class="space-y-1">
+                        <span class="text-[9px] font-mono text-slate-400">核心亮点列表（以逗号分隔）</span>
+                        <input
+                          :value="Array.isArray(srv.items) ? srv.items.join(', ') : srv.items"
+                          @input="srv.items = ($event.target as HTMLInputElement).value.split(/[,，]\s*/).filter(Boolean)"
+                          class="form-input text-xs"
+                          placeholder="例如: 4K/8K超高清拍摄, 电影级调色处理, 专业音效设计"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Process Steps -->
+                <div class="space-y-4 pt-4 border-t border-black/10">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">🔄 合作流程卡片 (Process Steps)</h4>
+                      <p class="text-[10px] text-slate-500">展示客户从咨询到最终交付的标准服务流程。</p>
+                    </div>
+                    <button type="button" @click="addBookingProcessStep" class="btn-ghost text-xs py-1.5 px-3 border rounded-xl">+ 添加流程步</button>
+                  </div>
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    <div
+                      v-for="(st, idx) in (siteConfig.booking.processSteps || [])"
+                      :key="idx"
+                      class="p-3.5 rounded-xl border border-black/10 bg-white/70 space-y-2 relative"
+                    >
+                      <button
+                        type="button"
+                        @click="removeBookingProcessStep(idx)"
+                        class="absolute top-2.5 right-2.5 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                      >
+                        ✕
+                      </button>
+                      <div class="flex items-center gap-2 pr-6">
+                        <input v-model="st.num" class="form-input text-xs font-mono font-bold w-12 text-center" placeholder="01" />
+                        <input v-model="st.title" class="form-input text-xs font-bold flex-1" placeholder="步骤标题" />
+                      </div>
+                      <input v-model="st.desc" class="form-input text-xs" placeholder="步骤说明" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- FAQs -->
+                <div class="space-y-4 pt-4 border-t border-black/10">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">❓ 常见问题答疑 (FAQ)</h4>
+                      <p class="text-[10px] text-slate-500">解答客户最常关心的起订量、交付周期、远程合作等问题。</p>
+                    </div>
+                    <button type="button" @click="addBookingFaq" class="btn-ghost text-xs py-1.5 px-3 border rounded-xl">+ 添加问答</button>
+                  </div>
+                  <div class="space-y-3">
+                    <div
+                      v-for="(faq, idx) in (siteConfig.booking.faqs || [])"
+                      :key="idx"
+                      class="p-3.5 rounded-xl border border-black/10 bg-white/70 space-y-2 relative"
+                    >
+                      <button
+                        type="button"
+                        @click="removeBookingFaq(idx)"
+                        class="absolute top-2.5 right-2.5 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                      >
+                        ✕ 删除
+                      </button>
+                      <div class="space-y-1 pr-10">
+                        <span class="text-[9px] font-mono text-slate-400">问题</span>
+                        <input v-model="faq.q" class="form-input text-xs font-bold" placeholder="最低起订量是多少？" />
+                      </div>
+                      <div class="space-y-1">
+                        <span class="text-[9px] font-mono text-slate-400">回答</span>
+                        <textarea v-model="faq.a" rows="2" class="form-input text-xs resize-none" placeholder="我们接受单条视频的合作，没有最低起订量限制。" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1360,6 +1528,131 @@
                 </div>
               </div>
 
+              <!-- 🎬 Cinema Monitor Overlay Tags -->
+              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">🎬 首屏监视器工业级标识 (DaVinci Resolve Overlays)</h3>
+                <div class="grid sm:grid-cols-3 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="form-label">色彩空间标签</label>
+                    <input v-model="siteConfig.home.heroColorSpaceTag" class="form-input text-xs" placeholder="ACEScct / DCI-P3 D65" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">节点树状态标签</label>
+                    <input v-model="siteConfig.home.heroNodeTag" class="form-input text-xs" placeholder="NODE 16 • PRIMARY BAL" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">立体声 VU 表标签</label>
+                    <input v-model="siteConfig.home.heroVuLabel" class="form-input text-xs" placeholder="VU CH1/2" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 🎞️ Cinema Pipeline Steps Section -->
+              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">🎞️ 好莱坞工业级后期全流程 (Cinema Pipeline)</h3>
+                    <p class="text-[10px] text-slate-500">展示在首页核心区域的流程环节卡片，可任意编辑内容与标签。</p>
+                  </div>
+                  <button type="button" @click="addPipelineStep" class="btn-ghost text-xs py-1.5 px-3 border rounded-xl">+ 添加流程环节</button>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="form-label">流程区微标 (Badge)</label>
+                    <input v-model="siteConfig.home.cinemaPipelineBadge" class="form-input text-xs font-mono" placeholder="POST-PRODUCTION WORKFLOW" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">流程区大标题</label>
+                    <input v-model="siteConfig.home.cinemaPipelineTitle" class="form-input text-xs font-bold" placeholder="好莱坞工业级后期全流程" />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="form-label">流程区详细描述</label>
+                  <textarea v-model="siteConfig.home.cinemaPipelineSub" rows="2" class="form-input resize-none text-xs" placeholder="从离线粗剪节奏、达芬奇 ACES 广色域科学管理..." />
+                </div>
+
+                <!-- Steps List Cards -->
+                <div class="space-y-3 pt-2">
+                  <div
+                    v-for="(step, idx) in (siteConfig.home.cinemaPipelineSteps || [])"
+                    :key="idx"
+                    class="p-4 rounded-xl border border-black/10 bg-white/70 space-y-3 relative group"
+                  >
+                    <button
+                      type="button"
+                      @click="removePipelineStep(idx)"
+                      class="absolute top-3 right-3 text-xs text-rose-500 hover:text-rose-700 font-bold"
+                      title="删除环节"
+                    >
+                      ✕ 删除
+                    </button>
+                    <div class="grid grid-cols-6 gap-2 pr-12">
+                      <div class="col-span-1 space-y-1">
+                        <span class="text-[9px] font-mono text-slate-400">序号</span>
+                        <input v-model="step.num" class="form-input text-xs font-mono font-bold text-center" placeholder="01" />
+                      </div>
+                      <div class="col-span-3 space-y-1">
+                        <span class="text-[9px] font-mono text-slate-400">中文标题</span>
+                        <input v-model="step.title" class="form-input text-xs font-bold" placeholder="环节名称" />
+                      </div>
+                      <div class="col-span-2 space-y-1">
+                        <span class="text-[9px] font-mono text-slate-400">英文标识</span>
+                        <input v-model="step.enTitle" class="form-input text-xs font-mono" placeholder="Phase Title" />
+                      </div>
+                    </div>
+                    <div class="space-y-1">
+                      <span class="text-[9px] font-mono text-slate-400">环节详细说明</span>
+                      <textarea v-model="step.desc" rows="2" class="form-input text-xs resize-none" placeholder="描述该环节的核心技术与标准..." />
+                    </div>
+                    <div class="space-y-1">
+                      <span class="text-[9px] font-mono text-slate-400">技术标签（以逗号分隔）</span>
+                      <input
+                        :value="Array.isArray(step.tags) ? step.tags.join(', ') : step.tags"
+                        @input="step.tags = ($event.target as HTMLInputElement).value.split(/[,，]\s*/).filter(Boolean)"
+                        class="form-input text-xs font-mono"
+                        placeholder="例如: 镜头节奏, 叙事结构, 多机位同步"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 📢 Closing CTA Direct Inquiry Banner Section -->
+              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">📢 首页底部商业预约横幅 (Closing CTA Banner)</h3>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="form-label">横幅微标 (Badge)</label>
+                    <input v-model="siteConfig.home.closingCtaBadge" class="form-input text-xs font-mono" placeholder="BOOKING AVAILABLE 2026" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">大标题</label>
+                    <input v-model="siteConfig.home.closingCtaTitle" class="form-input text-xs font-bold" placeholder="准备好开启你的下一个视觉大片了吗？" />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="form-label">副文案说明</label>
+                  <textarea v-model="siteConfig.home.closingCtaSub" rows="2" class="form-input text-xs resize-none" placeholder="无论是品牌商业 TVC、院线纪录片还是概念短片..." />
+                </div>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="form-label">主按钮文字 & 目标链接</label>
+                    <div class="flex gap-2">
+                      <input v-model="siteConfig.home.closingCtaBtn1" class="form-input text-xs flex-1" placeholder="填写预约意向" />
+                      <input v-model="siteConfig.home.closingCtaBtn1Link" class="form-input text-xs font-mono flex-1" placeholder="/booking/form" />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">次按钮文字 & 目标链接</label>
+                    <div class="flex gap-2">
+                      <input v-model="siteConfig.home.closingCtaBtn2" class="form-input text-xs flex-1" placeholder="浏览全部作品" />
+                      <input v-model="siteConfig.home.closingCtaBtn2Link" class="form-input text-xs font-mono flex-1" placeholder="/projects" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Homepage Featured Projects Selector -->
               <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
                 <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">首页卡片大图作品展示</h3>
@@ -1588,6 +1881,56 @@
                       <input v-model="phi.title" class="form-input col-span-5 font-bold font-display" />
                     </div>
                     <input v-model="phi.desc" class="form-input" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hardware Specs Section -->
+              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">🖥️ 电影工业级监看与调色台配置 (Studio Hardware)</h3>
+                    <p class="text-[10px] text-slate-500">展示在关于我页面的硬件配置清单，证明专业级后期生产力。</p>
+                  </div>
+                  <button type="button" @click="addHardwareSpec" class="btn-ghost text-xs py-1.5 px-3 border rounded-xl">+ 添加设备</button>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="form-label">监看区微标 (Badge)</label>
+                    <input v-model="siteConfig.about.hardwareBadge" class="form-input text-xs font-mono" placeholder="100% DCI-P3 CALIBRATED" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">监看区主标题</label>
+                    <input v-model="siteConfig.about.hardwareTitle" class="form-input text-xs font-bold" placeholder="电影工业级监看与调色台配置" />
+                  </div>
+                </div>
+
+                <div class="space-y-2.5 pt-1">
+                  <div
+                    v-for="(spec, idx) in (siteConfig.about.hardwareSpecs || [])"
+                    :key="idx"
+                    class="p-3.5 rounded-xl border border-black/10 bg-white/70 flex flex-col sm:flex-row items-center gap-3 relative group"
+                  >
+                    <div class="space-y-1 flex-1 w-full sm:w-auto">
+                      <span class="text-[9px] font-mono text-slate-400">设备类别</span>
+                      <input v-model="spec.category" class="form-input text-xs font-bold" placeholder="调色台控制器" />
+                    </div>
+                    <div class="space-y-1 flex-1 w-full sm:w-auto">
+                      <span class="text-[9px] font-mono text-slate-400">型号名称</span>
+                      <input v-model="spec.model" class="form-input text-xs font-mono" placeholder="Resolve Mini Panel" />
+                    </div>
+                    <div class="space-y-1 flex-1 w-full sm:w-auto">
+                      <span class="text-[9px] font-mono text-slate-400">核心性能/规格说明</span>
+                      <input v-model="spec.spec" class="form-input text-xs text-amber-900" placeholder="三轨迹球微米调校" />
+                    </div>
+                    <button
+                      type="button"
+                      @click="removeHardwareSpec(idx)"
+                      class="text-xs text-rose-500 hover:text-rose-700 font-bold self-end sm:self-center pt-2 sm:pt-0"
+                      title="删除此设备"
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1827,6 +2170,16 @@
                 <div class="space-y-1.5">
                   <label class="form-label">页脚标语</label>
                   <input v-model="siteConfig.siteInfo.footerTagline" class="form-input" placeholder="基于达芬奇色彩科学规范开发" />
+                </div>
+                <div class="grid sm:grid-cols-2 gap-3 pt-1">
+                  <div class="space-y-1.5">
+                    <label class="form-label">顶部导航预约胶囊徽标</label>
+                    <input v-model="siteConfig.siteInfo.navbarBookingBadge" class="form-input text-xs font-mono" placeholder="OPEN FOR BOOKING" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">页脚色彩科学徽标</label>
+                    <input v-model="siteConfig.siteInfo.footerColorScienceBadge" class="form-input text-xs font-mono" placeholder="ACEScct / Rec.709" />
+                  </div>
                 </div>
               </div>
 
@@ -3475,6 +3828,88 @@ onBeforeUnmount(() => {
   }
 })
 
+// Sub-tab for Bookings tab
+const bookingSubTab = ref<'records' | 'settings'>('records')
+
+// Helpers for Cinema Pipeline Steps
+const addPipelineStep = () => {
+  if (!siteConfig.value.home.cinemaPipelineSteps) siteConfig.value.home.cinemaPipelineSteps = []
+  const nextNum = String(siteConfig.value.home.cinemaPipelineSteps.length + 1).padStart(2, '0')
+  siteConfig.value.home.cinemaPipelineSteps.push({
+    num: nextNum,
+    title: '新流程环节',
+    enTitle: 'New Workflow Phase',
+    desc: '请详细描述该环节的技术标准与制作重点...',
+    tags: ['技术规范', '质量把控']
+  })
+}
+
+const removePipelineStep = (index: number) => {
+  if (!siteConfig.value.home.cinemaPipelineSteps) return
+  siteConfig.value.home.cinemaPipelineSteps.splice(index, 1)
+}
+
+// Helpers for Hardware Specs
+const addHardwareSpec = () => {
+  if (!siteConfig.value.about.hardwareSpecs) siteConfig.value.about.hardwareSpecs = []
+  siteConfig.value.about.hardwareSpecs.push({
+    category: '硬件设备',
+    model: '设备型号',
+    spec: '核心性能参数'
+  })
+}
+
+const removeHardwareSpec = (index: number) => {
+  if (!siteConfig.value.about.hardwareSpecs) return
+  siteConfig.value.about.hardwareSpecs.splice(index, 1)
+}
+
+// Helpers for Booking Settings
+const addBookingService = () => {
+  if (!siteConfig.value.booking) siteConfig.value.booking = {}
+  if (!siteConfig.value.booking.services) siteConfig.value.booking.services = []
+  siteConfig.value.booking.services.push({
+    icon: 'video-play',
+    title: '新服务类别',
+    desc: '请描述服务内容与合作方向...',
+    items: ['高画质规格', '快速交付', '专业质检']
+  })
+}
+
+const removeBookingService = (index: number) => {
+  if (!siteConfig.value?.booking?.services) return
+  siteConfig.value.booking.services.splice(index, 1)
+}
+
+const addBookingProcessStep = () => {
+  if (!siteConfig.value.booking) siteConfig.value.booking = {}
+  if (!siteConfig.value.booking.processSteps) siteConfig.value.booking.processSteps = []
+  const nextNum = String(siteConfig.value.booking.processSteps.length + 1).padStart(2, '0')
+  siteConfig.value.booking.processSteps.push({
+    num: nextNum,
+    title: '新流程步骤',
+    desc: '请描述此阶段的确认事项与沟通方式...'
+  })
+}
+
+const removeBookingProcessStep = (index: number) => {
+  if (!siteConfig.value?.booking?.processSteps) return
+  siteConfig.value.booking.processSteps.splice(index, 1)
+}
+
+const addBookingFaq = () => {
+  if (!siteConfig.value.booking) siteConfig.value.booking = {}
+  if (!siteConfig.value.booking.faqs) siteConfig.value.booking.faqs = []
+  siteConfig.value.booking.faqs.push({
+    q: '常见问题标题？',
+    a: '请在此输入针对客户疑问的解答...'
+  })
+}
+
+const removeBookingFaq = (index: number) => {
+  if (!siteConfig.value?.booking?.faqs) return
+  siteConfig.value.booking.faqs.splice(index, 1)
+}
 
 const showLivePreview = ref(false)
 const previewIframe = ref<HTMLIFrameElement | null>(null)
@@ -3661,7 +4096,8 @@ const siteConfig = useState<any>('site-config', () => ({
     brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
     contactEmail: 'hello@Xo', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
     bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
-    seoTitle: '', seoDescription: '', footerTagline: ''
+    seoTitle: '', seoDescription: '', footerTagline: '基于达芬奇色彩科学规范开发',
+    navbarBookingBadge: 'OPEN FOR BOOKING', footerColorScienceBadge: 'ACEScct / Rec.709'
   },
   theme: {
     accentPreset: 'bronze', glassBlur: 'md', showOrbs: true, showFilmGrain: true
@@ -3673,17 +4109,23 @@ const siteConfig = useState<any>('site-config', () => ({
     enabled: true, label: 'AMBIENT AUDIO', url: ''
   },
   blog: {
-    heroBadge: 'MODERN SERENITY BLOG', heroTitle: '灵感、技术与设计探索', heroSub: '采用次世代胶囊美学设计系统 (Pill-shaped Design System)，记录极致前沿的切片与思考。',
-    ...data.blog
+    heroBadge: 'MODERN SERENITY BLOG', heroTitle: '灵感、技术与设计探索', heroSub: '采用次世代胶囊美学设计系统 (Pill-shaped Design System)，记录极致前沿的切片与思考。'
   },
   home: {
     heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '',
     statValue1: '', statLabel1: '', statValue2: '', statLabel2: '',
     profileCardTitle: '', profileCardSub: '', profileCardDesc: '',
     skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: [],
-    featuredProject1: '', featuredProject2: '', collaborativeBrands: []
+    featuredProject1: '', featuredProject2: '', collaborativeBrands: [],
+    heroColorSpaceTag: 'ACEScct / DCI-P3 D65', heroNodeTag: 'NODE 16 • PRIMARY BAL', heroVuLabel: 'VU CH1/2',
+    cinemaPipelineBadge: 'POST-PRODUCTION WORKFLOW', cinemaPipelineTitle: '好莱坞工业级后期全流程', cinemaPipelineSub: '', cinemaPipelineSteps: [],
+    closingCtaBadge: 'BOOKING AVAILABLE 2026', closingCtaTitle: '准备好开启你的下一个视觉大片了吗？', closingCtaSub: '', closingCtaBtn1: '填写预约意向', closingCtaBtn1Link: '/booking/form', closingCtaBtn2: '浏览全部作品', closingCtaBtn2Link: '/projects'
   },
-  about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [] },
+  about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [], hardwareBadge: '100% DCI-P3 CALIBRATED', hardwareTitle: '电影工业级监看与调色台配置', hardwareSpecs: [] },
+  booking: {
+    heroBadge: 'PRODUCTION & GRADING BOOKING (2026)', heroTitle: '商业合作与后期排期', heroSub: '',
+    services: [], processSteps: [], faqs: []
+  },
   admin: { username: 'admin', adminPath: 'admin' },
   watermark: { logoEnabled: true, logoText: 'Xo Studio', invisibleEnabled: true, invisibleText: '© Xo Studio 2026', invisibleOpacity: 3, extractPassword: '' },
   emailSettings: {
@@ -4146,6 +4588,7 @@ const fetchSiteConfig = async () => {
       contactEmail: 'hello@Xo', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
       bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
       seoTitle: '', seoDescription: '', footerTagline: '基于达芬奇色彩科学规范开发',
+      navbarBookingBadge: 'OPEN FOR BOOKING', footerColorScienceBadge: 'ACEScct / Rec.709',
       ...data.siteInfo
     },
     theme: {
@@ -4166,9 +4609,21 @@ const fetchSiteConfig = async () => {
       profileCardTitle: '', profileCardSub: '', profileCardDesc: '', 
       skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: [],
       featuredProject1: '', featuredProject2: '',
+      heroColorSpaceTag: 'ACEScct / DCI-P3 D65', heroNodeTag: 'NODE 16 • PRIMARY BAL', heroVuLabel: 'VU CH1/2',
+      cinemaPipelineBadge: 'POST-PRODUCTION WORKFLOW', cinemaPipelineTitle: '好莱坞工业级后期全流程', cinemaPipelineSub: '', cinemaPipelineSteps: [],
+      closingCtaBadge: 'BOOKING AVAILABLE 2026', closingCtaTitle: '准备好开启你的下一个视觉大片了吗？', closingCtaSub: '', closingCtaBtn1: '填写预约意向', closingCtaBtn1Link: '/booking/form', closingCtaBtn2: '浏览全部作品', closingCtaBtn2Link: '/projects',
       ...data.home 
     },
-    about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [], ...data.about },
+    about: { 
+      role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [],
+      hardwareBadge: '100% DCI-P3 CALIBRATED', hardwareTitle: '电影工业级监看与调色台配置', hardwareSpecs: [],
+      ...data.about 
+    },
+    booking: {
+      heroBadge: 'PRODUCTION & GRADING BOOKING (2026)', heroTitle: '商业合作与后期排期', heroSub: '',
+      services: [], processSteps: [], faqs: [],
+      ...(data.booking || {})
+    },
     admin: {
       username: 'admin',
       adminPath: 'admin',

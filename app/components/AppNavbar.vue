@@ -45,7 +45,7 @@
           class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none animate-fadeIn"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>OPEN FOR BOOKING</span>
+          <span>{{ siteConfig?.siteInfo?.navbarBookingBadge || 'OPEN FOR BOOKING' }}</span>
         </div>
       </div>
 

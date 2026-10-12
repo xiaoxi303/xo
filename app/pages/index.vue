@@ -99,9 +99,7 @@
                 </div>
                 <!-- Middle: Color Space tag -->
                 <div class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] font-mono text-slate-300">
-                  <span class="text-amber-400 font-bold">ACEScct</span>
-                  <span class="text-white/40">/</span>
-                  <span>DCI-P3 D65</span>
+                  <span class="text-amber-400 font-bold">{{ siteConfig?.home?.heroColorSpaceTag || 'ACEScct / DCI-P3 D65' }}</span>
                 </div>
                 <!-- Right: Codec and Framerate -->
                 <div class="flex items-center gap-2">
@@ -143,7 +141,7 @@
 
                 <!-- Live Audio Stereo VU Meter Bar (Simulated Mixing Readout) -->
                 <div class="absolute bottom-3 left-3 z-20 flex items-end gap-1 px-2.5 py-1 rounded bg-black/60 backdrop-blur-md border border-white/10 pointer-events-none">
-                  <span class="text-[8px] font-mono font-bold text-slate-400 mr-1">VU CH1/2</span>
+                  <span class="text-[8px] font-mono font-bold text-slate-400 mr-1">{{ siteConfig?.home?.heroVuLabel || 'VU CH1/2' }}</span>
                   <div class="flex items-end gap-0.5 h-3">
                     <span class="w-1 bg-emerald-400 rounded-xs animate-[pulse_1.2s_ease-in-out_infinite]" style="height: 75%;" />
                     <span class="w-1 bg-emerald-400 rounded-xs animate-[pulse_0.8s_ease-in-out_infinite]" style="height: 90%;" />
@@ -155,7 +153,7 @@
                 <!-- DaVinci Node Tree status chip (bottom right) -->
                 <div class="absolute bottom-3 right-3 z-20 hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-black/60 backdrop-blur-md border border-white/10 pointer-events-none text-[9px] font-mono text-amber-200">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                  <span>NODE 16 • PRIMARY BAL</span>
+                  <span>{{ siteConfig?.home?.heroNodeTag || 'NODE 16 • PRIMARY BAL' }}</span>
                 </div>
               </div>
 
@@ -510,13 +508,13 @@
         <div class="space-y-3 text-center reveal">
           <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-[var(--color-bronze-dark)] text-xs font-mono font-bold border border-amber-500/20">
             <span class="w-2 h-2 rounded-full bg-[var(--color-bronze)] animate-pulse" />
-            <span>POST-PRODUCTION WORKFLOW</span>
+            <span>{{ siteConfig?.home?.cinemaPipelineBadge || 'POST-PRODUCTION WORKFLOW' }}</span>
           </div>
           <h2 class="font-display text-4xl lg:text-5xl font-bold text-[var(--color-ink-1)] tracking-tight">
-            好莱坞工业级后期全流程
+            {{ siteConfig?.home?.cinemaPipelineTitle || '好莱坞工业级后期全流程' }}
           </h2>
           <p class="text-[var(--color-ink-4)] text-xs sm:text-sm max-w-xl mx-auto font-sans leading-relaxed">
-            从离线粗剪节奏、达芬奇 ACES 广色域科学管理，到精雕微调与杜比视界高规格母带，每一个节点都精益求精。
+            {{ siteConfig?.home?.cinemaPipelineSub || '从离线粗剪节奏、达芬奇 ACES 广色域科学管理，到精雕微调与杜比视界高规格母带，每一个节点都精益求精。' }}
           </p>
         </div>
 
@@ -524,7 +522,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
           <div
             v-for="step in cinemaPipelineSteps"
-            :key="step.num"
+            :key="step.num || step.title"
             class="pipeline-step-card flex flex-col justify-between group"
           >
             <div class="space-y-4">
@@ -555,7 +553,7 @@
             <!-- Tags -->
             <div class="flex flex-wrap gap-1.5 pt-6 border-t border-black/[0.06] mt-6">
               <span
-                v-for="tag in step.tags"
+                v-for="tag in getStepTags(step)"
                 :key="tag"
                 class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-900 border border-amber-600/15"
               >
@@ -578,28 +576,28 @@
           <div class="space-y-3 max-w-xl relative z-10">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-[10px] font-mono font-bold border border-white/10">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              <span>BOOKING AVAILABLE 2026</span>
+              <span>{{ siteConfig?.home?.closingCtaBadge || 'BOOKING AVAILABLE 2026' }}</span>
             </div>
             <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
-              准备好开启你的下一个视觉大片了吗？
+              {{ siteConfig?.home?.closingCtaTitle || '准备好开启你的下一个视觉大片了吗？' }}
             </h2>
             <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-sans">
-              无论是品牌商业 TVC、院线纪录片还是概念短片，我们为你提供从离线剪辑到电影级 DI 调色的全流程保障。
+              {{ siteConfig?.home?.closingCtaSub || '无论是品牌商业 TVC、院线纪录片还是概念短片，我们为你提供从离线剪辑到电影级 DI 调色的全流程保障。' }}
             </p>
           </div>
 
           <div class="flex flex-col sm:flex-row items-center gap-3 relative z-10 flex-shrink-0">
             <NuxtLink
-              to="/booking/form"
+              :to="siteConfig?.home?.closingCtaBtn1Link || '/booking/form'"
               class="xo-kinetic-btn px-7 py-3.5 rounded-full text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 shadow-xl hover:shadow-[0_10px_30px_rgba(251,191,36,0.4)] transition-all hover:scale-105"
             >
-              填写预约意向
+              {{ siteConfig?.home?.closingCtaBtn1 || '填写预约意向' }}
             </NuxtLink>
             <NuxtLink
-              to="/projects"
+              :to="siteConfig?.home?.closingCtaBtn2Link || '/projects'"
               class="xo-kinetic-btn px-6 py-3.5 rounded-full text-xs font-bold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all"
             >
-              浏览全部作品
+              {{ siteConfig?.home?.closingCtaBtn2 || '浏览全部作品' }}
             </NuxtLink>
           </div>
         </div>
@@ -656,7 +654,7 @@ const displayTimecode = computed(() => {
 })
 
 // Cinema Post-Production Pipeline Steps
-const cinemaPipelineSteps = [
+const defaultCinemaPipelineSteps = [
   {
     num: '01',
     title: '粗剪节奏与叙事构建',
@@ -686,6 +684,20 @@ const cinemaPipelineSteps = [
     tags: ['ProRes 4444 XQ', 'Dolby Vision', 'DCI 母带']
   }
 ]
+
+const cinemaPipelineSteps = computed(() => {
+  const steps = siteConfig.value?.home?.cinemaPipelineSteps
+  if (Array.isArray(steps) && steps.length > 0) return steps
+  return defaultCinemaPipelineSteps
+})
+
+const getStepTags = (step: any): string[] => {
+  if (Array.isArray(step.tags)) return step.tags
+  if (typeof step.tags === 'string') {
+    return step.tags.split(/[,，]/).map((s: string) => s.trim()).filter(Boolean)
+  }
+  return []
+}
 
 // Default Brands Fallback for Ribbon
 const defaultBrands = computed(() => {

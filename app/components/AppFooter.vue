@@ -22,7 +22,7 @@
             </span>
             <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-500/10 text-amber-900 border border-amber-600/20">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
-              <span>ACEScct / Rec.709</span>
+              <span>{{ siteConfig?.siteInfo?.footerColorScienceBadge || 'ACEScct / Rec.709' }}</span>
             </span>
           </div>
         </div>
