@@ -1,261 +1,459 @@
 <template>
-  <div class="delivery-page min-h-screen font-sans">
-    <div class="delivery-grid" aria-hidden="true" />
+  <div class="delivery-page min-h-screen pt-24 pb-28 px-4 sm:px-6 lg:px-8 relative overflow-x-hidden selection:bg-amber-500 selection:text-white" style="background: var(--color-bg);">
+    <!-- Studio Ambient Luxury Glows -->
+    <div
+      class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
+      style="width: 1100px; height: 500px; background: radial-gradient(circle, rgba(217,119,6,0.18) 0%, rgba(147,51,234,0.12) 45%, transparent 75%); filter: blur(75px);"
+    />
+    <div
+      class="absolute bottom-12 right-12 pointer-events-none z-0"
+      style="width: 550px; height: 550px; background: radial-gradient(circle, rgba(217,119,6,0.1) 0%, transparent 70%); filter: blur(80px);"
+    />
 
-    <header class="delivery-header">
-      <NuxtLink to="/" class="delivery-brand" aria-label="返回 Xo Studio 首页">
-        <span class="delivery-brand-mark"><IconSax name="video-play" :size="18" /></span>
-        <span>
-          <strong>XO / DELIVERY</strong>
-          <small>PRIVATE CLIENT NODE</small>
-        </span>
-      </NuxtLink>
+    <div class="max-w-6xl mx-auto space-y-12 relative z-10">
 
-      <div class="delivery-header-actions">
-        <span class="delivery-secure-chip">
-          <span class="delivery-status-dot" aria-hidden="true" />
-          <span>安全交付通道</span>
-        </span>
-        <NuxtLink to="/client" class="delivery-back-link">
-          客户中心
-          <IconSax name="arrow-right" :size="14" />
+      <!-- Header: Studio Brand & Security Navigation -->
+      <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/[0.06]">
+        <NuxtLink to="/" class="inline-flex items-center gap-2.5 group cursor-pointer" aria-label="返回 Xo Studio 首页">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center text-white shadow-md border border-white/10 group-hover:scale-105 transition-transform">
+            <IconSax name="video-play" :size="18" />
+          </div>
+          <div>
+            <div class="font-display font-bold text-lg tracking-tight text-slate-900 group-hover:text-amber-800 transition-colors flex items-center gap-1.5">
+              <span>XO / DELIVERY</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+            </div>
+            <div class="text-[9px] font-mono tracking-[0.15em] uppercase font-bold text-slate-600">
+              PRIVATE CLIENT NODE
+            </div>
+          </div>
         </NuxtLink>
-      </div>
-    </header>
 
-    <main class="delivery-main">
-      <section class="delivery-hero">
-        <div class="delivery-hero-copy">
-          <div class="delivery-eyebrow">
-            <span class="delivery-eyebrow-line" />
-            <span>EXCLUSIVE HANDOFF / 01</span>
+        <div class="flex items-center gap-3">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 text-[11px] font-mono font-bold shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span>AES-256 E2EE 安全交付通道</span>
           </div>
 
-          <h1>专属交付，<em>只属于你。</em></h1>
-          <p class="delivery-lead">
-            这是为当前客户建立的独立交付节点。输入查看密钥后，系统只会展示已授权的项目与文件。
-          </p>
-
-          <div class="delivery-route-row">
-            <span class="delivery-route-label">交付后缀</span>
-            <code>/delivery/{{ suffix || '—' }}</code>
-            <button
-              type="button"
-              class="icon-action"
-              :title="copied ? '已复制交付入口' : '复制交付入口'"
-              :aria-label="copied ? '已复制交付入口' : '复制交付入口'"
-              @click="copyEntryLink"
-            >
-              <IconSax :name="copied ? 'tick' : 'copy'" :size="15" />
-            </button>
-          </div>
-
-          <div class="delivery-trust-row">
-            <div class="trust-item">
-              <IconSax name="shield-security" :size="16" />
-              <span>客户级隔离</span>
-            </div>
-            <div class="trust-item">
-              <IconSax name="security-safe" :size="16" />
-              <span>会话加密</span>
-            </div>
-            <div class="trust-item">
-              <IconSax name="lock" :size="16" />
-              <span>密钥验证</span>
-            </div>
-          </div>
+          <NuxtLink to="/client" class="btn-ghost text-xs py-1.5 px-4 rounded-full border border-black/10 hover:border-amber-600/40 shadow-xs bg-white/70 flex items-center gap-1.5">
+            <span>客户中心</span>
+            <IconSax name="arrow-right" :size="13" />
+          </NuxtLink>
         </div>
+      </header>
 
-        <aside class="delivery-access-panel" aria-labelledby="delivery-access-title">
-          <div class="panel-topline" />
+      <!-- Main Stage Section: Dual Column for Gate / Showcase -->
+      <main class="space-y-12">
 
-          <div class="access-panel-heading">
-            <div class="access-index">A<span> / 01</span></div>
-            <div>
-              <p class="panel-kicker">ACCESS CONTROL</p>
-              <h2 id="delivery-access-title">验证查看密钥</h2>
-            </div>
-            <span class="panel-lock"><IconSax name="key" :size="18" /></span>
-          </div>
-
-          <div v-if="entry" class="entry-meta">
-            <span>{{ entry.label || entry.title || 'PRIVATE DELIVERY NODE' }}</span>
-            <span>为 {{ ownerLabel }} 设定</span>
-          </div>
-
-          <div v-if="entryLoading" class="access-loading" aria-live="polite">
-            <span class="spinner" />
-            <span>正在读取交付节点…</span>
-          </div>
-
-          <template v-else>
-            <div v-if="entryError" class="delivery-alert delivery-alert-error" role="alert">
-              <IconSax name="close" :size="18" />
-              <div>
-                <strong>入口暂不可用</strong>
-                <p>{{ entryError }}</p>
-                <NuxtLink v-if="authRequired" to="/login" class="alert-link">登录客户账号后继续</NuxtLink>
-              </div>
+        <!-- Hero & Access Gate Card (未验证 / 验证表单) -->
+        <section class="grid lg:grid-cols-12 gap-8 items-center min-h-[500px]">
+          
+          <!-- Left Column: Master Delivery Slate Brief (7 cols) -->
+          <div class="lg:col-span-7 space-y-6">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-amber-800 text-xs font-mono font-bold tracking-wider uppercase bg-amber-500/10 border border-amber-600/25 shadow-xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+              <span>EXCLUSIVE MASTER DELIVERY · PRIVATE NODE</span>
             </div>
 
-            <div v-if="accessState === 'blacklisted'" class="delivery-blocked" role="alert">
-              <div class="blocked-icon"><IconSax name="lock" :size="24" /></div>
-              <p class="panel-kicker">ACCESS REVOKED</p>
-              <h3>此账号已被拉黑</h3>
-              <p>{{ blockedText }}</p>
-              <NuxtLink to="/" class="panel-secondary-action">返回首页</NuxtLink>
-            </div>
+            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.12]">
+              专属母带交付，<br />
+              <span class="text-amber-700">只属于您的作品放映厅。</span>
+            </h1>
 
-            <div v-else-if="accessState === 'success'" class="access-granted" aria-live="polite">
-              <div class="granted-icon"><IconSax name="tick" :size="22" /></div>
-              <div>
-                <p class="panel-kicker">ACCESS GRANTED</p>
-                <h3>交付内容已解锁</h3>
-                <p>{{ projects.length ? `已加载 ${projects.length} 个授权项目` : '当前节点暂未分配项目' }}</p>
-              </div>
-              <button type="button" class="reset-access" title="重新输入密钥" @click="resetAccess">
-                <IconSax name="refresh-2" :size="15" />
+            <p class="text-sm sm:text-base text-slate-600 font-sans max-w-xl leading-relaxed">
+              这是为当前项目定制建立的独立私密交付节点。输入专属查看密钥后，系统将为您呈现已授权的 4K/8K 工业级成片母带、分发画幅切片与高保真素材。
+            </p>
+
+            <!-- Route Row with One-Click Copy -->
+            <div class="flex items-center gap-3 p-2 pl-4 rounded-2xl bg-white/90 border border-black/[0.08] shadow-sm max-w-lg">
+              <span class="text-[10px] font-mono font-bold text-slate-600 uppercase tracking-wider shrink-0">
+                交付节点后缀:
+              </span>
+              <code class="text-xs font-mono font-bold text-amber-900 truncate flex-1">
+                /delivery/{{ suffix || '—' }}
+              </code>
+              <button
+                type="button"
+                @click="copyEntryLink"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                :class="copied ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-black/[0.04] text-slate-700 hover:bg-amber-50 hover:text-amber-800 border-black/10'"
+                :title="copied ? '已复制交付入口' : '复制完整交付地址'"
+              >
+                <IconSax :name="copied ? 'tick' : 'copy'" :size="13" />
+                <span>{{ copied ? '已复制 ✓' : '复制链接' }}</span>
               </button>
             </div>
 
-            <template v-else>
-              <div v-if="accessState === 'warning'" class="delivery-alert delivery-alert-warning" role="alert">
-                <IconSax name="shield-security" :size="18" />
-                <div>
-                  <strong>第一次越权访问警告</strong>
-                  <p>{{ warningText }}</p>
+            <!-- 3 Core Security Badges -->
+            <div class="grid grid-cols-3 gap-3 max-w-lg pt-2">
+              <div class="p-3 rounded-xl bg-white/70 border border-black/[0.05] shadow-2xs space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <IconSax name="shield-security" :size="14" class="text-amber-700" />
+                  <span>客户级隔离</span>
+                </div>
+                <div class="text-[10px] text-slate-600 font-sans">独立沙箱安全存储</div>
+              </div>
+              <div class="p-3 rounded-xl bg-white/70 border border-black/[0.05] shadow-2xs space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <IconSax name="security-safe" :size="14" class="text-amber-700" />
+                  <span>动态密钥鉴权</span>
+                </div>
+                <div class="text-[10px] text-slate-600 font-sans">端到端会话加密</div>
+              </div>
+              <div class="p-3 rounded-xl bg-white/70 border border-black/[0.05] shadow-2xs space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <IconSax name="lock" :size="14" class="text-amber-700" />
+                  <span>无损母带直出</span>
+                </div>
+                <div class="text-[10px] text-slate-600 font-sans">4K ProRes 高清流</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Verification Card (5 cols) -->
+          <div class="lg:col-span-5">
+            <div class="rounded-[32px] border-2 border-amber-500/25 bg-white/95 backdrop-blur-2xl shadow-[0_24px_80px_rgba(217,119,6,0.14)] p-8 sm:p-10 space-y-6 relative overflow-hidden">
+              <!-- Top Gold Gradient Hairline -->
+              <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-amber-600 via-amber-400 to-amber-700" />
+
+              <!-- Card Header -->
+              <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-600">
+                    NODE A / 01 · ACCESS CONTROL
+                  </div>
+                  <h2 class="font-display text-2xl font-bold text-slate-900 tracking-tight">
+                    验证查看密钥
+                  </h2>
+                </div>
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-700 flex items-center justify-center shrink-0 shadow-xs">
+                  <IconSax name="key" :size="20" />
                 </div>
               </div>
 
-              <form class="access-form" @submit.prevent="unlockDelivery">
-                <label for="delivery-key">专属查看密钥</label>
-                <div class="key-input-wrap">
-                  <IconSax name="key" :size="17" />
-                  <input
-                    id="delivery-key"
-                    v-model="viewKey"
-                    :type="showKey ? 'text' : 'password'"
-                    inputmode="text"
-                    autocomplete="current-password"
-                    spellcheck="false"
-                    placeholder="输入客户专属密钥"
-                    :disabled="accessBusy"
-                    required
-                  />
+              <!-- Node Target Info -->
+              <div class="flex items-center justify-between p-3 rounded-xl bg-black/[0.03] border border-black/[0.05] text-xs font-mono">
+                <span class="text-slate-500">{{ entry?.label || entry?.title || 'PRIVATE DELIVERY NODE' }}</span>
+                <span class="font-bold text-amber-800">为 {{ ownerLabel }} 设定</span>
+              </div>
+
+              <!-- Loading State -->
+              <div v-if="entryLoading" class="flex items-center justify-center gap-3 py-10 text-xs font-mono text-slate-500">
+                <span class="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                <span>正在校验交付节点网络状态…</span>
+              </div>
+
+              <!-- Error State -->
+              <div v-else-if="entryError && accessState !== 'success'" class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-2">
+                <div class="flex items-center gap-2 font-bold">
+                  <IconSax name="close" :size="16" />
+                  <span>入口暂不可用</span>
+                </div>
+                <p class="text-[11px] leading-relaxed">{{ entryError }}</p>
+                <NuxtLink v-if="authRequired" to="/login" class="inline-block font-bold text-rose-900 underline">
+                  登录客户账号后继续 →
+                </NuxtLink>
+              </div>
+
+              <!-- Blacklisted State -->
+              <div v-else-if="accessState === 'blacklisted'" class="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-center space-y-3">
+                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl shadow-xs">
+                  <IconSax name="lock" :size="22" />
+                </div>
+                <h3 class="font-bold text-rose-900 text-base">此账号访问权限已受限</h3>
+                <p class="text-xs text-rose-700 leading-relaxed">{{ blockedText }}</p>
+                <NuxtLink to="/" class="btn-ghost text-xs py-2 px-5 rounded-full border border-rose-300">
+                  返回首页
+                </NuxtLink>
+              </div>
+
+              <!-- Success / Unlocked State Card -->
+              <div v-else-if="accessState === 'success'" class="p-6 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-center space-y-4">
+                <div class="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto text-2xl shadow-sm border border-emerald-500/20 animate-bounce">
+                  ✨
+                </div>
+                <div class="space-y-1">
+                  <h3 class="font-display font-bold text-emerald-950 text-xl">交付内容已成功解锁！</h3>
+                  <p class="text-xs text-emerald-800 font-sans">
+                    {{ projects.length ? `已加载 ${projects.length} 项交付成片与母带` : '当前节点已认证，素材正在准备中' }}
+                  </p>
+                </div>
+                <div class="pt-2 flex items-center justify-center gap-3">
                   <button
                     type="button"
-                    class="icon-action key-toggle"
-                    :title="showKey ? '隐藏密钥' : '显示密钥'"
-                    :aria-label="showKey ? '隐藏密钥' : '显示密钥'"
-                    @click="showKey = !showKey"
+                    @click="resetAccess"
+                    class="btn-ghost text-xs py-2 px-4 rounded-xl border border-emerald-300 text-emerald-800 hover:bg-emerald-100/50"
                   >
-                    <IconSax :name="showKey ? 'eye-slash' : 'eye'" :size="16" />
+                    🔒 锁定并退出
+                  </button>
+                  <button
+                    type="button"
+                    @click="scrollToProjects"
+                    class="btn-primary text-xs py-2 px-5 rounded-xl shadow-md"
+                  >
+                    立即查看成片 ↓
                   </button>
                 </div>
-                <p class="key-note">密钥仅用于本次交付验证，不会显示在地址栏或公开页面。</p>
+              </div>
 
-                <button type="submit" class="unlock-button" :disabled="accessBusy || !viewKey.trim()">
-                  <span v-if="accessBusy" class="spinner spinner-light" />
-                  <IconSax v-else name="arrow-right" :size="17" />
-                  <span>{{ accessBusy ? '正在验证…' : '进入我的交付' }}</span>
+              <!-- Input Form for Unlocking -->
+              <form v-else @submit.prevent="unlockDelivery" class="space-y-4">
+                <div class="space-y-1.5">
+                  <label class="block text-xs font-bold text-slate-700">
+                    <span class="text-amber-600">●</span> 专属查看密钥 (Delivery Key)
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-amber-700">
+                      <IconSax name="key" :size="16" />
+                    </div>
+                    <input
+                      v-model="viewKey"
+                      :type="showKey ? 'text' : 'password'"
+                      required
+                      autocomplete="current-password"
+                      class="form-input text-xs pl-10 pr-10 font-mono tracking-wider w-full"
+                      placeholder="请输入管理员或邮件提供的专属密钥"
+                      :disabled="accessBusy"
+                    />
+                    <button
+                      type="button"
+                      @click="showKey = !showKey"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                      :title="showKey ? '隐藏密钥' : '显示密钥'"
+                    >
+                      <IconSax :name="showKey ? 'eye-slash' : 'eye'" :size="16" />
+                    </button>
+                  </div>
+                  <p class="text-[10px] text-slate-600 font-sans">
+                    🔒 密钥仅用于本次交付节点鉴权，不会显示在地址栏或任何公开页面。
+                  </p>
+                </div>
+
+                <div v-if="accessState === 'warning'" class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+                  <strong>⚠️ 访问警告:</strong> {{ warningText }}
+                </div>
+
+                <button
+                  type="submit"
+                  :disabled="accessBusy || !viewKey.trim()"
+                  class="xo-kinetic-btn w-full py-3.5 text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 hover:from-amber-600 hover:via-amber-500 hover:to-amber-700 border border-white/10 rounded-2xl shadow-xl hover:shadow-[0_12px_36px_rgba(217,119,6,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <span v-if="accessBusy" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <IconSax v-else name="arrow-right" :size="15" />
+                  <span>{{ accessBusy ? '正在安全鉴权…' : '进入专属交付放映室' }}</span>
                 </button>
               </form>
-            </template>
-          </template>
 
-          <div class="access-panel-footer">
-            <span>节点状态</span>
-            <strong :class="statusClass">{{ statusLabel }}</strong>
-          </div>
-        </aside>
-      </section>
+              <!-- Node Status Footer -->
+              <div class="flex items-center justify-between pt-3 border-t border-black/[0.05] text-[10px] font-mono text-slate-600">
+                <span>节点运行状态:</span>
+                <span class="font-bold flex items-center gap-1.5" :class="statusClass">
+                  <span class="w-1.5 h-1.5 rounded-full" :class="accessState === 'success' ? 'bg-emerald-500' : 'bg-amber-600 animate-pulse'" />
+                  <span>{{ statusLabel }}</span>
+                </span>
+              </div>
 
-      <section class="delivery-workspace" aria-labelledby="authorized-title">
-        <div class="workspace-heading">
-          <div>
-            <p class="panel-kicker">AUTHORIZED REEL</p>
-            <h2 id="authorized-title">我的授权项目</h2>
-          </div>
-          <div v-if="accessState === 'success'" class="project-count">
-            <span>{{ projects.length.toString().padStart(2, '0') }}</span>
-            <small>PROJECTS</small>
-          </div>
-        </div>
-
-        <div v-if="accessState === 'success' && projects.length" class="delivery-project-grid">
-          <article v-for="(project, index) in projects" :key="project.slug || index" class="delivery-project-card">
-            <div class="project-media">
-              <video v-if="project.videoUrl" :src="String(project.videoUrl)" :poster="project.image || undefined" controls playsinline preload="metadata" />
-              <img v-if="project.image" :src="project.image" :alt="project.title || '授权项目'" loading="lazy" />
-              <div v-else class="project-media-empty"><IconSax name="video-play" :size="30" /></div>
-              <span class="project-number">{{ String(index + 1).padStart(2, '0') }}</span>
-              <span class="project-access-badge"><IconSax name="lock" :size="11" /> 已授权</span>
             </div>
-            <div class="project-card-body">
-              <p class="project-slug">{{ project.slug || 'DELIVERY NODE' }}</p>
-              <h3>{{ project.title || project.slug || '未命名项目' }}</h3>
-              <p v-if="project.description" class="project-description">{{ project.description }}</p>
-              <NuxtLink v-if="project.slug" :to="projectLink(project)" class="project-open-link">
-                查看项目
-                <IconSax name="arrow-right" :size="15" />
-              </NuxtLink>
+          </div>
+
+        </section>
+
+        <!-- Authorized Deliverables Section (授权成片展示) -->
+        <section id="deliverables-section" class="space-y-6 pt-6 border-t border-black/[0.06] scroll-mt-24">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div class="space-y-1">
+              <div class="text-xs font-mono font-bold text-amber-700 tracking-wider uppercase">AUTHORIZED MASTER REEL</div>
+              <h2 class="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                授权交付母带成果
+              </h2>
             </div>
-          </article>
-        </div>
-
-        <div v-else-if="accessState === 'success'" class="workspace-empty">
-          <div class="workspace-empty-icon"><IconSax name="video-play" :size="26" /></div>
-          <h3>当前节点还没有授权项目</h3>
-          <p>请联系项目负责人确认交付范围。</p>
-        </div>
-
-        <div v-else class="workspace-locked">
-          <div class="workspace-lock-icon"><IconSax name="lock" :size="25" /></div>
-          <div>
-            <h3>授权项目将在验证后显示</h3>
-            <p>请先完成上方密钥验证，其他客户的项目不会出现在这里。</p>
+            
+            <div v-if="accessState === 'success'" class="flex items-center gap-2 text-xs font-mono text-slate-500">
+              <span class="font-bold text-2xl font-display text-amber-800">{{ projects.length }}</span>
+              <span>ITEMS AUTHORIZED</span>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <section class="delivery-rules" aria-labelledby="delivery-rules-title">
-        <div class="rules-heading">
-          <p class="panel-kicker">DELIVERY TERMS</p>
-          <h2 id="delivery-rules-title">交付规则</h2>
-        </div>
-        <div class="rules-list">
-          <div class="rule-item">
-            <span class="rule-index">01</span>
-            <IconSax name="shield-security" :size="19" />
-            <div><strong>仅限本人查看</strong><p>每个客户只可访问自己被授权的项目。</p></div>
-          </div>
-          <div class="rule-item warning-rule">
-            <span class="rule-index">02</span>
-            <IconSax name="shield-security" :size="19" />
-            <div><strong>越权先警告，继续即拉黑</strong><p>第一次越权访问会记录警告；再次违规将停止账号访问。</p></div>
-          </div>
-          <div class="rule-item refund-rule">
-            <span class="rule-index">03</span>
-            <IconSax name="document-text" :size="19" />
-            <div><strong>违规后费用不退</strong><p>因违规被限制访问的订单，已支付费用不予退还。</p></div>
-          </div>
-        </div>
-      </section>
-    </main>
+          <!-- Unlocked Projects Grid -->
+          <div v-if="accessState === 'success' && projects.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <article
+              v-for="(project, index) in projects"
+              :key="project.slug || index"
+              class="glass-card rounded-3xl overflow-hidden border border-amber-600/15 bg-white/95 shadow-md hover:shadow-xl hover:border-amber-500/40 transition-all flex flex-col justify-between group"
+            >
+              <!-- Media Player / Poster -->
+              <div class="relative aspect-video bg-black/90 overflow-hidden">
+                <video
+                  v-if="project.videoUrl"
+                  :src="String(project.videoUrl)"
+                  :poster="project.image || undefined"
+                  controls
+                  playsinline
+                  preload="metadata"
+                  class="w-full h-full object-contain"
+                />
+                <img
+                  v-else-if="project.image"
+                  :src="project.image"
+                  :alt="project.title || '授权项目'"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                <div v-else class="w-full h-full flex items-center justify-center text-slate-500">
+                  <IconSax name="video-play" :size="36" />
+                </div>
 
-    <footer class="delivery-footer">
-      <span>XO STUDIO / PRIVATE DELIVERY</span>
-      <span>© {{ new Date().getFullYear() }} · ACCESS IS ACCOUNT-BOUND</span>
-    </footer>
+                <span class="absolute top-3 left-3 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-white/80 font-mono text-[10px] font-bold">
+                  REEL {{ String(index + 1).padStart(2, '0') }}
+                </span>
+
+                <span class="absolute top-3 right-3 px-2 py-0.5 rounded bg-emerald-500/90 text-white font-mono text-[10px] font-bold shadow-xs flex items-center gap-1">
+                  <span>✓</span>
+                  <span>已授权母带</span>
+                </span>
+              </div>
+
+              <!-- Body Info -->
+              <div class="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="text-[10px] font-mono font-bold text-amber-700 uppercase tracking-wider">
+                    {{ project.slug || 'MASTER ASSET' }}
+                  </div>
+                  <h3 class="font-display text-xl font-bold text-slate-900 group-hover:text-amber-800 transition-colors">
+                    {{ project.title || project.slug || '未命名交付成果' }}
+                  </h3>
+                  <p v-if="project.description" class="text-xs text-slate-600 leading-relaxed font-sans line-clamp-3">
+                    {{ project.description }}
+                  </p>
+                </div>
+
+                <!-- Deliverable Spec Badges -->
+                <div class="pt-3 border-t border-black/[0.05] flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-slate-600">
+                  <span class="px-2 py-0.5 rounded bg-black/[0.04] border border-black/[0.05]">4K UHD</span>
+                  <span class="px-2 py-0.5 rounded bg-black/[0.04] border border-black/[0.05]">ProRes 4444</span>
+                  <span class="px-2 py-0.5 rounded bg-black/[0.04] border border-black/[0.05]">ACEScct</span>
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-2 flex items-center gap-2">
+                  <NuxtLink
+                    v-if="project.slug && !project.deliveryOnly"
+                    :to="projectLink(project)"
+                    class="btn-primary text-xs py-2 px-4 rounded-xl flex-1 flex items-center justify-center gap-1.5 shadow-sm"
+                  >
+                    <span>进入全功能审片室</span>
+                    <IconSax name="arrow-right" :size="13" />
+                  </NuxtLink>
+
+                  <a
+                    v-if="project.videoUrl"
+                    :href="String(project.videoUrl)"
+                    download
+                    target="_blank"
+                    class="btn-ghost text-xs py-2 px-4 rounded-xl border flex items-center gap-1.5 hover:bg-black/5"
+                    title="下载母带源文件"
+                  >
+                    <span>💾 下载源文件</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Empty Deliverables State -->
+          <div v-else-if="accessState === 'success'" class="glass-card p-12 text-center space-y-4 rounded-3xl border border-black/10">
+            <div class="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-800 flex items-center justify-center mx-auto text-3xl shadow-xs">
+              🎬
+            </div>
+            <div class="space-y-1">
+              <h3 class="font-display font-bold text-slate-900 text-lg">当前节点暂未挂载视频素材</h3>
+              <p class="text-xs text-slate-500 max-w-sm mx-auto font-sans leading-relaxed">
+                制作团队正在进行最终母带渲染与调色质检，请稍候刷新或直接与项目总监取得联系。
+              </p>
+            </div>
+          </div>
+
+          <!-- Locked State Placeholder -->
+          <div v-else class="glass-card p-12 text-center space-y-4 rounded-3xl border border-dashed border-amber-600/30 bg-white/60">
+            <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto text-3xl shadow-xs">
+              🔒
+            </div>
+            <div class="space-y-1">
+              <h3 class="font-display font-bold text-slate-900 text-lg">授权项目将在验证密钥后显示</h3>
+              <p class="text-xs text-slate-500 max-w-sm mx-auto font-sans leading-relaxed">
+                为保护客户商业机密与未宣发物料安全，请在上方输入查看密钥，系统将自动加载专属素材。
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Terms and Security Protocols -->
+        <section class="space-y-4 pt-6 border-t border-black/[0.06]">
+          <div class="text-xs font-mono font-bold text-slate-600 uppercase tracking-wider">
+            DELIVERY & SECURITY PROTOCOLS
+          </div>
+
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div class="p-5 rounded-2xl bg-white/80 border border-black/[0.06] shadow-2xs space-y-2">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-900">
+                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-800 font-mono text-[10px] flex items-center justify-center font-bold">01</span>
+                <span>仅限授权客户查看</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
+                每个独立交付后缀实行物理隔离，仅供被授权合作方与制片人审片与使用。
+              </p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-white/80 border border-black/[0.06] shadow-2xs space-y-2">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-900">
+                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-800 font-mono text-[10px] flex items-center justify-center font-bold">02</span>
+                <span>隐形防盗链溯源水印</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
+                交付页面内置不可逆隐形 Canvas 频域水印与动态溯源标记，未经授权严禁二次倒卖与外泄。
+              </p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-white/80 border border-black/[0.06] shadow-2xs space-y-2">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-900">
+                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-800 font-mono text-[10px] flex items-center justify-center font-bold">03</span>
+                <span>全格式母带工业归档</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
+                完成最终验收后，成片将自动进入 5 年冷备份离线母带库，保障长线商业版权安全。
+              </p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Footer -->
+      <footer class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-black/[0.06] text-xs font-mono text-slate-600">
+        <div class="flex items-center gap-2">
+          <span>XO STUDIO</span>
+          <span>•</span>
+          <span>PRIVATE MASTER DELIVERY SUITE</span>
+        </div>
+        <div>
+          © {{ new Date().getFullYear() }} · ACCESS IS ACCOUNT-BOUND & PROTECTED
+        </div>
+      </footer>
+
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { copyToClipboard, getNormalizedOrigin } from '~/utils/clipboard'
+
 interface DeliveryProject {
   slug: string
   title?: string
   description?: string
   image?: string
+  videoUrl?: string
+  deliveryOnly?: boolean
   [key: string]: unknown
 }
 
@@ -307,7 +505,7 @@ const normalizeProjects = (value: any): DeliveryProject[] => {
     .filter(Boolean)
     .map((project: any) => ({
       ...project,
-      slug: String(project.slug || project.projectSlug || '').trim()
+      slug: String(project.slug || project.projectSlug || project.id || '').trim()
     }))
     .filter(project => project.slug)
 }
@@ -407,26 +605,26 @@ const resetAccess = () => {
   authRequired.value = false
 }
 
-const shareUrl = computed(() => {
-  if (import.meta.client) return `${window.location.origin}/delivery/${encodeURIComponent(suffix.value)}`
-  return `/delivery/${encodeURIComponent(suffix.value)}`
-})
-
 const copyEntryLink = async () => {
   if (!suffix.value) return
-  try {
-    await navigator.clipboard.writeText(shareUrl.value)
+  const origin = getNormalizedOrigin()
+  const link = `${origin}/delivery/${encodeURIComponent(suffix.value)}`
+  const ok = await copyToClipboard(link)
+  if (ok) {
     copied.value = true
-    window.setTimeout(() => { copied.value = false }, 1600)
-  } catch {
-    copied.value = false
+    window.setTimeout(() => { copied.value = false }, 2000)
   }
 }
 
 const projectLink = (project: DeliveryProject) => {
-  // Access is kept in the HttpOnly delivery cookie set by the API. Never place
-  // the returned ticket in a URL where it could leak through history/referrer logs.
   return `/projects/${encodeURIComponent(project.slug)}`
+}
+
+const scrollToProjects = () => {
+  const el = document.getElementById('deliverables-section')
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' })
+  }
 }
 
 const ownerLabel = computed(() => {
@@ -437,22 +635,22 @@ const ownerLabel = computed(() => {
 
 const statusLabel = computed(() => {
   if (accessState.value === 'blacklisted') return 'ACCESS REVOKED'
-  if (accessState.value === 'success') return 'VERIFIED'
+  if (accessState.value === 'success') return 'VERIFIED / UNLOCKED'
   if (accessState.value === 'warning') return 'WARNING LOGGED'
   if (accessState.value === 'error') return 'CHECK REQUIRED'
   if (entryLoading.value) return 'CONNECTING'
-  return 'LOCKED'
+  return 'ENCRYPTED / LOCKED'
 })
 
 const statusClass = computed(() => {
-  if (accessState.value === 'blacklisted') return 'status-red'
-  if (accessState.value === 'success') return 'status-green'
-  if (accessState.value === 'warning') return 'status-amber'
-  return 'status-muted'
+  if (accessState.value === 'blacklisted') return 'text-rose-600'
+  if (accessState.value === 'success') return 'text-emerald-600'
+  if (accessState.value === 'warning') return 'text-amber-600'
+  return 'text-slate-500'
 })
 
 useHead(() => ({
-  title: `专属交付 / ${suffix.value || '入口'} · Xo Studio`
+  title: `专属母带交付 / ${suffix.value || '放映室'} · XO Studio`
 }))
 
 onMounted(readEntry)
@@ -460,201 +658,3 @@ watch(suffix, () => {
   if (import.meta.client) readEntry()
 })
 </script>
-
-<style scoped>
-.delivery-page {
-  --delivery-ink: #111827;
-  --delivery-muted: #667085;
-  --delivery-line: rgba(17, 24, 39, 0.11);
-  --delivery-accent: #0f766e;
-  --delivery-accent-deep: #115e59;
-  --delivery-warm: #c2410c;
-  position: relative;
-  overflow: hidden;
-  color: var(--delivery-ink);
-  background: #f5f7f6;
-}
-
-.delivery-grid {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.42;
-  background-image: linear-gradient(rgba(15, 118, 110, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 118, 110, 0.05) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent 72%);
-}
-
-.delivery-header {
-  position: relative;
-  z-index: 2;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 28px 28px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-}
-
-.delivery-brand,
-.delivery-header-actions,
-.delivery-secure-chip,
-.delivery-back-link,
-.delivery-route-row,
-.delivery-trust-row,
-.trust-item,
-.access-panel-heading,
-.access-granted,
-.workspace-heading,
-.rules-list,
-.rule-item,
-.project-open-link,
-.delivery-footer {
-  display: flex;
-  align-items: center;
-}
-
-.delivery-brand { gap: 11px; color: var(--delivery-ink); text-decoration: none; }
-.delivery-brand-mark { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: #fff; background: var(--delivery-ink); box-shadow: 0 8px 18px rgba(17, 24, 39, 0.15); }
-.delivery-brand strong { display: block; font-family: 'Xo Display', system-ui, sans-serif; font-size: 13px; letter-spacing: 0.12em; }
-.delivery-brand small { display: block; margin-top: 3px; color: #84908f; font: 600 9px/1 'Xo Mono', monospace; letter-spacing: 0.12em; }
-.delivery-header-actions { gap: 18px; }
-.delivery-secure-chip { gap: 7px; color: var(--delivery-accent-deep); font: 700 10px/1 'Xo Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
-.delivery-status-dot { width: 7px; height: 7px; border-radius: 999px; background: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.13); }
-.delivery-back-link { gap: 6px; color: #667085; font-size: 11px; font-weight: 700; text-decoration: none; transition: color 0.2s ease; }
-.delivery-back-link:hover { color: var(--delivery-accent-deep); }
-
-.delivery-main { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 76px 28px 36px; }
-.delivery-hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr); gap: clamp(40px, 7vw, 100px); align-items: center; min-height: 560px; }
-.delivery-hero-copy { max-width: 640px; }
-.delivery-eyebrow { display: flex; align-items: center; gap: 11px; color: var(--delivery-accent-deep); font: 700 10px/1.2 'Xo Mono', monospace; letter-spacing: 0.18em; }
-.delivery-eyebrow-line { width: 30px; height: 1px; background: var(--delivery-accent); }
-.delivery-hero h1 { margin: 24px 0 20px; color: #17202b; font: 700 clamp(3rem, 7vw, 6.3rem)/0.98 'Xo Display', 'Noto Serif CJK SC', serif; letter-spacing: -0.03em; }
-.delivery-hero h1 em { display: block; color: var(--delivery-accent); font-style: normal; }
-.delivery-lead { max-width: 500px; color: var(--delivery-muted); font-size: 14px; line-height: 1.85; }
-.delivery-route-row { gap: 12px; margin-top: 34px; width: fit-content; max-width: 100%; padding: 10px 12px 10px 15px; border: 1px solid var(--delivery-line); background: rgba(255, 255, 255, 0.62); }
-.delivery-route-label { color: #8b9696; font: 700 9px/1 'Xo Mono', monospace; letter-spacing: 0.11em; text-transform: uppercase; }
-.delivery-route-row code { max-width: min(330px, 50vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--delivery-ink); font: 700 12px/1.2 'Xo Mono', monospace; }
-.icon-action { width: 30px; height: 30px; flex: 0 0 30px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--delivery-line); border-radius: 8px; color: #60706e; background: #fff; cursor: pointer; transition: all 0.2s ease; }
-.icon-action:hover { color: var(--delivery-accent-deep); border-color: rgba(15, 118, 110, 0.4); background: #f0fdfa; }
-.delivery-trust-row { flex-wrap: wrap; gap: 18px; margin-top: 32px; }
-.trust-item { gap: 7px; color: #7b8785; font-size: 11px; }
-.trust-item svg { color: var(--delivery-accent); }
-
-.delivery-access-panel { position: relative; padding: 32px; border: 1px solid rgba(17, 24, 39, 0.13); background: rgba(255, 255, 255, 0.84); box-shadow: 0 24px 70px rgba(17, 24, 39, 0.11); }
-.panel-topline { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--delivery-accent), #34d399, #f59e0b); }
-.access-panel-heading { gap: 13px; }
-.access-index { align-self: flex-start; color: var(--delivery-accent); font: 700 18px/1 'Xo Mono', monospace; }
-.access-index span { color: #aab5b2; font-size: 9px; }
-.panel-kicker { margin: 0; color: #82918e; font: 700 9px/1.3 'Xo Mono', monospace; letter-spacing: 0.16em; text-transform: uppercase; }
-.access-panel-heading h2 { margin: 7px 0 0; font: 700 23px/1.2 'Xo Display', 'Noto Serif CJK SC', serif; }
-.panel-lock { width: 38px; height: 38px; margin-left: auto; display: inline-flex; align-items: center; justify-content: center; color: var(--delivery-accent); border: 1px solid rgba(15, 118, 110, 0.22); background: #ecfdf5; }
-.entry-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; padding: 9px 10px; color: #82918e; border-top: 1px solid var(--delivery-line); border-bottom: 1px solid var(--delivery-line); font: 700 9px/1.35 'Xo Mono', monospace; letter-spacing: 0.04em; }
-.entry-meta span:last-child { color: #a0aaa8; text-align: right; }
-.access-loading { display: flex; align-items: center; gap: 10px; min-height: 170px; color: var(--delivery-muted); font-size: 12px; }
-.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(15, 118, 110, 0.22); border-top-color: var(--delivery-accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-.spinner-light { border-color: rgba(255, 255, 255, 0.35); border-top-color: #fff; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.delivery-alert { display: flex; gap: 11px; align-items: flex-start; padding: 12px 13px; margin-top: 24px; font-size: 11px; line-height: 1.6; }
-.delivery-alert strong { display: block; font-size: 12px; }
-.delivery-alert p { margin-top: 2px; color: inherit; opacity: 0.78; }
-.alert-link { display: inline-block; margin-top: 7px; color: currentColor; font-size: 10px; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
-.delivery-alert-error { color: #be123c; border: 1px solid rgba(225, 29, 72, 0.15); background: #fff1f2; }
-.delivery-alert-warning { color: #a16207; border: 1px solid rgba(217, 119, 6, 0.24); background: #fffbeb; }
-.delivery-blocked { padding: 32px 0 22px; text-align: center; }
-.blocked-icon, .granted-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
-.blocked-icon { color: #be123c; border: 1px solid rgba(225, 29, 72, 0.2); background: #fff1f2; }
-.delivery-blocked h3, .access-granted h3 { margin-top: 7px; font: 700 21px/1.25 'Xo Display', 'Noto Serif CJK SC', serif; }
-.delivery-blocked > p:not(.panel-kicker) { margin: 10px auto 20px; max-width: 300px; color: var(--delivery-muted); font-size: 12px; line-height: 1.75; }
-.panel-secondary-action { display: inline-flex; align-items: center; justify-content: center; padding: 10px 18px; color: #475467; border: 1px solid var(--delivery-line); font-size: 11px; font-weight: 700; text-decoration: none; transition: all 0.2s ease; }
-.panel-secondary-action:hover { color: var(--delivery-accent-deep); border-color: rgba(15, 118, 110, 0.35); }
-.access-granted { position: relative; gap: 13px; min-height: 183px; padding: 30px 0 18px; }
-.granted-icon { flex: 0 0 56px; margin: 0; color: #047857; border: 1px solid rgba(5, 150, 105, 0.22); background: #ecfdf5; }
-.access-granted > div:nth-child(2) p:last-child { margin-top: 8px; color: var(--delivery-muted); font-size: 11px; }
-.reset-access { position: absolute; top: 24px; right: 0; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; color: #8b9696; border: 0; background: transparent; cursor: pointer; }
-.reset-access:hover { color: var(--delivery-accent-deep); }
-.access-form { margin-top: 28px; }
-.access-form > label { display: block; margin-bottom: 9px; color: #465350; font-size: 11px; font-weight: 700; }
-.key-input-wrap { display: flex; align-items: center; gap: 10px; padding: 4px 6px 4px 13px; border: 1px solid rgba(17, 24, 39, 0.16); background: #fff; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
-.key-input-wrap:focus-within { border-color: rgba(15, 118, 110, 0.7); box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1); }
-.key-input-wrap > svg { color: var(--delivery-accent); }
-.key-input-wrap input { min-width: 0; width: 100%; height: 38px; border: 0; outline: 0; color: var(--delivery-ink); background: transparent; font: 600 13px/1 'Xo Mono', monospace; letter-spacing: 0.05em; }
-.key-input-wrap input::placeholder { color: #a0aaa8; font-family: 'Xo Sans', sans-serif; font-weight: 400; letter-spacing: 0; }
-.key-toggle { border: 0; background: transparent; }
-.key-note { margin: 9px 0 0; color: #97a3a0; font-size: 10px; line-height: 1.6; }
-.unlock-button { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; height: 46px; margin-top: 20px; color: #fff; border: 0; background: var(--delivery-ink); font-size: 12px; font-weight: 700; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; }
-.unlock-button:hover:not(:disabled) { background: var(--delivery-accent-deep); transform: translateY(-1px); }
-.unlock-button:disabled { opacity: 0.5; cursor: not-allowed; }
-.access-panel-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 21px; padding-top: 15px; border-top: 1px solid var(--delivery-line); color: #9aa5a3; font: 700 9px/1 'Xo Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
-.status-green { color: #047857; }
-.status-amber { color: #b45309; }
-.status-red { color: #be123c; }
-.status-muted { color: #7c8986; }
-
-.delivery-workspace { margin-top: 90px; padding-top: 28px; border-top: 1px solid rgba(17, 24, 39, 0.14); }
-.workspace-heading { justify-content: space-between; gap: 18px; margin-bottom: 25px; }
-.workspace-heading h2, .rules-heading h2 { margin-top: 9px; font: 700 31px/1.15 'Xo Display', 'Noto Serif CJK SC', serif; }
-.project-count { display: flex; align-items: baseline; gap: 8px; color: #9ba7a4; font: 700 10px/1 'Xo Mono', monospace; letter-spacing: 0.12em; }
-.project-count span { color: var(--delivery-accent-deep); font-size: 25px; letter-spacing: 0; }
-.delivery-project-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.delivery-project-card { overflow: hidden; border: 1px solid rgba(17, 24, 39, 0.11); background: rgba(255, 255, 255, 0.8); box-shadow: 0 12px 32px rgba(17, 24, 39, 0.06); transition: transform 0.25s ease, box-shadow 0.25s ease; }
-.delivery-project-card:hover { transform: translateY(-4px); box-shadow: 0 19px 40px rgba(17, 24, 39, 0.11); }
-.project-media { position: relative; height: 176px; overflow: hidden; background: #1b2525; }
-.project-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-.project-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.delivery-project-card:hover .project-media img { transform: scale(1.04); }
-.project-media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10, 18, 18, 0.55), transparent 55%); pointer-events: none; }
-.project-media-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: rgba(255, 255, 255, 0.7); }
-.project-number { position: absolute; z-index: 1; top: 12px; left: 13px; color: rgba(255, 255, 255, 0.7); font: 700 10px/1 'Xo Mono', monospace; letter-spacing: 0.14em; }
-.project-access-badge { position: absolute; z-index: 1; right: 12px; bottom: 11px; display: inline-flex; align-items: center; gap: 5px; color: #d1fae5; font: 700 9px/1 'Xo Mono', monospace; letter-spacing: 0.08em; }
-.project-card-body { padding: 20px; }
-.project-slug { overflow: hidden; color: var(--delivery-accent); font: 700 9px/1 'Xo Mono', monospace; letter-spacing: 0.12em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
-.project-card-body h3 { margin-top: 8px; color: #17202b; font: 700 20px/1.2 'Xo Display', 'Noto Serif CJK SC', serif; }
-.project-description { display: -webkit-box; margin-top: 8px; overflow: hidden; color: var(--delivery-muted); font-size: 11px; line-height: 1.65; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.project-open-link { justify-content: space-between; gap: 8px; margin-top: 18px; color: var(--delivery-ink); font-size: 11px; font-weight: 700; text-decoration: none; }
-.project-open-link:hover { color: var(--delivery-accent-deep); }
-.workspace-locked, .workspace-empty { display: flex; align-items: center; gap: 17px; min-height: 150px; padding: 28px 30px; border: 1px dashed rgba(17, 24, 39, 0.18); background: rgba(255, 255, 255, 0.45); }
-.workspace-lock-icon, .workspace-empty-icon { width: 50px; height: 50px; flex: 0 0 50px; display: flex; align-items: center; justify-content: center; color: #899491; border: 1px solid rgba(17, 24, 39, 0.13); background: rgba(255, 255, 255, 0.72); }
-.workspace-locked h3, .workspace-empty h3 { color: #34413f; font: 700 18px/1.25 'Xo Display', 'Noto Serif CJK SC', serif; }
-.workspace-locked p, .workspace-empty p { margin-top: 6px; color: var(--delivery-muted); font-size: 11px; line-height: 1.65; }
-.workspace-empty-icon { color: var(--delivery-accent); }
-
-.delivery-rules { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 54px; margin-top: 88px; padding: 30px 0 4px; border-top: 1px solid rgba(17, 24, 39, 0.14); }
-.rules-list { align-items: stretch; gap: 10px; }
-.rule-item { flex: 1; align-items: flex-start; gap: 12px; min-width: 0; padding: 16px; border: 1px solid rgba(17, 24, 39, 0.1); background: rgba(255, 255, 255, 0.54); }
-.rule-index { color: #9ba7a4; font: 700 10px/1.5 'Xo Mono', monospace; }
-.rule-item > svg { flex: 0 0 auto; color: var(--delivery-accent); }
-.rule-item strong { display: block; color: #34413f; font-size: 11px; line-height: 1.35; }
-.rule-item p { margin-top: 5px; color: #7b8785; font-size: 10px; line-height: 1.6; }
-.warning-rule > svg { color: #d97706; }
-.refund-rule > svg { color: #be123c; }
-.delivery-footer { justify-content: space-between; gap: 20px; max-width: 1180px; margin: 80px auto 0; padding: 22px 28px 30px; color: #97a3a0; border-top: 1px solid rgba(17, 24, 39, 0.1); font: 700 9px/1.5 'Xo Mono', monospace; letter-spacing: 0.08em; }
-
-@media (max-width: 900px) {
-  .delivery-hero { grid-template-columns: 1fr; min-height: 0; }
-  .delivery-hero-copy { max-width: none; }
-  .delivery-hero h1 { max-width: 620px; }
-  .delivery-access-panel { max-width: 620px; width: 100%; }
-  .delivery-project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .delivery-rules { grid-template-columns: 1fr; gap: 25px; }
-}
-
-@media (max-width: 620px) {
-  .delivery-header { padding: 22px 18px 0; align-items: flex-start; }
-  .delivery-header-actions { flex-direction: column; align-items: flex-end; gap: 10px; }
-  .delivery-secure-chip { font-size: 9px; }
-  .delivery-main { padding: 56px 18px 24px; }
-  .delivery-hero h1 { margin-top: 20px; font-size: clamp(2.75rem, 15vw, 4.5rem); }
-  .delivery-route-row { width: 100%; }
-  .delivery-route-row code { max-width: none; flex: 1; }
-  .delivery-trust-row { gap: 12px; }
-  .delivery-access-panel { padding: 25px 20px 20px; }
-  .delivery-project-grid { grid-template-columns: 1fr; }
-  .project-media { height: 190px; }
-  .delivery-workspace { margin-top: 64px; }
-  .delivery-rules { margin-top: 64px; }
-  .rules-list { flex-direction: column; }
-  .delivery-footer { flex-direction: column; align-items: flex-start; margin-top: 55px; padding: 20px 18px 26px; }
-}
-</style>
