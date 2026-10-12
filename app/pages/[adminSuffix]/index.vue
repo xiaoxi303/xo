@@ -307,21 +307,32 @@
           </button>
         </div>
 
-        <!-- Category Filter Pills (Compact horizontal scroll inside sidebar) -->
-        <div class="flex items-center gap-1 p-1 rounded-xl bg-black/[0.04] border border-black/[0.06] overflow-x-auto no-scrollbar scrollbar-none text-[10px] font-mono select-none w-full">
+        <!-- Category Filter (Clean 5-Col Segmented Controller) -->
+        <div class="grid grid-cols-5 p-1 rounded-xl bg-black/[0.04] border border-black/[0.06] select-none text-[10px] font-sans w-full gap-0.5">
           <button
             v-for="cat in tabCategories"
             :key="cat.id"
             type="button"
             @click="selectedCategory = cat.id"
-            :title="cat.name"
+            :title="cat.fullName"
             :class="[
-              'px-2 py-0.5 rounded-lg transition-all font-semibold flex items-center gap-1 cursor-pointer flex-shrink-0',
-              selectedCategory === cat.id ? 'bg-white text-amber-900 shadow-sm font-bold scale-[1.02]' : 'text-slate-500 hover:text-slate-800'
+              'py-1 rounded-lg transition-all duration-200 font-bold flex items-center justify-center cursor-pointer text-center whitespace-nowrap',
+              selectedCategory === cat.id
+                ? 'bg-white text-amber-900 shadow-sm ring-1 ring-black/5 font-extrabold'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-black/[0.02]'
             ]"
           >
-            <span>{{ cat.icon }}</span>
             <span>{{ cat.name }}</span>
+          </button>
+        </div>
+
+        <!-- Filter Status Hint (Only shown when filtered) -->
+        <div v-if="selectedCategory !== 'all' || tabSearch" class="flex items-center justify-between px-1 text-[9px] font-mono text-amber-800">
+          <span class="truncate">
+            {{ selectedCategory !== 'all' ? tabCategories.find(c => c.id === selectedCategory)?.fullName?.split(' ')[0] : '搜索中' }}: {{ filteredTabs.length }}项
+          </span>
+          <button type="button" @click="selectedCategory = 'all'; tabSearch = ''" class="hover:underline text-slate-400 hover:text-slate-700 ml-1 shrink-0 cursor-pointer">
+            重置
           </button>
         </div>
 
@@ -3753,11 +3764,11 @@ const alert = (msg: string) => {
 
 
 const tabCategories = [
-  { id: 'all', name: '全部', icon: '🌟' },
-  { id: 'core', name: '经营核心', icon: '📊' },
-  { id: 'content', name: '内容展示', icon: '🎨' },
-  { id: 'business', name: '客户协同', icon: '🤝' },
-  { id: 'system', name: '系统安全', icon: '⚙️' }
+  { id: 'all', name: '全部', fullName: '全部功能模块 (15)' },
+  { id: 'core', name: '核心', fullName: '经营核心 (数据/公告/订单/交付)' },
+  { id: 'content', name: '内容', fullName: '内容展示 (作品/博客/首页/履历)' },
+  { id: 'business', name: '协同', fullName: '客户协同 (预约/申请/用户/支付)' },
+  { id: 'system', name: '系统', fullName: '系统安全 (站点/水印/高级设置)' }
 ]
 
 const selectedCategory = ref('all')
