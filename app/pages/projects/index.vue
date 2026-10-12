@@ -144,26 +144,91 @@
           </div>
         </div>
 
-        <!-- ===== Segmented Floating Filter Bar (Capsule Carousel) ===== -->
-        <div class="portfolio-filter-container overflow-x-auto pb-1 -mx-2 px-2 no-scrollbar">
-          <div class="portfolio-filter inline-flex items-center gap-1.5 p-1.5 rounded-full bg-white/85 backdrop-blur-2xl border border-amber-600/20 shadow-md">
+        <!-- ===== Elegant Quiet Luxury Tag & Topic Filter ===== -->
+        <div class="space-y-2.5 pt-1">
+          <!-- Filter Header Bar -->
+          <div class="flex items-center justify-between text-xs font-mono">
+            <div class="flex items-center gap-2">
+              <span class="text-amber-800 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                <span>分类题材筛选</span>
+              </span>
+              <span class="text-slate-300">|</span>
+              <span v-if="currentFilter !== 'all'" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-900 border border-amber-500/30 text-[10px] font-bold">
+                <span>已选: {{ currentFilter }}</span>
+                <button @click="currentFilter = 'all'" class="hover:text-amber-700 ml-1 cursor-pointer font-bold">✕</button>
+              </span>
+              <span v-else class="text-slate-400 text-[11px]">
+                共收录 {{ visibleFilterOpts.length - 1 }} 个题材方向
+              </span>
+            </div>
+
+            <!-- Expand / Scroll controls -->
+            <div class="flex items-center gap-1 text-slate-500">
+              <!-- Scroll left -->
+              <button
+                v-if="!isFilterExpanded"
+                type="button"
+                @click="scrollFilters('left')"
+                class="w-6 h-6 rounded-full bg-white/90 border border-slate-200/90 hover:bg-white hover:border-amber-600/40 hover:text-slate-900 flex items-center justify-center text-xs shadow-2xs transition-all cursor-pointer"
+                title="向左滚动"
+              >
+                ‹
+              </button>
+              <!-- Scroll right -->
+              <button
+                v-if="!isFilterExpanded"
+                type="button"
+                @click="scrollFilters('right')"
+                class="w-6 h-6 rounded-full bg-white/90 border border-slate-200/90 hover:bg-white hover:border-amber-600/40 hover:text-slate-900 flex items-center justify-center text-xs shadow-2xs transition-all cursor-pointer"
+                title="向右滚动"
+              >
+                ›
+              </button>
+              <!-- Expand / Collapse -->
+              <button
+                type="button"
+                @click="isFilterExpanded = !isFilterExpanded"
+                class="ml-1 px-2.5 py-0.5 rounded-full bg-white/90 border border-slate-200/90 hover:bg-white hover:border-amber-600/40 text-[11px] font-sans font-medium text-slate-600 hover:text-amber-900 flex items-center gap-1 shadow-2xs transition-all cursor-pointer"
+              >
+                <span>{{ isFilterExpanded ? '收起横排' : '展开全部' }}</span>
+                <span class="text-[9px]">{{ isFilterExpanded ? '▲' : '▼' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tag Capsules Container -->
+          <div
+            ref="filterTrackRef"
+            :class="[
+              'no-scrollbar transition-all duration-300 py-1',
+              isFilterExpanded
+                ? 'flex flex-wrap items-center gap-2'
+                : 'flex items-center gap-2 overflow-x-auto scroll-smooth'
+            ]"
+          >
             <button
               v-for="f in visibleFilterOpts"
               :key="f.value"
               @click="setFilter(f.value)"
+              type="button"
               :class="[
-                'filter-pill px-4 py-2 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ease-out cursor-pointer flex items-center gap-2 select-none relative group',
+                'shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all duration-200 cursor-pointer select-none group',
                 currentFilter === f.value
-                  ? 'bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white shadow-md shadow-amber-900/25 scale-[1.02]'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] hover:scale-[1.01]'
+                  ? 'bg-slate-900 text-amber-200 font-bold border border-slate-900 shadow-sm shadow-slate-950/20 scale-[1.02]'
+                  : 'bg-white/85 backdrop-blur-sm text-slate-700 font-medium border border-slate-200/80 hover:border-amber-600/40 hover:text-amber-950 hover:bg-white shadow-2xs hover:scale-[1.01]'
               ]"
             >
-              <IconSax v-if="currentFilter === f.value" name="magic-star" :size="12" class="text-amber-300 animate-pulse flex-shrink-0" />
+              <span v-if="f.value === 'all'" class="text-amber-400 text-xs">✨</span>
+              <span v-else-if="currentFilter === f.value" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
               <span>{{ f.label }}</span>
-              <!-- Project Count Badge -->
               <span
-                class="filter-count-badge text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full transition-colors"
-                :class="currentFilter === f.value ? 'bg-amber-950/40 text-amber-200 border border-amber-500/30' : 'bg-black/[0.05] text-slate-500 group-hover:bg-black/[0.08]'"
+                :class="[
+                  'text-[10px] font-mono px-1.5 py-0.2 rounded-full transition-colors ml-0.5',
+                  currentFilter === f.value
+                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                    : 'bg-slate-100 text-slate-400 group-hover:bg-amber-100 group-hover:text-amber-800'
+                ]"
               >
                 {{ f.count }}
               </span>
@@ -326,7 +391,7 @@
                     </span>
                   </div>
 
-                  <span v-if="project.postSpecs && viewMode !== 'cinema'" class="text-[10px] font-mono text-slate-400 font-medium hidden sm:inline">
+                  <span v-if="project.postSpecs && viewMode !== 'cinema'" class="text-[10px] font-mono text-slate-400 font-medium hidden sm:inline truncate max-w-[160px]" :title="project.postSpecs">
                     {{ project.postSpecs }}
                   </span>
                 </div>
@@ -530,6 +595,14 @@ const currentFilter = ref('all')
 const searchQuery = ref('')
 const sortBy = ref<'featured' | 'newest' | 'title'>('featured')
 const viewMode = ref<'grid' | 'cinema' | 'table'>('grid')
+const isFilterExpanded = ref(false)
+const filterTrackRef = ref<HTMLElement | null>(null)
+
+const scrollFilters = (direction: 'left' | 'right') => {
+  if (!filterTrackRef.value) return
+  const offset = direction === 'left' ? -260 : 260
+  filterTrackRef.value.scrollBy({ left: offset, behavior: 'smooth' })
+}
 
 // Filter options with dynamic counts
 const visibleFilterOpts = computed(() => {
