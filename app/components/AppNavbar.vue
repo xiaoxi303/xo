@@ -1,66 +1,71 @@
 <template>
-  <!-- Premium Navbar with Smooth Capsule Morph -->
+  <!-- Premium Navbar with Hardware-Accelerated Smooth Capsule Morph -->
   <header
     ref="navbarRef"
     :class="[
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-out flex justify-center',
-      isScrolled ? 'pt-3 md:pt-4' : 'pt-0'
+      'fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-[padding-top] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
+      isScrolled ? 'pt-2.5 md:pt-3.5' : 'pt-0'
     ]"
   >
     <nav
       :class="[
-        'transition-all duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1) flex items-center justify-between',
+        'pointer-events-auto h-14 transition-[max-width,width,border-radius,background-color,border-color,box-shadow,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between',
         isScrolled
-          ? 'w-[94%] max-w-[760px] h-14 px-5 md:px-7 rounded-full backdrop-blur-2xl border'
-          : 'w-full max-w-6xl h-16 md:h-20 px-4 md:px-6 bg-transparent border-b border-transparent'
+          ? 'w-[94%] max-w-[760px] px-5 md:px-7 rounded-full border shadow-lg'
+          : 'w-full max-w-6xl px-4 md:px-6 rounded-none border-b border-transparent shadow-none'
       ]"
       :style="isScrolled
         ? { 
-            background: 'rgba(253, 250, 246, 0.82)', 
-            borderColor: 'rgba(190, 160, 120, 0.22)',
-            boxShadow: '0 8px 32px -4px rgba(80,60,30,0.08), 0 20px 48px -8px rgba(80,60,30,0.06), inset 0 1px 0 rgba(255,255,255,0.95)'
+            background: 'rgba(253, 250, 246, 0.88)', 
+            borderColor: 'rgba(190, 160, 120, 0.28)',
+            boxShadow: '0 8px 32px -4px rgba(80,60,30,0.08), 0 20px 48px -8px rgba(80,60,30,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)'
           }
-        : {}"
+        : {
+            background: 'rgba(253, 250, 246, 0.0)',
+            borderColor: 'transparent',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)'
+          }"
     >
       <!-- Brand Logo & Studio Live Badge -->
       <div class="flex items-center gap-3 flex-shrink-0">
         <NuxtLink
           to="/"
-          class="group flex items-center gap-2 no-underline flex-shrink-0 transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1)"
+          class="group flex items-center gap-2 no-underline flex-shrink-0 transition-opacity hover:opacity-85"
           aria-label="Xo 首页"
         >
           <img
             src="/logo.png?v=312k_v4"
             alt="Xo Logo"
-            :class="[
-              'w-auto object-contain transition-all duration-500',
-              isScrolled ? 'h-7' : 'h-8'
-            ]"
+            class="w-auto h-7.5 md:h-8 object-contain"
           />
         </NuxtLink>
 
-        <!-- Studio status micro chip (Desktop) -->
+        <!-- Studio status micro chip (Smooth Fade Collapse without DOM Reflow) -->
         <div
-          v-if="!isScrolled"
-          class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none animate-fadeIn"
+          :class="[
+            'hidden xl:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none transition-all duration-300 origin-left',
+            isScrolled
+              ? 'opacity-0 scale-90 max-w-0 px-0 py-0 overflow-hidden pointer-events-none border-transparent'
+              : 'opacity-100 scale-100 max-w-xs px-2.5 py-0.5'
+          ]"
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>{{ siteConfig?.siteInfo?.navbarBookingBadge || 'OPEN FOR BOOKING' }}</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+          <span class="whitespace-nowrap">{{ siteConfig?.siteInfo?.navbarBookingBadge || 'OPEN FOR BOOKING' }}</span>
         </div>
       </div>
 
       <!-- Desktop nav links with Liquid Magnetic Sliding Pill -->
       <ul
         ref="navUlRef"
-        :class="[
-          'hidden md:flex items-center relative transition-all duration-[600ms] cubic-bezier(0.16, 1, 0.3, 1) py-1',
-          isScrolled ? 'gap-0.5' : 'gap-1'
-        ]"
+        class="hidden md:flex items-center relative gap-1 py-1"
         @mouseleave="resetPillToActive"
       >
         <!-- Liquid Sliding Pill Background Indicator -->
         <span
-          class="absolute top-1 bottom-1 rounded-full pointer-events-none transition-all duration-[340ms] cubic-bezier(0.22, 1, 0.36, 1) z-0"
+          class="absolute top-1 bottom-1 rounded-full pointer-events-none transition-all duration-[300ms] cubic-bezier(0.22, 1, 0.36, 1) z-0"
           :style="{
             transform: `translate3d(${pillLeft}px, 0, 0)`,
             width: `${pillWidth}px`,
@@ -98,10 +103,10 @@
         <AppContactBtn
           :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')"
           :customClass="[
-            'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-sm group cursor-pointer border',
+            'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-sm group cursor-pointer border px-4.5 py-1.5',
             isScrolled 
-              ? 'px-4 py-1.5 text-slate-900 bg-amber-500/15 border-amber-600/30 hover:bg-amber-500/25'
-              : 'px-5 py-2 text-white bg-slate-900 border-white/10 hover:bg-slate-800'
+              ? 'text-slate-900 bg-amber-500/15 border-amber-600/30 hover:bg-amber-500/25'
+              : 'text-white bg-slate-900 border-white/10 hover:bg-slate-800'
           ].join(' ')"
         />
 
@@ -122,7 +127,7 @@
     <Transition name="mobile-menu">
       <div
         v-if="mobileOpen"
-        class="md:hidden absolute top-full left-4 right-4 mt-2 rounded-3xl p-3 flex flex-col gap-1 backdrop-blur-2xl"
+        class="pointer-events-auto md:hidden absolute top-full left-4 right-4 mt-2 rounded-3xl p-3 flex flex-col gap-1 backdrop-blur-2xl"
         :style="{
           background: 'rgba(253, 250, 246, 0.94)',
           border: '1px solid rgba(190, 160, 120, 0.25)',
@@ -216,6 +221,15 @@ const resetPillToActive = () => {
   }
 }
 
+// Watch isScrolled to seamlessly recalibrate pill position during capsule morph
+watch(isScrolled, () => {
+  if (import.meta.client) {
+    requestAnimationFrame(() => resetPillToActive())
+    setTimeout(() => resetPillToActive(), 200)
+    setTimeout(() => resetPillToActive(), 520)
+  }
+})
+
 // Check if link is active (handle trailing slashes)
 const isActive = (path: string) => {
   const currentPath = route.path.replace(/\/$/, '') || '/'
@@ -252,20 +266,39 @@ const animateNavbarIn = async () => {
   )
 }
 
-// Scroll & resize handlers
+// Ultra-smooth Hardware RAF Scroll handler with Hysteresis
 let scrollHandler: (() => void) | null = null
 let resizeHandler: (() => void) | null = null
+let rafTicking = false
+const SCROLL_ACTIVATE_THRESHOLD = 50
+const SCROLL_DEACTIVATE_THRESHOLD = 20
 
 onMounted(() => {
   scrollHandler = () => {
-    isScrolled.value = window.scrollY > 60
+    if (!rafTicking) {
+      window.requestAnimationFrame(() => {
+        const y = window.scrollY || document.documentElement.scrollTop
+        if (!isScrolled.value && y > SCROLL_ACTIVATE_THRESHOLD) {
+          isScrolled.value = true
+        } else if (isScrolled.value && y < SCROLL_DEACTIVATE_THRESHOLD) {
+          isScrolled.value = false
+        }
+        rafTicking = false
+      })
+      rafTicking = true
+    }
   }
+
   resizeHandler = () => {
     resetPillToActive()
   }
+
   window.addEventListener('scroll', scrollHandler, { passive: true })
   window.addEventListener('resize', resizeHandler, { passive: true })
-  scrollHandler()
+  
+  // Initial check
+  const initY = window.scrollY || document.documentElement.scrollTop
+  isScrolled.value = initY > SCROLL_ACTIVATE_THRESHOLD
 
   if (import.meta.client) {
     animateNavbarIn()
@@ -287,6 +320,11 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+nav {
+  will-change: max-width, transform, background-color, box-shadow;
+  transform: translateZ(0);
+}
+
 /* Nav underline transition */
 .nav-underline-enter-active,
 .nav-underline-leave-active {
