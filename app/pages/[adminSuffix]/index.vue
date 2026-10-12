@@ -4630,8 +4630,11 @@ const generateDeliveryFromWorkspace = async () => {
 }
 const copyWorkspaceDeliveryLink = async () => {
   if (!deliveryEditorUser.value?.deliverySuffix || !import.meta.client) return
-  const link = `${window.location.origin}/delivery/${encodeURIComponent(deliveryEditorUser.value.deliverySuffix)}`
-  try { await navigator.clipboard.writeText(link); alert('专属交付地址已复制') } catch { alert(link) }
+  const origin = getNormalizedOrigin()
+  const link = `${origin}/delivery/${encodeURIComponent(deliveryEditorUser.value.deliverySuffix)}`
+  const ok = await copyToClipboard(link)
+  if (ok) alert(`已成功复制专属交付完整地址！\n${link}`)
+  else alert(`无法直接访问剪贴板，请手动复制：${link}`)
 }
 const fetchOrderData = async () => {
   try {
@@ -4742,13 +4745,11 @@ const generateAdminDeliveryKey = async () => {
 
 const copyAdminDeliveryLink = async () => {
   if (!userForm.value.deliverySuffix || !import.meta.client) return
-  const link = `${window.location.origin}/delivery/${encodeURIComponent(userForm.value.deliverySuffix)}`
-  try {
-    await navigator.clipboard.writeText(link)
-    alert('专属交付地址已复制。')
-  } catch {
-    alert(link)
-  }
+  const origin = getNormalizedOrigin()
+  const link = `${origin}/delivery/${encodeURIComponent(userForm.value.deliverySuffix)}`
+  const ok = await copyToClipboard(link)
+  if (ok) alert(`已成功复制专属交付完整地址！\n${link}`)
+  else alert(`无法直接访问剪贴板，请手动复制：${link}`)
 }
 
 const saveUser = async () => {
@@ -4961,17 +4962,18 @@ const formatBookingDate = (dateStr: string) => {
 
 const copyBookingText = async (text: string, label: string = '内容') => {
   if (!text) return
-  try {
-    await navigator.clipboard.writeText(text)
-    alert(`已复制${label}：${text}`)
-  } catch {
-    alert(text)
+  const ok = await copyToClipboard(text)
+  if (ok) {
+    alert(`已成功复制${label}到剪贴板！\n${text}`)
+  } else {
+    alert(`无法直接访问剪贴板，请手动复制：${text}`)
   }
 }
 
 const copyDeliveryLinkForBooking = async (suffix: string) => {
   if (!suffix || !import.meta.client) return
-  const url = `${window.location.origin}/delivery/${encodeURIComponent(suffix)}`
+  const origin = getNormalizedOrigin()
+  const url = `${origin}/delivery/${encodeURIComponent(suffix)}`
   await copyBookingText(url, '专属交付完整地址')
 }
 

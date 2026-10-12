@@ -671,18 +671,11 @@ const selectServiceAndScroll = (title: string) => {
 
 const copyEmail = async () => {
   const email = siteConfig.value?.siteInfo?.contactEmail || 'hello@xo.dev'
-  try {
-    await navigator.clipboard.writeText(email)
-    copiedEmail.value = true
-    setTimeout(() => {
-      copiedEmail.value = false
-    }, 2000)
-  } catch {
-    copiedEmail.value = true
-    setTimeout(() => {
-      copiedEmail.value = false
-    }, 2000)
-  }
+  await copyToClipboard(email)
+  copiedEmail.value = true
+  setTimeout(() => {
+    copiedEmail.value = false
+  }, 2000)
 }
 
 const submitForm = async () => {
