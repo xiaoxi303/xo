@@ -219,32 +219,68 @@
       </div>
     </Transition>
 
-    <!-- Client Portal Floating Icon Action Button (Bottom-Right) -->
+    <!-- Client Portal Floating Capsule Action Button (Bottom-Right) -->
     <div
       v-if="!isPanelPage"
-      class="fixed bottom-6 right-6 z-[60] group flex items-center justify-center select-none"
+      class="fixed bottom-6 right-6 z-[60] select-none"
     >
-      <!-- Soft breathing ambient glow -->
-      <span class="absolute -inset-1.5 rounded-full bg-gradient-to-tr from-amber-500/25 to-amber-600/15 blur-md pointer-events-none group-hover:scale-125 transition-transform duration-500 animate-pulse" />
-
-      <!-- Hover Tooltip with Spring Ease -->
-      <div class="absolute bottom-full right-0 mb-3 px-3 py-1.5 rounded-xl bg-stone-900/90 text-amber-300 text-[11px] font-bold tracking-wide backdrop-blur-md border border-amber-500/30 shadow-xl opacity-0 translate-y-1.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 cubic-bezier(0.175, 0.885, 0.32, 1.25) pointer-events-none whitespace-nowrap flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        <span>{{ clientLoggedIn ? `客户控制中心 (${clientName})` : '客户登录中心' }}</span>
-      </div>
-
       <NuxtLink
         :to="clientLoggedIn ? '/client' : '/login'"
-        class="relative w-12 h-12 rounded-full border flex items-center justify-center xo-kinetic-btn backdrop-blur-2xl shadow-[0_10px_30px_rgba(180,120,40,0.18)] hover:shadow-[0_16px_40px_rgba(180,120,40,0.32)] cursor-pointer xo-kinetic-layer"
-        style="background: rgba(254, 252, 248, 0.94); border-color: rgba(217, 119, 6, 0.38);"
-        :title="clientLoggedIn ? `Hi, ${clientName} - 点击进入控制中心` : '点击登录客户中心'"
+        class="group relative inline-flex items-center gap-3 pl-3 pr-3.5 py-2 rounded-full backdrop-blur-2xl bg-white/92 hover:bg-white shadow-[0_10px_32px_rgba(180,120,40,0.16)] hover:shadow-[0_16px_42px_rgba(217,119,6,0.3)] border border-amber-700/25 hover:border-amber-600/55 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 active:translate-y-0 cursor-pointer overflow-hidden"
+        :title="clientLoggedIn ? `客户控制中心 (${clientName})` : '点击进入客户专区与审片登录'"
       >
-        <!-- Indicator Dot -->
-        <span class="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
+        <!-- Ambient Warm Gold Breathing Glow on Hover -->
+        <div class="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/12 to-amber-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-        <!-- Icon with Spring Micro-motion -->
-        <IconSax v-if="clientLoggedIn" name="crown" :size="22" class="text-amber-700 transition-transform duration-300 group-hover:scale-115" />
-        <IconSax v-else name="key" :size="22" class="text-amber-800 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-12" />
+        <!-- Left: Luxurious Icon Chamber with Indicator Beacon -->
+        <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr from-amber-600/15 via-amber-500/20 to-amber-600/10 border border-amber-600/30 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs">
+          <!-- Active Status Ping Beacon -->
+          <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
+
+          <!-- Dynamic Icon with Micro-motion -->
+          <IconSax
+            v-if="clientLoggedIn"
+            name="crown"
+            :size="16"
+            class="text-amber-800 transition-transform duration-300 group-hover:scale-110"
+          />
+          <IconSax
+            v-else
+            name="key"
+            :size="16"
+            class="text-amber-800 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12"
+          />
+        </div>
+
+        <!-- Middle: Editorial Typography Block -->
+        <div class="flex flex-col text-left">
+          <div class="flex items-center gap-1.5 leading-none">
+            <span class="text-xs font-bold text-[#121316] group-hover:text-amber-900 transition-colors font-sans tracking-tight">
+              {{ clientLoggedIn ? '客户控制中心' : '客户专区' }}
+            </span>
+            <span
+              v-if="clientLoggedIn"
+              class="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-amber-500/15 text-amber-800 border border-amber-500/25 leading-none"
+            >
+              VIP
+            </span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500 font-medium tracking-wide mt-1 leading-none">
+            {{ clientLoggedIn ? (clientName || '已认证') : '审片 · 交付通道' }}
+          </span>
+        </div>
+
+        <!-- Right: Subtle Directional Arrow Pill -->
+        <div class="w-5 h-5 rounded-full bg-amber-500/10 group-hover:bg-amber-600 group-hover:text-white text-amber-800 flex items-center justify-center transition-all duration-300 flex-shrink-0 -mr-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
+          >
+            <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.63L9.7 5.47a.75.75 0 011.06-1.06l5.75 5.75a.75.75 0 010 1.06l-5.75 5.75a.75.75 0 11-1.06-1.06l4.68-4.68H3.75A.75.75 0 013 10z" clip-rule="evenodd"/>
+          </svg>
+        </div>
       </NuxtLink>
     </div>
 
