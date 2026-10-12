@@ -1,36 +1,35 @@
 <template>
-  <!-- Premium Navbar with Hardware-Accelerated Smooth Capsule Morph -->
+  <!-- World-Class Floating Capsule Navbar with Rock-Solid Center Alignment -->
   <header
     ref="navbarRef"
-    :class="[
-      'fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-[padding-top] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
-      isScrolled ? 'pt-2.5 md:pt-3.5' : 'pt-0'
-    ]"
+    class="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all duration-500 ease-out"
+    :class="isScrolled ? 'pt-2.5 md:pt-3' : 'pt-3 md:pt-4'"
   >
     <nav
       :class="[
-        'pointer-events-auto h-14 transition-[max-width,width,border-radius,background-color,border-color,box-shadow,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between',
+        'pointer-events-auto relative h-14 rounded-full flex items-center justify-between transition-[max-width,width,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
         isScrolled
-          ? 'w-[94%] max-w-[760px] px-5 md:px-7 rounded-full border shadow-lg'
-          : 'w-full max-w-6xl px-4 md:px-6 rounded-none border-b border-transparent shadow-none'
+          ? 'w-[92%] max-w-[740px] px-4 md:px-5 border shadow-xl'
+          : 'w-[96%] max-w-5xl px-5 md:px-6 border shadow-xs'
       ]"
       :style="isScrolled
-        ? { 
-            background: 'rgba(253, 250, 246, 0.88)', 
-            borderColor: 'rgba(190, 160, 120, 0.28)',
-            boxShadow: '0 8px 32px -4px rgba(80,60,30,0.08), 0 20px 48px -8px rgba(80,60,30,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+        ? {
+            background: 'rgba(253, 250, 246, 0.94)',
+            borderColor: 'rgba(190, 160, 120, 0.32)',
+            boxShadow: '0 12px 36px -6px rgba(80,60,30,0.12), 0 24px 48px -12px rgba(80,60,30,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)'
           }
         : {
-            background: 'rgba(253, 250, 246, 0.0)',
-            borderColor: 'transparent',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)'
+            background: 'rgba(253, 250, 246, 0.65)',
+            borderColor: 'rgba(190, 160, 120, 0.18)',
+            boxShadow: '0 4px 20px -2px rgba(80,60,30,0.05), inset 0 1px 0 rgba(255,255,255,0.85)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)'
           }"
     >
-      <!-- Brand Logo & Studio Live Badge -->
-      <div class="flex items-center gap-3 flex-shrink-0">
+      <!-- Left: Brand Logo -->
+      <div class="flex items-center gap-2.5 flex-shrink-0 z-10">
         <NuxtLink
           to="/"
           class="group flex items-center gap-2 no-underline flex-shrink-0 transition-opacity hover:opacity-85"
@@ -39,57 +38,32 @@
           <img
             src="/logo.png?v=312k_v4"
             alt="Xo Logo"
-            class="w-auto h-7.5 md:h-8 object-contain"
+            class="w-auto h-7 md:h-7.5 object-contain"
           />
         </NuxtLink>
 
-        <!-- Studio status micro chip (Smooth Fade Collapse without DOM Reflow) -->
+        <!-- Subtle Studio Live Pulse Dot -->
         <div
-          :class="[
-            'hidden xl:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none transition-all duration-300 origin-left',
-            isScrolled
-              ? 'opacity-0 scale-90 max-w-0 px-0 py-0 overflow-hidden pointer-events-none border-transparent'
-              : 'opacity-100 scale-100 max-w-xs px-2.5 py-0.5'
-          ]"
+          class="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[9px] font-mono font-bold text-emerald-800 select-none"
+          title="在线营业中"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-          <span class="whitespace-nowrap">{{ siteConfig?.siteInfo?.navbarBookingBadge || 'OPEN FOR BOOKING' }}</span>
+          <span class="tracking-wider">LIVE</span>
         </div>
       </div>
 
-      <!-- Desktop nav links with Liquid Magnetic Sliding Pill -->
+      <!-- Center: Desktop Nav Links (Pinned to True Screen Center: Never Jumps or Stutters) -->
       <ul
-        ref="navUlRef"
-        class="hidden md:flex items-center relative gap-1 py-1"
-        @mouseleave="resetPillToActive"
+        class="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-20 py-1"
       >
-        <!-- Liquid Sliding Pill Background Indicator -->
-        <span
-          class="absolute top-1 bottom-1 rounded-full pointer-events-none transition-all duration-[300ms] cubic-bezier(0.22, 1, 0.36, 1) z-0"
-          :style="{
-            transform: `translate3d(${pillLeft}px, 0, 0)`,
-            width: `${pillWidth}px`,
-            opacity: pillOpacity,
-            background: 'rgba(255, 255, 255, 0.94)',
-            boxShadow: '0 4px 16px rgba(180, 120, 40, 0.12), inset 0 1px 0 rgba(255,255,255,0.98)',
-            border: '1px solid rgba(217, 119, 6, 0.22)'
-          }"
-        />
-
-        <li
-          v-for="link in navLinks"
-          :key="link.to"
-          :ref="el => setItemRef(link.to, el as HTMLElement)"
-          class="relative z-10"
-          @mouseenter="movePillTo(link.to)"
-        >
+        <li v-for="link in navLinks" :key="link.to">
           <NuxtLink
             :to="link.to"
             :class="[
-              'relative px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-colors duration-200 rounded-full flex items-center justify-center select-none xo-kinetic-btn',
+              'relative px-3.5 py-1.5 text-xs font-semibold tracking-wide rounded-full flex items-center justify-center transition-all duration-300 select-none xo-kinetic-btn',
               isActive(link.to)
-                ? 'text-[var(--color-ink-1)] font-bold'
-                : 'text-[var(--color-ink-4)] hover:text-[var(--color-ink-1)]'
+                ? 'text-slate-900 font-bold bg-white/95 shadow-xs border border-amber-600/30'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
             ]"
           >
             {{ link.label }}
@@ -97,13 +71,13 @@
         </li>
       </ul>
 
-      <!-- CTA + Mobile toggle -->
-      <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
-        <!-- Contact button with cursor position radial color fill -->
+      <!-- Right: Contact CTA + Mobile Menu Button -->
+      <div class="flex items-center gap-2 md:gap-3 flex-shrink-0 z-10">
+        <!-- Contact button with stable size -->
         <AppContactBtn
           :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')"
           :customClass="[
-            'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-sm group cursor-pointer border px-4.5 py-1.5',
+            'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-xs group cursor-pointer border px-4 py-1.5',
             isScrolled 
               ? 'text-slate-900 bg-amber-500/15 border-amber-600/30 hover:bg-amber-500/25'
               : 'text-white bg-slate-900 border-white/10 hover:bg-slate-800'
@@ -123,14 +97,14 @@
       </div>
     </nav>
 
-    <!-- Mobile menu -->
+    <!-- Mobile menu modal -->
     <Transition name="mobile-menu">
       <div
         v-if="mobileOpen"
         class="pointer-events-auto md:hidden absolute top-full left-4 right-4 mt-2 rounded-3xl p-3 flex flex-col gap-1 backdrop-blur-2xl"
         :style="{
-          background: 'rgba(253, 250, 246, 0.94)',
-          border: '1px solid rgba(190, 160, 120, 0.25)',
+          background: 'rgba(253, 250, 246, 0.96)',
+          border: '1px solid rgba(190, 160, 120, 0.3)',
           boxShadow: '0 20px 48px -10px rgba(80,60,30,0.18)'
         }"
       >
@@ -182,54 +156,6 @@ const navLinks = [
   { label: '博客', to: '/blog' },
 ]
 
-const navUlRef = ref<HTMLElement | null>(null)
-const itemRefs = new Map<string, HTMLElement>()
-const setItemRef = (path: string, el: HTMLElement | null) => {
-  if (el) itemRefs.set(path, el)
-  else itemRefs.delete(path)
-}
-
-const pillLeft = ref(0)
-const pillWidth = ref(0)
-const pillOpacity = ref(0)
-
-const updatePillPosition = (targetPath: string) => {
-  if (!import.meta.client || !navUlRef.value) return
-  const targetEl = itemRefs.get(targetPath)
-  if (!targetEl) {
-    pillOpacity.value = 0
-    return
-  }
-  const ulRect = navUlRef.value.getBoundingClientRect()
-  const elRect = targetEl.getBoundingClientRect()
-  pillLeft.value = elRect.left - ulRect.left
-  pillWidth.value = elRect.width
-  pillOpacity.value = 1
-}
-
-const movePillTo = (path: string) => {
-  updatePillPosition(path)
-}
-
-const resetPillToActive = () => {
-  const currentPath = route.path.replace(/\/$/, '') || '/'
-  const matched = navLinks.find(l => (l.to.replace(/\/$/, '') || '/') === currentPath)
-  if (matched) {
-    updatePillPosition(matched.to)
-  } else {
-    pillOpacity.value = 0
-  }
-}
-
-// Watch isScrolled to seamlessly recalibrate pill position during capsule morph
-watch(isScrolled, () => {
-  if (import.meta.client) {
-    requestAnimationFrame(() => resetPillToActive())
-    setTimeout(() => resetPillToActive(), 200)
-    setTimeout(() => resetPillToActive(), 520)
-  }
-})
-
 // Check if link is active (handle trailing slashes)
 const isActive = (path: string) => {
   const currentPath = route.path.replace(/\/$/, '') || '/'
@@ -245,12 +171,11 @@ const toggleMobile = () => {
   }
 }
 
-// Close mobile menu on route change & update pill
+// Close mobile menu on route change
 watch(() => route.path, () => {
   mobileOpen.value = false
   if (import.meta.client) {
     document.body.style.overflow = ''
-    nextTick(() => resetPillToActive())
   }
 })
 
@@ -266,9 +191,8 @@ const animateNavbarIn = async () => {
   )
 }
 
-// Ultra-smooth Hardware RAF Scroll handler with Hysteresis
+// Smooth Hardware RAF Scroll handler with Hysteresis
 let scrollHandler: (() => void) | null = null
-let resizeHandler: (() => void) | null = null
 let rafTicking = false
 const SCROLL_ACTIVATE_THRESHOLD = 50
 const SCROLL_DEACTIVATE_THRESHOLD = 20
@@ -289,12 +213,7 @@ onMounted(() => {
     }
   }
 
-  resizeHandler = () => {
-    resetPillToActive()
-  }
-
   window.addEventListener('scroll', scrollHandler, { passive: true })
-  window.addEventListener('resize', resizeHandler, { passive: true })
   
   // Initial check
   const initY = window.scrollY || document.documentElement.scrollTop
@@ -302,16 +221,12 @@ onMounted(() => {
 
   if (import.meta.client) {
     animateNavbarIn()
-    nextTick(() => resetPillToActive())
   }
 })
 
 onBeforeUnmount(() => {
   if (scrollHandler) {
     window.removeEventListener('scroll', scrollHandler)
-  }
-  if (resizeHandler) {
-    window.removeEventListener('resize', resizeHandler)
   }
   if (import.meta.client) {
     document.body.style.overflow = ''
@@ -321,19 +236,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 nav {
-  will-change: max-width, transform, background-color, box-shadow;
+  will-change: max-width, background-color, box-shadow;
   transform: translateZ(0);
-}
-
-/* Nav underline transition */
-.nav-underline-enter-active,
-.nav-underline-leave-active {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.nav-underline-enter-from,
-.nav-underline-leave-to {
-  opacity: 0;
-  transform: scaleX(0.2) translateY(2px);
 }
 
 /* Mobile menu transition */
@@ -347,18 +251,5 @@ nav {
 .mobile-menu-leave-to {
   opacity: 0;
   transform: translateY(-8px) scale(0.98);
-}
-
-/* Check mark transition */
-.check-mark-enter-active {
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.check-mark-leave-active {
-  transition: all 0.15s ease;
-}
-.check-mark-enter-from,
-.check-mark-leave-to {
-  opacity: 0;
-  transform: scale(0);
 }
 </style>
