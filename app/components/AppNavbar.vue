@@ -2,12 +2,12 @@
   <!-- Hybrid Luxury Navbar: Normal Full-Width at Top, Fluid Morph to Floating Capsule on Scroll -->
   <header
     ref="navbarRef"
-    class="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-[padding-top] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+    class="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-[padding-top] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
     :class="isScrolled ? 'pt-3 md:pt-3.5' : 'pt-0'"
   >
     <nav
       :class="[
-        'pointer-events-auto relative flex items-center justify-between transition-[max-width,width,height,border-radius,background-color,border-color,box-shadow,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
+        'pointer-events-auto relative flex items-center justify-between transition-[max-width,width,height,border-radius,background-color,border-color,box-shadow,padding] duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
         isScrolled
           ? 'w-[92%] max-w-[740px] h-14 px-4 md:px-5 rounded-full border shadow-xl'
           : 'w-full max-w-7xl h-16 md:h-18 px-6 md:px-8 rounded-none border-b border-black/[0.06] shadow-none'
@@ -45,7 +45,7 @@
         <!-- Studio status chip (Visible in full-width mode, smoothly collapses in capsule) -->
         <div
           :class="[
-            'hidden xl:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none transition-all duration-400 origin-left',
+            'hidden xl:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] origin-left',
             isScrolled
               ? 'opacity-0 scale-90 max-w-0 px-0 py-0 overflow-hidden pointer-events-none border-transparent'
               : 'opacity-100 scale-100 max-w-xs px-2.5 py-0.5'
@@ -198,8 +198,8 @@ const animateNavbarIn = async () => {
 // Smooth Hardware RAF Scroll handler with Hysteresis
 let scrollHandler: (() => void) | null = null
 let rafTicking = false
-const SCROLL_ACTIVATE_THRESHOLD = 50
-const SCROLL_DEACTIVATE_THRESHOLD = 20
+const SCROLL_ACTIVATE_THRESHOLD = 70
+const SCROLL_DEACTIVATE_THRESHOLD = 25
 
 onMounted(() => {
   scrollHandler = () => {
