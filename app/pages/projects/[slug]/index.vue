@@ -668,7 +668,9 @@
                 :title="project.title"
                 index="01"
                 :category="project.tags?.[0] || ''"
+                :tags="project.tags"
                 :description="project.description"
+                :is-password-protected="project.isPasswordProtected || project.hasPassword"
                 class="w-full h-full"
               />
             </div>
@@ -889,7 +891,7 @@
                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
-                  <DefaultArtPoster v-else :title="rel.title" :tags="rel.tags" theme="cinema" class="w-full h-full" />
+                  <DefaultArtPoster v-else :title="rel.title" :tags="rel.tags" :is-password-protected="rel.hasPassword" theme="cinema" class="w-full h-full" />
                   
                   <!-- Slate Tag -->
                   <div class="absolute bottom-2 left-2 z-10 px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-black/70 text-white/90 backdrop-blur-md">

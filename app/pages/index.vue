@@ -284,6 +284,7 @@
               <!-- Media cover -->
               <div class="h-80 relative overflow-hidden bg-slate-950 border-b border-black/5">
                 <MediaVideo
+                  v-if="canPlayTvcVideo"
                   :src="getProjectVideoUrl(tvcProject)"
                   :poster="tvcProject.image"
                   :title="tvcProject.title"
@@ -293,7 +294,42 @@
                   :minimal="true"
                   class="w-full h-full object-cover"
                 />
+                <MediaImage
+                  v-else
+                  :src="tvcProject.image"
+                  :alt="tvcProject.title"
+                  :title="tvcProject.title"
+                  index="01"
+                  :category="tvcProject.tags?.[0] || ''"
+                  :tags="tvcProject.tags"
+                  :description="tvcProject.description"
+                  :is-password-protected="tvcProject.isPasswordProtected || tvcProject.hasPassword"
+                  class="w-full h-full object-cover"
+                />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+                <!-- Play icon on hover for poster mode -->
+                <div v-if="!canPlayTvcVideo" class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div class="w-14 h-14 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-[0_8px_30px_rgba(180,83,9,0.3)] scale-75 group-hover:scale-100 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1) border border-white/80">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                         class="w-6 h-6 ml-0.5 text-[#b45309] transition-transform duration-300 group-hover:scale-110">
+                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Specs / Security badge -->
+                <div class="absolute top-4 left-4 z-20">
+                  <span v-if="tvcProject.isPasswordProtected || tvcProject.hasPassword" class="px-3 py-1 rounded-full text-[10px] font-mono font-bold text-amber-200 shadow-md backdrop-blur-md flex items-center gap-1.5"
+                        style="background: rgba(0,0,0,0.85); border: 1px solid rgba(245,158,11,0.5);">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 text-amber-400">
+                      <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                    </svg>
+                    密码保护 · 专属样片
+                  </span>
+                  <span v-else class="px-3 py-1 rounded text-[9px] font-mono font-bold uppercase shadow-md backdrop-blur-md text-[var(--color-bronze-light)]"
+                        style="background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.2);">ACES 色彩规范</span>
+                </div>
                 <div class="absolute top-4 right-4 flex items-center gap-2 z-20">
                   <span class="px-3 py-1 rounded-full text-[10px] font-mono font-bold text-[var(--color-bronze-light)] backdrop-blur-md shadow-md"
                         style="background: rgba(0,0,0,0.85); border: 1px solid rgba(245,158,11,0.4);">{{ tvcProjectNodes }}</span>
@@ -386,6 +422,7 @@
               <!-- Media area -->
               <div class="h-80 relative overflow-hidden bg-slate-950 border-b border-black/5">
                 <MediaVideo
+                  v-if="canPlayGradingVideo"
                   :src="getProjectVideoUrl(gradingProject)"
                   :poster="gradingProject.image"
                   :title="gradingProject.title"
@@ -395,11 +432,40 @@
                   :minimal="true"
                   class="w-full h-full object-cover"
                 />
+                <MediaImage
+                  v-else
+                  :src="gradingProject.image"
+                  :alt="gradingProject.title"
+                  :title="gradingProject.title"
+                  index="02"
+                  :category="gradingProject.tags?.[0] || ''"
+                  :tags="gradingProject.tags"
+                  :description="gradingProject.description"
+                  :is-password-protected="gradingProject.isPasswordProtected || gradingProject.hasPassword"
+                  class="w-full h-full object-cover"
+                />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-                
-                <!-- Absolute specs sticker -->
+
+                <!-- Play icon on hover for poster mode -->
+                <div v-if="!canPlayGradingVideo" class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div class="w-14 h-14 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-[0_8px_30px_rgba(180,83,9,0.3)] scale-75 group-hover:scale-100 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1) border border-white/80">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                         class="w-6 h-6 ml-0.5 text-[#b45309] transition-transform duration-300 group-hover:scale-110">
+                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Absolute specs sticker / password badge -->
                 <div class="absolute top-4 left-4 z-20">
-                  <span class="px-3 py-1 rounded text-[9px] font-mono font-bold uppercase shadow-md backdrop-blur-md text-[var(--color-bronze-light)]"
+                  <span v-if="gradingProject.isPasswordProtected || gradingProject.hasPassword" class="px-3 py-1 rounded-full text-[10px] font-mono font-bold text-amber-200 shadow-md backdrop-blur-md flex items-center gap-1.5"
+                        style="background: rgba(0,0,0,0.85); border: 1px solid rgba(245,158,11,0.5);">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 text-amber-400">
+                      <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                    </svg>
+                    密码保护 · 专属样片
+                  </span>
+                  <span v-else class="px-3 py-1 rounded text-[9px] font-mono font-bold uppercase shadow-md backdrop-blur-md text-[var(--color-bronze-light)]"
                         style="background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.2);">ACES 色彩规范</span>
                 </div>
                 <div class="absolute top-4 right-4 z-20">
@@ -766,6 +832,19 @@ const getProjectVideoUrl = (project: any) => {
   const firstUrl = urls.map((url: string) => url?.trim()).find(Boolean)
   return firstUrl || project?.videoUrl || ''
 }
+
+// Confidential screener rule: password protected projects must NEVER autoplay on homepage.
+// Only projects explicitly checked as featured (首页精选置顶) and unpassworded can play video directly.
+const isProjectVideoPlayable = (project: any, configFeaturedSlug?: string) => {
+  if (!project) return false
+  if (project.isPasswordProtected || project.hasPassword) return false
+  const isFeatured = Boolean(project.featured) || (Boolean(configFeaturedSlug) && project.slug === configFeaturedSlug)
+  if (!isFeatured) return false
+  return Boolean(getProjectVideoUrl(project))
+}
+
+const canPlayTvcVideo = computed(() => isProjectVideoPlayable(tvcProject.value, siteConfig.value?.home?.featuredProject1))
+const canPlayGradingVideo = computed(() => isProjectVideoPlayable(gradingProject.value, siteConfig.value?.home?.featuredProject2))
 
 // Scroll actions
 const scrollToBento = () => {

@@ -11,7 +11,9 @@
       :title="title || alt || '创意视频'"
       :index="index || '01'"
       :category="category"
+      :tags="tags"
       :description="description"
+      :is-password-protected="isPasswordProtected || hasPassword"
       class="w-full h-full"
     />
 
@@ -61,10 +63,15 @@ const props = withDefaults(defineProps<{
   title?: string
   index?: number | string
   category?: string
+  tags?: string[] | string
   description?: string
+  isPasswordProtected?: boolean
+  hasPassword?: boolean
 }>(), {
   src: '',
   alt: '',
+  isPasswordProtected: false,
+  hasPassword: false
 })
 
 const containerRef = ref<HTMLElement | null>(null)

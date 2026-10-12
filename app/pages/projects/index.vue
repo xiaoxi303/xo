@@ -295,7 +295,9 @@
                 :title="project.title"
                 :index="project.displayNumber || project.sortOrder || (i + 1)"
                 :category="project.tags?.[0] || ''"
+                :tags="project.tags"
                 :description="project.description"
+                :is-password-protected="project.isPasswordProtected || project.hasPassword"
                 class="h-full w-full object-cover transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) group-hover:scale-105"
               />
 
