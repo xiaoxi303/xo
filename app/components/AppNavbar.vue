@@ -1,16 +1,16 @@
 <template>
-  <!-- World-Class Floating Capsule Navbar with Rock-Solid Center Alignment -->
+  <!-- Hybrid Luxury Navbar: Normal Full-Width at Top, Fluid Morph to Floating Capsule on Scroll -->
   <header
     ref="navbarRef"
-    class="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all duration-500 ease-out"
-    :class="isScrolled ? 'pt-2.5 md:pt-3' : 'pt-3 md:pt-4'"
+    class="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-[padding-top] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+    :class="isScrolled ? 'pt-3 md:pt-3.5' : 'pt-0'"
   >
     <nav
       :class="[
-        'pointer-events-auto relative h-14 rounded-full flex items-center justify-between transition-[max-width,width,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
+        'pointer-events-auto relative flex items-center justify-between transition-[max-width,width,height,border-radius,background-color,border-color,box-shadow,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
         isScrolled
-          ? 'w-[92%] max-w-[740px] px-4 md:px-5 border shadow-xl'
-          : 'w-[96%] max-w-5xl px-5 md:px-6 border shadow-xs'
+          ? 'w-[92%] max-w-[740px] h-14 px-4 md:px-5 rounded-full border shadow-xl'
+          : 'w-full max-w-7xl h-16 md:h-18 px-6 md:px-8 rounded-none border-b border-black/[0.06] shadow-none'
       ]"
       :style="isScrolled
         ? {
@@ -21,15 +21,15 @@
             WebkitBackdropFilter: 'blur(20px)'
           }
         : {
-            background: 'rgba(253, 250, 246, 0.65)',
-            borderColor: 'rgba(190, 160, 120, 0.18)',
-            boxShadow: '0 4px 20px -2px rgba(80,60,30,0.05), inset 0 1px 0 rgba(255,255,255,0.85)',
+            background: 'rgba(253, 250, 246, 0.72)',
+            borderColor: 'rgba(0, 0, 0, 0.06)',
+            boxShadow: 'none',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)'
           }"
     >
-      <!-- Left: Brand Logo -->
-      <div class="flex items-center gap-2.5 flex-shrink-0 z-10">
+      <!-- Left: Brand Logo & Studio Live Badge -->
+      <div class="flex items-center gap-3 flex-shrink-0 z-10">
         <NuxtLink
           to="/"
           class="group flex items-center gap-2 no-underline flex-shrink-0 transition-opacity hover:opacity-85"
@@ -38,21 +38,25 @@
           <img
             src="/logo.png?v=312k_v4"
             alt="Xo Logo"
-            class="w-auto h-7 md:h-7.5 object-contain"
+            class="w-auto h-7 md:h-8 object-contain"
           />
         </NuxtLink>
 
-        <!-- Subtle Studio Live Pulse Dot -->
+        <!-- Studio status chip (Visible in full-width mode, smoothly collapses in capsule) -->
         <div
-          class="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[9px] font-mono font-bold text-emerald-800 select-none"
-          title="在线营业中"
+          :class="[
+            'hidden xl:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none transition-all duration-400 origin-left',
+            isScrolled
+              ? 'opacity-0 scale-90 max-w-0 px-0 py-0 overflow-hidden pointer-events-none border-transparent'
+              : 'opacity-100 scale-100 max-w-xs px-2.5 py-0.5'
+          ]"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-          <span class="tracking-wider">LIVE</span>
+          <span class="whitespace-nowrap">{{ siteConfig?.siteInfo?.navbarBookingBadge || 'OPEN FOR BOOKING' }}</span>
         </div>
       </div>
 
-      <!-- Center: Desktop Nav Links (Pinned to True Screen Center: Never Jumps or Stutters) -->
+      <!-- Center: Desktop Nav Links (Pinned to True Screen Center in BOTH states: ZERO JUMPING) -->
       <ul
         class="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-20 py-1"
       >
@@ -73,14 +77,14 @@
 
       <!-- Right: Contact CTA + Mobile Menu Button -->
       <div class="flex items-center gap-2 md:gap-3 flex-shrink-0 z-10">
-        <!-- Contact button with stable size -->
+        <!-- Contact button -->
         <AppContactBtn
           :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')"
           :customClass="[
-            'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-xs group cursor-pointer border px-4 py-1.5',
+            'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-xs group cursor-pointer border',
             isScrolled 
-              ? 'text-slate-900 bg-amber-500/15 border-amber-600/30 hover:bg-amber-500/25'
-              : 'text-white bg-slate-900 border-white/10 hover:bg-slate-800'
+              ? 'px-4 py-1.5 text-slate-900 bg-amber-500/15 border-amber-600/30 hover:bg-amber-500/25'
+              : 'px-5 py-2 text-white bg-slate-900 border-white/10 hover:bg-slate-800'
           ].join(' ')"
         />
 
@@ -236,7 +240,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 nav {
-  will-change: max-width, background-color, box-shadow;
+  will-change: max-width, width, height, border-radius, background-color, box-shadow;
   transform: translateZ(0);
 }
 
