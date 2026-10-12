@@ -27,101 +27,167 @@
 
       <!-- Password Protection Lock Screen -->
       <Transition name="fade">
-        <div v-if="project && project.hasPassword && !isUnlocked" class="player-lock-screen max-w-lg mx-auto py-12 px-6 sm:px-10 space-y-7 glass-card rounded-3xl border-2 border-amber-600/20 shadow-2xl bg-white/90 backdrop-blur-xl relative overflow-hidden">
-          <!-- Top subtle gold glow accent -->
-          <div class="absolute top-0 inset-x-0 h-1.5" style="background: linear-gradient(90deg, #d97706 0%, #b45309 50%, #f59e0b 100%);" />
-          
-          <div class="text-center space-y-3 pt-2">
-            <!-- Icon with ambient backlight -->
-            <div class="relative inline-flex items-center justify-center">
-              <div class="absolute inset-0 rounded-full bg-amber-500/20 blur-xl"></div>
-              <div class="relative w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg border border-amber-500/30 bg-gradient-to-br from-amber-50 to-amber-100/60">
-                🔒
+        <div v-if="project && project.hasPassword && !isUnlocked" class="relative py-4 sm:py-8">
+          <!-- Ambient Projector Spotlight Halo -->
+          <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] rounded-full bg-gradient-to-b from-amber-400/20 via-amber-600/10 to-transparent blur-3xl pointer-events-none" />
+
+          <!-- Main VIP Screener Vault Card -->
+          <div class="player-lock-screen relative z-10 max-w-lg mx-auto py-10 px-6 sm:px-10 rounded-[2.5rem] bg-white/95 backdrop-blur-2xl border border-amber-900/15 shadow-[0_25px_70px_-15px_rgba(180,83,9,0.16),0_0_0_1px_rgba(255,255,255,0.9)_inset] space-y-7 overflow-hidden">
+            <!-- Top Hairline Prismatic Gold Ribbon -->
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#d97706] to-transparent" />
+
+            <div class="text-center space-y-4 pt-1">
+              <!-- Dual-Ring Cinema Security Medallion -->
+              <div class="relative inline-flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full bg-amber-500/25 blur-xl animate-pulse" />
+                <div class="relative w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-b from-amber-50 via-white to-amber-100/60 border border-amber-500/30 shadow-[0_8px_25px_rgba(217,119,6,0.18)]">
+                  <!-- Precision SVG Vault Lock Icon -->
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-9 h-9 text-[#b45309]">
+                    <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 00-7.5 0v3h7.5z" clip-rule="evenodd" />
+                  </svg>
+                  <!-- Security Lock Status Star -->
+                  <span class="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-amber-500 border-2 border-white flex items-center justify-center text-[10px] text-white shadow-sm font-bold">
+                    ✦
+                  </span>
+                </div>
+              </div>
+
+              <!-- VIP Screener Badge -->
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase bg-amber-500/10 text-amber-900 border border-amber-500/30 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping" />
+                  内部授权放映 · DCI 私密审片
+                </span>
+              </div>
+
+              <!-- Headline & Editorial Context -->
+              <div class="space-y-1.5">
+                <h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                  受保护放映厅
+                </h1>
+                <p v-if="project?.title" class="text-xs font-mono font-semibold text-amber-800/80">
+                  正在访问《{{ project.title }}》商业成片母带
+                </p>
+                <p class="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
+                  此母带作品处于私密评审或商业版权保护状态，请输入 6 位专属授权密钥解锁放映。
+                </p>
               </div>
             </div>
 
-            <!-- VIP screener badge -->
-            <div>
-              <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest text-amber-800 bg-amber-500/10 border border-amber-500/25">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
-                内部授权放映 · 受限内容
-              </span>
+            <!-- Dynamic Cipher Expiry Card -->
+            <div class="p-4 rounded-2xl bg-amber-950/[0.03] border border-amber-600/15 flex items-start gap-3.5 shadow-xs">
+              <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center flex-shrink-0 text-amber-800">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-amber-700">
+                  <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="space-y-1 text-left flex-1">
+                <div class="flex items-center justify-between flex-wrap gap-1">
+                  <p class="text-xs font-bold text-amber-950">24小时动态轮换密钥</p>
+                  <span class="text-[9px] font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    每日 00:00 自动轮转
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
+                  为保护商业成片资产，放映密钥每 24 小时动态轮转。旧密钥失效后可随时免费重新提取。
+                </p>
+              </div>
             </div>
 
-            <h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              受保护放映厅
-            </h1>
-            <p class="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-              此母带作品处于私密评审或商业版权保护状态，请输入 6 位专属授权密钥解锁放映。
-            </p>
-          </div>
+            <!-- Form: 6-Cell Matrix Cipher Input & Master Unlock Button -->
+            <form @submit.prevent="verifyPassword" class="space-y-5">
+              <div class="space-y-2">
+                <label class="block text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500 text-center">
+                  请输入 6 位专属放映密钥
+                </label>
+                <div class="relative cursor-pointer" @click="focusPasswordInput">
+                  <!-- Hidden Real Input -->
+                  <input
+                    ref="inputPasswordRef"
+                    v-model="inputPassword"
+                    type="text"
+                    maxlength="6"
+                    autofocus
+                    :disabled="passwordLoading"
+                    class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20"
+                    style="text-transform: uppercase"
+                  />
+                  <!-- 6 Discrete Luxury PIN Cells -->
+                  <div class="flex items-center justify-center gap-2 sm:gap-2.5">
+                    <div
+                      v-for="idx in 6"
+                      :key="idx"
+                      class="w-11 sm:w-13 h-14 sm:h-16 rounded-2xl flex items-center justify-center font-mono text-xl sm:text-2xl font-black transition-all duration-200 select-none"
+                      :class="[
+                        inputPassword.length === idx - 1
+                          ? 'border-2 border-amber-500 bg-white shadow-lg shadow-amber-500/20 ring-4 ring-amber-500/10 scale-105 text-amber-900'
+                          : inputPassword.length >= idx
+                            ? 'border-2 border-amber-400/80 bg-amber-50/70 text-amber-950 shadow-xs'
+                            : 'border border-slate-200 bg-slate-50/70 text-slate-300'
+                      ]"
+                    >
+                      <span v-if="inputPassword[idx - 1]">{{ inputPassword[idx - 1].toUpperCase() }}</span>
+                      <span v-else-if="inputPassword.length === idx - 1" class="w-2.5 h-0.5 bg-amber-500 animate-pulse" />
+                      <span v-else class="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <!-- Dynamic Cipher Notice -->
-          <div class="p-4 rounded-2xl bg-amber-500/[0.06] border border-amber-500/20 flex items-start gap-3">
-            <span class="text-lg flex-shrink-0 text-amber-700">⏱️</span>
-            <div class="space-y-0.5 text-left">
-              <p class="text-xs font-bold text-amber-900">24小时动态轮换密钥</p>
-              <p class="text-[11px] text-slate-600 leading-relaxed font-sans">
-                为保护商业成片资产，放映密钥每 24 小时（北京时间每天 00:00）动态轮转。旧密钥失效后可随时免费重新提取。
-              </p>
+              <!-- Password Error Toast -->
+              <Transition name="fade">
+                <div v-if="passwordError" class="text-xs text-rose-700 font-semibold text-center bg-rose-50 border border-rose-200/80 py-2.5 px-3.5 rounded-xl flex items-center justify-center gap-2 shadow-xs">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-rose-600 flex-shrink-0">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                  </svg>
+                  <span>{{ passwordError }}</span>
+                </div>
+              </Transition>
+
+              <!-- Master Unlock Button -->
+              <button
+                type="submit"
+                class="xo-kinetic-btn w-full justify-center py-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 text-white shadow-xl shadow-amber-700/25 active:scale-[0.99] transition-all disabled:opacity-50 group"
+                style="background: linear-gradient(135deg, #d97706 0%, #b45309 50%, #92400e 100%);"
+                :disabled="passwordLoading || !inputPassword.trim()"
+              >
+                <span v-if="passwordLoading" class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-amber-200 group-hover:scale-110 transition-transform">
+                  <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ passwordLoading ? '正在核对放映授权...' : '验证密钥 · 开启母带放映厅' }}</span>
+              </button>
+            </form>
+
+            <!-- Action Channels for Getting Password -->
+            <div class="pt-1 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs">
+              <NuxtLink
+                :to="`/projects/${slug}/get`"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/10 text-amber-900 border border-amber-500/30 hover:bg-amber-500/20 font-bold transition-all w-full sm:w-auto justify-center shadow-xs group"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-amber-700 group-hover:rotate-12 transition-transform">
+                  <path fill-rule="evenodd" d="M8 7a5 5 0 113.61 4.804l-1.903 1.903A1 1 0 019 14H8v1a1 1 0 01-1 1H6v1a1 1 0 01-1 1H3a1 1 0 01-1-1v-2a1 1 0 01.293-.707l5.903-5.903A5 5 0 018 7zm2-2a2 2 0 100 4 2 2 0 000-4z" clip-rule="evenodd" />
+                </svg>
+                <span>在线直接获取密钥</span>
+              </NuxtLink>
+              <NuxtLink
+                :to="`/projects/${slug}/request`"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-800 border border-slate-200/90 hover:bg-slate-50 font-semibold transition-all w-full sm:w-auto justify-center shadow-xs group"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-slate-500 group-hover:text-slate-800 transition-colors">
+                  <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V7.414A2 2 0 0017.414 6L14 2.586A2 2 0 0012.586 2H4zm2 7a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm0 4a1 1 0 011-1h3a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>商业观摩申请表</span>
+              </NuxtLink>
             </div>
-          </div>
 
-          <form @submit.prevent="verifyPassword" class="space-y-4">
-            <div class="relative">
-              <input
-                v-model="inputPassword"
-                type="text"
-                class="form-input text-center font-mono font-bold text-lg tracking-[0.35em] py-3.5 rounded-2xl w-full bg-slate-50 border-slate-300 focus:bg-white focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15 transition-all uppercase placeholder:normal-case placeholder:tracking-normal placeholder:font-sans placeholder:text-xs placeholder:text-slate-400"
-                placeholder="输入 6 位放映密钥"
-                required
-                autofocus
-                :disabled="passwordLoading"
-                maxlength="6"
-                style="text-transform: uppercase"
-              />
+            <div class="pt-3 border-t border-black/[0.06] text-center">
+              <NuxtLink to="/projects" class="text-xs font-semibold text-slate-500 hover:text-amber-800 transition-colors inline-flex items-center gap-1.5 group">
+                <span class="group-hover:-translate-x-1 transition-transform">&larr;</span>
+                <span>返回公开作品集列表</span>
+              </NuxtLink>
             </div>
-            
-            <button
-              type="submit"
-              class="xo-kinetic-btn w-full justify-center py-3.5 rounded-2xl text-xs font-bold flex items-center gap-2 text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-800 hover:to-amber-800 shadow-lg shadow-amber-700/20 active:scale-[0.99] transition-all disabled:opacity-50"
-              :disabled="passwordLoading"
-            >
-              <span v-if="passwordLoading" class="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/>
-              </svg>
-              <span>{{ passwordLoading ? '正在核对密钥...' : '验证密钥并进入放映厅' }}</span>
-            </button>
-          </form>
-
-          <p v-if="passwordError" class="text-xs text-rose-600 font-semibold text-center bg-rose-50 border border-rose-200 py-2 px-3 rounded-xl">
-            ❌ {{ passwordError }}
-          </p>
-
-          <!-- Action buttons for getting password -->
-          <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs">
-            <NuxtLink
-              :to="`/projects/${slug}/get`"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-800 border border-amber-500/20 hover:bg-amber-500/20 font-bold transition-colors w-full sm:w-auto justify-center"
-            >
-              <span>🔑</span>
-              <span>在线直接获取密钥</span>
-            </NuxtLink>
-            <NuxtLink
-              :to="`/projects/${slug}/request`"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/[0.03] text-slate-700 border border-black/5 hover:bg-black/[0.06] font-semibold transition-colors w-full sm:w-auto justify-center"
-            >
-              <span>📝</span>
-              <span>商业观摩申请表</span>
-            </NuxtLink>
-          </div>
-
-          <div class="pt-3 border-t border-black/[0.05] text-center">
-            <NuxtLink to="/projects" class="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors inline-flex items-center gap-1">
-              <span>&larr;</span>
-              <span>返回公开作品集列表</span>
-            </NuxtLink>
           </div>
         </div>
       </Transition>
@@ -1279,6 +1345,10 @@ const { data: unlockStatus } = useFetch<any>(() => `/api/projects/${currentSlug.
 
 const isUnlocked = ref(!!(unlockStatus.value?.unlocked))
 const inputPassword = ref('')
+const inputPasswordRef = ref<HTMLInputElement | null>(null)
+const focusPasswordInput = () => {
+  inputPasswordRef.value?.focus()
+}
 const passwordError = ref<string>('')
 const passwordLoading = ref(false)
 
