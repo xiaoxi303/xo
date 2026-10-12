@@ -929,8 +929,34 @@
                       </div>
                     </div>
 
-                    <!-- Status Pill -->
-                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <!-- Status Pill & Quick Delivery Actions -->
+                    <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                      <!-- One-Click Copy & Email Buttons if converted or has deliverySuffix -->
+                      <template v-if="b.status === 'converted' || b.deliverySuffix">
+                        <button
+                          type="button"
+                          @click.stop="copyBookingDeliveryCredentials(b)"
+                          class="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-500/10 text-amber-900 border border-amber-500/30 hover:bg-amber-500/20 active:scale-95 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                          title="一键复制交付地址和提取密钥（包含格式化凭证说明）"
+                        >
+                          <span>📋</span>
+                          <span>一键复制交付凭证</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          @click.stop="sendBookingDeliveryEmail(b)"
+                          :disabled="sendingDeliveryEmailId === b.id"
+                          class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-500/10 text-emerald-800 border border-emerald-500/30 hover:bg-emerald-500/20 active:scale-95 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                          :title="b.email ? `发送交付地址与密钥至 ${b.email}` : '该预约未填写邮箱'"
+                        >
+                          <span v-if="sendingDeliveryEmailId === b.id" class="animate-spin text-xs">⏳</span>
+                          <span v-else>📧</span>
+                          <span>{{ b.emailSent ? '重发交付邮件' : '发送交付邮件' }}</span>
+                        </button>
+                      </template>
+
+                      <!-- Status Badge -->
                       <span
                         class="text-xs font-mono font-bold px-3 py-1 rounded-full flex items-center gap-1.5"
                         :class="[
@@ -994,19 +1020,25 @@
 
                   <!-- CONNECTED EXCLUSIVE DELIVERY CARD (打通专属交付展现) -->
                   <div v-if="b.status === 'converted' || b.deliverySuffix" class="p-4 rounded-xl bg-gradient-to-r from-indigo-50/80 via-purple-50/50 to-indigo-50/80 border border-indigo-200/80 space-y-3">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div class="flex items-center gap-2">
                         <span class="text-base">🚀</span>
-                        <span class="text-xs font-bold text-indigo-900">已打通专属交付放映室</span>
+                        <span class="text-xs font-bold text-indigo-900">已打通专属母带交付放映室</span>
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-600 text-white font-bold">CONNECTED</span>
+                        <span v-if="b.emailSent" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center gap-1">
+                          <span>✓ 邮件已触达</span>
+                          <span v-if="b.emailSentAt" class="opacity-75">({{ formatBookingDate(b.emailSentAt) }})</span>
+                        </span>
                       </div>
-                      <button
-                        type="button"
-                        @click="jumpToDeliveryLibrary(b)"
-                        class="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 hover:underline cursor-pointer"
-                      >
-                        <span>进入专属交付素材库上传视频 →</span>
-                      </button>
+                      <div class="flex items-center gap-3">
+                        <button
+                          type="button"
+                          @click="jumpToDeliveryLibrary(b)"
+                          class="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 hover:underline cursor-pointer"
+                        >
+                          <span>进入专属交付素材库上传视频 →</span>
+                        </button>
+                      </div>
                     </div>
 
                     <div class="grid sm:grid-cols-2 gap-3 text-xs">
@@ -1015,7 +1047,10 @@
                           <span class="text-slate-400">交付地址:</span>
                           <span class="font-mono font-bold text-indigo-800 truncate">/delivery/{{ b.deliverySuffix }}</span>
                         </div>
-                        <button type="button" @click="copyDeliveryLinkForBooking(b.deliverySuffix)" class="text-[10px] px-2 py-1 rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 font-bold shrink-0 ml-2">复制完整链接</button>
+                        <div class="flex items-center gap-1 shrink-0 ml-2">
+                          <NuxtLink :to="`/delivery/${b.deliverySuffix}`" target="_blank" class="text-[10px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">打开 ↗</NuxtLink>
+                          <button type="button" @click="copyDeliveryLinkForBooking(b.deliverySuffix)" class="text-[10px] px-2 py-1 rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 font-bold">复制链接</button>
+                        </div>
                       </div>
 
                       <div class="flex items-center justify-between p-2.5 rounded-lg bg-white/90 border border-indigo-100">
@@ -1024,6 +1059,33 @@
                           <span class="font-mono font-bold text-indigo-800 truncate">{{ b.deliveryKey || '已加密保存' }}</span>
                         </div>
                         <button v-if="b.deliveryKey" type="button" @click="copyBookingText(b.deliveryKey, '交付密钥')" class="text-[10px] px-2 py-1 rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 font-bold shrink-0 ml-2">复制密钥</button>
+                      </div>
+                    </div>
+
+                    <!-- Action Bar inside Card -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-indigo-100/60">
+                      <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                        <span class="text-amber-600">💡</span>
+                        <span>注册账号登录将在其【客户控制中心】自动展示此放映室；未注册客户可通过邮件发送。</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          @click="copyBookingDeliveryCredentials(b)"
+                          class="px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                        >
+                          <span>📋 一键复制交付凭证</span>
+                        </button>
+                        <button
+                          type="button"
+                          @click="sendBookingDeliveryEmail(b)"
+                          :disabled="sendingDeliveryEmailId === b.id"
+                          class="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 transition-all flex items-center gap-1 shadow-xs cursor-pointer disabled:opacity-50"
+                        >
+                          <span v-if="sendingDeliveryEmailId === b.id" class="animate-spin text-xs">⏳</span>
+                          <span v-else>📧</span>
+                          <span>{{ b.emailSent ? '重发交付通知邮件' : '发送交付通知邮件' }}</span>
+                        </button>
                       </div>
                     </div>
                   </div>

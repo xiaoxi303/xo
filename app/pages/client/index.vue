@@ -115,39 +115,174 @@
           </div>
         </div>
 
-        <!-- Dedicated delivery credentials -->
-        <section class="glass-card p-6 sm:p-7 rounded-[28px] border border-emerald-900/10 shadow-[0_18px_50px_rgba(15,118,110,0.07)] reveal">
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-            <div class="space-y-2 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="section-label text-emerald-800">专属交付节点</span>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">已绑定账号</span>
+        <!-- Dedicated delivery credentials (电影级母带专属交付放映室) -->
+        <section class="glass-card p-6 sm:p-8 rounded-[32px] border border-amber-900/15 shadow-[0_20px_60px_rgba(180,120,40,0.06)] relative overflow-hidden reveal">
+          <!-- Top subtle gold glow accent -->
+          <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700" />
+          <div class="absolute -right-20 -top-20 w-80 h-80 bg-gradient-to-br from-amber-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+          <div class="relative z-10 space-y-6">
+            <!-- Header Row -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="space-y-1.5">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="section-label">专属交付放映室</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-500/20">
+                    Hollywood DCI Suite
+                  </span>
+                  <span v-if="dashboardData.delivery?.booking" class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider bg-indigo-500/10 text-indigo-700 border border-indigo-500/20 flex items-center gap-1">
+                    <span>⚡ 已关联商业排期工程</span>
+                  </span>
+                  <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    端到端会话加密
+                  </span>
+                </div>
+                <h2 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-[#121316]">
+                  我的专属母带交付放映厅
+                </h2>
+                <p class="text-xs leading-relaxed text-[#5e6066] max-w-2xl">
+                  您的影视制作项目已配置专用母带播放放映室。系统支持双屏杜比视界 / DCI-P3 高色域在线校对及云端高码率提取。
+                </p>
               </div>
-              <h2 class="font-display text-xl sm:text-2xl font-bold text-[#121316]">我的专属交付入口</h2>
-              <p class="text-xs leading-relaxed text-[#5e6066] max-w-2xl">把这个入口和一次性查看密钥交给对应客户。系统只展示已授权项目，首次越权会警告，再次越权将拉黑账号且费用不退。</p>
-              <div class="flex flex-wrap items-center gap-2 pt-1">
-                <code class="px-3 py-2 rounded-xl bg-black/[0.035] border border-black/[0.06] text-[11px] font-mono text-[#121316]">/delivery/{{ dashboardData.profile.deliverySuffix || '生成中' }}</code>
-                <NuxtLink v-if="dashboardData.profile.deliverySuffix" :to="`/delivery/${dashboardData.profile.deliverySuffix}`" target="_blank" class="text-[11px] font-bold text-emerald-800 hover:underline">打开交付页 ↗</NuxtLink>
+
+              <!-- Quick Action Link -->
+              <div class="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
+                <NuxtLink
+                  v-if="dashboardData.profile.deliverySuffix"
+                  :to="`/delivery/${dashboardData.profile.deliverySuffix}`"
+                  target="_blank"
+                  class="btn-bronze text-xs py-2.5 px-4 rounded-2xl shadow-sm flex items-center gap-1.5"
+                >
+                  <span>🎬 立即进入交付放映室 ↗</span>
+                </NuxtLink>
               </div>
             </div>
 
-            <div class="w-full lg:w-[360px] shrink-0 space-y-3">
-              <div class="flex items-center justify-between gap-3 p-3 rounded-2xl bg-emerald-500/[0.06] border border-emerald-500/15">
-                <div class="min-w-0">
-                  <p class="text-[9px] font-mono font-bold tracking-wider text-emerald-800 uppercase">查看密钥</p>
-                  <p class="mt-1 text-xs font-mono font-bold tracking-widest text-[#121316] truncate">{{ deliveryKeyDraft || `•••••••••••• 末四位 ${dashboardData.profile.deliveryKeyHint || '----'}` }}</p>
+            <!-- Linked Booking Project Card (if converted from booking) -->
+            <div v-if="dashboardData.delivery?.booking" class="p-4 rounded-2xl bg-black/[0.02] border border-black/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div class="space-y-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold text-[#121316]">
+                    {{ dashboardData.delivery.booking.company ? `${dashboardData.delivery.booking.company} · ` : '' }}{{ dashboardData.delivery.booking.name }}
+                  </span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-900 font-bold">
+                    {{ dashboardData.delivery.booking.serviceType === 'tvc' ? '商业TVC' : dashboardData.delivery.booking.serviceType === 'color' ? '院线/短片调色' : '影视定制' }}
+                  </span>
+                  <span v-if="dashboardData.delivery.booking.timeline" class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-bold">
+                    交期: {{ dashboardData.delivery.booking.timeline === 'urgent' ? '⚡ 加急排期' : '标准排期' }}
+                  </span>
                 </div>
-                <button v-if="deliveryKeyDraft" type="button" class="text-[10px] font-bold text-emerald-800 hover:underline shrink-0" @click="copyDeliveryKey">复制</button>
+                <p v-if="dashboardData.delivery.booking.description" class="text-xs text-[#5e6066] line-clamp-1">
+                  {{ dashboardData.delivery.booking.description }}
+                </p>
               </div>
-              <div class="flex gap-2">
-                <button type="button" class="flex-1 py-2.5 px-3 rounded-xl text-[11px] font-bold text-white bg-emerald-800 hover:bg-emerald-900 transition-colors disabled:opacity-50" :disabled="deliveryGenerating" @click="generateDeliveryKey">
-                  <span v-if="deliveryGenerating">正在生成…</span>
-                  <span v-else>{{ deliveryKeyDraft ? '重新轮换密钥' : '生成我的查看密钥' }}</span>
-                </button>
-                <button v-if="deliveryKeyDraft" type="button" class="py-2.5 px-3 rounded-xl text-[11px] font-bold border border-black/10 hover:bg-black/[0.04]" @click="deliveryKeyDraft = ''">隐藏</button>
+              <div class="text-[11px] font-mono text-slate-400 shrink-0">
+                关联单号: {{ dashboardData.delivery.booking.id }}
               </div>
-              <p v-if="deliveryKeyDraft" class="text-[10px] leading-relaxed text-amber-700">完整密钥只在本次显示。轮换后旧密钥立即失效，请先复制保存。</p>
             </div>
+
+            <!-- 2 Key Credentials Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Card 1: 专属交付地址 -->
+              <div class="p-4 sm:p-5 rounded-2xl bg-white/90 border border-black/[0.08] shadow-xs flex flex-col justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">专属交付地址 / SUITE URL</span>
+                    <span class="text-[10px] text-emerald-700 font-mono font-bold">● 在线就绪</span>
+                  </div>
+                  <div class="font-mono text-sm font-bold text-[#121316] break-all select-all py-1">
+                    /delivery/{{ dashboardData.profile.deliverySuffix || '生成中' }}
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04]">
+                  <span class="text-[11px] text-[#82848c]">浏览器独立防泄密节点</span>
+                  <div class="flex items-center gap-2">
+                    <NuxtLink
+                      v-if="dashboardData.profile.deliverySuffix"
+                      :to="`/delivery/${dashboardData.profile.deliverySuffix}`"
+                      target="_blank"
+                      class="text-xs font-bold text-amber-800 hover:text-amber-900 hover:underline"
+                    >
+                      打开 ↗
+                    </NuxtLink>
+                    <button
+                      type="button"
+                      @click="copyClientDeliveryAddress"
+                      class="text-xs font-bold px-3 py-1 rounded-xl bg-black/[0.05] hover:bg-black/10 text-[#121316] transition-colors cursor-pointer"
+                    >
+                      复制地址
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2: 专属提取密钥 -->
+              <div class="p-4 sm:p-5 rounded-2xl bg-white/90 border border-black/[0.08] shadow-xs flex flex-col justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">母带提取密钥 / SECRET KEY</span>
+                    <button
+                      type="button"
+                      @click="showDeliveryKey = !showDeliveryKey"
+                      class="text-[11px] text-amber-800 hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <span>{{ showDeliveryKey ? '🙈 隐藏' : '👁️ 显示密钥' }}</span>
+                    </button>
+                  </div>
+                  <div class="font-mono text-sm font-bold text-[#121316] tracking-wider break-all py-1 select-all">
+                    <span v-if="effectiveDeliveryKey">
+                      {{ showDeliveryKey ? effectiveDeliveryKey : `•••••••••••••••• 末四位 ${effectiveDeliveryKey.slice(-4)}` }}
+                    </span>
+                    <span v-else class="text-slate-400 font-normal">
+                      •••••••••••• 末四位 {{ dashboardData.profile.deliveryKeyHint || '----' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04]">
+                  <span class="text-[11px] text-[#82848c]">机密提取凭证，切勿泄露</span>
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      @click="generateDeliveryKey"
+                      :disabled="deliveryGenerating"
+                      class="text-xs text-[#82848c] hover:text-[#121316] underline disabled:opacity-50 cursor-pointer"
+                      title="旧密钥将立即作废并生成新密钥"
+                    >
+                      {{ deliveryGenerating ? '轮换中...' : '轮换密钥' }}
+                    </button>
+                    <button
+                      type="button"
+                      @click="copyClientDeliveryKey"
+                      class="text-xs font-bold px-3 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 transition-colors cursor-pointer"
+                    >
+                      复制密钥
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Master Bottom Action Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-black/[0.06]">
+              <div class="text-xs text-[#5e6066] flex items-center gap-1.5">
+                <span class="text-amber-700">🔒</span>
+                <span>放映室受会话指纹与物理隔离保护。复制凭证可直接发送给合作方审片人员。</span>
+              </div>
+
+              <div class="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  type="button"
+                  @click="copyClientDeliveryCredentials"
+                  class="btn-bronze text-xs py-2 px-4 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>📋 一键复制交付凭证 (地址 + 密钥)</span>
+                </button>
+              </div>
+            </div>
+
           </div>
         </section>
 

@@ -1,6 +1,9 @@
+import fs from 'node:fs'
+import { defineEventHandler, getCookie, createError } from 'h3'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../utils/auth'
-import { dbGetProjectsRaw, dbGetPasswordRequests, dbGetUsers } from '../../utils/db'
+import { dbGetProjectsRaw, dbGetPasswordRequests, dbGetUsers, dbGetUserRecord } from '../../utils/db'
 import { getDailyPassword } from '../../utils/password-utils'
+import { getRuntimeDataPath } from '../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
@@ -15,7 +18,7 @@ export default defineEventHandler(async (event) => {
 
   const username = session.username
 
-  // 1. Get client user profile
+  // 1. Get client user profile and raw record
   const allUsers = await dbGetUsers(event).catch(() => [])
   const foundUser = allUsers.find((u: any) => u.username === username)
 
@@ -23,10 +26,52 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: '客户账号不存在。' })
   }
 
+  const rawUserRecord = await dbGetUserRecord(event, username).catch(() => null)
   const { password: _p, ...clientProfile } = foundUser
   const clientEmail = (clientProfile.email || '').trim().toLowerCase()
+  const clientPhone = (clientProfile.phone || '').trim()
 
-  // 2. Fetch all password requests & projects
+  // 2. Fetch bookings to match any converted delivery for this user
+  const bookingsPath = getRuntimeDataPath('bookings.json')
+  let bookings: any[] = []
+  try {
+    if (fs.existsSync(bookingsPath)) {
+      bookings = JSON.parse(fs.readFileSync(bookingsPath, 'utf-8'))
+    }
+  } catch {
+    bookings = []
+  }
+
+  const clientSuffix = (rawUserRecord?.deliverySuffix || clientProfile.deliverySuffix || '').trim().toLowerCase()
+  const matchingBooking = bookings.find((b: any) => {
+    if (clientSuffix && String(b.deliverySuffix || '').trim().toLowerCase() === clientSuffix) return true
+    if (clientEmail && String(b.email || '').trim().toLowerCase() === clientEmail) return true
+    if (clientPhone && String(b.phone || '').trim() === clientPhone) return true
+    return false
+  })
+
+  const deliverySuffix = clientSuffix || matchingBooking?.deliverySuffix || ''
+  const deliveryKey = matchingBooking?.deliveryKey || rawUserRecord?.deliveryPlainKey || rawUserRecord?.deliveryKey || ''
+
+  const deliveryInfo = deliverySuffix ? {
+    suffix: deliverySuffix,
+    key: deliveryKey,
+    hint: rawUserRecord?.deliveryKeyHint || (deliveryKey ? deliveryKey.slice(-4) : ''),
+    hasAccess: Boolean(deliveryKey),
+    booking: matchingBooking ? {
+      id: matchingBooking.id,
+      name: matchingBooking.name,
+      company: matchingBooking.company,
+      serviceType: matchingBooking.serviceType,
+      budget: matchingBooking.budget,
+      timeline: matchingBooking.timeline,
+      description: matchingBooking.description,
+      status: matchingBooking.status,
+      convertedAt: matchingBooking.convertedAt || matchingBooking.createdAt
+    } : null
+  } : null
+
+  // 3. Fetch all password requests & projects
   const allRequests = await dbGetPasswordRequests(event).catch(() => [])
   const allProjects = await dbGetProjectsRaw(event).catch(() => [])
 
@@ -58,7 +103,7 @@ export default defineEventHandler(async (event) => {
     }
   })
 
-  // 3. Build allowed projects list STRICTLY from admin User Management selection (clientProfile.allowedProjects)
+  // 4. Build allowed projects list STRICTLY from admin User Management selection (clientProfile.allowedProjects)
   const allowedSlugsSet = new Set<string>(
     (clientProfile.allowedProjects || '')
       .split(',')
@@ -85,7 +130,12 @@ export default defineEventHandler(async (event) => {
     })
 
   return {
-    profile: clientProfile,
+    profile: {
+      ...clientProfile,
+      deliverySuffix,
+      deliveryKey
+    },
+    delivery: deliveryInfo,
     allowedProjects,
     requests: enrichedRequests
   }

@@ -253,3 +253,168 @@ export async function sendVerificationCodeEmail(
   }
 }
 
+export async function sendDeliveryCredentialsEmail(
+  event: H3Event,
+  options: {
+    toEmail: string
+    clientName: string
+    company?: string
+    deliverySuffix: string
+    deliveryKey: string
+    serviceType?: string
+    description?: string
+  }
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const config = await dbGetSiteConfig(event)
+    const emailSettings = config?.emailSettings
+
+    if (!emailSettings || !emailSettings.enabled) {
+      return { success: false, message: '系统未开启邮件通知功能，请在后台设置中启用 SMTP 邮件通知。' }
+    }
+
+    const smtpPass = process.env.SMTP_PASS || emailSettings.smtpPass
+    if (!emailSettings.smtpHost || !emailSettings.smtpUser || !smtpPass) {
+      return { success: false, message: '系统 SMTP 发件参数未配置完整，请先配置 SMTP 账号与授权码。' }
+    }
+
+    const { toEmail, clientName, company, deliverySuffix, deliveryKey, serviceType, description } = options
+    if (!toEmail || !toEmail.includes('@')) {
+      return { success: false, message: '无效的电子邮箱地址。' }
+    }
+
+    const siteUrl = (config?.siteInfo?.siteUrl || 'https://xo.xoxox.bond').replace(/\/$/, '')
+    const deliveryUrl = `${siteUrl}/delivery/${deliverySuffix}`
+    const logoImgSrc = `${siteUrl}/logo.png?v=312k_v4`
+    const senderName = emailSettings.senderName || 'Xo Studio'
+    const subject = `【${senderName}】您的专属母带交付放映室凭证已就绪 (${clientName}${company ? ` · ${company}` : ''})`
+
+    const transporter = nodemailer.createTransport({
+      host: emailSettings.smtpHost,
+      port: Number(emailSettings.smtpPort) || 465,
+      secure: emailSettings.smtpSecure !== false,
+      auth: {
+        user: emailSettings.smtpUser,
+        pass: smtpPass
+      }
+    })
+
+    const serviceNameMap: Record<string, string> = {
+      tvc: '商业 TVC 广告后期',
+      color: '电影 / 纪录片调色',
+      short: '社交短视频制作',
+      audio: '音效 / 配乐设计',
+      other: '定制影视合作'
+    }
+    const serviceTitle = (serviceType && serviceNameMap[serviceType]) || serviceType || '专属项目制作交付'
+
+    const html = `
+      <div style="background-color: #0b0c0e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 50px 20px; color: #e2e8f0; line-height: 1.6;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #121316; border-radius: 24px; border: 1px solid rgba(217, 119, 6, 0.25); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); overflow: hidden;">
+          
+          <!-- Top Accent Gold / Amber Line -->
+          <div style="height: 6px; background: linear-gradient(90deg, #d97706, #f59e0b, #b45309);"></div>
+          
+          <!-- Brand Header -->
+          <div style="padding: 36px 40px 24px 40px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: radial-gradient(ellipse at top, rgba(217,119,6,0.15) 0%, rgba(18,19,22,0) 70%);">
+            <img src="${logoImgSrc}" alt="${senderName} Logo" style="height: 48px; width: auto; max-width: 220px; object-fit: contain; margin: 0 auto 12px auto; display: block;" />
+            <h1 style="color: #ffffff; margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: normal; letter-spacing: 0.1em; line-height: 1.2; text-transform: uppercase;">${senderName}</h1>
+            <p style="color: #f59e0b; margin: 6px 0 0 0; font-family: monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: bold;">Exclusive Cinema Delivery Suite</p>
+            <div style="width: 32px; height: 1.5px; background: linear-gradient(90deg, #d97706, #f59e0b); margin: 16px auto 0 auto;"></div>
+          </div>
+
+          <!-- Body Content -->
+          <div style="padding: 36px 40px;">
+            <p style="font-size: 16px; margin-top: 0; color: #ffffff; font-weight: 600;">尊敬的 ${clientName} 老师：</p>
+            <p style="font-size: 14px; color: #94a3b8; margin-bottom: 24px; line-height: 1.7;">
+              您在 <strong>${senderName}</strong> 的定制影视项目已生成专属母带交付放映室。放映室支持 DCI-P3 / HDR 电影级标准检视，相关交付地址与提取密钥如下：
+            </p>
+            
+            <!-- Metadata Info list -->
+            <div style="background-color: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 26px;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0; width: 28%;">项目客户</td>
+                  <td style="color: #f8fafc; padding: 6px 0; font-weight: 600;">${clientName}${company ? ` · ${company}` : ''}</td>
+                </tr>
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0;">交付服务</td>
+                  <td style="color: #f59e0b; padding: 6px 0; font-weight: 600;">${serviceTitle}</td>
+                </tr>
+                ${description ? `
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0; vertical-align: top;">需求简要</td>
+                  <td style="color: #cbd5e1; padding: 6px 0; font-size: 12px; line-height: 1.5;">${description.slice(0, 100)}${description.length > 100 ? '...' : ''}</td>
+                </tr>
+                ` : ''}
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0;">放映室状态</td>
+                  <td style="color: #10b981; padding: 6px 0; font-weight: bold;">🟢 专属节点已就绪 (Active)</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Ticket Card for Delivery Key -->
+            <div style="background: rgba(217, 119, 6, 0.06); border: 1.5px dashed rgba(245, 158, 11, 0.5); border-radius: 18px; padding: 26px 20px; text-align: center; margin: 26px 0;">
+              <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: #f59e0b; font-weight: bold; display: block; margin-bottom: 10px;">
+                🔑 专属提取密钥 / EXTRACTION SECRET KEY
+              </span>
+              <strong style="font-size: 26px; font-family: 'Courier New', Courier, monospace; color: #ffffff; letter-spacing: 0.15em; word-break: break-all; display: inline-block;">
+                ${deliveryKey || '（请使用您的注册账户登录查看）'}
+              </strong>
+              <div style="margin-top: 10px; font-size: 11px; color: #94a3b8;">
+                ⚠️ 提取密钥为机密凭证，用于解锁您的专属母带播放与下载权限
+              </div>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 32px 0 20px 0;">
+              <a href="${deliveryUrl}" target="_blank" style="background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 15px 44px; border-radius: 14px; display: inline-block; box-shadow: 0 8px 24px rgba(217, 119, 6, 0.35); letter-spacing: 0.06em;">
+                进入专属交付放映室 &rarr;
+              </a>
+              <div style="margin-top: 14px; font-size: 11px; color: #64748b; font-family: monospace;">
+                直接访问链接: <a href="${deliveryUrl}" style="color: #f59e0b; text-decoration: underline;">${deliveryUrl}</a>
+              </div>
+            </div>
+
+            <!-- Client Account Tip -->
+            <div style="background-color: rgba(16, 185, 129, 0.06); border-radius: 12px; padding: 16px 20px; border: 1px solid rgba(16, 185, 129, 0.15); margin-top: 26px;">
+              <p style="font-size: 12px; color: #a7f3d0; margin: 0; line-height: 1.6;">
+                💡 <strong>温馨提示：</strong>如果您已在本平台注册或登录了客户账号（邮箱与本邮箱一致），登录后在【客户控制中心】即可随时直接查看此放映室地址与密钥，无需重复查找邮件。
+              </p>
+            </div>
+
+            <!-- Footer note -->
+            <div style="margin-top: 35px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 22px; text-align: center;">
+              <p style="font-size: 11px; line-height: 1.6; color: #64748b; margin: 0;">
+                本邮件由 ${senderName} 交付系统自动发出，请勿直接回复。<br>
+                如需技术协助或调整排期，请通过官方微信或主理人电话直接联系。
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Footer -->
+          <div style="background-color: #0b0c0e; padding: 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+            <p style="font-size: 9px; color: #64748b; margin: 0; font-family: monospace; text-transform: uppercase; letter-spacing: 0.15em;">
+              © ${new Date().getFullYear()} ${senderName} · DCI MASTER CINEMA SUITE
+            </p>
+          </div>
+
+        </div>
+      </div>
+    `
+
+    await transporter.sendMail({
+      from: `"${senderName}" <${emailSettings.senderEmail || emailSettings.smtpUser}>`,
+      to: toEmail,
+      subject,
+      html
+    })
+
+    console.log(`Successfully sent delivery credentials email to: ${toEmail} for suffix: ${deliverySuffix}`)
+    return { success: true }
+  } catch (error: any) {
+    console.error('Failed to send delivery credentials email:', error)
+    return { success: false, message: error.message || '邮件发送失败，请检查 SMTP 配置。' }
+  }
+}

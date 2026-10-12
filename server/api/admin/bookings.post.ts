@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { defineEventHandler, getCookie, readBody, createError } from 'h3'
 import { SESSION_COOKIE, validateSession } from '../../utils/auth'
 import { getRuntimeDataPath } from '../../utils/storage'
+import { sendDeliveryCredentialsEmail } from '../../utils/email'
 import {
   dbGetUsers,
   dbGetUserRecord,
@@ -51,6 +52,29 @@ export default defineEventHandler(async (event) => {
       createdAt: new Date().toISOString()
     }
     bookings.unshift(sampleBooking)
+    
+    // Auto send email notification if client email exists
+    let autoEmailRes: any = null
+    if (booking.email && booking.email.includes('@')) {
+      try {
+        autoEmailRes = await sendDeliveryCredentialsEmail(event, {
+          toEmail: booking.email,
+          clientName: booking.name || '客户',
+          company: booking.company,
+          deliverySuffix: booking.deliverySuffix,
+          deliveryKey: booking.deliveryKey,
+          serviceType: booking.serviceType,
+          description: booking.description
+        })
+        if (autoEmailRes.success) {
+          booking.emailSent = true
+          booking.emailSentAt = new Date().toISOString()
+        }
+      } catch (e: any) {
+        console.warn('Auto send delivery email on convert failed:', e.message)
+      }
+    }
+
     fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
     return { success: true, booking: sampleBooking }
   }
@@ -172,7 +196,44 @@ export default defineEventHandler(async (event) => {
       booking,
       deliverySuffix: booking.deliverySuffix,
       deliveryKey: booking.deliveryKey,
-      deliveryUrl: `/delivery/${encodeURIComponent(booking.deliverySuffix)}`
+      deliveryUrl: `/delivery/${encodeURIComponent(booking.deliverySuffix)}`,
+      emailResult: autoEmailRes
+    }
+  }
+
+  
+  // ACTION: Send Delivery Credentials Email (手动发送/重发交付凭证邮件)
+  if (action === 'send-delivery-email') {
+    if (!booking.email || !booking.email.includes('@')) {
+      throw createError({ statusCode: 400, statusMessage: '该预约记录未填写有效的电子邮箱' })
+    }
+    if (!booking.deliverySuffix) {
+      throw createError({ statusCode: 400, statusMessage: '该预约尚未开通专属交付放映室，请先点击转专属交付' })
+    }
+
+    const emailRes = await sendDeliveryCredentialsEmail(event, {
+      toEmail: booking.email,
+      clientName: booking.name || '客户',
+      company: booking.company,
+      deliverySuffix: booking.deliverySuffix,
+      deliveryKey: booking.deliveryKey || '',
+      serviceType: booking.serviceType,
+      description: booking.description
+    })
+
+    if (!emailRes.success) {
+      throw createError({ statusCode: 500, statusMessage: emailRes.message || '邮件发送失败，请检查后台 SMTP 邮件通知配置' })
+    }
+
+    booking.emailSent = true
+    booking.emailSentAt = new Date().toISOString()
+    booking.updatedAt = new Date().toISOString()
+    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+
+    return {
+      success: true,
+      message: `已成功发送交付凭证邮件至 ${booking.email}`,
+      emailSentAt: booking.emailSentAt
     }
   }
 

@@ -582,7 +582,8 @@ export async function dbEnsureUserDeliveryCredentials(event: H3Event, user: any)
           if (!currentHash) {
             users[idx].deliveryKeyHash = credentials.deliveryKeyHash
             users[idx].deliveryKeyHint = credentials.deliveryKeyHint
-            delete users[idx].deliveryKey
+            users[idx].deliveryPlainKey = String(data.deliveryKey)
+        delete users[idx].deliveryKey
           }
           fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
         }
@@ -1434,6 +1435,7 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<DeliveryC
     deliverySuffix: credentials.deliverySuffix,
     deliveryKeyHash: credentials.deliveryKeyHash,
     deliveryKeyHint: credentials.deliveryKeyHint,
+    deliveryPlainKey: credentials.deliveryKey,
     warningCount: 0,
     isBlacklisted: false,
     blacklistReason: '',
