@@ -37,18 +37,6 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // If local file on server, strictly enforce path containment inside public directory
-  const publicDir = path.resolve(process.cwd(), 'public')
-  let inputPath = targetUrl
-  if (targetUrl.startsWith('/')) {
-    const normalized = path.normalize(targetUrl).replace(/^(\.\.[\/\\])+/, '')
-    const resolvedPath = path.resolve(publicDir, '.' + normalized)
-    if (!resolvedPath.startsWith(publicDir + path.sep) && resolvedPath !== publicDir) {
-      throw createError({ statusCode: 403, message: 'Forbidden: Invalid video path' })
-    }
-    inputPath = resolvedPath
-  }
-
   // Set response headers for video streaming
   setResponseHeader(event, 'Content-Type', 'video/mp4')
   setResponseHeader(event, 'Access-Control-Allow-Origin', '*')
@@ -69,6 +57,31 @@ export default defineEventHandler(async (event) => {
     setResponseHeader(event, 'Accept-Ranges', 'bytes')
     return upstream.body
   }
+
+  // Local file on server: strictly enforce path containment inside public directory
+  if (!targetUrl.startsWith('/')) {
+    throw createError({ statusCode: 400, message: 'Invalid video URL' })
+  }
+
+  const publicDir = path.resolve(process.cwd(), 'public')
+  const normalized = path.normalize(targetUrl).replace(/^(\.\.[\/\\])+/, '')
+  const resolvedPath = path.resolve(publicDir, '.' + normalized)
+  if (!resolvedPath.startsWith(publicDir + path.sep) && resolvedPath !== publicDir) {
+    throw createError({ statusCode: 403, message: 'Forbidden: Invalid video path' })
+  }
+
+  // Strictly enforce video extension
+  const ext = path.extname(resolvedPath).toLowerCase()
+  if (!['.mp4', '.webm', '.mov', '.m4v'].includes(ext)) {
+    throw createError({ statusCode: 403, message: 'Forbidden: Only video files can be streamed' })
+  }
+
+  // Ensure file exists
+  if (!fs.existsSync(resolvedPath) || fs.statSync(resolvedPath).isDirectory()) {
+    throw createError({ statusCode: 404, message: 'Video file not found' })
+  }
+
+  const inputPath = resolvedPath
 
   const siteConfig = await dbGetSiteConfig(event)
   const invisibleText = siteConfig?.watermark?.invisibleText || '© Xo Studio 2026'
