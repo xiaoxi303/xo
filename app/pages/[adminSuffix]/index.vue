@@ -68,35 +68,79 @@
       </div>
     </div>
     
-    <!-- 1. Auth check loading state (好莱坞级沉浸式母带通道握手) -->
-    <div v-if="isCheckingAuth" class="fixed inset-0 z-50 flex flex-col items-center justify-center select-none bg-[#0a0b0e] text-slate-200 overflow-hidden">
-      <!-- Ambient Studio Spotlight Lights -->
-      <div class="absolute w-[600px] h-[600px] bg-gradient-to-tr from-amber-600/15 via-purple-900/10 to-transparent blur-[120px] rounded-full pointer-events-none -top-20 -left-20 animate-pulse" />
-      <div class="absolute w-[500px] h-[500px] bg-gradient-to-br from-amber-500/10 via-cyan-950/15 to-transparent blur-[140px] rounded-full pointer-events-none -bottom-20 -right-20" />
-      
-      <div class="relative z-10 flex flex-col items-center space-y-6">
-        <div class="relative w-20 h-20 flex items-center justify-center">
-          <span class="absolute inset-0 rounded-full border-2 border-amber-500/20 border-t-amber-400 animate-spin" />
-          <span class="absolute inset-2 rounded-full border border-white/5 border-b-amber-500/40 animate-spin" style="animation-duration: 3s; animation-direction: reverse;" />
-          <div class="w-11 h-11 rounded-2xl bg-gradient-to-b from-stone-900 to-black border border-amber-500/40 shadow-2xl flex items-center justify-center">
-            <IconSax name="shield-security" :size="22" class="text-amber-400 animate-pulse" />
+    <!-- 1. Auth check loading state (好莱坞级沉浸式母带通道握手 & 纳米雷达光波扫描) -->
+    <div v-if="isCheckingAuth" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center select-none bg-[#08090c] text-slate-200 overflow-hidden">
+      <!-- Ambient Cinematic Studio Spotlight Auroras -->
+      <div class="absolute w-[700px] h-[700px] bg-gradient-to-tr from-amber-600/15 via-purple-900/10 to-transparent blur-[140px] rounded-full pointer-events-none -top-32 -left-32 animate-pulse" />
+      <div class="absolute w-[650px] h-[650px] bg-gradient-to-br from-amber-500/10 via-cyan-950/15 to-transparent blur-[150px] rounded-full pointer-events-none -bottom-32 -right-32" />
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(217,119,6,0.08)_0%,transparent_75%)] pointer-events-none" />
+
+      <!-- Optical Film Framing Corners (电影画面对焦框装饰) -->
+      <div class="absolute inset-8 sm:inset-14 pointer-events-none border border-white/[0.04] rounded-3xl">
+        <div class="absolute -top-1 -left-1 w-6 h-6 border-t-2 border-l-2 border-amber-500/60 rounded-tl-lg" />
+        <div class="absolute -top-1 -right-1 w-6 h-6 border-t-2 border-r-2 border-amber-500/60 rounded-tr-lg" />
+        <div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-2 border-l-2 border-amber-500/60 rounded-bl-lg" />
+        <div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-2 border-r-2 border-amber-500/60 rounded-br-lg" />
+        <!-- Corner Telemetry Text -->
+        <div class="absolute top-3 left-4 text-[9px] font-mono tracking-widest text-slate-500 uppercase flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+          <span>SYS.BOOT // COLOR SCIENCE ENGINE v4.2</span>
+        </div>
+        <div class="absolute bottom-3 right-4 text-[9px] font-mono tracking-widest text-slate-500 uppercase">
+          <span>ACEScct / Rec.709 D65 · 4K HDR</span>
+        </div>
+      </div>
+
+      <!-- Center Tech Core Unit -->
+      <div class="relative z-10 flex flex-col items-center space-y-7 max-w-sm w-full px-6">
+        <!-- Multi-Ring Gyroscope Spinner & Emblem Core -->
+        <div class="relative w-28 h-28 flex items-center justify-center">
+          <!-- Outer Radar Ring with Sweeper Beam -->
+          <div class="absolute inset-0 rounded-full border border-amber-500/20" />
+          <div class="absolute inset-0 rounded-full border border-transparent border-t-amber-400 animate-spin" style="animation-duration: 2.2s;" />
+          
+          <!-- Middle Reverse Orbit Ring -->
+          <div class="absolute inset-2.5 rounded-full border border-dashed border-white/10" />
+          <div class="absolute inset-2.5 rounded-full border border-transparent border-b-purple-400/60 animate-spin" style="animation-duration: 3.5s; animation-direction: reverse;" />
+          
+          <!-- Inner Glowing Aura Ring -->
+          <div class="absolute inset-5 rounded-full bg-amber-500/10 blur-md pointer-events-none animate-pulse" />
+          
+          <!-- Core Emblem Monogram -->
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-b from-stone-800 to-black border border-amber-500/50 shadow-[0_0_28px_rgba(217,119,6,0.35)] flex items-center justify-center relative group">
+            <IconSax name="shield-security" :size="26" class="text-amber-400 animate-pulse" />
           </div>
         </div>
 
-        <div class="text-center space-y-2">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 font-mono text-[10px] tracking-widest uppercase">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-            <span>SESSION HANDSHAKE · ACES 2026</span>
+        <!-- Typography & Live Telemetry -->
+        <div class="text-center space-y-3 w-full">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 font-mono text-[10px] tracking-widest uppercase shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>TLS 1.3 / E2EE · HANDSHAKE</span>
           </div>
-          <h3 class="font-display text-lg tracking-tight font-bold text-white">
-            正在建立安全中枢连接
+
+          <h3 class="font-display text-xl sm:text-2xl tracking-tight font-bold text-white">
+            正在核验安全凭据
           </h3>
+
           <p class="text-xs font-mono text-slate-400">
-            正在核验主控安全凭据与会话有效性...
+            正在与工作室安全网关建立加密信道...
           </p>
+        </div>
+
+        <!-- Progress Visualizer Bar & Pulse Wave -->
+        <div class="w-full space-y-2 pt-1">
+          <div class="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden relative border border-white/10">
+            <div class="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-500 rounded-full animate-[shimmer_2s_infinite]" style="width: 75%;" />
+          </div>
+          <div class="flex items-center justify-between text-[9px] font-mono text-slate-500 tracking-wider">
+            <span>CIPHER: RSA-OAEP-256</span>
+            <span class="text-amber-400 animate-pulse">VERIFYING...</span>
+          </div>
         </div>
       </div>
     </div>
+
 
     <!-- 2. Secure Login Panel (顶级好莱坞暗影母带中控台设计) -->
     <div v-else-if="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 select-none bg-[#0a0b0e] overflow-y-auto">
@@ -4556,6 +4600,18 @@ const tabs = [
   { label: '高级设置', value: 'advanced', icon: 'setting', category: 'system', keywords: '高级,音乐,调色盘,邮箱,AI,密码,安全,备份' }
 ]
 
+const mobileNavOpen = ref(false)
+
+const currentTabMeta = computed(() => {
+  return tabs.find(t => t.value === activeTab.value) || tabs[0]
+})
+
+const currentCategoryName = computed(() => {
+  const catId = currentTabMeta.value?.category || 'core'
+  const cat = tabCategories.find(c => c.id === catId)
+  return cat ? cat.name : '中枢'
+})
+
 const filteredTabs = computed(() => {
   let list = tabs
   if (selectedCategory.value !== 'all') {
@@ -5774,11 +5830,19 @@ const fetchSystemStatus = async () => {
 }
 
 const checkAuth = async () => {
+  // Safety watchdog timer: force dismiss handshake after 2500ms max even if network hangs
+  const watchdog = setTimeout(() => {
+    if (isCheckingAuth.value) {
+      console.warn('Auth check timeout, falling back to login screen.')
+      isCheckingAuth.value = false
+    }
+  }, 2500)
+
   try {
     const user = await $fetch('/api/auth/me') as any
     if (user && user.username) {
       isLoggedIn.value = true
-      // Pre-load data in background / parallel without blocking login session
+      // Pre-load data in background without blocking
       Promise.allSettled([
         fetchProjects(),
         fetchSiteConfig(),
@@ -5787,10 +5851,13 @@ const checkAuth = async () => {
         fetchUsers(),
         fetchBookings()
       ]).catch(() => {})
+    } else {
+      isLoggedIn.value = false
     }
   } catch (err) {
     isLoggedIn.value = false
   } finally {
+    clearTimeout(watchdog)
     isCheckingAuth.value = false
   }
 }
