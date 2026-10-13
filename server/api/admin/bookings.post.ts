@@ -52,29 +52,6 @@ export default defineEventHandler(async (event) => {
       createdAt: new Date().toISOString()
     }
     bookings.unshift(sampleBooking)
-    
-    // Auto send email notification if client email exists
-    let autoEmailRes: any = null
-    if (booking.email && booking.email.includes('@')) {
-      try {
-        autoEmailRes = await sendDeliveryCredentialsEmail(event, {
-          toEmail: booking.email,
-          clientName: booking.name || '客户',
-          company: booking.company,
-          deliverySuffix: booking.deliverySuffix,
-          deliveryKey: booking.deliveryKey,
-          serviceType: booking.serviceType,
-          description: booking.description
-        })
-        if (autoEmailRes.success) {
-          booking.emailSent = true
-          booking.emailSentAt = new Date().toISOString()
-        }
-      } catch (e: any) {
-        console.warn('Auto send delivery email on convert failed:', e.message)
-      }
-    }
-
     fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
     return { success: true, booking: sampleBooking }
   }
@@ -182,12 +159,33 @@ export default defineEventHandler(async (event) => {
       deliveryKey = credentials.deliveryKey || ''
     }
 
-    // Update booking record with delivery connection
     booking.status = 'converted'
     booking.deliverySuffix = deliverySuffix
     booking.deliveryKey = deliveryKey || `dk_${randomBytes(16).toString('hex')}`
     booking.convertedAt = new Date().toISOString()
     booking.updatedAt = new Date().toISOString()
+
+    // Auto send email notification if client email exists
+    let autoEmailRes: any = null
+    if (booking.email && booking.email.includes('@')) {
+      try {
+        autoEmailRes = await sendDeliveryCredentialsEmail(event, {
+          toEmail: booking.email,
+          clientName: booking.name || '客户',
+          company: booking.company,
+          deliverySuffix: booking.deliverySuffix,
+          deliveryKey: booking.deliveryKey,
+          serviceType: booking.serviceType,
+          description: booking.description
+        })
+        if (autoEmailRes?.success) {
+          booking.emailSent = true
+          booking.emailSentAt = new Date().toISOString()
+        }
+      } catch (e: any) {
+        console.warn('Auto send delivery email on convert failed:', e.message)
+      }
+    }
 
     fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
 

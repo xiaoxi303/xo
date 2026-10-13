@@ -5724,10 +5724,10 @@ const createSampleBooking = async () => {
     })
     if (res?.booking) {
       bookings.value.unshift(res.booking)
-      alert('已成功生成示例预约数据！')
+      showToast('🎉 已成功生成示例预约数据！', 'success')
     }
   } catch (err: any) {
-    alert(err.statusMessage || '生成示例数据失败')
+    showToast(err.data?.statusMessage || err.statusMessage || '生成示例数据失败', 'error')
   }
 }
 
@@ -5771,9 +5771,9 @@ const confirmConvertToDelivery = async () => {
     await fetchUsers()
     
     convertBookingModal.value.open = false
-    alert(`🎉 专属交付放映室创建成功！\n\n交付地址: /delivery/${res.deliverySuffix}\n提取密钥: ${res.deliveryKey || '已安全配置'}\n\n已自动打通专属交付流程。`)
+    showToast(`🎉 专属交付放映室创建成功！交付地址: /delivery/${res.deliverySuffix}`, 'success', 4500)
   } catch (err: any) {
-    alert(err.statusMessage || err.data?.message || '转为专属交付失败')
+    showToast(err.data?.statusMessage || err.statusMessage || err.data?.message || '转为专属交付失败', 'error')
   } finally {
     convertBookingModal.value.loading = false
   }
