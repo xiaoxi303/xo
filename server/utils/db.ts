@@ -1,7 +1,7 @@
 import { H3Event } from 'h3'
 import fs from 'node:fs'
 import path from 'node:path'
-import { createHash, randomBytes } from 'node:crypto'
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { getRuntimeDataPath } from './storage'
 
 let isDbInitialized = false
@@ -527,12 +527,19 @@ export async function dbGetUserByDeliverySuffix(event: H3Event, suffix: string):
   }
 }
 
-/** Compare a presented delivery key against the persisted hash (legacy plaintext is supported). */
+function safeTimingMatch(a: string, b: string): boolean {
+  if (!a || !b) return false
+  const hA = createHash('sha256').update(String(a)).digest()
+  const hB = createHash('sha256').update(String(b)).digest()
+  return timingSafeEqual(hA, hB)
+}
+
+/** Compare a presented delivery key against the persisted hash using timing-safe comparison. */
 export function verifyDeliveryKey(user: any, key: string): boolean {
   const presented = String(key || '').trim()
   if (!presented || !user) return false
-  if (user.deliveryKeyHash && hashDeliveryKey(presented) === String(user.deliveryKeyHash)) return true
-  return Boolean(user.deliveryKey && presented === String(user.deliveryKey))
+  if (user.deliveryKeyHash && safeTimingMatch(hashDeliveryKey(presented), String(user.deliveryKeyHash))) return true
+  return Boolean(user.deliveryKey && safeTimingMatch(presented, String(user.deliveryKey)))
 }
 
 /**

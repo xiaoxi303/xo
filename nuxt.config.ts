@@ -62,7 +62,15 @@ export default defineNuxtConfig({
       headers: {
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'SAMEORIGIN',
-        'Referrer-Policy': 'strict-origin-when-cross-origin'
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'X-XSS-Protection': '1; mode=block',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+      }
+    },
+    '/api/**': {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache'
       }
     }
   },

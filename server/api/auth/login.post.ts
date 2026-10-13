@@ -6,7 +6,8 @@ import {
   hashPassword,
   SESSION_COOKIE,
   SESSION_COOKIE_OPTS,
-  verifyPassword
+  verifyPassword,
+  needsRehash
 } from '../../utils/auth'
 import { dbGetSiteConfig } from '../../utils/db'
 import { logSecurityEvent } from '../../utils/security-logger'
@@ -73,6 +74,17 @@ export default defineEventHandler(async (event) => {
     })
     await new Promise((resolve) => setTimeout(resolve, 300))
     throw createError({ statusCode: 401, statusMessage: '管理员安全密码错误，请重新核验。' })
+  }
+
+  // Transparent cryptographic upgrade: Re-hash legacy SHA-256 admin password to high-entropy PBKDF2
+  if (needsRehash(allowedPasswordHash)) {
+    try {
+      const newHash = hashPassword(password)
+      const { dbSaveSiteConfig } = await import('../../utils/db')
+      config.admin = config.admin || {}
+      config.admin.passwordHash = newHash
+      await dbSaveSiteConfig(event, config)
+    } catch (e) {}
   }
 
   const token = createSession(username)

@@ -1,11 +1,23 @@
 /**
- * Auth Utilities — Server-side session management for Xo Admin Panel
- * Uses SHA-256 password hashing + disk-persisted session store.
- * Sessions survive server restarts and PM2 reloads.
+ * Auth Utilities — Enterprise-Grade Cryptographic Session & Credential Management
+ * - Key Stretching: PBKDF2-HMAC-SHA512 (100,000 iterations) with CSPRNG per-hash salt
+ * - Side-Channel Defense: Constant-time comparison via crypto.timingSafeEqual
+ * - Token Storage Hardening: Sessions persisted using SHA-256 hashed token indices
+ * - Backward Compatibility: Seamless legacy verification & on-the-fly migration
  */
-import { createHash, randomBytes } from 'crypto'
+import { createHash, randomBytes, pbkdf2Sync, timingSafeEqual } from 'node:crypto'
 import fs from 'node:fs'
 import { getRuntimeDataPath } from './storage'
+
+// ───────────────────────────────────────────────
+// Timing-Safe Equality Helper
+// ───────────────────────────────────────────────
+export function safeTimingCompare(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string') return false
+  const hA = createHash('sha256').update(a).digest()
+  const hB = createHash('sha256').update(b).digest()
+  return timingSafeEqual(hA, hB)
+}
 
 // ───────────────────────────────────────────────
 // Admin Credentials (change password via admin UI)
@@ -13,18 +25,57 @@ import { getRuntimeDataPath } from './storage'
 export const ADMIN_USERNAME = process.env.XO_ADMIN_USERNAME || 'admin'
 export const ADMIN_PASSWORD_HASH = process.env.XO_ADMIN_PASSWORD_HASH || ''
 
+/**
+ * Modern High-Entropy Password Hashing via PBKDF2-HMAC-SHA512
+ * Produces standard modular format: $pbkdf2$100000$<salt_hex>$<hash_hex>
+ */
 export function hashPassword(plain: string): string {
-  // SHA-256 with a fixed site salt for production hardening
-  return createHash('sha256').update(`xo-studio:${plain}`).digest('hex')
+  const salt = randomBytes(16).toString('hex')
+  const iterations = 100000
+  const derivedKey = pbkdf2Sync(plain, salt, iterations, 32, 'sha512').toString('hex')
+  return `$pbkdf2$${iterations}$${salt}$${derivedKey}`
 }
 
+/**
+ * Timing-Safe Verification Supporting Modern PBKDF2 and Legacy Fallback
+ */
 export function verifyPassword(plain: string, storedHash: string): boolean {
-  if (!storedHash) return false
-  return hashPassword(plain) === storedHash
+  if (!plain || !storedHash) return false
+
+  // 1. Modern PBKDF2-HMAC-SHA512 hash format
+  if (storedHash.startsWith('$pbkdf2$')) {
+    const parts = storedHash.split('$')
+    if (parts.length === 5) {
+      const iterations = parseInt(parts[2], 10) || 100000
+      const salt = parts[3]
+      const expectedHash = parts[4]
+      const computed = pbkdf2Sync(plain, salt, iterations, 32, 'sha512').toString('hex')
+      return safeTimingCompare(computed, expectedHash)
+    }
+  }
+
+  // 2. Legacy SHA-256 with static site salt: `xo-studio:${plain}`
+  const legacyHash = createHash('sha256').update(`xo-studio:${plain}`).digest('hex')
+  if (safeTimingCompare(legacyHash, storedHash)) {
+    return true
+  }
+
+  // 3. Raw hex digest fallback for un-salted migration hashes
+  const rawHash = createHash('sha256').update(plain).digest('hex')
+  if (safeTimingCompare(rawHash, storedHash)) {
+    return true
+  }
+
+  return false
+}
+
+export function needsRehash(storedHash: string): boolean {
+  return !storedHash || !storedHash.startsWith('$pbkdf2$')
 }
 
 // ───────────────────────────────────────────────
-// Disk-persisted Session Store
+// Hardened Disk-Persisted Session Store
+// Tokens on disk are stored as SHA-256 hashes to prevent session hijacking
 // ───────────────────────────────────────────────
 interface Session {
   username: string
@@ -36,9 +87,12 @@ type SessionStore = Record<string, Session>
 
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
-// Resolve sessions file path from current working directory
 function getSessionsFilePath(): string {
   return getRuntimeDataPath('.sessions.json')
+}
+
+function hashToken(rawToken: string): string {
+  return createHash('sha256').update(`sess:${rawToken}`).digest('hex')
 }
 
 function loadSessions(): SessionStore {
@@ -49,7 +103,6 @@ function loadSessions(): SessionStore {
       return JSON.parse(raw) as SessionStore
     }
   } catch (e) {
-    // Ignore corrupt sessions file — start fresh
     console.warn('[auth] Failed to load sessions file, starting fresh.')
   }
   return {}
@@ -58,7 +111,7 @@ function loadSessions(): SessionStore {
 function saveSessions(store: SessionStore): void {
   try {
     const filePath = getSessionsFilePath()
-    fs.writeFileSync(filePath, JSON.stringify(store, null, 2), 'utf-8')
+    fs.writeFileSync(filePath, JSON.stringify(store, null, 2), { encoding: 'utf-8', mode: 0o600 })
   } catch (e) {
     console.error('[auth] Failed to save sessions file:', e)
   }
@@ -67,9 +120,9 @@ function saveSessions(store: SessionStore): void {
 function cleanExpired(store: SessionStore): SessionStore {
   const now = Date.now()
   const cleaned: SessionStore = {}
-  for (const [token, sess] of Object.entries(store)) {
+  for (const [key, sess] of Object.entries(store)) {
     if (sess.expiresAt >= now) {
-      cleaned[token] = sess
+      cleaned[key] = sess
     }
   }
   return cleaned
@@ -79,23 +132,29 @@ export function createSession(username: string): string {
   let store = loadSessions()
   store = cleanExpired(store)
 
-  const token = randomBytes(32).toString('hex')
+  const rawToken = randomBytes(32).toString('hex')
+  const indexKey = hashToken(rawToken)
   const now = Date.now()
-  store[token] = {
+
+  store[indexKey] = {
     username,
     createdAt: now,
     expiresAt: now + SESSION_TTL_MS
   }
   saveSessions(store)
-  return token
+  return rawToken
 }
 
-export function validateSession(token: string): Session | null {
+export function validateSession(rawToken: string): Session | null {
+  if (!rawToken || typeof rawToken !== 'string') return null
   const store = loadSessions()
-  const sess = store[token]
+  const indexKey = hashToken(rawToken)
+
+  // Look up by hashed token index (modern), with legacy fallback to raw token
+  const sess = store[indexKey] || store[rawToken]
   if (!sess) return null
+
   if (sess.expiresAt < Date.now()) {
-    // Expire it and clean up
     const cleaned = cleanExpired(store)
     saveSessions(cleaned)
     return null
@@ -103,8 +162,8 @@ export function validateSession(token: string): Session | null {
   return sess
 }
 
-export function getSessionInfo(token: string): (Session & { remainingSeconds: number }) | null {
-  const session = validateSession(token)
+export function getSessionInfo(rawToken: string): (Session & { remainingSeconds: number }) | null {
+  const session = validateSession(rawToken)
   if (!session) return null
 
   return {
@@ -113,9 +172,11 @@ export function getSessionInfo(token: string): (Session & { remainingSeconds: nu
   }
 }
 
-export function destroySession(token: string): void {
+export function destroySession(rawToken: string): void {
+  if (!rawToken) return
   let store = loadSessions()
-  delete store[token]
+  delete store[hashToken(rawToken)]
+  delete store[rawToken]
   store = cleanExpired(store)
   saveSessions(store)
 }

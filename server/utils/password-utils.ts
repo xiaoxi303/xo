@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 /**
  * Unified dynamic password generator using SHA256
@@ -48,9 +48,14 @@ export function getBeijingDateString(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
 }
 
+/**
+ * Timing-safe project password verification against side-channel analysis
+ */
 export function verifyProjectPassword(inputPassword: string, validPassword: string): boolean {
   if (!inputPassword || !validPassword) return false;
   const normalizedInput = inputPassword.toString().trim().toUpperCase();
   const normalizedValid = validPassword.toString().trim().toUpperCase();
-  return normalizedInput === normalizedValid;
+  const hA = crypto.createHash('sha256').update(normalizedInput).digest();
+  const hB = crypto.createHash('sha256').update(normalizedValid).digest();
+  return crypto.timingSafeEqual(hA, hB);
 }

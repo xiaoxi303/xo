@@ -1,5 +1,5 @@
 import { dbGetSiteConfig, dbSaveSiteConfig, getD1Database } from '../utils/db'
-import { validateSession, SESSION_COOKIE } from '../utils/auth'
+import { validateSession, SESSION_COOKIE, hashPassword } from '../utils/auth'
 
 function publicSiteConfig(config: any) {
   if (!config || typeof config !== 'object') return {}
@@ -42,13 +42,10 @@ export default defineEventHandler(async (event) => {
     try {
       const body = await readBody(event)
 
-      // Handle administrator credential updates securely
+      // Handle administrator credential updates securely with PBKDF2-HMAC-SHA512
       if (body.admin) {
         if (body.admin.newPassword && body.admin.newPassword.trim() !== '') {
-          const createHash = await import('crypto').then(m => m.createHash)
-          const plain = body.admin.newPassword
-          const hashed = createHash('sha256').update(`xo-studio:${plain}`).digest('hex')
-          body.admin.passwordHash = hashed
+          body.admin.passwordHash = hashPassword(body.admin.newPassword.trim())
         }
         delete body.admin.newPassword
       }

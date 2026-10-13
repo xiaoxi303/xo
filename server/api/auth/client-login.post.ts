@@ -1,5 +1,5 @@
-import { dbGetBlacklist, dbGetUserRecord } from '../../utils/db'
-import { verifyPassword, createSession, getSessionInfo, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
+import { dbGetBlacklist, dbGetUserRecord, dbUpdateUser } from '../../utils/db'
+import { verifyPassword, createSession, getSessionInfo, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS, needsRehash, hashPassword } from '../../utils/auth'
 import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
 
@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: reason })
   }
 
-  // Verify client password
+  // Verify client password with timing-safe comparison
   if (!verifyPassword(password, userRecord.password)) {
     logSecurityEvent({
       type: 'Client Login Guard',
@@ -85,6 +85,14 @@ export default defineEventHandler(async (event) => {
     })
     await new Promise(resolve => setTimeout(resolve, 800))
     throw createError({ statusCode: 401, statusMessage: '密码错误，请重新输入。' })
+  }
+
+  // Transparent cryptographic upgrade: Re-hash legacy passwords to high-entropy PBKDF2-HMAC-SHA512
+  if (needsRehash(userRecord.password)) {
+    try {
+      const upgradedHash = hashPassword(password)
+      await dbUpdateUser(event, userRecord.id || userRecord.username, { password: upgradedHash })
+    } catch (e) {}
   }
 
   // Create session and set cookie

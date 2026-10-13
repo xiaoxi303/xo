@@ -83,10 +83,22 @@ export default defineEventHandler(async (event) => {
         restoredSections.push(`${body.projects.length} 个视频作品`)
       }
 
-      // 3. Restore Users Data
+      // 3. Restore Users Data (safely preserving existing credentials if not in backup)
       if (Array.isArray(body.users)) {
         const usersPath = getRuntimeDataPath('users.json')
-        fs.writeFileSync(usersPath, JSON.stringify(body.users, null, 2), 'utf-8')
+        let currentUsers: any[] = []
+        try {
+          if (fs.existsSync(usersPath)) currentUsers = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
+        } catch (e) {}
+        const mergedUsers = body.users.map((importedUser: any) => {
+          const current = currentUsers.find((u: any) => u.username === importedUser.username || u.id === importedUser.id)
+          return {
+            ...importedUser,
+            password: importedUser.password || current?.password || '',
+            deliveryKeyHash: importedUser.deliveryKeyHash || current?.deliveryKeyHash || ''
+          }
+        })
+        fs.writeFileSync(usersPath, JSON.stringify(mergedUsers, null, 2), 'utf-8')
         restoredSections.push(`${body.users.length} 个客户账号`)
       }
 
