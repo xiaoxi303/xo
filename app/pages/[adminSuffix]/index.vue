@@ -3265,7 +3265,7 @@
             <div class="flex items-center justify-between p-6 glass-card">
               <div>
                 <h2 class="text-base font-semibold font-display">订单页面与商品配置</h2>
-                <p class="text-xs mt-1" style="color: var(--color-ink-5)">客户只能查看这里保存的商品与固定金额，不能自行改价。</p>
+                <p class="text-xs mt-1" style="color: var(--color-ink-5)">客户只能查看这里保存的商品与固定金额，不能自行改价。绑定了注册客户的订单页面为专属私密通道，会自动在 /order 公开商品目录中隐藏，仅该客户在其后台专属可见。</p>
               </div>
               <button type="button" class="btn-primary text-xs py-2 px-4" @click="resetOrderPage">新建订单页面</button>
             </div>
@@ -3280,7 +3280,7 @@
                 <div class="grid grid-cols-2 gap-3">
                   <label class="form-label">绑定客户账号（可选）
                     <select v-model="orderPageForm.clientUsername" class="form-input text-xs" @change="onOrderPageClientChange">
-                      <option value="">不绑定独立客户（公开）</option>
+                      <option value="">不绑定独立客户（公开服务）</option>
                       <option v-for="u in registeredUsers.filter((x:any) => x.role !== 'admin')" :key="u.id" :value="u.username">
                         {{ u.username }}{{ u.nickname ? ` (${u.nickname})` : '' }}
                       </option>
@@ -3288,26 +3288,70 @@
                   </label>
                   <label class="form-label">客户名称/备注<input v-model="orderPageForm.clientName" class="form-input" placeholder="客户或项目名称" /></label>
                 </div>
+                <p v-if="orderPageForm.clientUsername" class="text-[11px] text-amber-800 bg-amber-500/10 p-2 rounded-xl">
+                  🔒 已绑定客户 @{{ orderPageForm.clientUsername }}：该商品将作为其专属私密订单，自动在 /order 公开商品目录中隐藏，仅在对应客户的控制台可见。
+                </p>
                 <label class="form-label">商品说明<textarea v-model="orderPageForm.description" rows="3" class="form-input resize-none" /></label>
                 <label class="form-label">支付成功提示<textarea v-model="orderPageForm.successText" rows="2" class="form-input resize-none" /></label>
                 <label class="flex items-center gap-2 text-xs"><input v-model="orderPageForm.enabled" type="checkbox" />启用此订单页面</label>
                 <button type="button" class="btn-primary w-full py-2.5 text-xs" :disabled="orderPageSaving" @click="saveOrderPage">{{ orderPageSaving ? '保存中…' : '保存商品与订单页面' }}</button>
               </div>
               <div class="glass-card p-6 space-y-3">
-                <h3 class="font-semibold text-sm">已配置订单页面</h3>
-                <div v-if="orderPages.length" class="space-y-2">
-                  <div v-for="item in orderPages" :key="item.suffix" class="flex items-center justify-between gap-3 rounded-xl border border-black/10 p-3">
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-2">
-                        <strong class="text-sm">{{ item.subject }}</strong>
-                        <span v-if="item.clientUsername" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 font-mono font-bold">@{{ item.clientUsername }}</span>
-                      </div>
-                      <p class="text-[11px] text-slate-500">/order/{{ item.suffix }} · ¥{{ item.amount }} · {{ item.enabled ? '已启用' : '已关闭' }}{{ item.clientName ? ` · ${item.clientName}` : '' }}</p>
-                    </div>
-                    <div class="flex gap-2 shrink-0"><button type="button" class="text-xs px-2 py-1 rounded border" @click="editOrderPage(item)">编辑</button><button type="button" class="text-xs px-2 py-1 rounded border text-rose-600" @click="deleteOrderPage(item.suffix)">删除</button></div>
+                <div class="flex items-center justify-between gap-2 flex-wrap pb-1">
+                  <h3 class="font-semibold text-sm">已配置订单页面</h3>
+                  <div class="flex items-center gap-1 p-0.5 rounded-lg bg-black/[0.04]">
+                    <button
+                      type="button"
+                      @click="orderPageFilter = 'all'"
+                      :class="['text-[11px] px-2 py-0.5 rounded transition-all cursor-pointer', orderPageFilter === 'all' ? 'bg-white font-bold shadow-xs' : 'text-slate-500']"
+                    >
+                      全部 ({{ orderPages.length }})
+                    </button>
+                    <button
+                      type="button"
+                      @click="orderPageFilter = 'public'"
+                      :class="['text-[11px] px-2 py-0.5 rounded transition-all cursor-pointer', orderPageFilter === 'public' ? 'bg-white font-bold shadow-xs text-emerald-800' : 'text-slate-500']"
+                    >
+                      公开 ({{ orderPages.filter(p => !p.clientUsername).length }})
+                    </button>
+                    <button
+                      type="button"
+                      @click="orderPageFilter = 'private'"
+                      :class="['text-[11px] px-2 py-0.5 rounded transition-all cursor-pointer', orderPageFilter === 'private' ? 'bg-white font-bold shadow-xs text-amber-900' : 'text-slate-500']"
+                    >
+                      专属 ({{ orderPages.filter(p => !!p.clientUsername).length }})
+                    </button>
                   </div>
                 </div>
-                <p v-else class="text-xs text-slate-500">还没有订单页面配置。</p>
+
+                <div v-if="filteredOrderPages.length" class="space-y-2">
+                  <div v-for="item in filteredOrderPages" :key="item.suffix" class="rounded-xl border border-black/10 p-3 space-y-2">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <strong class="text-sm">{{ item.subject }}</strong>
+                          <span v-if="item.clientUsername" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 font-mono font-bold">
+                            🔒 客户专属: @{{ item.clientUsername }}
+                          </span>
+                          <span v-else class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 font-mono font-bold">
+                            🌐 全站公开目录
+                          </span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                          /order/{{ item.suffix }} · ¥{{ item.amount }} · {{ item.enabled ? '已启用' : '已关闭' }}{{ item.clientName ? ` · ${item.clientName}` : '' }}
+                          <span v-if="item.clientUsername" class="text-amber-800 ml-1">（已自动在 /order 隐藏）</span>
+                        </p>
+                      </div>
+
+                      <div class="flex gap-1.5 shrink-0">
+                        <a :href="'/order/' + item.suffix" target="_blank" class="text-xs px-2 py-1 rounded border text-amber-800 hover:bg-amber-50 cursor-pointer">打开 ↗</a>
+                        <button type="button" class="text-xs px-2 py-1 rounded border cursor-pointer" @click="editOrderPage(item)">编辑</button>
+                        <button type="button" class="text-xs px-2 py-1 rounded border text-rose-600 cursor-pointer" @click="deleteOrderPage(item.suffix)">删除</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p v-else class="text-xs text-slate-500">当前筛选下没有订单页面配置。</p>
                 <h3 class="font-semibold text-sm pt-4 border-t border-black/10">最近订单</h3>
                 <div class="pt-4 border-t border-black/10 space-y-3">
                   <div class="flex items-center justify-between gap-3">
@@ -5209,6 +5253,12 @@ const alipayConfig = ref<any>({
 const alipayPrivateKeyInput = ref('')
 const orderPages = ref<any[]>([])
 const orders = ref<any[]>([])
+const orderPageFilter = ref<'all' | 'public' | 'private'>('all')
+const filteredOrderPages = computed(() => {
+  if (orderPageFilter.value === 'public') return orderPages.value.filter(p => !p.clientUsername)
+  if (orderPageFilter.value === 'private') return orderPages.value.filter(p => !!p.clientUsername)
+  return orderPages.value
+})
 const orderPageForm = ref<any>({ suffix: '', enabled: true, subject: '', amount: '0.00', description: '', clientName: '', clientUsername: '', successText: '' })
 const orderPageSaving = ref(false)
 const deliveryEditorId = ref('')

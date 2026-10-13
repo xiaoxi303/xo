@@ -12,6 +12,7 @@ export default defineEventHandler((event) => {
     amount: page.amount,
     description: page.description,
     clientName: page.clientName,
+    clientUsername: page.clientUsername || '',
     successText: page.successText,
     paymentEnabled: publicAlipayConfig(readAlipayConfig()).enabled
   }

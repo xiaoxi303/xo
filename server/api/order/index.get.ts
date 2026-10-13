@@ -5,7 +5,7 @@ import returnHandler from './return.get'
 export default defineEventHandler(event => {
   if (getQuery(event).out_trade_no) return returnHandler(event)
   return getOrderPages()
-    .filter(page => page.enabled)
+    .filter(page => page.enabled && !page.clientUsername)
     .map(page => ({
       suffix: page.suffix,
       subject: page.subject,
