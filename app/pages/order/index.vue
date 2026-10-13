@@ -1,69 +1,104 @@
 <template>
   <main class="catalog-page">
-    <!-- Ambient luxury radiance -->
+    <!-- Ambient Studio Lights -->
     <div class="ambient ambient-one" aria-hidden="true" />
     <div class="ambient ambient-two" aria-hidden="true" />
+    <div class="ambient ambient-three" aria-hidden="true" />
 
     <section class="catalog-shell">
-      <!-- Top Navigation -->
+      <!-- Top Navigation Bar -->
       <header class="catalog-topbar">
         <div class="flex items-center gap-3">
           <NuxtLink to="/" class="brand-mark" aria-label="返回 XO Studio 首页">
             XO
           </NuxtLink>
-          <span class="text-[10px] font-mono tracking-widest uppercase text-amber-900/60 font-bold hidden sm:inline">
-            STUDIO CATALOG
-          </span>
+          <div class="hidden sm:flex items-center gap-2 pl-3 border-l border-black/10">
+            <span class="text-[10px] font-mono tracking-widest uppercase text-amber-900/70 font-bold">
+              ORDER & CHECKOUT
+            </span>
+          </div>
         </div>
 
         <div class="flex items-center gap-3">
           <SecureSessionChip />
           <NuxtLink
             to="/client"
-            class="text-xs font-mono font-bold px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-500/25 transition-all flex items-center gap-1.5"
+            class="text-xs font-mono font-bold px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-600/10 via-amber-500/15 to-amber-600/10 hover:from-amber-600/20 hover:to-amber-600/20 text-amber-900 border border-amber-500/30 shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span>👤 客户中心 ↗</span>
           </NuxtLink>
         </div>
       </header>
 
-      <!-- Hero Header -->
-      <div class="catalog-hero">
-        <div class="space-y-2">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-900 text-[10px] font-mono font-bold border border-amber-500/20 uppercase tracking-widest">
+      <!-- Main Hero Header -->
+      <div class="catalog-hero space-y-6">
+        <div class="space-y-3">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-950 text-[10px] font-mono font-bold border border-amber-500/25 uppercase tracking-widest">
             <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
-            <span>甄选影视制作与后期服务</span>
+            <span>XO STUDIO · 甄选影视后期制作与专属服务</span>
           </div>
-          <h1 class="font-display font-bold text-3xl sm:text-4xl text-[#121316] tracking-tight">
-            公共定制服务目录
+
+          <h1 class="font-display font-bold text-3xl sm:text-5xl text-[#121316] tracking-tight">
+            商业服务与制作定金结算
           </h1>
-          <p class="text-xs text-[#5e6066] max-w-xl leading-relaxed">
-            商品名称与结算金额由数字工作室统一配置。若您持有专属定向报价单或项目排期，请登录客户中心直接结算。
+
+          <p class="text-xs sm:text-sm text-[#5e6066] max-w-2xl leading-relaxed">
+            商品名称与结算金额由数字工作室后台统一定制维护，客户不可自行篡改。支持商业 TVC、院线调色及剪辑排期付款，支付完成即时启动数字交付通道。
           </p>
         </div>
 
-        <!-- VIP Private Quotations Callout -->
+        <!-- VIP Private Quotations Callout Banner -->
         <NuxtLink
           to="/client"
           class="catalog-vip-box group"
         >
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-900 font-bold text-base shrink-0 group-hover:scale-105 transition-transform">
+          <div class="flex items-center gap-3.5 min-w-0">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500/25 to-amber-600/15 border border-amber-500/30 flex items-center justify-center text-amber-900 font-bold text-lg shrink-0 group-hover:scale-105 transition-transform shadow-xs">
               👑
             </div>
-            <div>
-              <strong class="text-xs font-bold text-[#121316] block group-hover:text-amber-900 transition-colors">
-                持有专属定向报价单？
-              </strong>
-              <span class="text-[11px] text-[#5e6066] block">
-                前往客户中心查看已定向绑定的私密商品与母带权限
-              </span>
+            <div class="min-w-0 space-y-0.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <strong class="text-xs sm:text-sm font-bold text-[#121316] group-hover:text-amber-900 transition-colors">
+                  持有专属定向报价单 / 私密订单？
+                </strong>
+                <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-900 uppercase">
+                  VIP 独立通道
+                </span>
+              </div>
+              <p class="text-[11px] sm:text-xs text-[#5e6066] truncate">
+                所有为指定客户绑定的专属定金与母带尾款已自动同步至客户控制台，不在公开目录展示。
+              </p>
             </div>
           </div>
-          <span class="text-xs font-bold font-mono text-amber-800 shrink-0 group-hover:translate-x-1 transition-transform">
-            前往查看 &rarr;
-          </span>
+
+          <div class="flex items-center gap-1.5 text-xs font-bold font-mono text-amber-800 shrink-0 group-hover:translate-x-1 transition-transform self-end sm:self-center">
+            <span>前往客户中心查看 ↗</span>
+          </div>
         </NuxtLink>
+      </div>
+
+      <!-- Cinema Service Guarantees Ribbon (4 Cards) -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 py-6">
+        <div class="p-3.5 rounded-2xl bg-white/70 border border-black/[0.05] shadow-xs space-y-1">
+          <div class="text-base">🛡️</div>
+          <strong class="text-xs text-[#121316] block font-bold">官方直连清算</strong>
+          <span class="text-[10px] font-mono text-[#82848c] block">支付宝安全即时到账</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-white/70 border border-black/[0.05] shadow-xs space-y-1">
+          <div class="text-base">🎬</div>
+          <strong class="text-xs text-[#121316] block font-bold">DCI-P3 电影色彩</strong>
+          <span class="text-[10px] font-mono text-[#82848c] block">4K 杜比视界高动态校色</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-white/70 border border-black/[0.05] shadow-xs space-y-1">
+          <div class="text-base">🔒</div>
+          <strong class="text-xs text-[#121316] block font-bold">专属私密放映室</strong>
+          <span class="text-[10px] font-mono text-[#82848c] block">双屏校审独立防泄密节点</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-white/70 border border-black/[0.05] shadow-xs space-y-1">
+          <div class="text-base">⚡</div>
+          <strong class="text-xs text-[#121316] block font-bold">极速高码率提取</strong>
+          <span class="text-[10px] font-mono text-[#82848c] block">云端母带光纤无损提取</span>
+        </div>
       </div>
 
       <!-- Loading / Error States -->
@@ -83,55 +118,65 @@
       </div>
 
       <!-- Public Catalog Grid -->
-      <div v-else-if="items.length" class="catalog-grid">
-        <div
-          v-for="item in items"
-          :key="item.suffix"
-          class="glass-card product-card flex flex-col justify-between group"
-        >
-          <!-- Top Accent Line -->
-          <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 opacity-60 group-hover:opacity-100 transition-opacity" />
+      <div v-else-if="items.length" class="space-y-4">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs font-bold text-[#121316] flex items-center gap-1.5 font-mono">
+            <span>● 公开服务项目</span>
+            <span class="text-slate-400 font-normal">({{ items.length }} 项就绪)</span>
+          </span>
+          <span class="text-[11px] font-mono text-slate-400">点击进入专属订单结算</span>
+        </div>
 
-          <!-- Card Top -->
-          <div class="space-y-4">
-            <div class="flex items-start justify-between gap-3">
-              <span class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg bg-black/[0.04] text-[#5e6066] border border-black/[0.04]">
-                /order/{{ item.suffix }}
-              </span>
-              <div class="text-right">
-                <span class="text-[10px] font-mono text-slate-400 uppercase block">固定服务费</span>
-                <strong class="font-display font-bold text-2xl text-amber-900 tracking-tight">
-                  <i class="text-base font-normal mr-0.5 not-italic">¥</i>{{ item.amount }}
-                </strong>
+        <div class="catalog-grid">
+          <div
+            v-for="item in items"
+            :key="item.suffix"
+            class="glass-card product-card flex flex-col justify-between group"
+          >
+            <!-- Top Amber Line -->
+            <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 opacity-60 group-hover:opacity-100 transition-opacity" />
+
+            <!-- Card Top Section -->
+            <div class="space-y-4">
+              <div class="flex items-start justify-between gap-3">
+                <span class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg bg-black/[0.04] text-[#5e6066] border border-black/[0.04]">
+                  /order/{{ item.suffix }}
+                </span>
+                <div class="text-right">
+                  <span class="text-[10px] font-mono text-slate-400 uppercase block">固定服务费</span>
+                  <strong class="font-display font-bold text-2xl text-amber-900 tracking-tight">
+                    <i class="text-base font-normal mr-0.5 not-italic">¥</i>{{ item.amount }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="space-y-2 pt-1">
+                <h2 class="font-display font-bold text-xl text-[#121316] group-hover:text-amber-900 transition-colors line-clamp-1">
+                  {{ item.subject }}
+                </h2>
+                <p v-if="item.clientName" class="text-xs font-mono text-amber-800">
+                  适用对象：{{ item.clientName }}
+                </p>
+                <p v-if="item.description" class="text-xs text-[#5e6066] leading-relaxed line-clamp-3">
+                  {{ item.description }}
+                </p>
               </div>
             </div>
 
-            <div class="space-y-1.5 pt-1">
-              <h2 class="font-display font-bold text-xl text-[#121316] group-hover:text-amber-900 transition-colors line-clamp-1">
-                {{ item.subject }}
-              </h2>
-              <p v-if="item.clientName" class="text-xs font-mono text-amber-800">
-                适用对象：{{ item.clientName }}
-              </p>
-              <p v-if="item.description" class="text-xs text-[#5e6066] leading-relaxed line-clamp-3 pt-1">
-                {{ item.description }}
-              </p>
+            <!-- Card Bottom Section -->
+            <div class="pt-5 border-t border-black/[0.05] mt-6 flex items-center justify-between">
+              <span class="text-[11px] font-mono text-emerald-700 font-bold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>支持支付宝直付</span>
+              </span>
+
+              <NuxtLink
+                :to="`/order/${encodeURIComponent(item.suffix)}`"
+                class="btn-bronze text-xs py-2 px-4 rounded-xl shadow-xs flex items-center gap-1.5 group-hover:shadow-md transition-all cursor-pointer"
+              >
+                <span>立即付款 ↗</span>
+              </NuxtLink>
             </div>
-          </div>
-
-          <!-- Card Bottom Action -->
-          <div class="pt-5 border-t border-black/[0.05] mt-6 flex items-center justify-between">
-            <span class="text-[11px] font-mono text-emerald-700 font-bold flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>支持支付宝安全直付</span>
-            </span>
-
-            <NuxtLink
-              :to="`/order/${encodeURIComponent(item.suffix)}`"
-              class="btn-bronze text-xs py-2 px-4 rounded-xl shadow-xs flex items-center gap-1.5 group-hover:shadow-md transition-all"
-            >
-              <span>立即付款 ↗</span>
-            </NuxtLink>
           </div>
         </div>
       </div>
@@ -141,10 +186,10 @@
         <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 text-3xl">
           🎬
         </div>
-        <div class="space-y-1 max-w-md">
+        <div class="space-y-1.5 max-w-md">
           <h3 class="font-display font-bold text-lg text-[#121316]">当前暂无全站公开服务商品</h3>
           <p class="text-xs text-[#82848c] leading-relaxed">
-            所有商业排期定金与母带制作服务均已转为客户专属定向通道。若您持有项目合作需求，可登录客户中心查看已绑定的专属报价单。
+            所有影视制作排期定金与母带尾款均实行一对一定向派单保护。若您已与工作室达成合作意向，请直接登录客户控制中心查看您的专属报价单。
           </p>
         </div>
         <div class="flex items-center gap-3 pt-2">
@@ -152,10 +197,27 @@
             <span>进入客户中心 ↗</span>
           </NuxtLink>
           <NuxtLink to="/" class="text-xs font-bold text-[#82848c] hover:text-[#121316] underline px-3">
-            返回首页
+            返回工作室首页
           </NuxtLink>
         </div>
       </div>
+
+      <!-- Questions & FAQ Strip -->
+      <section class="mt-12 p-6 sm:p-8 rounded-[28px] bg-white/70 border border-black/[0.05] shadow-xs space-y-4">
+        <h3 class="font-display font-bold text-sm text-[#121316]">
+          常见支付与交付问题
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-[#5e6066] leading-relaxed">
+          <div class="space-y-1">
+            <strong class="text-[#121316] block font-bold">Q: 付款后如何查验母带制作进度？</strong>
+            <p>A: 支付完成后系统会自动在您的客户中心生成付款电子凭证，并同时为您的账户关联独立交付放映厅（Suite URL），支持在线免密审片与高码率文件提取。</p>
+          </div>
+          <div class="space-y-1">
+            <strong class="text-[#121316] block font-bold">Q: 如何获取我个人的专属项目报价单？</strong>
+            <p>A: 项目负责人会在后台根据排期和制作要求创建带有专属标识的订单页面，并直接绑定到您的注册账号名下。该报价单仅在您的客户控制台专属可见。</p>
+          </div>
+        </div>
+      </section>
 
       <!-- Footer Tag -->
       <footer class="catalog-footer">
@@ -199,7 +261,7 @@ onMounted(fetchItems)
   color: #121316;
   background: #fdfbf7;
   background-image:
-    radial-gradient(circle at 8% 10%, rgba(217, 119, 6, 0.08), transparent 35%),
+    radial-gradient(circle at 8% 10%, rgba(217, 119, 6, 0.09), transparent 35%),
     radial-gradient(circle at 94% 15%, rgba(180, 83, 9, 0.08), transparent 32%),
     radial-gradient(circle at 80% 90%, rgba(245, 158, 11, 0.08), transparent 36%),
     linear-gradient(135deg, #fdfcf9 0%, #f7f2ea 52%, #f5eee4 100%);
@@ -229,6 +291,18 @@ onMounted(fetchItems)
   pointer-events: none;
 }
 
+.ambient-three {
+  position: absolute;
+  top: 40%;
+  right: 20%;
+  width: 40vw;
+  height: 40vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.06), transparent 70%);
+  filter: blur(90px);
+  pointer-events: none;
+}
+
 .catalog-shell {
   width: min(100%, 980px);
   margin: 0 auto;
@@ -240,7 +314,7 @@ onMounted(fetchItems)
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 24px;
+  padding-bottom: 28px;
 }
 
 .brand-mark {
@@ -255,26 +329,16 @@ onMounted(fetchItems)
   opacity: 0.8;
 }
 
-.catalog-hero {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding-bottom: 32px;
-}
-
 .catalog-vip-box {
   display: flex;
   flex-direction: column;
-  sm-flex-direction: row;
-  align-items: flex-start;
-  sm-align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 16px 20px;
   border-radius: 24px;
-  background: rgba(255, 254, 250, 0.85);
-  border: 1px solid rgba(217, 119, 6, 0.25);
-  box-shadow: 0 10px 30px rgba(180, 120, 40, 0.05);
+  background: rgba(255, 254, 250, 0.88);
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  box-shadow: 0 10px 30px rgba(180, 120, 40, 0.06);
   text-decoration: none;
   transition: all 0.25s ease;
 }
@@ -287,8 +351,8 @@ onMounted(fetchItems)
 }
 
 .catalog-vip-box:hover {
-  border-color: rgba(217, 119, 6, 0.45);
-  box-shadow: 0 14px 40px rgba(180, 120, 40, 0.1);
+  border-color: rgba(217, 119, 6, 0.5);
+  box-shadow: 0 14px 40px rgba(180, 120, 40, 0.12);
   transform: translateY(-2px);
 }
 
