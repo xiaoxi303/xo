@@ -349,15 +349,6 @@ const route = useRoute()
 const preloaderDone = useState('xo_preloader_done', () => false)
 const preloaderRevealed = useState('xo_preloader_revealed', () => false)
 
-if (import.meta.client) {
-  try {
-    if (sessionStorage.getItem('xo_preloader_done') === '1') {
-      preloaderDone.value = true
-      preloaderRevealed.value = true
-    }
-  } catch (e) {}
-}
-
 const onPreloaderRevealStart = () => {
   preloaderRevealed.value = true
 }
@@ -366,9 +357,6 @@ const onPreloaderComplete = () => {
   preloaderDone.value = true
   preloaderRevealed.value = true
   if (import.meta.client) {
-    try {
-      sessionStorage.setItem('xo_preloader_done', '1')
-    } catch (e) {}
     document.body.style.overflow = ''
   }
 }

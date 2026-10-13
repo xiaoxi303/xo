@@ -199,14 +199,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
 onMounted(() => {
   if (import.meta.client) {
-    try {
-      if (sessionStorage.getItem('xo_preloader_done') === '1') {
-        visible.value = false
-        emit('complete')
-        document.body.style.overflow = ''
-        return
-      }
-    } catch (e) {}
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeyDown)
   }

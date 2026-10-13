@@ -929,12 +929,7 @@ onMounted(async () => {
     const preloaderRevealed = useState('xo_preloader_revealed', () => false)
     const preloaderDone = useState('xo_preloader_done', () => false)
 
-    let hasLoadedBefore = false
-    try {
-      hasLoadedBefore = sessionStorage.getItem('xo_preloader_done') === '1'
-    } catch (e) {}
-
-    if (preloaderRevealed.value || preloaderDone.value || hasLoadedBefore) {
+    if (preloaderRevealed.value || preloaderDone.value) {
       playHeroEntrance()
     } else {
       const stopWatch = watch([preloaderRevealed, preloaderDone], ([revealed, done]) => {
@@ -943,10 +938,10 @@ onMounted(async () => {
           stopWatch()
         }
       })
-      // Rapid fallback so page is NEVER stuck waiting
+      // Generous fallback (e.g. 3.5s) in case preloader is disabled or finishes late
       setTimeout(() => {
         if (!heroAnimated) playHeroEntrance()
-      }, 400)
+      }, 3500)
     }
   }
 
