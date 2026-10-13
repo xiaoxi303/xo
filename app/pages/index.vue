@@ -858,21 +858,34 @@ let heroAnimated = false
 const playHeroEntrance = async () => {
   if (!import.meta.client || heroAnimated) return
   heroAnimated = true
-  const { gsap } = await import('gsap')
+  try {
+    const { gsap } = await import('gsap')
 
-  if (heroTextRef.value) {
-    gsap.fromTo(
-      heroTextRef.value.children,
-      { opacity: 0, y: 35, scale: 0.96 },
-      { opacity: 1, y: 0, scale: 1, duration: 1.0, stagger: 0.06, ease: 'power3.out' }
-    )
-  }
-  if (heroCardRef.value) {
-    gsap.fromTo(
-      heroCardRef.value,
-      { opacity: 0, y: 45, scale: 0.91, rotateY: -5 },
-      { opacity: 1, y: 0, scale: 1, rotateY: 0, duration: 1.15, ease: 'power3.out', delay: 0.08 }
-    )
+    if (heroTextRef.value) {
+      gsap.fromTo(
+        heroTextRef.value.children,
+        { opacity: 0.15, y: 24, scale: 0.98 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.85, stagger: 0.05, ease: 'power3.out' }
+      )
+    }
+    if (heroCardRef.value) {
+      gsap.fromTo(
+        heroCardRef.value,
+        { opacity: 0.2, y: 30, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'power3.out', delay: 0.05 }
+      )
+    }
+  } catch (e) {
+    if (heroTextRef.value) {
+      Array.from(heroTextRef.value.children).forEach((child: any) => {
+        child.style.opacity = '1'
+        child.style.transform = 'none'
+      })
+    }
+    if (heroCardRef.value) {
+      heroCardRef.value.style.opacity = '1'
+      heroCardRef.value.style.transform = 'none'
+    }
   }
 }
 
@@ -889,10 +902,14 @@ const setupRevealObserver = () => {
         }
       })
     },
-    { threshold: 0.1, rootMargin: '0px 0px -45px 0px' }
+    { threshold: 0.05, rootMargin: '60px 0px 60px 0px' }
   )
 
   document.querySelectorAll('.reveal').forEach((el) => {
+    const rect = el.getBoundingClientRect()
+    if (rect.top < window.innerHeight + 120 && rect.bottom > -100) {
+      el.classList.add('in-view')
+    }
     revealObserver?.observe(el)
   })
 }
@@ -912,7 +929,12 @@ onMounted(async () => {
     const preloaderRevealed = useState('xo_preloader_revealed', () => false)
     const preloaderDone = useState('xo_preloader_done', () => false)
 
-    if (preloaderRevealed.value || preloaderDone.value) {
+    let hasLoadedBefore = false
+    try {
+      hasLoadedBefore = sessionStorage.getItem('xo_preloader_done') === '1'
+    } catch (e) {}
+
+    if (preloaderRevealed.value || preloaderDone.value || hasLoadedBefore) {
       playHeroEntrance()
     } else {
       const stopWatch = watch([preloaderRevealed, preloaderDone], ([revealed, done]) => {
@@ -921,10 +943,10 @@ onMounted(async () => {
           stopWatch()
         }
       })
-      // Safety fallback
+      // Rapid fallback so page is NEVER stuck waiting
       setTimeout(() => {
         if (!heroAnimated) playHeroEntrance()
-      }, 3000)
+      }, 400)
     }
   }
 

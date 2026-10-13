@@ -802,10 +802,9 @@ body.no-grain::before {
 /* ===== Global Page & Route Transition (60fps GPU Accelerated) ===== */
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 0.22s var(--xo-ease-kinetic), transform 0.22s var(--xo-ease-kinetic);
+  transition: opacity 0.2s var(--xo-ease-kinetic), transform 0.2s var(--xo-ease-kinetic);
   will-change: opacity, transform;
   backface-visibility: hidden;
-  contain: layout style paint;
 }
 .page-enter-from {
   opacity: 0;

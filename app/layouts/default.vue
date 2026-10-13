@@ -349,6 +349,15 @@ const route = useRoute()
 const preloaderDone = useState('xo_preloader_done', () => false)
 const preloaderRevealed = useState('xo_preloader_revealed', () => false)
 
+if (import.meta.client) {
+  try {
+    if (sessionStorage.getItem('xo_preloader_done') === '1') {
+      preloaderDone.value = true
+      preloaderRevealed.value = true
+    }
+  } catch (e) {}
+}
+
 const onPreloaderRevealStart = () => {
   preloaderRevealed.value = true
 }
@@ -356,7 +365,12 @@ const onPreloaderRevealStart = () => {
 const onPreloaderComplete = () => {
   preloaderDone.value = true
   preloaderRevealed.value = true
-  if (import.meta.client) document.body.style.overflow = ''
+  if (import.meta.client) {
+    try {
+      sessionStorage.setItem('xo_preloader_done', '1')
+    } catch (e) {}
+    document.body.style.overflow = ''
+  }
 }
 
 // Load full site configuration with guaranteed SSR hydration
@@ -620,6 +634,10 @@ const handleClientLogout = async () => {
 watch(() => route.path, () => {
   if (import.meta.client) {
     document.body.style.overflow = ''
+    if (isPanelPage.value) {
+      preloaderDone.value = true
+      preloaderRevealed.value = true
+    }
   }
 })
 
@@ -627,6 +645,10 @@ onMounted(() => {
   checkClientSession()
   checkBannerDismissal()
   if (import.meta.client) {
+    if (isPanelPage.value) {
+      preloaderDone.value = true
+      preloaderRevealed.value = true
+    }
     if (preloaderDone.value || isPanelPage.value) document.body.style.overflow = ''
     else document.body.style.overflow = 'hidden'
   }

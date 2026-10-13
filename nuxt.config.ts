@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   sourcemap: false,
 
   app: {
-    pageTransition: { name: 'page', mode: 'out-in', appear: true },
+    pageTransition: false,
     head: {
       htmlAttrs: {
         lang: 'zh-CN'
