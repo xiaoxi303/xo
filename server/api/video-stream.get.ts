@@ -37,10 +37,16 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // If local file on server
+  // If local file on server, strictly enforce path containment inside public directory
+  const publicDir = path.resolve(process.cwd(), 'public')
   let inputPath = targetUrl
   if (targetUrl.startsWith('/')) {
-    inputPath = path.resolve(process.cwd(), 'public' + targetUrl)
+    const normalized = path.normalize(targetUrl).replace(/^(\.\.[\/\\])+/, '')
+    const resolvedPath = path.resolve(publicDir, '.' + normalized)
+    if (!resolvedPath.startsWith(publicDir + path.sep) && resolvedPath !== publicDir) {
+      throw createError({ statusCode: 403, message: 'Forbidden: Invalid video path' })
+    }
+    inputPath = resolvedPath
   }
 
   // Set response headers for video streaming

@@ -58,17 +58,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: '该管理账户不存在，请核对账号。' })
   }
 
-  // Password Verification with robust fallback matching:
-  // 1. Matches configured hash (e.g. xiaoxi1209)
-  // 2. Matches default legacy hash for 'xiaoxi'
-  // 3. Matches emergency default 'admin'
-  // 4. Raw hash comparison in case password came pre-hashed
+  // Verify password against configured password hash (falling back to initial default only if no hash is configured)
+  const effectiveHash = allowedPasswordHash || hashPassword('admin')
   const isPasswordValid =
-    verifyPassword(password, allowedPasswordHash) ||
-    (allowedPasswordHash && password === allowedPasswordHash) ||
-    verifyPassword(password, hashPassword('xiaoxi1209')) ||
-    verifyPassword(password, hashPassword('xiaoxi')) ||
-    verifyPassword(password, hashPassword('admin'))
+    verifyPassword(password, effectiveHash) ||
+    (effectiveHash && password === effectiveHash)
 
   if (!isPasswordValid) {
     logSecurityEvent({

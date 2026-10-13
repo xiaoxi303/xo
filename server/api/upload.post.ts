@@ -34,9 +34,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '图片大小请限制在 5MB 以内。' })
   }
 
-  // Generate a safe unique name
-  const ext = path.extname(file.filename) || '.jpg'
-  const uniqueName = `${randomBytes(16).toString('hex')}${ext}`
+  // Generate a safe unique name with whitelisted extension
+  const mimeToExt: Record<string, string> = {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+    'image/avif': '.avif'
+  }
+  const rawExt = path.extname(file.filename || '').toLowerCase()
+  const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif']
+  const safeExt = allowedExts.includes(rawExt) ? rawExt : (mimeToExt[fileType] || '.jpg')
+  const uniqueName = `${randomBytes(16).toString('hex')}${safeExt}`
 
   // Local uploads directory
   const uploadsDir = path.resolve(process.cwd(), 'public/uploads')

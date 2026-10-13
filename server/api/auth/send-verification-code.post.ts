@@ -1,6 +1,31 @@
 import { dbGetUsers } from '../../utils/db'
 import { sendVerificationCodeEmail } from '../../utils/email'
 import { generateVerificationCode, storeVerificationCode, getCooldownRemaining } from '../../utils/verification'
+import { getRealClientIP } from '../../utils/ip-helper'
+
+const ipSendHistory = new Map<string, number[]>()
+
+function checkIpRateLimit(ip: string): { allowed: boolean; waitSeconds?: number } {
+  const now = Date.now()
+  const timestamps = (ipSendHistory.get(ip) || []).filter(t => now - t < 10 * 60 * 1000)
+  if (timestamps.length >= 5) {
+    const oldest = timestamps[0]
+    const waitSeconds = Math.ceil((oldest + 10 * 60 * 1000 - now) / 1000)
+    return { allowed: false, waitSeconds: Math.max(1, waitSeconds) }
+  }
+  const last = timestamps[timestamps.length - 1]
+  if (last && now - last < 15 * 1000) {
+    return { allowed: false, waitSeconds: Math.ceil((last + 15 * 1000 - now) / 1000) }
+  }
+  return { allowed: true }
+}
+
+function recordIpSend(ip: string) {
+  const now = Date.now()
+  const timestamps = (ipSendHistory.get(ip) || []).filter(t => now - t < 10 * 60 * 1000)
+  timestamps.push(now)
+  ipSendHistory.set(ip, timestamps)
+}
 
 const ALLOWED_EMAIL_DOMAINS = [
   'qq.com', 'vip.qq.com', 'foxmail.com',
@@ -37,7 +62,17 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check 60s sending cooldown
+  // Check IP rate limit (max 5 requests per 10 minutes per IP)
+  const ip = getRealClientIP(event)
+  const ipCheck = checkIpRateLimit(ip)
+  if (!ipCheck.allowed) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: `请求过于频繁，请等待 ${ipCheck.waitSeconds} 秒后再试。`
+    })
+  }
+
+  // Check 60s sending cooldown per email
   const remainingCooldown = getCooldownRemaining(email, 60)
   if (remainingCooldown > 0) {
     throw createError({
@@ -69,6 +104,7 @@ export default defineEventHandler(async (event) => {
 
   // Store code only on successful send (valid for 60 seconds)
   storeVerificationCode(email, code, 60)
+  recordIpSend(ip)
 
   return {
     success: true,

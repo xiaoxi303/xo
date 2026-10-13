@@ -13,7 +13,9 @@ export default defineEventHandler(async event => {
   const mime = String(file.type || '')
   if (!['video/mp4', 'video/webm', 'video/quicktime'].includes(mime)) throw createError({ statusCode: 400, statusMessage: '仅支持 MP4、WebM 或 MOV 视频' })
   if (file.data.length > 500 * 1024 * 1024) throw createError({ statusCode: 413, statusMessage: '视频不能超过 500MB' })
-  const ext = path.extname(String(file.filename || '')).toLowerCase() || (mime === 'video/webm' ? '.webm' : '.mp4')
+  const rawExt = path.extname(String(file.filename || '')).toLowerCase()
+  const allowedVideoExts = ['.mp4', '.webm', '.mov', '.m4v']
+  const ext = allowedVideoExts.includes(rawExt) ? rawExt : (mime === 'video/webm' ? '.webm' : '.mp4')
   const dir = path.resolve(process.cwd(), 'public/uploads/delivery')
   fs.mkdirSync(dir, { recursive: true })
   const name = `${Date.now()}-${randomBytes(5).toString('hex')}${ext}`

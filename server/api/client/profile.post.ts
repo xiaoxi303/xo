@@ -34,8 +34,17 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, statusMessage: '客户账号不存在。' })
     }
 
-    // Update fields
-    if (email !== undefined) users[idx].email = email
+    // Update fields with duplicate email check
+    if (email !== undefined) {
+      const cleanEmail = email.trim().toLowerCase()
+      if (cleanEmail && cleanEmail !== (users[idx].email || '').trim().toLowerCase()) {
+        const emailTaken = users.some((u: any, i: number) => i !== idx && u.email && u.email.trim().toLowerCase() === cleanEmail)
+        if (emailTaken) {
+          throw createError({ statusCode: 409, statusMessage: '该邮箱已被其他账号使用，请更换邮箱。' })
+        }
+      }
+      users[idx].email = email.trim()
+    }
     if (wechat !== undefined) users[idx].wechat = wechat
     if (avatar !== undefined) users[idx].avatar = avatar
     if (nickname !== undefined) users[idx].nickname = nickname
