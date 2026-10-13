@@ -116,6 +116,9 @@ iconsaxPaths['home-2'] = iconsaxPaths.home
 iconsaxPaths['brush-2'] = iconsaxPaths['magic-star']
 iconsaxPaths['refresh-2'] = iconsaxPaths['arrow-right']
 iconsaxPaths['audio-square'] = iconsaxPaths.mail
+iconsaxPaths['receipt-2'] = iconsaxPaths.card
+iconsaxPaths['wallet'] = iconsaxPaths.card
+iconsaxPaths['bag-2'] = iconsaxPaths.card
 
 const iconPath = computed(() => {
   const path = iconsaxPaths[props.name]

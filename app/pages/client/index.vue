@@ -90,27 +90,33 @@
           </div>
 
           <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-700 shrink-0">
-              <IconSax name="shield-security" :size="24" />
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 shrink-0">
+              <IconSax name="card" :size="24" />
             </div>
             <div>
-              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">E2EE 加密保护</p>
-              <h3 class="font-display font-bold text-xs text-emerald-600 mt-1 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                256-Bit GCM 通道
+              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">购买订单记录</p>
+              <h3 class="font-display font-bold text-2xl text-[#121316] mt-0.5">
+                {{ dashboardData.orders?.length || 0 }} <span class="text-xs font-sans font-normal text-[#82848c]">笔</span>
               </h3>
+              <p class="text-[10px] font-mono text-emerald-700 mt-0.5 font-bold">
+                已结: ¥{{ dashboardData.orderSummary?.totalPaid || '0.00' }}
+              </p>
             </div>
           </div>
 
           <div class="glass-card p-5 rounded-2xl flex items-center gap-4 border border-black/[0.06]">
-            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-700 shrink-0">
-              <IconSax name="crown" :size="24" />
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-700 shrink-0">
+              <IconSax name="shield-security" :size="24" />
             </div>
             <div>
-              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">账户身份等级</p>
-              <h3 class="font-display font-bold text-xs text-amber-800 mt-1">
-                {{ dashboardData.profile.role === 'admin' ? '系统最高管理员' : '认证 Pro 客户会员' }}
+              <p class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#82848c]">放映室安全等级</p>
+              <h3 class="font-display font-bold text-xs text-emerald-600 mt-1 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                256-Bit GCM 通道
               </h3>
+              <p class="text-[10px] font-mono text-amber-800 mt-0.5 font-bold">
+                {{ dashboardData.profile.role === 'admin' ? '系统最高管理员' : '认证 Pro 客户会员' }}
+              </p>
             </div>
           </div>
         </div>
@@ -350,7 +356,7 @@
             
             <!-- Controls Bar: Navigation Tabs + Search Filter -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2 rounded-2xl bg-black/[0.03] border border-black/[0.05]">
-              <div class="flex items-center gap-1">
+              <div class="flex items-center gap-1 flex-wrap">
                 <button 
                   @click="activeTab = 'projects'"
                   :class="[
@@ -382,15 +388,31 @@
                     {{ dashboardData.requests?.length || 0 }}
                   </span>
                 </button>
+
+                <button 
+                  @click="activeTab = 'orders'"
+                  :class="[
+                    'px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-2 cursor-pointer',
+                    activeTab === 'orders'
+                      ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-white shadow-md'
+                      : 'text-[#82848c] hover:text-[#121316]'
+                  ]"
+                >
+                  <IconSax name="card" :size="16" />
+                  <span>购买记录</span>
+                  <span :class="['px-2 py-0.5 rounded-full text-[9px] font-mono font-bold', activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-black/5 text-slate-500']">
+                    {{ dashboardData.orders?.length || 0 }}
+                  </span>
+                </button>
               </div>
 
-              <!-- Search Filter Input (For projects tab) -->
-              <div v-if="activeTab === 'projects'" class="px-1 relative">
+              <!-- Search Filter Input (For projects and orders tab) -->
+              <div v-if="activeTab === 'projects' || activeTab === 'orders'" class="px-1 relative">
                 <input 
                   v-model="searchQuery" 
                   type="text" 
-                  placeholder="搜索专属作品..."
-                  class="form-input text-xs py-2 pl-9 pr-3.5 rounded-xl border border-black/10 w-full sm:w-48 bg-white/90 focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20 transition-all"
+                  :placeholder="activeTab === 'orders' ? '搜索订单/商品/单号...' : '搜索专属作品...'"
+                  class="form-input text-xs py-2 pl-9 pr-3.5 rounded-xl border border-black/10 w-full sm:w-52 bg-white/90 focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20 transition-all"
                 />
                 <IconSax name="search" :size="14" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
@@ -575,6 +597,280 @@
               </div>
             </div>
 
+            <!-- Tab Content 3: Orders & Purchase Records -->
+            <div v-if="activeTab === 'orders'" class="space-y-6">
+              
+              <!-- Subfilter & KPI Mini Stats -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white/90 border border-black/[0.06] shadow-xs">
+                <!-- Status Filter Pills -->
+                <div class="flex items-center gap-1.5 p-1 rounded-xl bg-black/[0.03]">
+                  <button
+                    type="button"
+                    @click="orderStatusFilter = 'all'"
+                    :class="[
+                      'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                      orderStatusFilter === 'all'
+                        ? 'bg-white text-[#121316] shadow-xs'
+                        : 'text-[#82848c] hover:text-[#121316]'
+                    ]"
+                  >
+                    全部 ({{ dashboardData.orders?.length || 0 }})
+                  </button>
+                  <button
+                    type="button"
+                    @click="orderStatusFilter = 'paid'"
+                    :class="[
+                      'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                      orderStatusFilter === 'paid'
+                        ? 'bg-emerald-700 text-white shadow-xs'
+                        : 'text-[#82848c] hover:text-emerald-700'
+                    ]"
+                  >
+                    已付款 ({{ dashboardData.orderSummary?.paidCount || 0 }})
+                  </button>
+                  <button
+                    type="button"
+                    @click="orderStatusFilter = 'created'"
+                    :class="[
+                      'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                      orderStatusFilter === 'created'
+                        ? 'bg-amber-700 text-white shadow-xs'
+                        : 'text-[#82848c] hover:text-amber-800'
+                    ]"
+                  >
+                    待付款 ({{ dashboardData.orderSummary?.pendingCount || 0 }})
+                  </button>
+                </div>
+
+                <!-- Total Amount Pill -->
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 text-xs font-mono font-bold self-end sm:self-auto">
+                  <span class="text-[10px] text-amber-800 font-sans font-normal">已结清总额</span>
+                  <span class="text-sm">¥{{ dashboardData.orderSummary?.totalPaid || '0.00' }}</span>
+                </div>
+              </div>
+
+              <!-- Available Assigned Product / Quotation Cards (if any) -->
+              <div v-if="dashboardData.orderSummary?.availableProducts?.length" class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#121316] flex items-center gap-1.5">
+                    <span class="text-amber-600">⚡</span>
+                    <span>专属定向商品 / 项目报价单</span>
+                  </span>
+                  <span class="text-[11px] font-mono text-slate-400">后台定向绑定商品</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div
+                    v-for="prod in dashboardData.orderSummary.availableProducts"
+                    :key="prod.suffix"
+                    class="p-5 rounded-2xl bg-gradient-to-br from-amber-500/[0.07] via-white to-amber-500/[0.03] border border-amber-500/25 shadow-xs flex flex-col justify-between gap-4"
+                  >
+                    <div class="space-y-2">
+                      <div class="flex items-start justify-between gap-2">
+                        <div>
+                          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-900 font-bold uppercase">
+                            /order/{{ prod.suffix }}
+                          </span>
+                          <h4 class="font-display font-bold text-base text-[#121316] mt-1.5">
+                            {{ prod.subject }}
+                          </h4>
+                        </div>
+                        <div class="text-right">
+                          <span class="text-[10px] text-slate-400 block font-mono">固定价格</span>
+                          <strong class="font-display font-bold text-lg text-amber-900">
+                            <i>¥</i>{{ prod.amount }}
+                          </strong>
+                        </div>
+                      </div>
+                      <p v-if="prod.description" class="text-xs text-[#5e6066] leading-relaxed line-clamp-2">
+                        {{ prod.description }}
+                      </p>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-3 border-t border-amber-500/15">
+                      <span class="text-[10px] font-mono text-slate-400">
+                        {{ prod.isPaid ? '● 已存在支付记录' : '● 等待在线支付' }}
+                      </span>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          @click="copyOrderPageUrl(prod.suffix)"
+                          class="text-xs font-bold px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-[#121316] transition-colors cursor-pointer"
+                        >
+                          复制链接
+                        </button>
+                        <NuxtLink
+                          :to="prod.pageUrl"
+                          target="_blank"
+                          class="btn-bronze text-xs py-1.5 px-3.5 rounded-xl shadow-xs flex items-center gap-1"
+                        >
+                          <span>前往付款 ↗</span>
+                        </NuxtLink>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Orders List Grid -->
+              <div v-if="filteredOrders.length" class="space-y-4">
+                <div
+                  v-for="order in filteredOrders"
+                  :key="order.outTradeNo"
+                  class="glass-card p-5 sm:p-6 rounded-[28px] border border-black/[0.06] hover:border-amber-600/30 transition-all duration-300 space-y-4 shadow-xs"
+                >
+                  <!-- Card Header: Title + Status + Price -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/[0.05]">
+                    <div class="space-y-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h4 class="font-display font-bold text-base sm:text-lg text-[#121316]">
+                          {{ order.pageSubject || order.subject }}
+                        </h4>
+                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-black/[0.04] text-slate-600">
+                          #{{ order.suffix }}
+                        </span>
+                        <!-- Status Badge -->
+                        <span
+                          v-if="order.status === 'paid'"
+                          class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 flex items-center gap-1"
+                        >
+                          <IconSax name="tick" :size="12" class="text-emerald-600" />
+                          <span>已支付成功</span>
+                        </span>
+                        <span
+                          v-else-if="order.status === 'created'"
+                          class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 border border-amber-500/20 text-amber-800 flex items-center gap-1"
+                        >
+                          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          <span>待支付</span>
+                        </span>
+                        <span
+                          v-else
+                          class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-500"
+                        >
+                          已关闭
+                        </span>
+                      </div>
+                      <p v-if="order.pageDescription" class="text-xs text-[#5e6066] line-clamp-1">
+                        {{ order.pageDescription }}
+                      </p>
+                    </div>
+
+                    <!-- Price Column -->
+                    <div class="text-left sm:text-right shrink-0">
+                      <span class="text-[10px] font-mono text-slate-400 block uppercase">
+                        {{ order.status === 'paid' ? '实付金额' : '应付金额' }}
+                      </span>
+                      <strong class="font-display font-bold text-2xl text-amber-900 tracking-tight">
+                        <i class="text-base font-normal mr-0.5">¥</i>{{ order.amount }}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <!-- Details Grid -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs font-mono text-[#5e6066] bg-black/[0.015] p-3.5 rounded-2xl border border-black/[0.03]">
+                    <div class="flex items-center justify-between sm:justify-start gap-2">
+                      <span class="text-slate-400">商户单号:</span>
+                      <span class="font-bold text-[#121316] select-all truncate">{{ order.outTradeNo }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-start gap-2">
+                      <span class="text-slate-400">下单时间:</span>
+                      <span class="font-bold text-[#121316]">{{ formatDate(order.createdAt) }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-start gap-2">
+                      <span class="text-slate-400">支付状态:</span>
+                      <span class="font-bold" :class="order.status === 'paid' ? 'text-emerald-700' : 'text-amber-700'">
+                        {{ order.status === 'paid' ? (order.paidAt ? formatDate(order.paidAt) : '付款成功') : '等待付款' }}
+                      </span>
+                    </div>
+
+                    <div v-if="order.tradeNo" class="flex items-center justify-between sm:justify-start gap-2">
+                      <span class="text-slate-400">支付宝流水:</span>
+                      <span class="font-bold text-[#121316] select-all truncate">{{ order.tradeNo }}</span>
+                    </div>
+
+                    <div v-if="order.buyerLogonId" class="flex items-center justify-between sm:justify-start gap-2">
+                      <span class="text-slate-400">买家账号:</span>
+                      <span class="font-bold text-[#121316] select-all truncate">{{ order.buyerLogonId }}</span>
+                    </div>
+
+                    <div v-if="order.note" class="flex items-center justify-between sm:justify-start gap-2 sm:col-span-2">
+                      <span class="text-slate-400 shrink-0">备注说明:</span>
+                      <span class="font-sans text-[#121316] truncate">{{ order.note }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Card Footer Actions -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                    <div class="flex items-center gap-2">
+                      <NuxtLink
+                        :to="order.pageUrl"
+                        target="_blank"
+                        class="text-xs text-amber-800 hover:text-amber-900 hover:underline flex items-center gap-1"
+                      >
+                        <span>查看商品页面 /order/{{ order.suffix }} ↗</span>
+                      </NuxtLink>
+                    </div>
+
+                    <div class="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+                      <button
+                        type="button"
+                        @click="copyOrderNo(order.outTradeNo)"
+                        class="text-xs font-bold px-3 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-[#121316] transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <IconSax name="copy" :size="12" />
+                        <span>复制单号</span>
+                      </button>
+
+                      <!-- If Pending: Pay Now -->
+                      <NuxtLink
+                        v-if="order.status === 'created'"
+                        :to="order.pageUrl"
+                        target="_blank"
+                        class="btn-bronze text-xs py-1.5 px-4 rounded-xl shadow-xs flex items-center gap-1"
+                      >
+                        <span>💳 立即前往付款 ↗</span>
+                      </NuxtLink>
+
+                      <!-- If Paid: Open Delivery Suite -->
+                      <NuxtLink
+                        v-else-if="order.status === 'paid' && (dashboardData.profile.deliverySuffix || order.deliverySuffix)"
+                        :to="`/delivery/${dashboardData.profile.deliverySuffix || order.deliverySuffix}`"
+                        target="_blank"
+                        class="btn-bronze text-xs py-1.5 px-4 rounded-xl shadow-xs flex items-center gap-1"
+                      >
+                        <span>🎬 进入交付放映厅 ↗</span>
+                      </NuxtLink>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Empty Orders State -->
+              <div v-else class="glass-card p-12 rounded-[32px] text-center flex flex-col items-center justify-center space-y-3 border border-black/[0.06]">
+                <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 text-3xl">
+                  🧾
+                </div>
+                <h4 class="font-display font-bold text-base text-[#121316]">暂无购买记录</h4>
+                <p class="text-xs max-w-sm leading-relaxed text-[#82848c]">
+                  您在此账号下暂无符合筛选条件的订单记录。当项目生成定金、尾款或专属报价单后，可在本栏目实时跟踪支付流水与母带交付进度。
+                </p>
+                <div v-if="orderStatusFilter !== 'all'" class="pt-2">
+                  <button
+                    type="button"
+                    @click="orderStatusFilter = 'all'"
+                    class="text-xs font-bold px-4 py-2 rounded-xl border border-black/10 hover:bg-black/5 transition-colors cursor-pointer"
+                  >
+                    查看全部订单
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
 
@@ -742,6 +1038,99 @@ const filteredProjects = computed(() => {
     (p.description || '').toLowerCase().includes(q)
   )
 })
+
+// Delivery key and suite states
+const showDeliveryKey = ref(false)
+const effectiveDeliveryKey = computed(() => {
+  return deliveryKeyDraft.value || dashboardData.value?.profile?.deliveryKey || dashboardData.value?.delivery?.key || ''
+})
+
+// Orders tab state and filters
+const orderStatusFilter = ref<'all' | 'paid' | 'created'>('all')
+
+const filteredOrders = computed(() => {
+  const list = dashboardData.value?.orders || []
+  let result = list
+
+  if (orderStatusFilter.value !== 'all') {
+    result = result.filter((o: any) => o.status === orderStatusFilter.value)
+  }
+
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim()
+    result = result.filter((o: any) =>
+      (o.subject || '').toLowerCase().includes(q) ||
+      (o.outTradeNo || '').toLowerCase().includes(q) ||
+      (o.suffix || '').toLowerCase().includes(q) ||
+      (o.tradeNo || '').toLowerCase().includes(q) ||
+      (o.note || '').toLowerCase().includes(q) ||
+      (o.pageDescription || '').toLowerCase().includes(q)
+    )
+  }
+
+  return result
+})
+
+const copyOrderNo = (no: string) => {
+  if (!no || !import.meta.client) return
+  navigator.clipboard.writeText(no).then(() => {
+    showToast(`订单号已复制：${no}`)
+  }).catch(() => {
+    showToast('复制失败，请手动复制。')
+  })
+}
+
+const copyOrderPageUrl = (suffix: string) => {
+  if (!suffix || !import.meta.client) return
+  const origin = window.location.origin
+  const url = `${origin}/order/${suffix}`
+  navigator.clipboard.writeText(url).then(() => {
+    showToast(`订单付款地址已复制！\n${url}`)
+  }).catch(() => {
+    showToast(`复制失败，请手动复制：${url}`)
+  })
+}
+
+const copyClientDeliveryAddress = async () => {
+  if (!dashboardData.value?.profile?.deliverySuffix || !import.meta.client) return
+  const origin = window.location.origin
+  const url = `${origin}/delivery/${dashboardData.value.profile.deliverySuffix}`
+  try {
+    await navigator.clipboard.writeText(url)
+    showToast(`专属交付地址已复制到剪贴板！\n${url}`)
+  } catch {
+    showToast(`复制失败，请手动复制：${url}`)
+  }
+}
+
+const copyClientDeliveryKey = async () => {
+  const key = effectiveDeliveryKey.value
+  if (!key || !import.meta.client) {
+    showToast('暂无完整密钥。如需新密钥，请点击“轮换密钥”。')
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(key)
+    showToast('专属提取密钥已复制，请妥善保存。')
+  } catch {
+    showToast('复制失败，请手动选择密钥。')
+  }
+}
+
+const copyClientDeliveryCredentials = async () => {
+  if (!import.meta.client) return
+  const suffix = dashboardData.value?.profile?.deliverySuffix
+  const key = effectiveDeliveryKey.value || `末四位 ${dashboardData.value?.profile?.deliveryKeyHint || '----'}`
+  const origin = window.location.origin
+  const url = suffix ? `${origin}/delivery/${suffix}` : '未生成'
+  const text = `【XO Studio 专属母带交付凭证】\n放映室地址：${url}\n提取密钥：${key}\n（端到端加密通道，请妥善保管）`
+  try {
+    await navigator.clipboard.writeText(text)
+    showToast('专属交付凭证（地址 + 密钥）已完整复制！')
+  } catch {
+    showToast('复制失败，请手动复制凭证。')
+  }
+}
 
 // Fetch dashboard data
 const fetchDashboard = async () => {

@@ -4,6 +4,8 @@ import { validateSession, CLIENT_SESSION_COOKIE } from '../../utils/auth'
 import { dbGetProjectsRaw, dbGetPasswordRequests, dbGetUsers, dbGetUserRecord } from '../../utils/db'
 import { getDailyPassword } from '../../utils/password-utils'
 import { getRuntimeDataPath } from '../../utils/storage'
+import { getOrders } from '../../utils/order-store'
+import { getOrderPages } from '../../utils/order-pages'
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
@@ -129,6 +131,72 @@ export default defineEventHandler(async (event) => {
       }
     })
 
+  // 5. Fetch Orders and Order Pages associated with this client
+  const allOrders = getOrders()
+  const allOrderPages = getOrderPages()
+
+  // Find pages explicitly assigned to this user, or matching user's deliverySuffix/username
+  const clientAssignedPages = allOrderPages.filter(p => {
+    if (p.clientUsername && p.clientUsername === username) return true
+    if (clientSuffix && p.suffix === clientSuffix) return true
+    if (p.suffix === username) return true
+    if (clientProfile.nickname && p.clientName && p.clientName === clientProfile.nickname) return true
+    return false
+  })
+
+  const clientAssignedSuffixes = new Set(clientAssignedPages.map(p => p.suffix))
+
+  // Match orders for this client
+  const clientOrders = allOrders.filter(o => {
+    if (o.clientUsername && o.clientUsername === username) return true
+    if (clientAssignedSuffixes.has(o.suffix)) return true
+    if (clientSuffix && o.suffix === clientSuffix) return true
+    if (o.suffix === username) return true
+    if (o.clientName && (o.clientName === username || (clientProfile.nickname && o.clientName === clientProfile.nickname))) return true
+    return false
+  })
+
+  // Enrich orders with product/page details
+  const enrichedOrders = clientOrders.map(o => {
+    const page = allOrderPages.find(p => p.suffix === o.suffix)
+    return {
+      ...o,
+      pageDescription: page?.description || '',
+      pageSubject: page?.subject || o.subject,
+      pageUrl: `/order/${o.suffix}`,
+      deliverySuffix: deliverySuffix || o.suffix,
+      successText: page?.successText || ''
+    }
+  })
+
+  // Order summary metrics
+  const paidOrders = enrichedOrders.filter(o => o.status === 'paid')
+  const pendingOrders = enrichedOrders.filter(o => o.status === 'created')
+  const totalPaidAmount = paidOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0)
+
+  // Also include assigned active pages that client can purchase/review directly
+  const availableProducts = clientAssignedPages
+    .filter(p => p.enabled)
+    .map(p => ({
+      suffix: p.suffix,
+      subject: p.subject,
+      amount: p.amount,
+      description: p.description,
+      clientName: p.clientName,
+      successText: p.successText,
+      pageUrl: `/order/${p.suffix}`,
+      hasOrder: clientOrders.some(o => o.suffix === p.suffix),
+      isPaid: clientOrders.some(o => o.suffix === p.suffix && o.status === 'paid')
+    }))
+
+  const orderSummary = {
+    totalOrders: enrichedOrders.length,
+    paidCount: paidOrders.length,
+    pendingCount: pendingOrders.length,
+    totalPaid: totalPaidAmount.toFixed(2),
+    availableProducts
+  }
+
   return {
     profile: {
       ...clientProfile,
@@ -137,6 +205,8 @@ export default defineEventHandler(async (event) => {
     },
     delivery: deliveryInfo,
     allowedProjects,
-    requests: enrichedRequests
+    requests: enrichedRequests,
+    orders: enrichedOrders,
+    orderSummary
   }
 })

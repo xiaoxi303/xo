@@ -1,9 +1,10 @@
-import { getRouterParam, getRequestURL } from 'h3'
+import { getRouterParam, getRequestURL, getCookie } from 'h3'
 import { randomBytes } from 'node:crypto'
 import { buildAlipayPagePay, readAlipayConfig } from '../../../utils/alipay'
 import { getOrderPage } from '../../../utils/order-pages'
 import { saveOrder } from '../../../utils/order-store'
 import { decryptRsaHybrid, isRsaHybridPayload, md5Fingerprint } from '../../../utils/rsa-hybrid'
+import { validateSession, CLIENT_SESSION_COOKIE } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const config = readAlipayConfig()
@@ -41,6 +42,15 @@ export default defineEventHandler(async (event) => {
     notifyUrl: config.notifyUrl || `${origin}/api/order/${suffix}/notify`,
     returnUrl: config.returnUrl || `${origin}/order/${suffix}?paid=1`
   })
+  const token = getCookie(event, CLIENT_SESSION_COOKIE)
+  let loggedInClient = ''
+  if (token) {
+    const session = validateSession(token)
+    if (session?.username) {
+      loggedInClient = session.username
+    }
+  }
+
   saveOrder({
     outTradeNo,
     suffix,
@@ -48,6 +58,8 @@ export default defineEventHandler(async (event) => {
     amount: amount.toFixed(2),
     status: 'created',
     note: String(body.note || '').trim().slice(0, 300),
+    clientUsername: loggedInClient || page.clientUsername || '',
+    clientName: page.clientName || '',
     createdAt: new Date().toISOString()
   })
   return { success: true, gateway: config.gateway, outTradeNo, ...params }

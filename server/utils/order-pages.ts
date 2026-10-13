@@ -8,6 +8,7 @@ export interface OrderPageConfig {
   amount: string
   description: string
   clientName: string
+  clientUsername?: string
   successText: string
   updatedAt: string
 }
@@ -66,6 +67,7 @@ export function saveOrderPage(input: Partial<OrderPageConfig>) {
     amount: amount.toFixed(2),
     description: String(input.description || '').trim(),
     clientName: String(input.clientName || '').trim(),
+    clientUsername: String(input.clientUsername || '').trim(),
     successText: String(input.successText || '支付成功后，项目负责人会按约定交付。').trim(),
     updatedAt: new Date().toISOString()
   }

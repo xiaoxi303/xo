@@ -17,6 +17,8 @@ export interface OrderRecord {
   note?: string
   createdAt: string
   paidAt?: string
+  clientUsername?: string
+  clientName?: string
 }
 
 function readOrders(): OrderRecord[] {

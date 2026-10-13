@@ -3277,7 +3277,17 @@
                   <label class="form-label">固定金额（元）<input v-model="orderPageForm.amount" type="number" min="0.01" step="0.01" class="form-input font-mono" /></label>
                 </div>
                 <label class="form-label">商品名称<input v-model="orderPageForm.subject" class="form-input" placeholder="影视后期制作服务" /></label>
-                <label class="form-label">客户名称<input v-model="orderPageForm.clientName" class="form-input" placeholder="客户或项目名称" /></label>
+                <div class="grid grid-cols-2 gap-3">
+                  <label class="form-label">绑定客户账号（可选）
+                    <select v-model="orderPageForm.clientUsername" class="form-input text-xs" @change="onOrderPageClientChange">
+                      <option value="">不绑定独立客户（公开）</option>
+                      <option v-for="u in registeredUsers.filter((x:any) => x.role !== 'admin')" :key="u.id" :value="u.username">
+                        {{ u.username }}{{ u.nickname ? ` (${u.nickname})` : '' }}
+                      </option>
+                    </select>
+                  </label>
+                  <label class="form-label">客户名称/备注<input v-model="orderPageForm.clientName" class="form-input" placeholder="客户或项目名称" /></label>
+                </div>
                 <label class="form-label">商品说明<textarea v-model="orderPageForm.description" rows="3" class="form-input resize-none" /></label>
                 <label class="form-label">支付成功提示<textarea v-model="orderPageForm.successText" rows="2" class="form-input resize-none" /></label>
                 <label class="flex items-center gap-2 text-xs"><input v-model="orderPageForm.enabled" type="checkbox" />启用此订单页面</label>
@@ -3287,7 +3297,13 @@
                 <h3 class="font-semibold text-sm">已配置订单页面</h3>
                 <div v-if="orderPages.length" class="space-y-2">
                   <div v-for="item in orderPages" :key="item.suffix" class="flex items-center justify-between gap-3 rounded-xl border border-black/10 p-3">
-                    <div class="min-w-0"><strong class="text-sm">{{ item.subject }}</strong><p class="text-[11px] text-slate-500">/order/{{ item.suffix }} · ¥{{ item.amount }} · {{ item.enabled ? '已启用' : '已关闭' }}</p></div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <strong class="text-sm">{{ item.subject }}</strong>
+                        <span v-if="item.clientUsername" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 font-mono font-bold">@{{ item.clientUsername }}</span>
+                      </div>
+                      <p class="text-[11px] text-slate-500">/order/{{ item.suffix }} · ¥{{ item.amount }} · {{ item.enabled ? '已启用' : '已关闭' }}{{ item.clientName ? ` · ${item.clientName}` : '' }}</p>
+                    </div>
                     <div class="flex gap-2 shrink-0"><button type="button" class="text-xs px-2 py-1 rounded border" @click="editOrderPage(item)">编辑</button><button type="button" class="text-xs px-2 py-1 rounded border text-rose-600" @click="deleteOrderPage(item.suffix)">删除</button></div>
                   </div>
                 </div>
@@ -3301,7 +3317,10 @@
                   <div v-if="orders.length" class="space-y-2">
                     <div v-for="item in orders.slice(0, 20)" :key="item.outTradeNo" class="rounded-xl border border-black/10 p-3 text-[11px] space-y-1.5">
                       <div class="flex items-center justify-between gap-3">
-                        <strong class="text-xs">{{ item.subject }}</strong>
+                        <div class="flex items-center gap-2">
+                          <strong class="text-xs">{{ item.subject }}</strong>
+                          <span v-if="item.clientUsername" class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-mono">@{{ item.clientUsername }}</span>
+                        </div>
                         <span class="rounded-full px-2 py-0.5" :class="item.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
                           {{ item.status === 'paid' ? '付款成功' : item.status === 'closed' ? '已关闭' : '待付款' }}
                         </span>
@@ -3310,6 +3329,7 @@
                         <span>金额：¥{{ item.amount }}</span>
                         <span>付款账号：{{ item.buyerLogonId || (item.status === 'paid' ? '同步返回未提供' : '等待支付宝回调') }}</span>
                         <span>订单号：{{ item.outTradeNo }}</span>
+                        <span v-if="item.clientName || item.clientUsername">关联客户：{{ item.clientUsername ? `@${item.clientUsername}` : '' }}{{ item.clientName ? ` (${item.clientName})` : '' }}</span>
                         <span v-if="item.tradeNo">支付宝交易号：{{ item.tradeNo }}</span>
                         <span v-if="item.paidAt">付款时间：{{ item.paidAt }}</span>
                         <span v-if="item.note">备注：{{ item.note }}</span>
@@ -5189,7 +5209,7 @@ const alipayConfig = ref<any>({
 const alipayPrivateKeyInput = ref('')
 const orderPages = ref<any[]>([])
 const orders = ref<any[]>([])
-const orderPageForm = ref<any>({ suffix: '', enabled: true, subject: '', amount: '0.00', description: '', clientName: '', successText: '' })
+const orderPageForm = ref<any>({ suffix: '', enabled: true, subject: '', amount: '0.00', description: '', clientName: '', clientUsername: '', successText: '' })
 const orderPageSaving = ref(false)
 const deliveryEditorId = ref('')
 const deliveryItems = ref<any[]>([])
@@ -5258,8 +5278,16 @@ const fetchOrderData = async () => {
     orders.value = await $fetch<any[]>('/api/admin/orders')
   } catch {}
 }
-const resetOrderPage = () => { orderPageForm.value = { suffix: '', enabled: true, subject: '', amount: '0.00', description: '', clientName: '', successText: '' } }
-const editOrderPage = (page: any) => { orderPageForm.value = { ...page } }
+const resetOrderPage = () => { orderPageForm.value = { suffix: '', enabled: true, subject: '', amount: '0.00', description: '', clientName: '', clientUsername: '', successText: '' } }
+const editOrderPage = (page: any) => { orderPageForm.value = { ...page, clientUsername: page.clientUsername || '' } }
+const onOrderPageClientChange = () => {
+  if (orderPageForm.value.clientUsername) {
+    const user = registeredUsers.value.find((u: any) => u.username === orderPageForm.value.clientUsername)
+    if (user && !orderPageForm.value.clientName) {
+      orderPageForm.value.clientName = user.nickname || user.username
+    }
+  }
+}
 const saveOrderPage = async () => {
   orderPageSaving.value = true
   try {
