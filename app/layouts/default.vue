@@ -367,16 +367,16 @@ if (siteConfigData.value && typeof siteConfigData.value === 'object') {
   siteConfig.value = { ...siteConfig.value, ...siteConfigData.value }
 }
 
-const configuredAdminPath = computed(() => siteConfig.value?.admin?.adminPath || 'admin')
+const configuredAdminPath = computed(() => (siteConfig.value?.admin?.adminPath || 'admin').trim().toLowerCase())
 
 const isAdminPage = computed(() => {
-  const path = (route.path || '').replace(/^\/|\/$/, '')
-  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\/$/, '')
+  const path = (route.path || '').replace(/^\/|\/$/, '').toLowerCase()
+  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\/$/, '').toLowerCase()
   return path === adminPath || path.startsWith(`${adminPath}/`)
 })
 
 const isPanelPage = computed(() => {
-  const path = (route.path || '').replace(/^\/|\/$/, '')
+  const path = (route.path || '').replace(/^\/|\/$/, '').toLowerCase()
   const isClient = path === 'client' || path.startsWith('client/') || path === 'login' || path === 'register'
   const isDelivery = path === 'delivery' || path.startsWith('delivery/')
   const isOrder = path === 'order' || path.startsWith('order/')

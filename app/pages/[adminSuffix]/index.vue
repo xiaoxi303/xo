@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-10 pb-20 px-6 font-sans relative admin-shell">
+  <div class="min-h-screen font-sans relative admin-shell bg-[#faf9f6] text-[#121316]">
     <AdminToast :toasts="toasts" @close="removeToast" />
     <AdminAiCopilot />
 
@@ -311,7 +311,7 @@
     </div>
 
     <!-- 3. Config Panel (Authenticated Master Studio Control Suite) -->
-    <div v-else class="w-full min-h-screen flex flex-col bg-[#faf9f6] text-[#121316] font-sans admin-app-shell -mx-6 -mt-10 -mb-20">
+    <div v-else class="w-full min-h-screen flex flex-col bg-[#faf9f6] text-[#121316] font-sans admin-app-shell">
       
       <!-- 3.1 Master Sticky Command Bar (全局顶部中枢控制条) -->
       <header class="sticky top-0 z-50 w-full h-16 px-4 sm:px-6 bg-white/90 backdrop-blur-2xl border-b border-black/[0.08] flex items-center justify-between gap-3 shadow-xs select-none">
@@ -4383,23 +4383,28 @@ const confirmAiMusicGeneration = async () => {
   }
 }
 definePageMeta({
+  layout: false,
   validate: (route) => {
     const staticPages = ['login', 'register', 'about', 'projects']
-    return !staticPages.includes(route.params.adminSuffix as string)
+    const param = String(route.params.adminSuffix || '').toLowerCase()
+    return !staticPages.includes(param)
   }
 })
 
 const route = useRoute()
 const router = useRouter()
-const currentSuffix = route.params.adminSuffix as string
+const currentSuffix = computed(() => String(route.params.adminSuffix || '').toLowerCase())
 
 // Fetch config to validate suffix (only on client or SSR)
 const { data: _rawConfig } = useFetch<any>('/api/site-config', { lazy: true })
-const configuredPath = computed(() => _rawConfig.value?.admin?.adminPath || 'admin')
+const configuredPath = computed(() => String(_rawConfig.value?.admin?.adminPath || 'admin').toLowerCase())
 
 watch(_rawConfig, (cfg) => {
-  if (cfg?.admin?.adminPath && currentSuffix !== cfg.admin.adminPath) {
-    throw createError({ statusCode: 404, statusMessage: 'Page not found.' })
+  if (cfg?.admin?.adminPath) {
+    const target = String(cfg.admin.adminPath).toLowerCase()
+    if (currentSuffix.value !== target) {
+      router.replace('/404')
+    }
   }
 }, { immediate: true })
 
@@ -4554,13 +4559,56 @@ const presetEmojis = [
   '📂', '💿', '💾', '📎'
 ]
 
+// Dual-Screen Live Canvas Preview State & Controls
+const showLivePreview = ref(false)
+const previewDevice = ref<'desktop' | 'tablet' | 'mobile'>('mobile')
+const previewRoute = ref('/')
+const previewZoom = ref(100)
+const isPreviewLoading = ref(false)
+const previewIframe = ref<HTMLIFrameElement | null>(null)
+
+const previewRoutes = [
+  { label: '🌐 前台首页 (/)', path: '/' },
+  { label: '🎬 作品展映 (/projects)', path: '/projects' },
+  { label: '📅 合作预约 (/booking)', path: '/booking' },
+  { label: '📦 专属交付 (/delivery)', path: '/delivery' },
+  { label: '👤 关于履历 (/about)', path: '/about' },
+  { label: '📝 灵感文章 (/blog)', path: '/blog' }
+]
+
+const switchPreviewRoute = (path: string) => {
+  previewRoute.value = path
+  isPreviewLoading.value = true
+  if (previewIframe.value) {
+    previewIframe.value.src = path
+  }
+}
+
+const onPreviewLoad = () => {
+  isPreviewLoading.value = false
+}
+
+const refreshPreview = () => {
+  isPreviewLoading.value = true
+  if (previewIframe.value) {
+    const currentSrc = previewIframe.value.src
+    previewIframe.value.src = 'about:blank'
+    setTimeout(() => {
+      if (previewIframe.value) {
+        previewIframe.value.src = currentSrc || previewRoute.value
+      }
+    }, 50)
+  }
+}
+
 const ADMIN_TAB_KEY = 'xo_admin_last_tab'
-const activeTab = ref(
-  (import.meta.client && localStorage.getItem(ADMIN_TAB_KEY)) || 'analytics'
-)
+const activeTab = ref('analytics')
+
 watch(activeTab, (newTab) => {
   if (import.meta.client) {
-    localStorage.setItem(ADMIN_TAB_KEY, newTab)
+    try {
+      localStorage.setItem(ADMIN_TAB_KEY, newTab)
+    } catch {}
   }
   if (newTab === 'analytics') {
     fetchSystemStatus()
@@ -4883,46 +4931,7 @@ const removeBookingFaq = (index: number) => {
   siteConfig.value.booking.faqs.splice(index, 1)
 }
 
-const showLivePreview = ref(false)
-const previewDevice = ref<'desktop' | 'tablet' | 'mobile'>('mobile')
-const previewRoute = ref('/')
-const previewZoom = ref(100)
-const isPreviewLoading = ref(false)
-const previewIframe = ref<HTMLIFrameElement | null>(null)
 
-const previewRoutes = [
-  { label: '🌐 前台首页 (/)', path: '/' },
-  { label: '🎬 作品展映 (/projects)', path: '/projects' },
-  { label: '📅 合作预约 (/booking)', path: '/booking' },
-  { label: '📦 专属交付 (/delivery)', path: '/delivery' },
-  { label: '👤 关于履历 (/about)', path: '/about' },
-  { label: '📝 灵感文章 (/blog)', path: '/blog' }
-]
-
-const switchPreviewRoute = (path: string) => {
-  previewRoute.value = path
-  isPreviewLoading.value = true
-  if (previewIframe.value) {
-    previewIframe.value.src = path
-  }
-}
-
-const onPreviewLoad = () => {
-  isPreviewLoading.value = false
-}
-
-const refreshPreview = () => {
-  isPreviewLoading.value = true
-  if (previewIframe.value) {
-    const currentSrc = previewIframe.value.src
-    previewIframe.value.src = 'about:blank'
-    setTimeout(() => {
-      if (previewIframe.value) {
-        previewIframe.value.src = currentSrc || previewRoute.value
-      }
-    }, 50)
-  }
-}
 
 const accentOptions = [
   { label: '古铜哑金', value: 'bronze', color: '#b45309' },
@@ -6122,8 +6131,12 @@ onMounted(() => {
   fetchOrderData()
   fetchDeliveryItems()
   // Restore last active tab from localStorage (SSR-safe: only runs on client)
-  const savedTab = localStorage.getItem(ADMIN_TAB_KEY)
-  if (savedTab) activeTab.value = savedTab
+  try {
+    const savedTab = localStorage.getItem(ADMIN_TAB_KEY)
+    if (savedTab && tabs.some(t => t.value === savedTab)) {
+      activeTab.value = savedTab
+    }
+  } catch {}
   const observer = new IntersectionObserver(
     (entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view') }) },
     { threshold: 0.1 }
@@ -6179,7 +6192,7 @@ const saveSiteConfig = async () => {
       siteConfig.value.admin.newPassword = adminNewPassword.value
     }
 
-    const oldPath = currentSuffix
+    const oldPath = unref(currentSuffix)
     await $fetch('/api/site-config', { method: 'PUT', body: siteConfig.value })
 
     // Clear local inputs and clean up payload key

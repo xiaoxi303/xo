@@ -47,26 +47,14 @@ export default defineEventHandler(async (event) => {
 
   let diskInfo = '150.0 GB (本地磁盘)'
   try {
-    if (platform === 'win32') {
-      const out = execSync('wmic logicaldisk where "DeviceID=\'C:\'" get FreeSpace,Size /value', { encoding: 'utf8' })
-      const sizeMatch = out.match(/Size=(\d+)/)
-      const freeMatch = out.match(/FreeSpace=(\d+)/)
-      if (sizeMatch && freeMatch) {
-        const sizeBytes = Number(sizeMatch[1])
-        const freeBytes = Number(freeMatch[1])
-        const usedBytes = sizeBytes - freeBytes
-        const pct = Math.round((usedBytes / sizeBytes) * 100)
-        diskInfo = `${formatGB(usedBytes)} / ${formatGB(sizeBytes)} (${pct}%)`
-      }
-    } else {
-      const out = execSync("df -B1 / | tail -n 1 | awk '{print $2,$3,$4}'", { encoding: 'utf8' })
-      const parts = out.trim().split(/\s+/)
-      if (parts.length >= 3) {
-        const sizeBytes = Number(parts[0])
-        const usedBytes = Number(parts[1])
-        const pct = Math.round((usedBytes / sizeBytes) * 100)
-        diskInfo = `${formatGB(usedBytes)} / ${formatGB(sizeBytes)} (${pct}%)`
-      }
+    if (typeof (fs as any).statfsSync === 'function') {
+      const targetPath = platform === 'win32' ? (process.cwd().slice(0, 3) || 'C:\\') : '/'
+      const stat = (fs as any).statfsSync(targetPath)
+      const sizeBytes = stat.bsize * stat.blocks
+      const freeBytes = stat.bsize * stat.bavail
+      const usedBytes = sizeBytes - freeBytes
+      const pct = Math.round((usedBytes / sizeBytes) * 100)
+      diskInfo = `${formatGB(usedBytes)} / ${formatGB(sizeBytes)} (${pct}%)`
     }
   } catch (e) {
     diskInfo = '150.0 GB (本地)'
