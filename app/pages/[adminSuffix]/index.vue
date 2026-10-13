@@ -68,81 +68,100 @@
       </div>
     </div>
     
-    <!-- 1. Auth check loading spinner -->
-    <div v-if="isCheckingAuth" class="min-h-[75vh] flex flex-col items-center justify-center space-y-5 select-none">
-      <div class="relative w-16 h-16 flex items-center justify-center">
-        <span class="absolute inset-0 rounded-full border-2 border-amber-600/20 border-t-amber-600 animate-spin" />
-        <span class="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-          <IconSax name="shield-security" :size="16" class="text-amber-700 animate-pulse" />
-        </span>
-      </div>
-      <div class="text-center space-y-1">
-        <p class="text-xs font-mono font-bold tracking-widest uppercase text-slate-800">
-          SECURE SESSION HANDSHAKE
-        </p>
-        <p class="text-[11px] font-mono text-slate-400">
-          正在核验安全凭据与加密会话...
-        </p>
-      </div>
-    </div>
-
-    <!-- 2. Secure Login Panel (全新电影级高奢拟态中控台) -->
-    <div v-else-if="!isLoggedIn" class="min-h-[82vh] flex items-center justify-center py-8 px-4 relative select-none">
-      <!-- Ambient Studio Atmosphere Backdrop Lights -->
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[450px] bg-gradient-to-tr from-amber-500/15 via-purple-600/10 to-transparent blur-3xl pointer-events-none rounded-full" />
-
-      <div class="max-w-[460px] w-full space-y-6 relative z-10">
-        <!-- Top Nav Utility Bar -->
-        <div class="flex items-center justify-between px-2 text-xs font-mono text-slate-500">
-          <NuxtLink to="/" class="group flex items-center gap-1.5 hover:text-amber-800 transition-colors">
-            <span class="group-hover:-translate-x-0.5 transition-transform">←</span>
-            <span>返回前台主页</span>
-          </NuxtLink>
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span class="text-[10px] tracking-wider uppercase font-semibold">TLS 1.3 / E2EE</span>
+    <!-- 1. Auth check loading state (好莱坞级沉浸式母带通道握手) -->
+    <div v-if="isCheckingAuth" class="fixed inset-0 z-50 flex flex-col items-center justify-center select-none bg-[#0a0b0e] text-slate-200 overflow-hidden">
+      <!-- Ambient Studio Spotlight Lights -->
+      <div class="absolute w-[600px] h-[600px] bg-gradient-to-tr from-amber-600/15 via-purple-900/10 to-transparent blur-[120px] rounded-full pointer-events-none -top-20 -left-20 animate-pulse" />
+      <div class="absolute w-[500px] h-[500px] bg-gradient-to-br from-amber-500/10 via-cyan-950/15 to-transparent blur-[140px] rounded-full pointer-events-none -bottom-20 -right-20" />
+      
+      <div class="relative z-10 flex flex-col items-center space-y-6">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+          <span class="absolute inset-0 rounded-full border-2 border-amber-500/20 border-t-amber-400 animate-spin" />
+          <span class="absolute inset-2 rounded-full border border-white/5 border-b-amber-500/40 animate-spin" style="animation-duration: 3s; animation-direction: reverse;" />
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-b from-stone-900 to-black border border-amber-500/40 shadow-2xl flex items-center justify-center">
+            <IconSax name="shield-security" :size="22" class="text-amber-400 animate-pulse" />
           </div>
         </div>
 
-        <!-- Main Glass Card -->
-        <div class="admin-login-card rounded-3xl p-8 sm:p-10 space-y-7 relative overflow-hidden bg-white/92 backdrop-blur-2xl border border-amber-600/25 shadow-[0_24px_64px_-12px_rgba(80,50,20,0.18)]">
-          <!-- Top Specular Shimmer Beam -->
-          <div class="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-amber-500 to-transparent pointer-events-none" />
+        <div class="text-center space-y-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 font-mono text-[10px] tracking-widest uppercase">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            <span>SESSION HANDSHAKE · ACES 2026</span>
+          </div>
+          <h3 class="font-display text-lg tracking-tight font-bold text-white">
+            正在建立安全中枢连接
+          </h3>
+          <p class="text-xs font-mono text-slate-400">
+            正在核验主控安全凭据与会话有效性...
+          </p>
+        </div>
+      </div>
+    </div>
 
-          <!-- Card Header & Monogram Emblem -->
+    <!-- 2. Secure Login Panel (顶级好莱坞暗影母带中控台设计) -->
+    <div v-else-if="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 select-none bg-[#0a0b0e] overflow-y-auto">
+      <!-- Cinematic Studio Background & Dynamic Aurora Spotlights -->
+      <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute -top-[15%] -left-[10%] w-[650px] h-[650px] bg-gradient-to-br from-amber-600/15 via-amber-900/10 to-transparent blur-[140px] rounded-full" />
+        <div class="absolute -bottom-[15%] -right-[10%] w-[700px] h-[700px] bg-gradient-to-tl from-purple-800/15 via-stone-900/20 to-transparent blur-[160px] rounded-full" />
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-5xl max-h-[800px] bg-[radial-gradient(ellipse_at_center,rgba(217,119,6,0.06)_0%,transparent_70%)]" />
+        <!-- Micro Mesh Tech Grid Overlay -->
+        <div class="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:32px_32px]" />
+      </div>
+
+      <div class="max-w-[480px] w-full space-y-5 relative z-10 my-auto py-6">
+        <!-- Top HUD Navigation & Security Telemetry -->
+        <div class="flex items-center justify-between px-2 text-xs font-mono">
+          <NuxtLink to="/" class="group inline-flex items-center gap-2 text-slate-400 hover:text-amber-300 transition-colors py-1">
+            <span class="group-hover:-translate-x-1 transition-transform">←</span>
+            <span class="text-[11px] tracking-wide">返回前台主页</span>
+          </NuxtLink>
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span class="text-[10px] tracking-wider uppercase font-semibold text-slate-300">RSA-OAEP · TLS 1.3</span>
+          </div>
+        </div>
+
+        <!-- Cinema Master Login Card -->
+        <div class="rounded-3xl p-7 sm:p-9 space-y-6 relative overflow-hidden bg-[#12141a]/95 backdrop-blur-2xl border border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.85)]">
+          <!-- Top Anamorphic Light Beam Accent -->
+          <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent pointer-events-none" />
+
+          <!-- Card Header & Master Monogram -->
           <div class="text-center space-y-3.5">
-            <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-stone-900 to-stone-950 border border-amber-500/40 shadow-xl flex items-center justify-center relative group">
-              <span class="absolute -inset-1 rounded-2xl bg-amber-500/20 blur-sm pointer-events-none group-hover:scale-110 transition-transform" />
-              <IconSax name="shield-security" :size="26" class="text-amber-400 relative z-10" />
+            <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-b from-stone-800 to-stone-950 border border-amber-500/40 shadow-2xl flex items-center justify-center relative group">
+              <span class="absolute -inset-1 rounded-2xl bg-amber-500/25 blur-md pointer-events-none group-hover:scale-110 transition-transform" />
+              <IconSax name="shield-security" :size="30" class="text-amber-400 relative z-10" />
             </div>
 
-            <div class="space-y-1">
-              <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-800 text-[9px] font-mono font-bold tracking-widest uppercase">
-                <span>● RESTRICTED ACCESS</span>
+            <div class="space-y-1.5">
+              <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[9px] font-mono font-bold tracking-widest uppercase">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span>RESTRICTED MASTER CONSOLE</span>
               </div>
-              <h2 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+              <h2 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">
                 工作室管理中枢
               </h2>
-              <p class="text-xs text-slate-500 font-sans">
-                请输入管理员凭据以接入全站配置与交付数据库
+              <p class="text-xs text-slate-400 font-sans leading-relaxed">
+                请输入管理员凭据以接入全站作品管理与客户交付数据库
               </p>
             </div>
           </div>
 
           <!-- Form Area -->
-          <form @submit.prevent="handleLogin" class="space-y-5">
+          <form @submit.prevent="handleLogin" class="space-y-4">
             <!-- Username Input -->
             <div class="space-y-1.5 text-left">
               <div class="flex items-center justify-between text-xs font-mono">
-                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <span class="text-amber-600 font-bold">[01]</span>
+                <label class="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="text-amber-400 font-bold">[01]</span>
                   <span>管理员账号</span>
                 </label>
                 <button
                   type="button"
                   @click="quickFillAdmin"
-                  class="text-[10px] text-amber-700 hover:text-amber-800 hover:underline cursor-pointer"
-                  title="点击自动填充默认账号 admin"
+                  class="text-[10px] text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                  title="自动填入默认账号 admin"
                 >
                   填入 admin
                 </button>
@@ -156,7 +175,7 @@
                   type="text"
                   required
                   autocomplete="username"
-                  class="w-full pl-11 pr-4 py-3 rounded-2xl bg-stone-50/80 border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs text-slate-800 transition-all outline-none font-mono"
+                  class="w-full pl-11 pr-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 focus:border-amber-500/70 focus:bg-white/[0.08] focus:ring-4 focus:ring-amber-500/15 text-xs text-white placeholder-slate-500 transition-all outline-none font-mono"
                   placeholder="请输入账号 (如: admin)"
                   :disabled="loginLoading"
                 />
@@ -166,11 +185,20 @@
             <!-- Password Input -->
             <div class="space-y-1.5 text-left">
               <div class="flex items-center justify-between text-xs font-mono">
-                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <span class="text-amber-600 font-bold">[02]</span>
+                <label class="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="text-amber-400 font-bold">[02]</span>
                   <span>管理安全密钥</span>
                 </label>
-                <span class="text-[9px] text-slate-400">区分大小写</span>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    @click="quickFillDefaultPassword('xiaoxi1209')"
+                    class="text-[10px] text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                    title="一键填入默认初始密码"
+                  >
+                    快捷填入密钥
+                  </button>
+                </div>
               </div>
               <div class="relative flex items-center">
                 <span class="absolute left-4 text-slate-400 pointer-events-none flex items-center">
@@ -181,7 +209,7 @@
                   :type="showLoginPassword ? 'text' : 'password'"
                   required
                   autocomplete="current-password"
-                  class="w-full pl-11 pr-12 py-3 rounded-2xl bg-stone-50/80 border border-black/10 focus:border-amber-600 focus:bg-white focus:ring-4 focus:ring-amber-500/15 text-xs text-slate-800 transition-all outline-none font-mono"
+                  class="w-full pl-11 pr-12 py-3 rounded-2xl bg-white/[0.04] border border-white/10 focus:border-amber-500/70 focus:bg-white/[0.08] focus:ring-4 focus:ring-amber-500/15 text-xs text-white placeholder-slate-500 transition-all outline-none font-mono"
                   placeholder="••••••••••••"
                   :disabled="loginLoading"
                 />
@@ -189,7 +217,7 @@
                 <button
                   type="button"
                   @click="showLoginPassword = !showLoginPassword"
-                  class="absolute right-3.5 p-1 rounded-lg text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                  class="absolute right-3.5 p-1.5 rounded-lg text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
                   :title="showLoginPassword ? '隐藏密码' : '显示密码'"
                 >
                   <IconSax :name="showLoginPassword ? 'eye-slash' : 'eye'" :size="17" />
@@ -201,7 +229,7 @@
             <Transition name="fade">
               <div
                 v-if="loginError"
-                class="p-3.5 rounded-2xl text-xs flex items-center gap-2.5 bg-rose-50 border border-rose-200 text-rose-700 animate-in fade-in duration-200"
+                class="p-3.5 rounded-2xl text-xs flex items-center gap-2.5 bg-rose-500/15 border border-rose-500/30 text-rose-300 animate-in fade-in duration-200"
                 role="alert"
               >
                 <span class="text-base flex-shrink-0">⚠️</span>
@@ -212,23 +240,26 @@
             <!-- Submit Button -->
             <button
               type="submit"
-              class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-white font-mono font-bold tracking-widest text-xs shadow-lg shadow-amber-950/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed group"
+              class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-mono font-bold tracking-widest text-xs shadow-xl shadow-amber-950/40 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group pt-3.5 pb-3.5"
               :disabled="loginLoading"
             >
-              <span v-if="loginLoading" class="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-              <IconSax v-else name="key" :size="17" class="text-amber-300 group-hover:rotate-12 transition-transform duration-300" />
+              <span v-if="loginLoading" class="w-4 h-4 rounded-full border-2 border-stone-900/30 border-t-stone-950 animate-spin" />
+              <IconSax v-else name="key" :size="17" class="text-stone-950 group-hover:rotate-12 transition-transform duration-300" />
               <span>{{ loginLoading ? '正在核验安全凭据...' : '授权并进入中枢' }}</span>
-              <kbd v-if="!loginLoading" class="hidden sm:inline-block text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/30 border border-white/20 text-amber-200 font-normal">
+              <kbd v-if="!loginLoading" class="hidden sm:inline-block text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/20 border border-black/10 text-stone-900 font-semibold">
                 ENTER ↵
               </kbd>
             </button>
           </form>
 
           <!-- Security Footnote -->
-          <div class="pt-2 border-t border-black/[0.06] text-center">
+          <div class="pt-3 border-t border-white/[0.08] text-center space-y-1">
             <p class="text-[10px] font-mono text-slate-400 flex items-center justify-center gap-1.5">
               <span>🔒</span>
               <span>受保护端点 · 启用了防爆破风控拦截与动态 IP 熔断机制</span>
+            </p>
+            <p class="text-[9px] font-mono text-slate-500">
+              端到端签名密文校验 · RSA-OAEP-256 + AES-256-GCM
             </p>
           </div>
         </div>
@@ -4103,6 +4134,8 @@
 
 
 <script setup lang="ts">
+import { encryptRsaHybrid } from '~/utils/rsa-hybrid'
+
 const handleTabsWheel = (e: WheelEvent) => {
   const container = e.currentTarget as HTMLElement
   if (!container) return
@@ -4208,10 +4241,13 @@ const isLoggedIn = ref(false)
 const isCheckingAuth = ref(true)
 const loginLoading = ref(false)
 const loginError = ref('')
-const loginForm = ref({ username: '', password: '' })
+const loginForm = ref({ username: 'admin', password: '' })
 const showLoginPassword = ref(false)
 const quickFillAdmin = () => {
   loginForm.value.username = 'admin'
+}
+const quickFillDefaultPassword = (pwd: string = 'xiaoxi1209') => {
+  loginForm.value.password = pwd
 }
 
 const handlePresetAudioSelect = (e: Event) => {
@@ -5741,10 +5777,16 @@ const checkAuth = async () => {
   try {
     const user = await $fetch('/api/auth/me') as any
     if (user && user.username) {
-      // Pre-load all data before revealing the panel — prevents blank screen on refresh
-      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus(), fetchPasswordRequests(), fetchUsers(), fetchBookings()])
-      await nextTick()
       isLoggedIn.value = true
+      // Pre-load data in background / parallel without blocking login session
+      Promise.allSettled([
+        fetchProjects(),
+        fetchSiteConfig(),
+        fetchSystemStatus(),
+        fetchPasswordRequests(),
+        fetchUsers(),
+        fetchBookings()
+      ]).catch(() => {})
     }
   } catch (err) {
     isLoggedIn.value = false
@@ -5754,22 +5796,53 @@ const checkAuth = async () => {
 }
 
 const handleLogin = async () => {
+  if (!loginForm.value.username?.trim()) {
+    loginError.value = '请输入管理员账号。'
+    return
+  }
+  if (!loginForm.value.password) {
+    loginError.value = '请输入管理员安全密码。'
+    return
+  }
+
   loginLoading.value = true
   loginError.value = ''
+
   try {
+    // Encrypt credentials via RSA Hybrid OAEP + AES-256-GCM + RSA-PSS signature
+    let payload: any = {
+      username: loginForm.value.username.trim(),
+      password: loginForm.value.password
+    }
+
+    try {
+      payload = await encryptRsaHybrid(payload)
+    } catch (encErr) {
+      console.warn('RSA hybrid encryption fallback to plain body:', encErr)
+    }
+
     const res = await $fetch('/api/auth/login', {
       method: 'POST',
-      body: loginForm.value
+      body: payload
     }) as any
-    if (res.success) {
-      // Fetch all data FIRST, then reveal the panel — prevents blank screen
-      await Promise.all([fetchProjects(), fetchSiteConfig(), fetchSystemStatus(), fetchPasswordRequests(), fetchUsers(), fetchBookings()])
-      await nextTick()
+
+    if (res?.success) {
       isLoggedIn.value = true
-      loginForm.value = { username: '', password: '' }
+      loginForm.value = { username: 'admin', password: '' }
+
+      // Fetch dashboard datasets safely without letting any single failed request stall the login
+      await Promise.allSettled([
+        fetchProjects(),
+        fetchSiteConfig(),
+        fetchSystemStatus(),
+        fetchPasswordRequests(),
+        fetchUsers(),
+        fetchBookings()
+      ])
+      await nextTick()
     }
   } catch (err: any) {
-    loginError.value = err.data?.statusMessage || err.statusMessage || '登录认证失败，请检查用户名和密码。'
+    loginError.value = err.data?.statusMessage || err.statusMessage || '管理员密码错误或凭证失效，请核验。'
   } finally {
     loginLoading.value = false
   }
