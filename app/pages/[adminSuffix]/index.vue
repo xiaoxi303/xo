@@ -3635,88 +3635,212 @@
             </div>
           </div>
 
-          <!-- Right Live Preview Drawer Column (When Double-Screen Active) -->
+          <!-- Right Live Preview Drawer Column (全新好莱坞数字监视器视界 UI) -->
           <div
             v-if="showLivePreview"
-            class="w-full lg:w-1/2 p-4 sm:p-6 lg:border-l border-black/[0.08] sticky top-16 h-[calc(100vh-4rem)] bg-stone-100/60 backdrop-blur-md flex flex-col z-20 space-y-3"
+            class="w-full lg:w-1/2 p-3 sm:p-5 lg:border-l border-black/[0.08] sticky top-16 h-[calc(100vh-4rem)] bg-gradient-to-b from-[#14151a] via-[#101116] to-[#0c0d11] flex flex-col z-20 space-y-3 text-slate-200 select-none shadow-2xl"
           >
-            <!-- Browser Mockup Window Bar -->
-            <div class="p-3 rounded-2xl bg-white border border-black/[0.08] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 select-none">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-rose-400" />
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <span class="text-[11px] font-mono font-bold text-slate-700 ml-1">双屏实时预览</span>
+            <!-- 1. Master Studio Monitor Title Bar -->
+            <div class="p-2.5 sm:p-3 rounded-2xl bg-[#1b1c24]/90 border border-white/10 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-lg">
+              <!-- Left: Monitor Status & Route Indicator -->
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-black/40 border border-white/10">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span class="text-[10px] font-mono font-bold tracking-wider text-emerald-300 uppercase">LIVE FEED</span>
+                </div>
+                <div class="hidden sm:flex items-center gap-1 text-[11px] font-mono font-bold text-slate-300 truncate">
+                  <span>DCI 4K</span>
+                  <span class="text-slate-600">/</span>
+                  <span class="text-amber-400">{{ previewDevice.toUpperCase() }}</span>
+                </div>
               </div>
 
-              <!-- Viewport Mode Buttons -->
-              <div class="flex items-center gap-1 p-0.5 rounded-xl bg-black/[0.04] text-[10px] font-mono">
+              <!-- Center: Viewport Device Switcher Capsule -->
+              <div class="flex items-center gap-1 p-1 rounded-xl bg-black/50 border border-white/10 text-[10px] font-mono">
                 <button
                   type="button"
                   @click="previewDevice = 'desktop'"
-                  :class="['px-2 py-1 rounded-lg font-bold transition-all', previewDevice === 'desktop' ? 'bg-white shadow-xs text-amber-900 font-extrabold' : 'text-slate-500 hover:text-black']"
-                  title="桌面端全宽视图"
+                  :class="[
+                    'px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 cursor-pointer',
+                    previewDevice === 'desktop'
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-extrabold'
+                      : 'text-slate-400 hover:text-white'
+                  ]"
+                  title="全宽桌面端视图 (Desktop)"
                 >
-                  🖥️ 电脑
+                  <span>🖥️</span>
+                  <span>电脑</span>
                 </button>
                 <button
                   type="button"
                   @click="previewDevice = 'tablet'"
-                  :class="['px-2 py-1 rounded-lg font-bold transition-all', previewDevice === 'tablet' ? 'bg-white shadow-xs text-amber-900 font-extrabold' : 'text-slate-500 hover:text-black']"
-                  title="平板设备 (768px)"
+                  :class="[
+                    'px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 cursor-pointer',
+                    previewDevice === 'tablet'
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-extrabold'
+                      : 'text-slate-400 hover:text-white'
+                  ]"
+                  title="平板设备模拟 (768px)"
                 >
-                  💻 平板
+                  <span>💻</span>
+                  <span>平板</span>
                 </button>
                 <button
                   type="button"
                   @click="previewDevice = 'mobile'"
-                  :class="['px-2 py-1 rounded-lg font-bold transition-all', previewDevice === 'mobile' ? 'bg-white shadow-xs text-amber-900 font-extrabold' : 'text-slate-500 hover:text-black']"
-                  title="移动手机设备 (375px)"
+                  :class="[
+                    'px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 cursor-pointer',
+                    previewDevice === 'mobile'
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md font-extrabold'
+                      : 'text-slate-400 hover:text-white'
+                  ]"
+                  title="智能手机设备模拟 (375px)"
                 >
-                  📱 手机
+                  <span>📱</span>
+                  <span>手机</span>
                 </button>
               </div>
 
-              <!-- Route Switcher & Actions -->
-              <div class="flex items-center gap-1.5">
+              <!-- Right: Route Selector & Toolbar Actions -->
+              <div class="flex items-center gap-1.5 self-end sm:self-auto">
                 <select
                   v-model="previewRoute"
                   @change="switchPreviewRoute(previewRoute)"
-                  class="text-[11px] font-mono py-1 px-2 rounded-lg border border-black/10 bg-slate-50 text-slate-800 cursor-pointer"
+                  class="text-[10px] font-mono py-1 px-2.5 rounded-lg border border-white/10 bg-black/40 text-amber-300 font-bold outline-none cursor-pointer hover:border-amber-500/50 transition-colors"
                 >
-                  <option v-for="r in previewRoutes" :key="r.path" :value="r.path">
+                  <option v-for="r in previewRoutes" :key="r.path" :value="r.path" class="bg-[#1b1c24] text-white">
                     {{ r.label }}
                   </option>
                 </select>
+
+                <!-- Refresh Button -->
                 <button
                   type="button"
                   @click="refreshPreview"
-                  class="p-1.5 rounded-lg border border-black/10 hover:bg-black/5 text-slate-600 text-xs"
-                  title="刷新预览"
+                  class="p-1.5 rounded-lg border border-white/10 hover:border-amber-500/50 bg-black/30 hover:bg-black/60 text-slate-300 hover:text-white text-xs transition-colors cursor-pointer"
+                  title="重载实时预览"
                 >
-                  🔄
+                  <span :class="['inline-block', isPreviewLoading ? 'animate-spin text-amber-400' : '']">🔄</span>
                 </button>
+
+                <!-- New Tab Pop-out -->
                 <a
                   :href="previewRoute"
                   target="_blank"
-                  class="p-1.5 rounded-lg border border-black/10 hover:bg-black/5 text-slate-600 text-xs"
-                  title="新窗口弹出"
+                  class="p-1.5 rounded-lg border border-white/10 hover:border-amber-500/50 bg-black/30 hover:bg-black/60 text-slate-300 hover:text-white text-xs transition-colors cursor-pointer"
+                  title="新标签页打开该页面"
                 >
                   ↗
                 </a>
+
+                <!-- Close Double Screen -->
+                <button
+                  type="button"
+                  @click="showLivePreview = false"
+                  class="p-1.5 rounded-lg border border-white/10 hover:bg-rose-500/20 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 text-xs transition-colors cursor-pointer"
+                  title="关闭双屏视图"
+                >
+                  ✕
+                </button>
               </div>
             </div>
 
-            <!-- Iframe Container with Responsive Device Framing -->
-            <div class="flex-1 min-h-0 rounded-2xl overflow-hidden border border-black/10 bg-white shadow-xl flex items-center justify-center p-1">
-              <iframe
-                ref="previewIframe"
-                :src="previewRoute"
-                :class="[
-                  'h-full border-none transition-all duration-300 rounded-xl bg-white',
-                  previewDevice === 'desktop' ? 'w-full' : previewDevice === 'tablet' ? 'w-[768px] max-w-full shadow-lg border border-black/10' : 'w-[375px] max-w-full shadow-2xl border-4 border-slate-800 rounded-[28px]'
-                ]"
-              />
+            <!-- 2. Master Monitor Viewport Canvas -->
+            <div class="flex-1 min-h-0 rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-b from-[#0e0f14] to-[#090a0d] shadow-2xl flex flex-col items-center justify-center p-2 sm:p-4 relative group">
+              <!-- Grid Backdrop Pattern -->
+              <div class="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+              <!-- Iframe Loading Overlay Skeleton -->
+              <Transition name="fade">
+                <div v-if="isPreviewLoading" class="absolute inset-0 z-30 bg-[#0e0f14]/80 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 pointer-events-none">
+                  <div class="w-8 h-8 rounded-full border-2 border-amber-500/20 border-t-amber-400 animate-spin" />
+                  <span class="text-[10px] font-mono tracking-widest text-slate-400 uppercase">SYNCING PREVIEW CANVAS...</span>
+                </div>
+              </Transition>
+
+              <!-- Responsive Device Enclosures -->
+              <!-- DESKTOP CONTAINER -->
+              <div
+                v-if="previewDevice === 'desktop'"
+                class="w-full h-full rounded-xl overflow-hidden bg-white shadow-2xl border border-white/10 relative flex flex-col"
+              >
+                <div class="h-6 bg-[#21232c] px-3 flex items-center justify-between border-b border-white/10 shrink-0 select-none">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-rose-500/80" />
+                    <span class="w-2 h-2 rounded-full bg-amber-500/80" />
+                    <span class="w-2 h-2 rounded-full bg-emerald-500/80" />
+                  </div>
+                  <div class="text-[9px] font-mono text-slate-400 px-3 py-0.5 rounded bg-black/40 border border-white/10">
+                    http://localhost:3000{{ previewRoute }}
+                  </div>
+                  <div class="text-[9px] font-mono text-slate-500">100%</div>
+                </div>
+                <iframe
+                  ref="previewIframe"
+                  :src="previewRoute"
+                  @load="onPreviewLoad"
+                  class="w-full flex-1 border-none bg-white"
+                />
+              </div>
+
+              <!-- TABLET CONTAINER (768px Mockup) -->
+              <div
+                v-else-if="previewDevice === 'tablet'"
+                class="w-[768px] max-w-full h-full rounded-[24px] overflow-hidden bg-[#1e2029] p-2.5 shadow-[0_24px_64px_rgba(0,0,0,0.8)] border border-white/15 flex flex-col"
+              >
+                <div class="w-full h-full rounded-[16px] overflow-hidden bg-white relative flex flex-col">
+                  <div class="h-5 bg-[#252834] px-3 flex items-center justify-between shrink-0 select-none">
+                    <span class="text-[8px] font-mono text-slate-400">TABLET · 768 × 1024</span>
+                    <span class="text-[8px] font-mono text-amber-300">PORTRAIT</span>
+                  </div>
+                  <iframe
+                    ref="previewIframe"
+                    :src="previewRoute"
+                    @load="onPreviewLoad"
+                    class="w-full flex-1 border-none bg-white"
+                  />
+                </div>
+              </div>
+
+              <!-- MOBILE CONTAINER (375px Phone Enclosure with Dynamic Island) -->
+              <div
+                v-else
+                class="w-[380px] max-w-full h-full max-h-[820px] rounded-[42px] overflow-hidden bg-[#1a1b24] p-3 shadow-[0_32px_80px_rgba(0,0,0,0.9)] border-4 border-stone-800 relative flex flex-col ring-1 ring-white/15"
+              >
+                <!-- iPhone Top Dynamic Island Pill -->
+                <div class="w-full h-full rounded-[32px] overflow-hidden bg-white relative flex flex-col shadow-inner">
+                  <div class="h-7 bg-[#121316] px-4 flex items-center justify-between shrink-0 select-none text-white z-20">
+                    <span class="text-[9px] font-mono font-bold">9:41</span>
+                    <!-- Dynamic Island Capsule -->
+                    <div class="w-16 h-3.5 rounded-full bg-black border border-white/10 mx-auto" />
+                    <div class="flex items-center gap-1 text-[8px] font-mono text-slate-300">
+                      <span>5G</span>
+                      <span>100%</span>
+                    </div>
+                  </div>
+                  <iframe
+                    ref="previewIframe"
+                    :src="previewRoute"
+                    @load="onPreviewLoad"
+                    class="w-full flex-1 border-none bg-white"
+                  />
+                  <!-- Bottom Gesture Bar -->
+                  <div class="h-4 bg-white flex items-center justify-center shrink-0 z-20">
+                    <div class="w-24 h-1 rounded-full bg-black/40" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Telemetry Footer -->
+            <div class="flex items-center justify-between px-2 text-[9px] font-mono text-slate-400">
+              <div class="flex items-center gap-2">
+                <span class="text-amber-400">● SYNC ENGINE: ACTIVE</span>
+                <span>· 保存配置后自动刷新预览画面</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span>VIEWPORT: {{ previewDevice.toUpperCase() }}</span>
+              </div>
             </div>
           </div>
 
@@ -4441,6 +4565,23 @@ watch(activeTab, (newTab) => {
   if (newTab === 'analytics') {
     fetchSystemStatus()
   }
+
+  // Auto-switch preview route based on current editing tab if appropriate
+  const tabRouteMap: Record<string, string> = {
+    home: '/',
+    projects: '/projects',
+    booking: '/booking',
+    bookings: '/booking',
+    'delivery-library': '/delivery',
+    about: '/about',
+    blog: '/blog'
+  }
+  if (tabRouteMap[newTab] && showLivePreview.value) {
+    previewRoute.value = tabRouteMap[newTab]
+    if (previewIframe.value) {
+      previewIframe.value.src = tabRouteMap[newTab]
+    }
+  }
 })
 const blogStore = useBlogStore()
 blogStore.init()
@@ -4743,10 +4884,43 @@ const removeBookingFaq = (index: number) => {
 }
 
 const showLivePreview = ref(false)
+const previewDevice = ref<'desktop' | 'tablet' | 'mobile'>('mobile')
+const previewRoute = ref('/')
+const previewZoom = ref(100)
+const isPreviewLoading = ref(false)
 const previewIframe = ref<HTMLIFrameElement | null>(null)
-const refreshPreview = () => {
+
+const previewRoutes = [
+  { label: '🌐 前台首页 (/)', path: '/' },
+  { label: '🎬 作品展映 (/projects)', path: '/projects' },
+  { label: '📅 合作预约 (/booking)', path: '/booking' },
+  { label: '📦 专属交付 (/delivery)', path: '/delivery' },
+  { label: '👤 关于履历 (/about)', path: '/about' },
+  { label: '📝 灵感文章 (/blog)', path: '/blog' }
+]
+
+const switchPreviewRoute = (path: string) => {
+  previewRoute.value = path
+  isPreviewLoading.value = true
   if (previewIframe.value) {
-    previewIframe.value.src = previewIframe.value.src
+    previewIframe.value.src = path
+  }
+}
+
+const onPreviewLoad = () => {
+  isPreviewLoading.value = false
+}
+
+const refreshPreview = () => {
+  isPreviewLoading.value = true
+  if (previewIframe.value) {
+    const currentSrc = previewIframe.value.src
+    previewIframe.value.src = 'about:blank'
+    setTimeout(() => {
+      if (previewIframe.value) {
+        previewIframe.value.src = currentSrc || previewRoute.value
+      }
+    }, 50)
   }
 }
 
