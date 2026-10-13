@@ -60,6 +60,7 @@ export default defineEventHandler(async (event) => {
     note: String(body.note || '').trim().slice(0, 300),
     clientUsername: loggedInClient || page.clientUsername || '',
     clientName: page.clientName || '',
+    bookingId: page.bookingId || '',
     createdAt: new Date().toISOString()
   })
   return { success: true, gateway: config.gateway, outTradeNo, ...params }

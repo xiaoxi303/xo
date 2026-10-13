@@ -9,6 +9,7 @@ export interface OrderPageConfig {
   description: string
   clientName: string
   clientUsername?: string
+  bookingId?: string
   successText: string
   updatedAt: string
 }
@@ -68,6 +69,7 @@ export function saveOrderPage(input: Partial<OrderPageConfig>) {
     description: String(input.description || '').trim(),
     clientName: String(input.clientName || '').trim(),
     clientUsername: String(input.clientUsername || '').trim(),
+    bookingId: String(input.bookingId || '').trim(),
     successText: String(input.successText || '支付成功后，项目负责人会按约定交付。').trim(),
     updatedAt: new Date().toISOString()
   }

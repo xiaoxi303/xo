@@ -1,5 +1,21 @@
 [
   {
+    "id": "BK-1791862264220-joqo",
+    "name": "张制片 (示例)",
+    "phone": "13812345678",
+    "email": "producer.zhang@film-studio.com",
+    "company": "未来视界影业",
+    "serviceType": "tvc",
+    "budget": "30k-50k",
+    "timeline": "urgent",
+    "description": "品牌 2026 春季汽车商业 TVC 剪辑与达芬奇电影级调色。素材为 ARRI Alexa Mini LF 4.5K RAW，需 ACEScct 调色流程与加急双屏母带监看。",
+    "referenceLinks": "https://pan.baidu.com/s/sample-reel-2026",
+    "status": "pending",
+    "adminNotes": "",
+    "ip": "127.0.0.1 (本地)",
+    "createdAt": "2026-10-13T03:31:04.220Z"
+  },
+  {
     "id": "BK-1791810673112-zma7",
     "name": "李总监",
     "phone": "13999998888",

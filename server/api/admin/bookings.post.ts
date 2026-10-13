@@ -3,7 +3,8 @@ import { randomBytes } from 'node:crypto'
 import { defineEventHandler, getCookie, readBody, createError } from 'h3'
 import { SESSION_COOKIE, validateSession } from '../../utils/auth'
 import { getRuntimeDataPath } from '../../utils/storage'
-import { sendDeliveryCredentialsEmail } from '../../utils/email'
+import { sendDeliveryCredentialsEmail, sendBookingOrderPaymentEmail } from '../../utils/email'
+import { saveOrderPage, getOrderPage } from '../../utils/order-pages'
 import {
   dbGetUsers,
   dbGetUserRecord,
@@ -70,7 +71,7 @@ export default defineEventHandler(async (event) => {
   // ACTION: Update Status
   if (action === 'update-status') {
     const nextStatus = String(body?.status || '').trim()
-    if (!['pending', 'confirmed', 'converted', 'archived'].includes(nextStatus)) {
+    if (!['pending', 'confirmed', 'awaiting_payment', 'paid', 'converted', 'archived'].includes(nextStatus)) {
       throw createError({ statusCode: 400, statusMessage: '无效的状态值' })
     }
     booking.status = nextStatus
@@ -232,6 +233,126 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: `已成功发送交付凭证邮件至 ${booking.email}`,
       emailSentAt: booking.emailSentAt
+    }
+  }
+
+  // ACTION: Create / Connect Order Page (填写价格生成订单页面并可选一键发信)
+  if (action === 'create-order') {
+    const rawAmount = Number(body?.amount)
+    if (!Number.isFinite(rawAmount) || rawAmount < 0.01 || rawAmount > 1000000) {
+      throw createError({ statusCode: 400, statusMessage: '请输入有效的订单金额（0.01 - 1,000,000 元）' })
+    }
+    const amountStr = rawAmount.toFixed(2)
+
+    let orderSuffix = String(body?.orderSuffix || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')
+    if (!orderSuffix) {
+      orderSuffix = (booking.company || booking.name || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+        .slice(0, 16) || `order-${booking.id.slice(-6)}`
+    }
+
+    const subject = String(body?.subject || '').trim() || `${booking.name || '客户'}影视定制服务款`
+    const description = String(body?.description || '').trim() || (booking.description ? booking.description.slice(0, 150) : '项目定制款项')
+    const successText = String(body?.successText || '支付成功！我们将尽快推进后期制作与母带交付。').trim()
+    const autoSendEmail = Boolean(body?.sendEmail)
+
+    // Check if client is registered to bind their username
+    const users = await dbGetUsers(event)
+    const cleanEmail = (booking.email || '').trim().toLowerCase()
+    const cleanPhone = (booking.phone || '').trim()
+    const targetUser = users.find((u: any) => 
+      (cleanEmail && (u.email || '').toLowerCase() === cleanEmail) ||
+      (cleanPhone && (u.phone || '') === cleanPhone)
+    )
+    const clientUsername = targetUser ? targetUser.username : (body?.clientUsername || '')
+
+    // Save or update order page
+    const pageConfig = saveOrderPage({
+      suffix: orderSuffix,
+      enabled: true,
+      subject,
+      amount: amountStr,
+      description,
+      clientName: booking.name || '',
+      clientUsername,
+      bookingId: booking.id,
+      successText
+    })
+
+    // Update booking info and advance status to awaiting_payment
+    booking.orderSuffix = orderSuffix
+    booking.orderAmount = amountStr
+    booking.orderSubject = subject
+    booking.orderDescription = description
+    booking.orderCreatedAt = new Date().toISOString()
+    if (booking.status === 'pending' || booking.status === 'confirmed') {
+      booking.status = 'awaiting_payment'
+    }
+    booking.updatedAt = new Date().toISOString()
+
+    let emailResult = null
+    if (autoSendEmail && booking.email && booking.email.includes('@')) {
+      emailResult = await sendBookingOrderPaymentEmail(event, {
+        toEmail: booking.email,
+        clientName: booking.name || '客户',
+        company: booking.company,
+        orderSuffix,
+        subject,
+        amount: amountStr,
+        description,
+        bookingId: booking.id
+      })
+      if (emailResult.success) {
+        booking.orderEmailSent = true
+        booking.orderEmailSentAt = new Date().toISOString()
+      }
+    }
+
+    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+
+    return {
+      success: true,
+      booking,
+      orderPage: pageConfig,
+      orderUrl: `/order/${encodeURIComponent(orderSuffix)}`,
+      emailResult
+    }
+  }
+
+  // ACTION: Send / Resend Order Payment Email
+  if (action === 'send-order-email') {
+    if (!booking.email || !booking.email.includes('@')) {
+      throw createError({ statusCode: 400, statusMessage: '该预约未填写有效的电子邮箱' })
+    }
+    if (!booking.orderSuffix || !booking.orderAmount) {
+      throw createError({ statusCode: 400, statusMessage: '尚未为此预约生成订单，请先点击填写价格生成订单' })
+    }
+
+    const emailRes = await sendBookingOrderPaymentEmail(event, {
+      toEmail: booking.email,
+      clientName: booking.name || '客户',
+      company: booking.company,
+      orderSuffix: booking.orderSuffix,
+      subject: booking.orderSubject || `${booking.name || '客户'}定制项目结算款`,
+      amount: booking.orderAmount,
+      description: booking.orderDescription || booking.description,
+      bookingId: booking.id
+    })
+
+    if (!emailRes.success) {
+      throw createError({ statusCode: 500, statusMessage: emailRes.message || '邮件发送失败，请检查 SMTP 配置' })
+    }
+
+    booking.orderEmailSent = true
+    booking.orderEmailSentAt = new Date().toISOString()
+    booking.updatedAt = new Date().toISOString()
+    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+
+    return {
+      success: true,
+      message: `已成功发送订单账单邮件至 ${booking.email}`,
+      orderEmailSentAt: booking.orderEmailSentAt
     }
   }
 

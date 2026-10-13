@@ -418,3 +418,163 @@ export async function sendDeliveryCredentialsEmail(
     return { success: false, message: error.message || '邮件发送失败，请检查 SMTP 配置。' }
   }
 }
+
+export async function sendBookingOrderPaymentEmail(
+  event: H3Event,
+  options: {
+    toEmail: string
+    clientName: string
+    company?: string
+    orderSuffix: string
+    subject: string
+    amount: string
+    description?: string
+    bookingId?: string
+  }
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const config = await dbGetSiteConfig(event)
+    const emailSettings = config?.emailSettings
+
+    if (!emailSettings || !emailSettings.enabled) {
+      return { success: false, message: '系统未开启邮件通知功能，请在后台设置中启用 SMTP 邮件通知。' }
+    }
+
+    const smtpPass = process.env.SMTP_PASS || emailSettings.smtpPass
+    if (!emailSettings.smtpHost || !emailSettings.smtpUser || !smtpPass) {
+      return { success: false, message: '系统 SMTP 发件参数未配置完整，请先配置 SMTP 账号与授权码。' }
+    }
+
+    const { toEmail, clientName, company, orderSuffix, subject, amount, description } = options
+    if (!toEmail || !toEmail.includes('@')) {
+      return { success: false, message: '无效的电子邮箱地址。' }
+    }
+
+    const siteUrl = (config?.siteInfo?.siteUrl || 'https://xo.xoxox.bond').replace(/\/$/, '')
+    const orderUrl = `${siteUrl}/order/${orderSuffix}`
+    const logoImgSrc = `${siteUrl}/logo.png?v=312k_v4`
+    const senderName = emailSettings.senderName || 'Xo Studio'
+    const emailSubject = `【${senderName}】项目账单与支付结算通知 — ¥${amount} (${subject})`
+
+    const transporter = nodemailer.createTransport({
+      host: emailSettings.smtpHost,
+      port: Number(emailSettings.smtpPort) || 465,
+      secure: emailSettings.smtpSecure !== false,
+      auth: {
+        user: emailSettings.smtpUser,
+        pass: smtpPass
+      }
+    })
+
+    const html = `
+      <div style="background-color: #0b0c0e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 50px 20px; color: #e2e8f0; line-height: 1.6;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #121316; border-radius: 24px; border: 1px solid rgba(217, 119, 6, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); overflow: hidden;">
+          
+          <!-- Top Amber Accent Line -->
+          <div style="height: 6px; background: linear-gradient(90deg, #d97706, #f59e0b, #b45309);"></div>
+          
+          <!-- Header Area -->
+          <div style="padding: 36px 40px 24px 40px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: radial-gradient(ellipse at top, rgba(217,119,6,0.18) 0%, rgba(18,19,22,0) 70%);">
+            <img src="${logoImgSrc}" alt="${senderName} Logo" style="height: 48px; width: auto; max-width: 220px; object-fit: contain; margin: 0 auto 12px auto; display: block;" />
+            <h1 style="color: #ffffff; margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: normal; letter-spacing: 0.1em; line-height: 1.2; text-transform: uppercase;">${senderName}</h1>
+            <p style="color: #f59e0b; margin: 6px 0 0 0; font-family: monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: bold;">Official Cinematic Invoice & Checkout</p>
+            <div style="width: 32px; height: 1.5px; background: linear-gradient(90deg, #d97706, #f59e0b); margin: 16px auto 0 auto;"></div>
+          </div>
+
+          <!-- Body Content -->
+          <div style="padding: 36px 40px;">
+            <p style="font-size: 16px; margin-top: 0; color: #ffffff; font-weight: 600;">尊敬的 ${clientName} 老师：</p>
+            <p style="font-size: 14px; color: #94a3b8; margin-bottom: 24px; line-height: 1.7;">
+              感谢您对 <strong>${senderName}</strong> 的信任。我们已就您的合作需求生成了专属项目结算账单，支持支付宝 RSA-OAEP-256 安全直连付款。详情如下：
+            </p>
+            
+            <!-- Amount Card -->
+            <div style="background: rgba(217, 119, 6, 0.08); border: 1.5px dashed rgba(245, 158, 11, 0.6); border-radius: 20px; padding: 26px 20px; text-align: center; margin: 24px 0;">
+              <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: #f59e0b; font-weight: bold; display: block; margin-bottom: 8px;">
+                应付结算金额 / TOTAL AMOUNT
+              </span>
+              <div style="font-size: 38px; font-family: 'Courier New', Courier, monospace; color: #ffffff; font-weight: bold; letter-spacing: 0.05em; display: inline-block;">
+                <span style="font-size: 22px; color: #f59e0b; margin-right: 4px;">¥</span>${amount}
+              </div>
+              <div style="margin-top: 6px; font-size: 12px; color: #cbd5e1; font-weight: 500;">
+                款项用途：${subject}
+              </div>
+            </div>
+
+            <!-- Metadata Info list -->
+            <div style="background-color: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 28px;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0; width: 28%;">付款客户</td>
+                  <td style="color: #f8fafc; padding: 6px 0; font-weight: 600;">${clientName}${company ? ` · ${company}` : ''}</td>
+                </tr>
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0;">专属通道</td>
+                  <td style="color: #f59e0b; padding: 6px 0; font-family: monospace;">/order/${orderSuffix}</td>
+                </tr>
+                ${description ? `
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0; vertical-align: top;">结算备注</td>
+                  <td style="color: #cbd5e1; padding: 6px 0; font-size: 12px; line-height: 1.5;">${description}</td>
+                </tr>
+                ` : ''}
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0;">当前状态</td>
+                  <td style="color: #f59e0b; padding: 6px 0; font-weight: bold;">🟡 待支付结算 (Awaiting Payment)</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 34px 0 20px 0;">
+              <a href="${orderUrl}" target="_blank" style="background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 16px 48px; border-radius: 14px; display: inline-block; box-shadow: 0 8px 24px rgba(217, 119, 6, 0.4); letter-spacing: 0.06em;">
+                立即前往完成安全付款 &rarr;
+              </a>
+              <div style="margin-top: 14px; font-size: 11px; color: #64748b; font-family: monospace;">
+                若按钮无法点击，可复制浏览器链接: <br>
+                <a href="${orderUrl}" style="color: #f59e0b; text-decoration: underline;">${orderUrl}</a>
+              </div>
+            </div>
+
+            <!-- Tip -->
+            <div style="background-color: rgba(16, 185, 129, 0.06); border-radius: 12px; padding: 16px 20px; border: 1px solid rgba(16, 185, 129, 0.15); margin-top: 26px;">
+              <p style="font-size: 12px; color: #a7f3d0; margin: 0; line-height: 1.6;">
+                ✨ <strong>温馨提示：</strong>支付完成后，系统将自动把您的预约进度更新为【已付款/制作中】，并可在客户控制中心直接查阅电子凭据与后续交付母带。
+              </p>
+            </div>
+
+            <!-- Footer note -->
+            <div style="margin-top: 35px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 22px; text-align: center;">
+              <p style="font-size: 11px; line-height: 1.6; color: #64748b; margin: 0;">
+                本邮件由 ${senderName} 结算系统自动发出，请勿直接回复。<br>
+                如有对公转账或开票需求，请联系项目主理人。
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Footer -->
+          <div style="background-color: #0b0c0e; padding: 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+            <p style="font-size: 9px; color: #64748b; margin: 0; font-family: monospace; text-transform: uppercase; letter-spacing: 0.15em;">
+              © ${new Date().getFullYear()} ${senderName} · SECURE CHECKOUT SUITE
+            </p>
+          </div>
+
+        </div>
+      </div>
+    `
+
+    await transporter.sendMail({
+      from: `"${senderName}" <${emailSettings.senderEmail || emailSettings.smtpUser}>`,
+      to: toEmail,
+      subject: emailSubject,
+      html
+    })
+
+    console.log(`Successfully sent order payment email to: ${toEmail} for order: ${orderSuffix}`)
+    return { success: true }
+  } catch (error: any) {
+    console.error('Failed to send order payment email:', error)
+    return { success: false, message: error.message || '邮件发送失败，请检查 SMTP 配置。' }
+  }
+}
+

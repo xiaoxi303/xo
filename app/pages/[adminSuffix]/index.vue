@@ -1054,67 +1054,84 @@
             <!-- VIEW 1: RECORDS (预约意向记录与交付打通) -->
             <div v-if="bookingSubTab === 'records'" class="space-y-6">
               
-              <!-- 5 Top Metric Stat Badges -->
-              <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <!-- 6 Top Metric Stat Badges -->
+              <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
                 <div 
                   @click="bookingFilterStatus = 'all'"
-                  class="p-4 rounded-2xl bg-white border border-black/[0.06] shadow-xs cursor-pointer hover:border-amber-600/40 transition-all space-y-1"
+                  class="p-3.5 rounded-2xl bg-white border border-black/[0.06] shadow-xs cursor-pointer hover:border-amber-600/40 transition-all space-y-1"
                   :class="{ 'ring-2 ring-amber-600/30 border-amber-600': bookingFilterStatus === 'all' }"
                 >
-                  <div class="text-[11px] font-mono font-bold text-slate-500">全部预约总数</div>
-                  <div class="text-2xl font-bold font-mono text-slate-900">{{ bookings.length }}</div>
+                  <div class="text-[10px] font-mono font-bold text-slate-500">全部预约总数</div>
+                  <div class="text-xl font-bold font-mono text-slate-900">{{ bookings.length }}</div>
                 </div>
 
                 <div 
                   @click="bookingFilterStatus = 'pending'"
-                  class="p-4 rounded-2xl bg-amber-500/5 border border-amber-600/20 shadow-xs cursor-pointer hover:border-amber-600/40 transition-all space-y-1"
+                  class="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-600/20 shadow-xs cursor-pointer hover:border-amber-600/40 transition-all space-y-1"
                   :class="{ 'ring-2 ring-amber-600/40 border-amber-600': bookingFilterStatus === 'pending' }"
                 >
-                  <div class="text-[11px] font-mono font-bold text-amber-800 flex items-center gap-1.5">
+                  <div class="text-[10px] font-mono font-bold text-amber-800 flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
                     <span>待跟进处理</span>
                   </div>
-                  <div class="text-2xl font-bold font-mono text-amber-900">
+                  <div class="text-xl font-bold font-mono text-amber-900">
                     {{ bookings.filter(b => b.status === 'pending').length }}
                   </div>
                 </div>
 
                 <div 
                   @click="bookingFilterStatus = 'confirmed'"
-                  class="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-600/20 shadow-xs cursor-pointer hover:border-emerald-600/40 transition-all space-y-1"
-                  :class="{ 'ring-2 ring-emerald-600/40 border-emerald-600': bookingFilterStatus === 'confirmed' }"
+                  class="p-3.5 rounded-2xl bg-sky-500/5 border border-sky-600/20 shadow-xs cursor-pointer hover:border-sky-600/40 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-sky-600/40 border-sky-600': bookingFilterStatus === 'confirmed' }"
                 >
-                  <div class="text-[11px] font-mono font-bold text-emerald-800 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                  <div class="text-[10px] font-mono font-bold text-sky-800 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-600" />
                     <span>已确认洽谈</span>
                   </div>
-                  <div class="text-2xl font-bold font-mono text-emerald-900">
+                  <div class="text-xl font-bold font-mono text-sky-900">
                     {{ bookings.filter(b => b.status === 'confirmed').length }}
                   </div>
                 </div>
 
                 <div 
-                  @click="bookingFilterStatus = 'converted'"
-                  class="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-600/20 shadow-xs cursor-pointer hover:border-indigo-600/40 transition-all space-y-1"
-                  :class="{ 'ring-2 ring-indigo-600/40 border-indigo-600': bookingFilterStatus === 'converted' }"
+                  @click="bookingFilterStatus = 'awaiting_payment'"
+                  class="p-3.5 rounded-2xl bg-orange-500/5 border border-orange-600/20 shadow-xs cursor-pointer hover:border-orange-600/40 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-orange-600/40 border-orange-600': bookingFilterStatus === 'awaiting_payment' }"
                 >
-                  <div class="text-[11px] font-mono font-bold text-indigo-800 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600" />
-                    <span>已转专属交付</span>
+                  <div class="text-[10px] font-mono font-bold text-orange-800 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
+                    <span>待完成付款</span>
                   </div>
-                  <div class="text-2xl font-bold font-mono text-indigo-900">
-                    {{ bookings.filter(b => b.status === 'converted').length }}
+                  <div class="text-xl font-bold font-mono text-orange-900">
+                    {{ bookings.filter(b => b.status === 'awaiting_payment').length }}
                   </div>
                 </div>
 
                 <div 
-                  @click="bookingFilterStatus = 'archived'"
-                  class="p-4 rounded-2xl bg-slate-100/60 border border-black/[0.06] shadow-xs cursor-pointer hover:border-slate-400 transition-all space-y-1"
-                  :class="{ 'ring-2 ring-slate-400 border-slate-500': bookingFilterStatus === 'archived' }"
+                  @click="bookingFilterStatus = 'paid'"
+                  class="p-3.5 rounded-2xl bg-emerald-500/5 border border-emerald-600/20 shadow-xs cursor-pointer hover:border-emerald-600/40 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-emerald-600/40 border-emerald-600': bookingFilterStatus === 'paid' }"
                 >
-                  <div class="text-[11px] font-mono font-bold text-slate-500">已归档记录</div>
-                  <div class="text-2xl font-bold font-mono text-slate-700">
-                    {{ bookings.filter(b => b.status === 'archived').length }}
+                  <div class="text-[10px] font-mono font-bold text-emerald-800 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    <span>付款完成</span>
+                  </div>
+                  <div class="text-xl font-bold font-mono text-emerald-900">
+                    {{ bookings.filter(b => b.status === 'paid').length }}
+                  </div>
+                </div>
+
+                <div 
+                  @click="bookingFilterStatus = 'converted'"
+                  class="p-3.5 rounded-2xl bg-indigo-500/5 border border-indigo-600/20 shadow-xs cursor-pointer hover:border-indigo-600/40 transition-all space-y-1"
+                  :class="{ 'ring-2 ring-indigo-600/40 border-indigo-600': bookingFilterStatus === 'converted' }"
+                >
+                  <div class="text-[10px] font-mono font-bold text-indigo-800 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                    <span>专属交付中</span>
+                  </div>
+                  <div class="text-xl font-bold font-mono text-indigo-900">
+                    {{ bookings.filter(b => b.status === 'converted').length }}
                   </div>
                 </div>
               </div>
@@ -1132,11 +1149,13 @@
                     <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
                   </div>
 
-                  <select v-model="bookingFilterStatus" class="form-input text-xs py-2 w-32 cursor-pointer">
+                  <select v-model="bookingFilterStatus" class="form-input text-xs py-2 w-36 cursor-pointer">
                     <option value="all">全部状态</option>
                     <option value="pending">🟡 待跟进处理</option>
-                    <option value="confirmed">🟢 已确认洽谈</option>
-                    <option value="converted">🚀 已转专属交付</option>
+                    <option value="confirmed">🔵 已确认洽谈</option>
+                    <option value="awaiting_payment">🟠 待完成付款</option>
+                    <option value="paid">🟢 付款完成</option>
+                    <option value="converted">🚀 专属交付中</option>
                     <option value="archived">⚪ 已归档</option>
                   </select>
                 </div>
@@ -1241,13 +1260,15 @@
                         class="text-xs font-mono font-bold px-3 py-1 rounded-full flex items-center gap-1.5"
                         :class="[
                           b.status === 'pending' ? 'bg-amber-500/15 text-amber-800 border border-amber-500/30' :
-                          b.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-800 border border-emerald-500/30' :
+                          b.status === 'confirmed' ? 'bg-sky-500/15 text-sky-800 border border-sky-500/30' :
+                          b.status === 'awaiting_payment' ? 'bg-orange-500/15 text-orange-800 border border-orange-500/30' :
+                          b.status === 'paid' ? 'bg-emerald-500/15 text-emerald-800 border border-emerald-500/30' :
                           b.status === 'converted' ? 'bg-indigo-500/15 text-indigo-800 border border-indigo-500/30' :
                           'bg-slate-100 text-slate-600 border border-slate-200'
                         ]"
                       >
-                        <span class="w-1.5 h-1.5 rounded-full" :class="b.status === 'pending' ? 'bg-amber-600 animate-pulse' : b.status === 'confirmed' ? 'bg-emerald-600' : b.status === 'converted' ? 'bg-indigo-600' : 'bg-slate-400'" />
-                        <span>{{ b.status === 'pending' ? '待跟进' : b.status === 'confirmed' ? '已确认' : b.status === 'converted' ? '已转专属交付' : '已归档' }}</span>
+                        <span class="w-1.5 h-1.5 rounded-full" :class="b.status === 'pending' ? 'bg-amber-600 animate-pulse' : b.status === 'confirmed' ? 'bg-sky-600' : b.status === 'awaiting_payment' ? 'bg-orange-600 animate-pulse' : b.status === 'paid' ? 'bg-emerald-600' : b.status === 'converted' ? 'bg-indigo-600' : 'bg-slate-400'" />
+                        <span>{{ b.status === 'pending' ? '待跟进' : b.status === 'confirmed' ? '已确认' : b.status === 'awaiting_payment' ? '待完成付款' : b.status === 'paid' ? '付款完成' : b.status === 'converted' ? '已转专属交付' : '已归档' }}</span>
                       </span>
                     </div>
                   </div>
@@ -1296,6 +1317,92 @@
                       {{ b.referenceLinks }}
                     </a>
                     <button type="button" @click="copyBookingText(b.referenceLinks, '参考链接')" class="text-[10px] px-2 py-0.5 rounded bg-black/5 hover:bg-black/10 shrink-0">复制</button>
+                  </div>
+
+                  <!-- CONNECTED ORDER CHECKOUT CARD (打通订单与支付展现) -->
+                  <div v-if="b.orderSuffix || b.orderAmount || b.status === 'awaiting_payment' || b.status === 'paid'" class="p-4 rounded-xl border space-y-3" :class="b.status === 'paid' ? 'bg-gradient-to-r from-emerald-50/80 via-teal-50/50 to-emerald-50/80 border-emerald-200/80' : 'bg-gradient-to-r from-amber-50/80 via-orange-50/50 to-amber-50/80 border-amber-200/80'">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div class="flex items-center gap-2">
+                        <span class="text-base">{{ b.status === 'paid' ? '🎉' : '💳' }}</span>
+                        <span class="text-xs font-bold" :class="b.status === 'paid' ? 'text-emerald-950' : 'text-amber-950'">
+                          {{ b.status === 'paid' ? '专属项目订单已支付完成' : '已生成专属项目结算订单' }}
+                        </span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold" :class="b.status === 'paid' ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'">
+                          {{ b.status === 'paid' ? 'PAID · 付款成功' : 'AWAITING PAYMENT · 待付款' }}
+                        </span>
+                        <span v-if="b.orderEmailSent" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center gap-1">
+                          <span>✓ 账单邮件已发送</span>
+                          <span v-if="b.orderEmailSentAt" class="opacity-75">({{ formatBookingDate(b.orderEmailSentAt) }})</span>
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          @click="openCreateOrderModal(b)"
+                          class="text-xs font-bold hover:underline cursor-pointer"
+                          :class="b.status === 'paid' ? 'text-emerald-700 hover:text-emerald-900' : 'text-amber-800 hover:text-amber-950'"
+                        >
+                          <span>修改订单金额/说明 ✎</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid sm:grid-cols-3 gap-3 text-xs">
+                      <div class="flex items-center justify-between p-2.5 rounded-lg bg-white/95 border" :class="b.status === 'paid' ? 'border-emerald-100' : 'border-amber-100'">
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="text-slate-400">结算金额:</span>
+                          <span class="font-mono font-bold text-base truncate" :class="b.status === 'paid' ? 'text-emerald-700' : 'text-amber-700'">¥{{ b.orderAmount || '0.00' }}</span>
+                        </div>
+                        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/[0.04] text-slate-500 font-bold shrink-0 ml-2">固定价格</span>
+                      </div>
+
+                      <div class="flex items-center justify-between p-2.5 rounded-lg bg-white/95 border" :class="b.status === 'paid' ? 'border-emerald-100' : 'border-amber-100'">
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="text-slate-400">付款通道:</span>
+                          <span class="font-mono font-bold truncate text-slate-800">/order/{{ b.orderSuffix }}</span>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0 ml-2">
+                          <NuxtLink :to="`/order/${b.orderSuffix}`" target="_blank" class="text-[10px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">打开 ↗</NuxtLink>
+                          <button type="button" @click="copyBookingOrderLink(b.orderSuffix, b.orderAmount)" class="text-[10px] px-2 py-1 rounded font-bold" :class="b.status === 'paid' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'">复制链接</button>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center justify-between p-2.5 rounded-lg bg-white/95 border" :class="b.status === 'paid' ? 'border-emerald-100' : 'border-amber-100'">
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="text-slate-400">支付流水:</span>
+                          <span class="font-mono text-slate-700 truncate text-[11px]">{{ b.outTradeNo || (b.status === 'paid' ? '已核验' : '待下单直连') }}</span>
+                        </div>
+                        <span v-if="b.paidAt" class="text-[10px] text-emerald-600 font-mono font-bold shrink-0 ml-1">已到账</span>
+                      </div>
+                    </div>
+
+                    <!-- Action Bar inside Order Card -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t" :class="b.status === 'paid' ? 'border-emerald-100/60' : 'border-amber-100/60'">
+                      <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                        <span class="text-amber-600">🛡️</span>
+                        <span>支付宝官方直连 RSA-OAEP-256 签名，支付完成后台与预约进度自动打通。</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          @click="copyBookingOrderLink(b.orderSuffix, b.orderAmount)"
+                          class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white border border-black/10 hover:bg-slate-50 active:scale-95 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+                        >
+                          <span>📋 复制付款说明与链接</span>
+                        </button>
+                        <button
+                          type="button"
+                          @click="sendBookingOrderEmail(b)"
+                          :disabled="sendingBookingOrderEmailId === b.id"
+                          class="px-3 py-1.5 text-xs font-bold rounded-lg text-white active:scale-95 transition-all flex items-center gap-1 shadow-xs cursor-pointer disabled:opacity-50"
+                          :class="b.status === 'paid' ? 'bg-slate-700 hover:bg-slate-800' : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'"
+                        >
+                          <span v-if="sendingBookingOrderEmailId === b.id" class="animate-spin text-xs">⏳</span>
+                          <span v-else>📧</span>
+                          <span>{{ b.orderEmailSent ? (b.status === 'paid' ? '重发收据邮件' : '重发催款与账单邮件') : '发送账单邮件提醒付款' }}</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- CONNECTED EXCLUSIVE DELIVERY CARD (打通专属交付展现) -->
@@ -1401,6 +1508,17 @@
                   <!-- Actions Bar -->
                   <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-black/[0.05]">
                     <div class="flex flex-wrap items-center gap-2">
+                      <!-- Fill Price & Create Order Button (打通订单与填写价格) -->
+                      <button
+                        type="button"
+                        @click="openCreateOrderModal(b)"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-amber-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-500 hover:to-amber-600 shadow-sm flex items-center gap-1.5 transition-all cursor-pointer border border-amber-500/30 active:scale-95"
+                        :title="b.orderSuffix ? '修改或重发此预约的订单与价格' : '填写价格并生成订单页面，可自动给客户发邮件提醒付款'"
+                      >
+                        <span>💰</span>
+                        <span>{{ b.orderSuffix ? `订单已配置 (¥${b.orderAmount || '0.00'})` : '填写价格并生成订单' }}</span>
+                      </button>
+
                       <!-- One-Click Convert to Delivery Button -->
                       <button
                         v-if="b.status !== 'converted'"
@@ -1424,7 +1542,7 @@
                         v-if="b.status === 'pending'"
                         type="button"
                         @click="updateBookingStatus(b.id, 'confirmed')"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-500/10 text-sky-800 hover:bg-sky-500/20 border border-sky-500/20 transition-all cursor-pointer"
                       >
                         ✅ 标为已确认
                       </button>
@@ -1435,6 +1553,23 @@
                         class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-800 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer"
                       >
                         🟡 设为待处理
+                      </button>
+                      <button
+                        v-else-if="b.status === 'awaiting_payment'"
+                        type="button"
+                        @click="updateBookingStatus(b.id, 'paid')"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-800 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all cursor-pointer"
+                        title="如果客户通过对公转账或线下付款，可在此手动设为已付款"
+                      >
+                        🎉 手动标为已付款
+                      </button>
+                      <button
+                        v-else-if="b.status === 'paid'"
+                        type="button"
+                        @click="updateBookingStatus(b.id, 'converted')"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/15 text-indigo-800 hover:bg-indigo-500/25 border border-indigo-500/30 transition-all cursor-pointer"
+                      >
+                        🚀 推进至母带交付
                       </button>
 
                       <button
@@ -1722,6 +1857,167 @@
                       class="btn-primary text-xs py-2.5 px-6 shadow-lg bg-gradient-to-r from-indigo-700 to-purple-700"
                     >
                       {{ convertBookingModal.loading ? '正在生成密钥与专属入口...' : '立即生成专属交付入口' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Transition>
+
+            <!-- MODAL: Fill Price & Create Connected Order (填写价格生成订单弹窗) -->
+            <Transition name="fade">
+              <div
+                v-if="bookingOrderModal.open"
+                class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+              >
+                <div class="w-full max-w-xl rounded-3xl bg-white p-8 space-y-6 shadow-2xl border border-amber-500/30">
+                  <div class="flex items-start justify-between">
+                    <div class="space-y-1">
+                      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-900 text-[10px] font-mono font-bold">
+                        <span>💰 CINEMATIC BILLING & ORDER CHECKOUT</span>
+                      </div>
+                      <h3 class="text-xl font-bold font-display text-slate-900">填写价格并生成专属结算订单</h3>
+                    </div>
+                    <button
+                      type="button"
+                      @click="bookingOrderModal.open = false"
+                      class="text-slate-400 hover:text-slate-700 font-bold text-lg p-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div class="space-y-4 text-xs">
+                    <!-- Client info summary -->
+                    <div class="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/15 space-y-2">
+                      <div class="flex justify-between">
+                        <span class="text-slate-500">客户称呼:</span>
+                        <strong class="text-slate-900">{{ bookingOrderModal.booking?.name }} {{ bookingOrderModal.booking?.company ? `(${bookingOrderModal.booking?.company})` : '' }}</strong>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-500">客户意向需求:</span>
+                        <span class="text-slate-900 font-bold">{{ getServiceLabel(bookingOrderModal.booking?.serviceType) }} · 意向预算: {{ formatBudgetLabel(bookingOrderModal.booking?.budget) }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-500">客户联系方式:</span>
+                        <span class="font-mono text-slate-900">{{ bookingOrderModal.booking?.phone }} · {{ bookingOrderModal.booking?.email || '无邮箱' }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Price input -->
+                    <div class="space-y-1.5">
+                      <label class="block font-bold text-slate-900 text-sm flex items-center justify-between">
+                        <span>💰 确定结算金额 (元 / CNY) <span class="text-rose-500">*</span></span>
+                        <span class="text-[10px] text-amber-700 font-normal font-mono">客户在支付页不可改价，以固定金额直连结算</span>
+                      </label>
+                      <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-base text-amber-600">¥</span>
+                        <input
+                          v-model="bookingOrderModal.amount"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          class="form-input text-base font-bold font-mono pl-9 pr-4 py-2.5 w-full bg-amber-500/[0.04] border-amber-500/30 text-amber-950 focus:border-amber-600 focus:bg-white"
+                          placeholder="例如: 38000.00"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Subject and Suffix -->
+                    <div class="grid sm:grid-cols-2 gap-3">
+                      <div class="space-y-1.5">
+                        <label class="block font-bold text-slate-700">商品/款项名称</label>
+                        <input
+                          v-model="bookingOrderModal.subject"
+                          type="text"
+                          class="form-input text-xs"
+                          placeholder="例如: 商业 TVC 剪辑调色首付款"
+                        />
+                      </div>
+
+                      <div class="space-y-1.5">
+                        <label class="block font-bold text-slate-700">专属订单后缀 (URL Suffix)</label>
+                        <div class="flex items-center gap-1">
+                          <span class="text-xs font-mono text-slate-400 bg-slate-100 px-2.5 py-2 rounded-xl border">/order/</span>
+                          <input
+                            v-model="bookingOrderModal.orderSuffix"
+                            type="text"
+                            class="form-input text-xs font-mono flex-1"
+                            placeholder="如: zhang-tvc"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="space-y-1.5">
+                      <label class="block font-bold text-slate-700">交付与制作说明 (展示在付款页面)</label>
+                      <textarea
+                        v-model="bookingOrderModal.description"
+                        rows="2"
+                        class="form-input text-xs resize-none"
+                        placeholder="例如: 包含 4K ProRes 4444 母带输出、3 次微调审片及调色 EDL/XML 工程归档"
+                      />
+                    </div>
+
+                    <!-- Success Text -->
+                    <div class="space-y-1.5">
+                      <label class="block font-bold text-slate-700">付款成功后展示给客户的指引提示</label>
+                      <input
+                        v-model="bookingOrderModal.successText"
+                        type="text"
+                        class="form-input text-xs"
+                        placeholder="例如: 支付成功！我们将尽快推进后期制作与母带交付。"
+                      />
+                    </div>
+
+                    <!-- Auto Email Option -->
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-black/[0.06] flex items-center justify-between">
+                      <div class="space-y-0.5">
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>📧 自动发送订单账单邮件至客户邮箱</span>
+                          <span v-if="bookingOrderModal.booking?.email" class="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            {{ bookingOrderModal.booking?.email }}
+                          </span>
+                        </div>
+                        <p class="text-[10px] text-slate-500">
+                          {{ bookingOrderModal.booking?.email ? '生成订单后立即发送精美 HTML 账单邮件，包含直连支付按钮与金额明细。' : '⚠️ 该预约暂未填写邮箱，无法自动发信，您可在生成后直接复制付款链接发给客户。' }}
+                        </p>
+                      </div>
+                      <label class="relative inline-flex items-center cursor-pointer ml-3 shrink-0">
+                        <input
+                          v-model="bookingOrderModal.sendEmail"
+                          type="checkbox"
+                          :disabled="!bookingOrderModal.booking?.email"
+                          class="sr-only peer"
+                        />
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600 peer-disabled:opacity-40"></div>
+                      </label>
+                    </div>
+
+                    <!-- Notice banner -->
+                    <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-100 text-[11px] text-indigo-900 flex items-start gap-2">
+                      <span class="text-sm shrink-0">⚡</span>
+                      <span>
+                        生成后：该订单将自动保存于系统订单库，并将预约状态从<strong>【待跟进】</strong>推进至<strong>【待完成付款】</strong>。客户在线付款完成后，后台将自动变更为<strong>【付款完成】</strong>并记录流水号。
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      @click="bookingOrderModal.open = false"
+                      class="btn-ghost text-xs py-2.5 px-5 border rounded-xl"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="button"
+                      @click="confirmCreateBookingOrder"
+                      :disabled="bookingOrderModal.loading"
+                      class="btn-primary text-xs py-2.5 px-6 shadow-lg bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:from-amber-700 hover:to-amber-800"
+                    >
+                      {{ bookingOrderModal.loading ? '正在生成订单与加密凭证...' : '确认生成订单并打通支付' }}
                     </button>
                   </div>
                 </div>
@@ -5572,7 +5868,7 @@ const fetchPasswordRequests = async () => {
 }
 const registeredUsers = ref<any[]>([])
 const bookings = ref<any[]>([])
-const bookingFilterStatus = ref<'all' | 'pending' | 'confirmed' | 'converted' | 'archived'>('all')
+const bookingFilterStatus = ref<'all' | 'pending' | 'confirmed' | 'awaiting_payment' | 'paid' | 'converted' | 'archived'>('all')
 const bookingSearchQuery = ref('')
 const adminNoteEditingId = ref('')
 const adminNoteInput = ref('')
@@ -5582,6 +5878,19 @@ const convertBookingModal = ref({
   customSuffix: '',
   loading: false
 })
+const bookingOrderModal = ref({
+  open: false,
+  booking: null as any,
+  amount: '',
+  orderSuffix: '',
+  subject: '',
+  description: '',
+  successText: '支付成功！我们将尽快推进后期制作与母带交付。',
+  sendEmail: true,
+  loading: false
+})
+const sendingBookingOrderEmailId = ref('')
+const sendingDeliveryEmailId = ref('')
 
 const fetchBookings = async () => {
   try {
@@ -5782,6 +6091,158 @@ const confirmConvertToDelivery = async () => {
 const jumpToDeliveryLibrary = (b: any) => {
   deliveryItemForm.value.deliverySuffix = b.deliverySuffix || ''
   activeTab.value = 'delivery-library'
+}
+
+const openCreateOrderModal = (b: any) => {
+  const defaultSuffix = (b.company || b.name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 16) || `order-${b.id.slice(-5)}`
+  
+  // Suggest amount from budget
+  let suggestedAmount = b.orderAmount || ''
+  if (!suggestedAmount && b.budget) {
+    if (b.budget === 'under5k') suggestedAmount = '3000.00'
+    else if (b.budget === '5k-10k') suggestedAmount = '8000.00'
+    else if (b.budget === '10k-30k') suggestedAmount = '20000.00'
+    else if (b.budget === '30k-50k') suggestedAmount = '38000.00'
+    else if (b.budget === 'over50k') suggestedAmount = '60000.00'
+  }
+
+  bookingOrderModal.value = {
+    open: true,
+    booking: b,
+    amount: suggestedAmount,
+    orderSuffix: b.orderSuffix || defaultSuffix,
+    subject: b.orderSubject || `${b.name || '客户'}影视定制制作服务款`,
+    description: b.orderDescription || b.description || '影视后期剪辑、调色与母带制作款项',
+    successText: '支付成功！我们将尽快推进后期制作与母带交付。',
+    sendEmail: Boolean(b.email && b.email.includes('@')),
+    loading: false
+  }
+}
+
+const confirmCreateBookingOrder = async () => {
+  const modal = bookingOrderModal.value
+  const b = modal.booking
+  if (!b) return
+  const amountNum = Number(modal.amount)
+  if (!Number.isFinite(amountNum) || amountNum < 0.01) {
+    showToast('请输入有效的结算金额（大于 0 元）', 'error')
+    return
+  }
+  if (!modal.orderSuffix.trim()) {
+    showToast('请输入订单后缀', 'error')
+    return
+  }
+
+  modal.loading = true
+  try {
+    const res: any = await $fetch('/api/admin/bookings', {
+      method: 'POST',
+      body: {
+        action: 'create-order',
+        id: b.id,
+        amount: modal.amount,
+        orderSuffix: modal.orderSuffix,
+        subject: modal.subject,
+        description: modal.description,
+        successText: modal.successText,
+        sendEmail: modal.sendEmail
+      }
+    })
+
+    const target = bookings.value.find((item: any) => item.id === b.id)
+    if (target && res.booking) {
+      Object.assign(target, res.booking)
+    }
+
+    // Refresh orderPages if available
+    try {
+      orderPages.value = await $fetch<any[]>('/api/admin/order-pages')
+    } catch {}
+
+    bookingOrderModal.value.open = false
+    const emailTip = modal.sendEmail && res.emailResult?.success ? '，已自动发送账单邮件至客户邮箱！' : ''
+    showToast(`🎉 订单已生成！金额 ¥${modal.amount}${emailTip}`, 'success', 4500)
+  } catch (err: any) {
+    showToast(err.data?.statusMessage || err.statusMessage || '生成订单失败', 'error')
+  } finally {
+    modal.loading = false
+  }
+}
+
+const sendBookingOrderEmail = async (b: any) => {
+  if (!b.email || !b.email.includes('@')) {
+    showToast('该预约记录未填写有效的电子邮箱', 'error')
+    return
+  }
+  if (!b.orderSuffix) {
+    showToast('尚未为此预约生成订单，请先点击填写价格', 'error')
+    return
+  }
+
+  sendingBookingOrderEmailId.value = b.id
+  try {
+    const res: any = await $fetch('/api/admin/bookings', {
+      method: 'POST',
+      body: {
+        action: 'send-order-email',
+        id: b.id
+      }
+    })
+    b.orderEmailSent = true
+    b.orderEmailSentAt = res.orderEmailSentAt || new Date().toISOString()
+    showToast(`📧 已向 ${b.email} 发送催款与订单账单邮件！`, 'success', 4000)
+  } catch (err: any) {
+    showToast(err.data?.statusMessage || err.statusMessage || '发信失败，请检查 SMTP 配置', 'error')
+  } finally {
+    sendingBookingOrderEmailId.value = ''
+  }
+}
+
+const sendBookingDeliveryEmail = async (b: any) => {
+  if (!b.email || !b.email.includes('@')) {
+    showToast('该预约记录未填写有效的电子邮箱', 'error')
+    return
+  }
+  if (!b.deliverySuffix) {
+    showToast('该预约尚未开通专属交付放映室，请先点击一键转为专属交付', 'error')
+    return
+  }
+
+  sendingDeliveryEmailId.value = b.id
+  try {
+    const res: any = await $fetch('/api/admin/bookings', {
+      method: 'POST',
+      body: {
+        action: 'send-delivery-email',
+        id: b.id
+      }
+    })
+    b.emailSent = true
+    b.emailSentAt = res.emailSentAt || new Date().toISOString()
+    showToast(`📧 已向 ${b.email} 发送交付凭证邮件！`, 'success', 4000)
+  } catch (err: any) {
+    showToast(err.data?.statusMessage || err.statusMessage || '发信失败，请检查 SMTP 配置', 'error')
+  } finally {
+    sendingDeliveryEmailId.value = ''
+  }
+}
+
+const copyBookingDeliveryCredentials = async (b: any) => {
+  const origin = getNormalizedOrigin()
+  const url = `${origin}/delivery/${encodeURIComponent(b.deliverySuffix || '')}`
+  const key = b.deliveryKey || '（请使用注册账户登录直接查看）'
+  const text = `【XO Studio 专属母带交付放映室】\n尊敬的 ${b.name || '客户'}，您的影视项目专属放映室已就绪：\n交付地址：${url}\n提取密钥：${key}\n（提示：支持 DCI-P3 电影级色彩检视与母带下载）`
+  await copyBookingText(text, '完整交付凭证')
+}
+
+const copyBookingOrderLink = async (orderSuffix: string, amount: string) => {
+  const origin = getNormalizedOrigin()
+  const url = `${origin}/order/${encodeURIComponent(orderSuffix)}`
+  const text = `【XO Studio 项目安全结算】\n专属订单金额：¥${amount}\n安全结算链接：${url}\n（支持支付宝官方直连安全付款）`
+  await copyBookingText(text, '订单付款链接')
 }
 
 const fetchUsers = async () => {
