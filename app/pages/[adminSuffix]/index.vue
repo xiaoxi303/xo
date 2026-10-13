@@ -235,152 +235,357 @@
       </div>
     </div>
 
-    <!-- 3. Config Panel (Authenticated) -->
-    <div v-else :class="showLivePreview ? 'max-w-[1700px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 admin-workspace' : 'w-full max-w-none px-6 space-y-8 admin-workspace'">
+    <!-- 3. Config Panel (Authenticated Master Studio Control Suite) -->
+    <div v-else class="w-full min-h-screen flex flex-col bg-[#faf9f6] text-[#121316] font-sans admin-app-shell -mx-6 -mt-10 -mb-20">
+      
+      <!-- 3.1 Master Sticky Command Bar (全局顶部中枢控制条) -->
+      <header class="sticky top-0 z-50 w-full h-16 px-4 sm:px-6 bg-white/90 backdrop-blur-2xl border-b border-black/[0.08] flex items-center justify-between gap-3 shadow-xs select-none">
+        
+        <!-- Left: Brand Emblem + Current Module Breadcrumb -->
+        <div class="flex items-center gap-3 min-w-0">
+          <!-- Mobile Sidebar Toggle -->
+          <button
+            type="button"
+            @click="mobileNavOpen = !mobileNavOpen"
+            class="lg:hidden p-2 rounded-xl border border-black/10 hover:bg-black/5 text-slate-700 cursor-pointer"
+            title="切换导航菜单"
+          >
+            <span class="text-base">☰</span>
+          </button>
 
-      <!-- Left Edit Column -->
-      <div class="space-y-8 min-w-0 admin-edit-column">
+          <!-- Studio Emblem & Brand Mark -->
+          <div class="flex items-center gap-2.5 shrink-0">
+            <div class="relative group cursor-pointer" @click="activeTab = 'analytics'">
+              <img
+                :src="siteConfig?.siteInfo?.avatar || '/logo.png'"
+                :alt="siteConfig?.siteInfo?.brandName || 'Xo'"
+                class="w-9 h-9 rounded-xl object-cover border border-amber-600/30 shadow-xs"
+              />
+              <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
+            </div>
 
-      <!-- Header with Quick Action Buttons -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/[0.05] admin-page-header">
-        <div class="space-y-1">
-          <p class="section-label">Admin</p>
-          <h1 class="font-display text-3xl font-bold tracking-tight" style="color: var(--color-ink-1)">配置工作台</h1>
-          <p class="text-xs font-mono uppercase tracking-wider" style="color: var(--color-ink-5)">Xo Studio · Site-Wide Configuration Panel</p>
+            <div class="hidden sm:block leading-tight">
+              <div class="flex items-center gap-1.5">
+                <span class="font-display font-bold text-sm tracking-wide text-slate-900">{{ siteConfig?.siteInfo?.brandName || 'Xo' }} Studio</span>
+                <span class="px-1.5 py-0.2 rounded text-[8px] font-mono font-bold uppercase tracking-wider bg-amber-500/15 text-amber-900 border border-amber-500/25">PRO</span>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 uppercase tracking-widest block">CONTROL SUITE 2026</span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="hidden md:block w-px h-6 bg-black/[0.08] mx-1" />
+
+          <!-- Current Breadcrumb -->
+          <div class="hidden md:flex items-center gap-2 min-w-0">
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-900 border border-amber-500/20">
+              {{ currentCategoryName }}
+            </span>
+            <span class="text-slate-300 font-mono">/</span>
+            <span class="text-xs font-bold font-sans text-slate-800 truncate flex items-center gap-1.5">
+              <IconSax :name="currentTabMeta.icon" :size="14" class="text-amber-800" />
+              <span>{{ currentTabMeta.label }}</span>
+            </span>
+          </div>
         </div>
-        <div class="flex items-center gap-2.5 flex-shrink-0">
+
+        <!-- Center: Spotlight Search (Cmd+K / Ctrl+K) -->
+        <div class="hidden lg:flex items-center flex-1 max-w-md mx-4">
+          <div class="relative w-full">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">🔍</span>
+            <input
+              ref="searchInputRef"
+              v-model="tabSearch"
+              type="text"
+              placeholder="搜索配置模块 (按 Ctrl+K 快速聚焦)..."
+              class="w-full text-xs py-2 pl-9 pr-12 rounded-xl border border-black/10 bg-slate-50/80 focus:bg-white focus:border-amber-600/50 focus:ring-2 focus:ring-amber-500/15 transition-all font-sans outline-none"
+            />
+            <div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <button
+                v-if="tabSearch"
+                type="button"
+                @click="tabSearch = ''"
+                class="text-slate-400 hover:text-black text-xs font-bold p-0.5 cursor-pointer"
+              >
+                ✕
+              </button>
+              <kbd v-else class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/[0.05] text-slate-400 border border-black/[0.06]">
+                ⌘K
+              </kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Utility Actions (Preview, Frontend, Save, Admin) -->
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          
+          <!-- Double-Screen Live Preview Toggle Button -->
           <button
             type="button"
             @click="showLivePreview = !showLivePreview"
             :class="[
-              'px-3.5 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border',
-              showLivePreview ? 'bg-amber-700 text-white border-amber-800 shadow-sm' : 'border-black/10 bg-white/80 hover:bg-white text-slate-700 shadow-sm'
+              'px-3 sm:px-3.5 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs',
+              showLivePreview
+                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-800 ring-2 ring-amber-500/20'
+                : 'border-black/10 bg-white hover:bg-slate-50 text-slate-700'
             ]"
+            title="快捷切换 50/50 双屏实时画布"
           >
-            <span>👁️</span>
-            <span>{{ showLivePreview ? '关闭双屏' : '双屏预览' }}</span>
+            <span>{{ showLivePreview ? '🖥️' : '👁️' }}</span>
+            <span class="hidden sm:inline">{{ showLivePreview ? '关闭双屏' : '双屏画布' }}</span>
           </button>
+
+          <!-- Frontend Jump Link -->
+          <NuxtLink
+            to="/"
+            target="_blank"
+            class="px-3 py-2 rounded-xl text-xs font-mono font-bold text-slate-600 hover:text-slate-900 border border-black/10 bg-white hover:bg-slate-50 transition-colors hidden sm:flex items-center gap-1.5 shadow-xs"
+            title="新标签页打开前台主页"
+          >
+            <span>🌐</span>
+            <span class="hidden md:inline">前台主页 ↗</span>
+          </NuxtLink>
+
+          <!-- Save Button (Master Global Save) -->
           <button
             type="button"
             @click="saveSiteConfig"
             :disabled="isSaving"
-            class="btn-primary py-2 px-5 text-xs font-bold font-mono tracking-wider flex items-center gap-2 rounded-xl shadow-md active:scale-95 cursor-pointer transition-all"
+            :class="[
+              'py-2 px-3.5 sm:px-5 text-xs font-bold font-mono tracking-wider flex items-center gap-2 rounded-xl shadow-md active:scale-95 cursor-pointer transition-all',
+              isDirty
+                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:brightness-105 ring-2 ring-amber-500/25'
+                : 'bg-slate-900 text-white hover:bg-black'
+            ]"
           >
             <span v-if="isSaving" class="animate-spin text-sm">⏳</span>
             <span v-else>💾</span>
             <span>{{ isSaving ? '保存中...' : '保存配置' }}</span>
-            <span v-if="isDirty" class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse ml-0.5" />
+            <span v-if="isDirty" class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping ml-0.5" title="有尚未保存的配置更改" />
           </button>
-        </div>
-      </div>
 
-      <!-- Navigation & Action Row (Left Sidebar on Desktop) -->
-      <div class="space-y-2.5 pt-2 admin-navigation">
-        <!-- Brand & Mode -->
-        <div class="admin-sidebar-brand flex items-center gap-2.5">
-          <img
-            class="admin-brand-mark w-7 h-7 rounded-lg object-cover border border-amber-600/30"
-            :src="siteConfig?.siteInfo?.avatar || '/logo.png'"
-            :alt="siteConfig?.siteInfo?.brandName || 'Xo'"
-          />
-          <div class="leading-tight">
-            <strong class="block text-xs text-[#121316] font-bold">{{ siteConfig?.siteInfo?.brandName || 'Xo' }}</strong>
-            <span class="text-[9px] font-mono text-amber-800 font-bold uppercase tracking-wider">CONTROL CENTER</span>
+          <!-- Admin Avatar & Quick Logout -->
+          <div class="flex items-center gap-1 pl-1">
+            <button
+              type="button"
+              @click="handleLogout"
+              class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-rose-200"
+              title="退出登录"
+            >
+              <span>🚪</span>
+            </button>
           </div>
         </div>
+      </header>
 
-        <!-- Instant Search Input (Fitted 100% inside sidebar) -->
-        <div class="relative w-full">
-          <input
-            v-model="tabSearch"
-            type="text"
-            placeholder="🔍 搜索导航..."
-            class="w-full text-xs py-1.5 pl-3 pr-7 rounded-xl border border-black/10 bg-white/80 focus:bg-white focus:border-amber-600/50 focus:ring-1 focus:ring-amber-500/20 transition-all font-sans"
-          />
-          <button
-            v-if="tabSearch"
-            type="button"
-            @click="tabSearch = ''"
-            class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black text-xs font-bold p-0.5 cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-
-        <!-- Category Filter (Clean 5-Col Segmented Controller) -->
-        <div class="grid grid-cols-5 p-1 rounded-xl bg-black/[0.04] border border-black/[0.06] select-none text-[10px] font-sans w-full gap-0.5">
-          <button
-            v-for="cat in tabCategories"
-            :key="cat.id"
-            type="button"
-            @click="selectedCategory = cat.id"
-            :title="cat.fullName"
-            :class="[
-              'py-1 rounded-lg transition-all duration-200 font-bold flex items-center justify-center cursor-pointer text-center whitespace-nowrap',
-              selectedCategory === cat.id
-                ? 'bg-white text-amber-900 shadow-sm ring-1 ring-black/5 font-extrabold'
-                : 'text-slate-500 hover:text-slate-900 hover:bg-black/[0.02]'
-            ]"
-          >
-            <span>{{ cat.name }}</span>
-          </button>
-        </div>
-
-        <!-- Filter Status Hint (Only shown when filtered) -->
-        <div v-if="selectedCategory !== 'all' || tabSearch" class="flex items-center justify-between px-1 text-[9px] font-mono text-amber-800">
-          <span class="truncate">
-            {{ selectedCategory !== 'all' ? tabCategories.find(c => c.id === selectedCategory)?.fullName?.split(' ')[0] : '搜索中' }}: {{ filteredTabs.length }}项
-          </span>
-          <button type="button" @click="selectedCategory = 'all'; tabSearch = ''" class="hover:underline text-slate-400 hover:text-slate-700 ml-1 shrink-0 cursor-pointer">
-            重置
-          </button>
-        </div>
-
-        <!-- Filtered Tabs Bar -->
-        <div class="flex items-center gap-1.5 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap scrollbar-none no-scrollbar admin-tabs" @wheel.prevent="handleTabsWheel"
-             style="background: rgba(140,115,80,0.08); border: 1px solid rgba(160,130,90,0.18); scrollbar-width: none; -ms-overflow-style: none;">
-          <button
-            v-for="t in filteredTabs"
-            :key="t.value"
-            @click="activeTab = t.value"
-            :class="[
-              'relative px-3 py-2 rounded-lg text-[10px] font-semibold font-mono uppercase tracking-wider transition-all duration-200 ease-out flex items-center gap-2 whitespace-nowrap flex-shrink-0 active:scale-95 cursor-pointer',
-              activeTab === t.value
-                ? 'bg-white shadow-sm font-bold scale-[1.02] tab-pill-active ring-1 ring-amber-600/30'
-                : 'hover:bg-black/[0.04] hover:text-[#121316]'
-            ]"
-            :style="activeTab === t.value
-              ? { color: 'var(--color-ink-1)', border: '1px solid rgba(180,150,110,0.35)' }
-              : { color: 'var(--color-ink-4)', border: '1px solid transparent' }"
-          >
-            <IconSax :name="t.icon" :size="15" custom-class="admin-nav-icon" />
-            <span>{{ t.label }}</span>
-            <span v-if="t.value === 'announcement' && siteConfig.announcement?.enabled" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
-            <span v-if="t.value === 'orders' && systemStatus.pendingOrders" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[8px] font-bold">
-              {{ systemStatus.pendingOrders }}
-            </span>
-          </button>
-          <div v-if="filteredTabs.length === 0" class="px-3 py-2 text-xs text-slate-400 font-mono text-center">
-            无匹配模块
+      <!-- 3.2 Main Workspace Container (Sidebar + Content + Live Preview) -->
+      <div class="flex-1 flex w-full relative">
+        
+        <!-- Desktop Sidebar (左侧沉浸中控菜单) -->
+        <aside
+          class="hidden lg:flex flex-col flex-shrink-0 w-64 xl:w-72 sticky top-16 h-[calc(100vh-4rem)] bg-white/75 backdrop-blur-xl border-r border-black/[0.08] p-4 space-y-4 select-none z-30 overflow-hidden"
+        >
+          <!-- Category Filter Bar (5 Segmented Pills) -->
+          <div class="grid grid-cols-5 p-1 rounded-xl bg-black/[0.04] border border-black/[0.06] select-none text-[10px] font-sans w-full gap-0.5 shrink-0">
+            <button
+              v-for="cat in tabCategories"
+              :key="cat.id"
+              type="button"
+              @click="selectedCategory = cat.id"
+              :title="cat.fullName"
+              :class="[
+                'py-1 rounded-lg transition-all duration-200 font-bold flex items-center justify-center cursor-pointer text-center whitespace-nowrap',
+                selectedCategory === cat.id
+                  ? 'bg-white text-amber-900 shadow-sm ring-1 ring-black/5 font-extrabold'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-black/[0.02]'
+              ]"
+            >
+              <span>{{ cat.name }}</span>
+            </button>
           </div>
-        </div>
 
-        <!-- Sidebar Footer Action -->
-        <div class="admin-quick-actions">
-          <button
-            type="button"
-            @click="handleLogout"
-            class="w-full py-2 px-3 rounded-xl text-xs font-mono font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <span>🚪</span>
-            <span>退出登录</span>
-          </button>
-        </div>
-      </div>
+          <!-- Tabs Navigation Scroll Area -->
+          <div class="flex-1 min-h-0 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
+            <button
+              v-for="t in filteredTabs"
+              :key="t.value"
+              type="button"
+              @click="activeTab = t.value"
+              :class="[
+                'w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-sans font-medium transition-all duration-200 flex items-center justify-between group cursor-pointer border',
+                activeTab === t.value
+                  ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/8 to-transparent text-amber-950 font-bold border-amber-500/30 shadow-xs'
+                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-black/[0.03]'
+              ]"
+            >
+              <div class="flex items-center gap-2.5 truncate">
+                <span
+                  class="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors shrink-0"
+                  :class="activeTab === t.value ? 'bg-amber-500/20 text-amber-900' : 'bg-black/[0.04] text-slate-500 group-hover:text-slate-800'"
+                >
+                  <IconSax :name="t.icon" :size="15" />
+                </span>
+                <span class="truncate">{{ t.label }}</span>
+              </div>
 
+              <!-- Counter / Status Badge -->
+              <div class="flex items-center gap-1 shrink-0 ml-1">
+                <!-- Bookings Pending Badge -->
+                <span
+                  v-if="t.value === 'bookings' && pendingBookingsCount > 0"
+                  class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-500 text-white shadow-xs"
+                >
+                  {{ pendingBookingsCount }}
+                </span>
+                <!-- Requests Pending Badge -->
+                <span
+                  v-if="t.value === 'requests' && pendingRequestsCount > 0"
+                  class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-600 text-white shadow-xs"
+                >
+                  {{ pendingRequestsCount }}
+                </span>
+                <!-- Orders Pending Badge -->
+                <span
+                  v-if="t.value === 'orders' && pendingOrdersCount > 0"
+                  class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-rose-500 text-white shadow-xs"
+                >
+                  {{ pendingOrdersCount }}
+                </span>
+                <!-- Announcement Active Green Dot -->
+                <span
+                  v-if="t.value === 'announcement' && siteConfig.announcement?.enabled"
+                  class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200 animate-pulse"
+                  title="公告已开启广播"
+                />
+              </div>
+            </button>
 
-      <!-- Tab Content with Smooth Gliding Transition -->
-      <div class="relative min-h-[400px] admin-tab-content">
+            <div v-if="filteredTabs.length === 0" class="py-8 text-center text-xs text-slate-400 font-mono">
+              无匹配的功能模块
+            </div>
+          </div>
+
+          <!-- Sidebar Footer Status & Links -->
+          <div class="pt-3 border-t border-black/[0.06] space-y-2 shrink-0">
+            <div class="p-2.5 rounded-xl bg-black/[0.02] border border-black/[0.04] flex items-center justify-between text-[10px] font-mono text-slate-500">
+              <span class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>节点安全握手</span>
+              </span>
+              <span class="text-amber-800 font-bold uppercase">D1 / SQLite</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
+              <NuxtLink to="/booking" target="_blank" class="p-1.5 rounded-lg text-center bg-black/[0.03] hover:bg-black/[0.06] text-slate-700 transition-colors">
+                /booking ↗
+              </NuxtLink>
+              <NuxtLink to="/client" target="_blank" class="p-1.5 rounded-lg text-center bg-black/[0.03] hover:bg-black/[0.06] text-slate-700 transition-colors">
+                /client ↗
+              </NuxtLink>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Mobile Drawer Navigation -->
+        <Transition name="drawer">
+          <div v-if="mobileNavOpen" class="fixed inset-0 z-50 lg:hidden flex">
+            <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="mobileNavOpen = false" />
+            <div class="relative w-72 max-w-[85vw] h-full bg-white shadow-2xl p-4 flex flex-col space-y-4 z-10">
+              <div class="flex items-center justify-between pb-3 border-b border-black/[0.08]">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-sm">中枢导航菜单</span>
+                </div>
+                <button type="button" @click="mobileNavOpen = false" class="text-slate-400 hover:text-black font-bold p-1">✕</button>
+              </div>
+
+              <!-- Search in Drawer -->
+              <input
+                v-model="tabSearch"
+                type="text"
+                placeholder="搜索模块..."
+                class="w-full text-xs py-2 px-3 rounded-xl border border-black/10 bg-slate-50"
+              />
+
+              <!-- Categories -->
+              <div class="grid grid-cols-5 p-1 rounded-xl bg-black/[0.04] text-[10px]">
+                <button
+                  v-for="cat in tabCategories"
+                  :key="cat.id"
+                  @click="selectedCategory = cat.id"
+                  :class="['py-1 rounded-lg font-bold text-center', selectedCategory === cat.id ? 'bg-white text-amber-900 shadow-sm' : 'text-slate-500']"
+                >
+                  {{ cat.name }}
+                </button>
+              </div>
+
+              <!-- Tabs in Drawer -->
+              <div class="flex-1 overflow-y-auto space-y-1">
+                <button
+                  v-for="t in filteredTabs"
+                  :key="t.value"
+                  @click="activeTab = t.value; mobileNavOpen = false"
+                  :class="[
+                    'w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between',
+                    activeTab === t.value ? 'bg-amber-500/15 text-amber-950 font-bold' : 'text-slate-700 hover:bg-black/5'
+                  ]"
+                >
+                  <div class="flex items-center gap-2">
+                    <IconSax :name="t.icon" :size="15" />
+                    <span>{{ t.label }}</span>
+                  </div>
+                  <span v-if="t.value === 'bookings' && pendingBookingsCount > 0" class="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-500 text-white font-mono font-bold">
+                    {{ pendingBookingsCount }}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </Transition>
+
+        <!-- Main Content Stage & Live Preview Split -->
+        <main class="flex-1 min-w-0 flex flex-col lg:flex-row relative">
+          
+          <!-- Content Stage (Left or Full-Width) -->
+          <div :class="['flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6', showLivePreview ? 'lg:max-w-[50%]' : 'max-w-7xl mx-auto w-full']">
+            
+            <!-- Executive Tab Title Banner -->
+            <div class="glass-card p-5 sm:p-6 rounded-2xl border border-black/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden shadow-xs">
+              <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700" />
+              <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/15 to-amber-600/25 border border-amber-500/30 flex items-center justify-center text-amber-800 shrink-0 shadow-xs">
+                  <IconSax :name="currentTabMeta?.icon || 'setting'" :size="24" />
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-800 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                      {{ currentCategoryName }}
+                    </span>
+                    <span class="text-xs text-slate-400 font-mono">#{{ activeTab }}</span>
+                  </div>
+                  <h2 class="text-xl sm:text-2xl font-bold font-display text-slate-900 mt-0.5">
+                    {{ currentTabMeta?.label || '控制模块' }}
+                  </h2>
+                </div>
+              </div>
+
+              <!-- Action helpers on the right of banner -->
+              <div class="flex items-center gap-2 self-start sm:self-auto">
+                <button
+                  type="button"
+                  @click="saveSiteConfig"
+                  :disabled="isSaving"
+                  class="btn-primary text-xs py-2 px-4 shadow-sm flex items-center gap-1.5"
+                >
+                  <span v-if="isSaving" class="animate-spin text-xs">⏳</span>
+                  <span v-else>💾</span>
+                  <span>保存修改</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab Content with Smooth Gliding Transition -->
+            <div class="relative min-h-[400px] admin-tab-content">
+
         <Transition name="tab-fade-slide" mode="out-in">
           <div v-if="activeTab === 'analytics'" key="analytics" class="space-y-6">
             <!-- TAB 0: ANALYTICS DASHBOARD -->
@@ -3352,21 +3557,95 @@
           </div>
         </div>
       </Transition>
-      </div>
-      </div>
-
-      <!-- Right Live Preview Drawer Column (When Double-Screen Active) -->
-      <div v-if="showLivePreview" class="relative sticky top-6 h-[calc(100vh-80px)] rounded-2xl overflow-hidden shadow-2xl border border-black/10 flex flex-col z-20" style="background: var(--glass-bg)">
-        <div class="h-10 px-4 flex items-center justify-between border-b flex-shrink-0" style="background: rgba(0,0,0,0.03); border-color: var(--color-border)">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-            <span class="text-[10px] font-mono ml-2 opacity-60">实时全双屏渲染画布 (Live Canvas)</span>
+            </div>
           </div>
-          <button type="button" @click="refreshPreview" class="text-[10px] font-mono hover:underline opacity-80" style="color: var(--color-ink-1)">🔄 刷新预览</button>
-        </div>
-        <iframe ref="previewIframe" src="/" class="w-full flex-1 border-none" />
+
+          <!-- Right Live Preview Drawer Column (When Double-Screen Active) -->
+          <div
+            v-if="showLivePreview"
+            class="w-full lg:w-1/2 p-4 sm:p-6 lg:border-l border-black/[0.08] sticky top-16 h-[calc(100vh-4rem)] bg-stone-100/60 backdrop-blur-md flex flex-col z-20 space-y-3"
+          >
+            <!-- Browser Mockup Window Bar -->
+            <div class="p-3 rounded-2xl bg-white border border-black/[0.08] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 select-none">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                <span class="text-[11px] font-mono font-bold text-slate-700 ml-1">双屏实时预览</span>
+              </div>
+
+              <!-- Viewport Mode Buttons -->
+              <div class="flex items-center gap-1 p-0.5 rounded-xl bg-black/[0.04] text-[10px] font-mono">
+                <button
+                  type="button"
+                  @click="previewDevice = 'desktop'"
+                  :class="['px-2 py-1 rounded-lg font-bold transition-all', previewDevice === 'desktop' ? 'bg-white shadow-xs text-amber-900 font-extrabold' : 'text-slate-500 hover:text-black']"
+                  title="桌面端全宽视图"
+                >
+                  🖥️ 电脑
+                </button>
+                <button
+                  type="button"
+                  @click="previewDevice = 'tablet'"
+                  :class="['px-2 py-1 rounded-lg font-bold transition-all', previewDevice === 'tablet' ? 'bg-white shadow-xs text-amber-900 font-extrabold' : 'text-slate-500 hover:text-black']"
+                  title="平板设备 (768px)"
+                >
+                  💻 平板
+                </button>
+                <button
+                  type="button"
+                  @click="previewDevice = 'mobile'"
+                  :class="['px-2 py-1 rounded-lg font-bold transition-all', previewDevice === 'mobile' ? 'bg-white shadow-xs text-amber-900 font-extrabold' : 'text-slate-500 hover:text-black']"
+                  title="移动手机设备 (375px)"
+                >
+                  📱 手机
+                </button>
+              </div>
+
+              <!-- Route Switcher & Actions -->
+              <div class="flex items-center gap-1.5">
+                <select
+                  v-model="previewRoute"
+                  @change="switchPreviewRoute(previewRoute)"
+                  class="text-[11px] font-mono py-1 px-2 rounded-lg border border-black/10 bg-slate-50 text-slate-800 cursor-pointer"
+                >
+                  <option v-for="r in previewRoutes" :key="r.path" :value="r.path">
+                    {{ r.label }}
+                  </option>
+                </select>
+                <button
+                  type="button"
+                  @click="refreshPreview"
+                  class="p-1.5 rounded-lg border border-black/10 hover:bg-black/5 text-slate-600 text-xs"
+                  title="刷新预览"
+                >
+                  🔄
+                </button>
+                <a
+                  :href="previewRoute"
+                  target="_blank"
+                  class="p-1.5 rounded-lg border border-black/10 hover:bg-black/5 text-slate-600 text-xs"
+                  title="新窗口弹出"
+                >
+                  ↗
+                </a>
+              </div>
+            </div>
+
+            <!-- Iframe Container with Responsive Device Framing -->
+            <div class="flex-1 min-h-0 rounded-2xl overflow-hidden border border-black/10 bg-white shadow-xl flex items-center justify-center p-1">
+              <iframe
+                ref="previewIframe"
+                :src="previewRoute"
+                :class="[
+                  'h-full border-none transition-all duration-300 rounded-xl bg-white',
+                  previewDevice === 'desktop' ? 'w-full' : previewDevice === 'tablet' ? 'w-[768px] max-w-full shadow-lg border border-black/10' : 'w-[375px] max-w-full shadow-2xl border-4 border-slate-800 rounded-[28px]'
+                ]"
+              />
+            </div>
+          </div>
+
+        </main>
       </div>
 
     </div>
@@ -6243,167 +6522,46 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   scrollbar-width: none !important;
 }
 
-@media (min-width: 1024px) {
-  .admin-edit-column {
-    position: relative;
-  }
 
-  .admin-page-header,
-  .admin-tab-content {
-    margin-left: 250px;
-    max-width: 1420px;
-  }
-
-  .admin-navigation {
-    position: fixed;
-    z-index: 40;
-    top: 2.5rem;
-    left: 1.5rem;
-    width: 224px;
-    height: calc(100vh - 5rem);
-    padding: 1.1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 0.75rem;
-    border: 1px solid rgba(160, 130, 90, 0.18);
-    border-radius: 1.25rem;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: 0 16px 40px rgba(40, 30, 20, 0.08);
-    backdrop-filter: blur(18px);
-  }
-
-  .admin-sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    padding: 0.25rem 0.35rem 0.65rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    flex-shrink: 0;
-  }
-
-  .admin-brand-mark {
-    display: grid;
-    place-items: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 0.7rem;
-    object-fit: cover;
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(160, 130, 90, 0.18);
-    box-shadow: 0 5px 14px rgba(180, 83, 9, 0.22);
-  }
-
-  .admin-sidebar-brand strong,
-  .admin-sidebar-brand span {
-    display: block;
-  }
-
-  .admin-sidebar-brand strong {
-    color: var(--color-ink-1);
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-  }
-
-  .admin-sidebar-brand span {
-    margin-top: 0.15rem;
-    color: var(--color-ink-5);
-    font-family: monospace;
-    font-size: 0.48rem;
-    letter-spacing: 0.1em;
-  }
-
-  .admin-tabs {
-    width: 100%;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.25rem;
-    background: transparent !important;
-    border: 0 !important;
-    padding: 0 0.15rem 0 0 !important;
-  }
-
-  .admin-tabs > button {
-    justify-content: flex-start;
-    width: 100%;
-    min-height: 2.35rem;
-    padding: 0.5rem 0.65rem;
-    border-radius: 0.7rem;
-    flex-shrink: 0;
-  }
-
-  .admin-tabs > button:not(.tab-pill-active) {
-    opacity: 0.78;
-  }
-
-  .admin-tabs > button:hover {
-    transform: translateX(3px);
-  }
-
-  .admin-quick-actions {
-    width: 100%;
-    margin-top: auto;
-    padding-top: 0.65rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
-    flex-shrink: 0;
-  }
-
-  .admin-quick-actions > button {
-    width: 100%;
-    text-align: center;
-  }
-
-  .admin-tab-content {
-    padding-bottom: 2rem;
-  }
+/* Modern App Shell & Sidebar */
+.admin-app-shell {
+  min-height: 100vh;
 }
 
-@media (max-width: 1023px) {
-  .admin-shell {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  .admin-workspace {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .admin-sidebar-brand {
-    display: none;
-  }
-
-  .admin-navigation {
-    margin-top: 0.5rem;
-    padding: 0.35rem;
-    border: 1px solid rgba(160, 130, 90, 0.16);
-    border-radius: 0.9rem;
-    background: rgba(255, 255, 255, 0.68);
-    box-shadow: 0 8px 22px rgba(51, 39, 24, 0.05);
-  }
-
-  .admin-tabs {
-    max-width: 100%;
-    overflow-x: auto;
-  }
-
-  .admin-quick-actions {
-    align-self: stretch;
-    justify-content: flex-end;
-  }
-
-  .admin-page-header h1 {
-    font-size: 1.85rem;
-  }
-
-  .admin-tab-content :deep(.grid) {
-    min-width: 0;
-  }
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
 }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Smooth Tab Transitions */
+.tab-fade-slide-enter-active,
+.tab-fade-slide-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.tab-fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.tab-fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* Drawer Transitions */
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.drawer-enter-from,
+.drawer-leave-to {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
 </style>
