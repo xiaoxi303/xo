@@ -337,6 +337,15 @@
 
                 <!-- The Form -->
                 <form v-else @submit.prevent="submitForm" class="space-y-6">
+                  <!-- Logged-in auto-fill banner -->
+                  <div v-if="clientMe?.loggedIn" class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-950 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base">✨</span>
+                      <span>已为您自动识别登录账户 <strong>@{{ clientMe.username }}</strong> 并填入邮箱与联系信息（称呼请按需求填写）</span>
+                    </div>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-600 text-white font-bold shrink-0">AUTO-FILLED</span>
+                  </div>
+
                   <!-- Name & Company -->
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
@@ -542,6 +551,7 @@ useHead({
 })
 
 const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
+const { data: clientMe } = await useFetch<any>('/api/auth/client-me')
 
 const submitted = ref(false)
 const submitting = ref(false)
@@ -560,6 +570,25 @@ const form = ref({
   description: '',
   referenceLinks: ''
 })
+
+const populateClientInfo = () => {
+  if (clientMe.value?.loggedIn) {
+    if (clientMe.value.email && !form.value.email) {
+      form.value.email = clientMe.value.email
+    }
+    if (clientMe.value.phone && !form.value.phone) {
+      form.value.phone = clientMe.value.phone
+    }
+    if (clientMe.value.company && !form.value.company) {
+      form.value.company = clientMe.value.company
+    }
+    // Note: form.name remains empty as requested ("除了称呼 其他的都是自动帮他填写")
+  }
+}
+
+watch(clientMe, () => {
+  populateClientInfo()
+}, { immediate: true })
 
 const serviceTypeOptions = [
   { value: 'tvc', label: '商业TVC广告', icon: '🎬' },
@@ -708,11 +737,13 @@ const resetForm = () => {
     description: '',
     referenceLinks: ''
   }
+  populateClientInfo()
   submitted.value = false
   bookingRefId.value = ''
 }
 
 onMounted(() => {
+  populateClientInfo()
   setTimeout(() => {
     document.querySelectorAll('.reveal').forEach(el => {
       el.classList.add('in-view')

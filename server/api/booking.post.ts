@@ -1,8 +1,9 @@
 import fs from 'node:fs'
-import { defineEventHandler, readBody } from 'h3'
+import { defineEventHandler, readBody, getCookie } from 'h3'
 import { getRuntimeDataPath } from '../utils/storage'
 import { logSecurityEvent } from '../utils/security-logger'
 import { decryptRsaHybrid, isRsaHybridPayload } from '../utils/rsa-hybrid'
+import { validateSession, CLIENT_SESSION_COOKIE } from '../utils/auth'
 
 export default defineEventHandler(async (event) => {
   let body = await readBody(event)
@@ -32,6 +33,15 @@ export default defineEventHandler(async (event) => {
   if (!ip) ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
   if (ip === '::1' || ip === '::ffff:127.0.0.1') ip = '127.0.0.1 (本地)'
 
+  const clientToken = getCookie(event, CLIENT_SESSION_COOKIE)
+  let loggedInClientUsername = ''
+  if (clientToken) {
+    const session = validateSession(clientToken)
+    if (session?.username) {
+      loggedInClientUsername = session.username
+    }
+  }
+
   const booking = {
     id: `BK-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     name,
@@ -44,6 +54,7 @@ export default defineEventHandler(async (event) => {
     description,
     referenceLinks: referenceLinks || '',
     status: 'pending',
+    clientUsername: loggedInClientUsername || '',
     ip,
     createdAt: new Date().toISOString()
   }

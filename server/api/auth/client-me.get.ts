@@ -12,9 +12,11 @@ export default defineEventHandler(async (event) => {
     return { loggedIn: false }
   }
 
-  // Look up user details from database
   let email = ''
   let wechat = ''
+  let phone = ''
+  let nickname = ''
+  let company = ''
   let deliverySuffix = ''
   let deliveryKeyHint = ''
   let warningCount = 0
@@ -26,6 +28,9 @@ export default defineEventHandler(async (event) => {
     if (user) {
       email = user.email || ''
       wechat = user.wechat || ''
+      phone = user.phone || ''
+      nickname = user.nickname || ''
+      company = user.company || ''
       deliverySuffix = user.deliverySuffix || ''
       deliveryKeyHint = user.deliveryKeyHint || ''
       warningCount = Number(user.warningCount) || 0
@@ -42,13 +47,34 @@ export default defineEventHandler(async (event) => {
         }
       }
     }
+
+    // Try finding latest booking for this user to get phone/company if not set on user
+    try {
+      const bookingsPath = getRuntimeDataPath('bookings.json')
+      if (fs.existsSync(bookingsPath)) {
+        const bookings = JSON.parse(fs.readFileSync(bookingsPath, 'utf-8'))
+        const cleanEmail = (email || '').toLowerCase()
+        const userBooking = bookings.find((b: any) => 
+          (cleanEmail && String(b.email || '').toLowerCase() === cleanEmail) ||
+          (deliverySuffix && (b.deliverySuffix === deliverySuffix || b.orderSuffix === deliverySuffix)) ||
+          (phone && b.phone === phone)
+        )
+        if (userBooking) {
+          if (!phone && userBooking.phone) phone = userBooking.phone
+          if (!company && userBooking.company) company = userBooking.company
+        }
+      }
+    } catch {}
   } catch (e) {}
 
   return {
     loggedIn: true,
     username: session.username,
+    nickname,
     email,
     wechat,
+    phone,
+    company,
     deliverySuffix,
     deliveryKeyHint,
     warningCount,
