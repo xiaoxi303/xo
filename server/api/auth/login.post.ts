@@ -12,7 +12,7 @@ import {
 import { dbGetSiteConfig } from '../../utils/db'
 import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
-import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/rsa-hybrid'
 import { decryptE2EE, isE2EEPayload } from '../../utils/e2ee'
 
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../utils/rate-limiter'
@@ -70,16 +70,17 @@ export default defineEventHandler(async (event) => {
   }
 
   const captchaToken = String(body?.captchaToken || '')
-  if (!captchaToken || !captchaToken.startsWith('XO_SLIDER_')) {
+  const captchaCheck = vaultVerifySliderToken(captchaToken)
+  if (!captchaCheck.valid) {
     logSecurityEvent({
       type: 'Admin Login Guard',
       ip,
-      action: 'Admin login blocked: missing or invalid slider captcha token',
+      action: `Admin login blocked: ${captchaCheck.reason || 'invalid slider captcha token'}`,
       status: 'blocked'
     })
     throw createError({
       statusCode: 400,
-      statusMessage: '安全人机校验未通过，请滑动完成滑块安全校验后再试。'
+      statusMessage: captchaCheck.reason || '安全人机校验未通过，请滑动完成滑块安全校验后再试。'
     })
   }
 

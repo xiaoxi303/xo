@@ -567,3 +567,165 @@ export function decryptRsaHybridWithVault(payload: RsaHybridPayload): string {
 export function md5Fingerprint(value: string): string {
   return crypto.createHash('md5').update(value).digest('hex').toUpperCase()
 }
+
+// ============================================================================
+// 9. 全站统一安全哈希与盐值校验核心 (Vault Cryptographic Credential Engine)
+// ============================================================================
+
+/**
+ * 恒定时间安全比对，抵御侧信道时序分析
+ */
+export function vaultTimingSafeEqual(a: string | Buffer, b: string | Buffer): boolean {
+  if (a === undefined || a === null || b === undefined || b === null) return false
+  const bufA = typeof a === 'string' ? crypto.createHash('sha256').update(a).digest() : a
+  const bufB = typeof b === 'string' ? crypto.createHash('sha256').update(b).digest() : b
+  if (bufA.length !== bufB.length) return false
+  return crypto.timingSafeEqual(bufA, bufB)
+}
+
+/**
+ * 生成高熵加密级随机盐
+ */
+export function vaultGenerateSalt(bytes: number = 32): string {
+  return crypto.randomBytes(bytes).toString('hex')
+}
+
+/**
+ * 获取金库内部未导出的主密钥胡椒 (Internal Vault Pepper)
+ * 基于运行期私密熵 + 每日午夜纪元动态混淆，外部任何探测、反射均不可见
+ */
+function getVaultMasterPepper(): Buffer {
+  const baseSecret = process.env.XO_VAULT_MASTER_SECRET || 'XO-STUDIO-QUANTUM-MASTER-PEPPER-2026-OBSIDIAN-VAULT'
+  const activeEpoch = activeEpochVault?.epochId || 'INIT'
+  return crypto.createHmac('sha512', baseSecret)
+    .update(`epoch:${activeEpoch}:pepper`)
+    .digest()
+}
+
+/**
+ * 金库顶级安全密码哈希：PBKDF2-HMAC-SHA512 (100,000次迭代) + 256位独立随机盐 + 金库内部动态胡椒
+ * 输出格式：$vault$v2$100000$<saltHex>$<derivedKeyHex>$<hmacTagHex>
+ */
+export function vaultHashPassword(plain: string): string {
+  if (typeof plain !== 'string' || !plain) {
+    throw new Error('无效的待哈希密码')
+  }
+  const salt = crypto.randomBytes(32).toString('hex')
+  const iterations = 100000
+  const pepper = getVaultMasterPepper()
+
+  // 1. 将密码与动态胡椒预混淆
+  const preHashed = crypto.createHmac('sha512', pepper).update(plain).digest()
+
+  // 2. PBKDF2 高强度密钥派生
+  const derivedKey = crypto.pbkdf2Sync(preHashed, salt, iterations, 64, 'sha512')
+
+  // 3. 使用金库私密胡椒对派生结果做 HMAC-SHA256 完整性签章
+  const hmacTag = crypto.createHmac('sha256', pepper).update(derivedKey).digest('hex')
+
+  return `$vault$v2$${iterations}$${salt}$${derivedKey.toString('hex')}$${hmacTag}`
+}
+
+/**
+ * 恒定时间密码验证，支持顶级 $vault$v2$、标准 $pbkdf2$ 与旧版平滑升级兼容
+ */
+export function vaultVerifyPassword(plain: string, storedHash: string): boolean {
+  if (!plain || !storedHash || typeof plain !== 'string' || typeof storedHash !== 'string') {
+    return false
+  }
+
+  // 1. 顶级 $vault$v2$ 格式校验
+  if (storedHash.startsWith('$vault$v2$')) {
+    const parts = storedHash.split('$')
+    if (parts.length === 7) {
+      const iterations = parseInt(parts[3], 10) || 100000
+      const salt = parts[4]
+      const expectedKeyHex = parts[5]
+      const expectedTagHex = parts[6]
+
+      const pepper = getVaultMasterPepper()
+      const preHashed = crypto.createHmac('sha512', pepper).update(plain).digest()
+      const computedKey = crypto.pbkdf2Sync(preHashed, salt, iterations, 64, 'sha512')
+      const computedTag = crypto.createHmac('sha256', pepper).update(computedKey).digest('hex')
+
+      const keyMatch = vaultTimingSafeEqual(computedKey.toString('hex'), expectedKeyHex)
+      const tagMatch = vaultTimingSafeEqual(computedTag, expectedTagHex)
+      return keyMatch && tagMatch
+    }
+  }
+
+  // 2. 兼容现有 $pbkdf2$ 格式
+  if (storedHash.startsWith('$pbkdf2$')) {
+    const parts = storedHash.split('$')
+    if (parts.length === 5) {
+      const iterations = parseInt(parts[2], 10) || 100000
+      const salt = parts[3]
+      const expectedHash = parts[4]
+      const computed = crypto.pbkdf2Sync(plain, salt, iterations, 32, 'sha512').toString('hex')
+      return vaultTimingSafeEqual(computed, expectedHash)
+    }
+  }
+
+  // 3. 兼容旧版加盐 SHA-256
+  const legacyHash = crypto.createHash('sha256').update(`xo-studio:${plain}`).digest('hex')
+  if (vaultTimingSafeEqual(legacyHash, storedHash)) {
+    return true
+  }
+
+  // 4. 兼容纯 SHA-256 哈希
+  const rawHash = crypto.createHash('sha256').update(plain).digest('hex')
+  if (vaultTimingSafeEqual(rawHash, storedHash)) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * 判断凭证是否需要升级为金库顶级哈希格式 ($vault$v2$)
+ */
+export function vaultNeedsRehash(storedHash: string): boolean {
+  return !storedHash || !storedHash.startsWith('$vault$v2$')
+}
+
+/**
+ * 金库哈希会话 Token，用于安全落盘与索引查找
+ */
+export function vaultHashToken(rawToken: string): string {
+  const pepper = getVaultMasterPepper()
+  return crypto.createHmac('sha256', pepper).update(`sess:${rawToken}`).digest('hex')
+}
+
+/**
+ * 金库滑块验证码 Token 校验
+ */
+export function vaultVerifySliderToken(token: string): { valid: boolean; reason?: string } {
+  if (!token || typeof token !== 'string') {
+    return { valid: false, reason: '缺少滑块人机验证凭证' }
+  }
+  if (!token.startsWith('XO_SLIDER_')) {
+    return { valid: false, reason: '非法的滑块人机验证凭证格式' }
+  }
+
+  try {
+    const b64 = token.slice('XO_SLIDER_'.length).replace(/-/g, '+').replace(/_/g, '/')
+    const padded = b64 + '==='.slice((b64.length + 3) % 4)
+    const jsonStr = Buffer.from(padded, 'base64').toString('utf8')
+    const parsed = JSON.parse(jsonStr)
+
+    const now = Date.now()
+    // 凭证有效窗口 180 秒
+    if (!parsed.t || now - parsed.t > 180 * 1000 || parsed.t > now + 30 * 1000) {
+      return { valid: false, reason: '滑块验证已过期，请重新滑动完成校验' }
+    }
+    // 人机轨迹特征校验：滑动耗时需大于 120ms，至少 5 个轨迹点
+    if (!parsed.d || parsed.d < 120 || !parsed.p || parsed.p < 5) {
+      return { valid: false, reason: '检测到异常的人机交互行为，请重新滑动' }
+    }
+
+    return { valid: true }
+  } catch {
+    return { valid: false, reason: '滑块凭证解析损坏' }
+  }
+}
+

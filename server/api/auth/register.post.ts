@@ -2,7 +2,7 @@ import { dbCreateUser, dbGetUsers } from '../../utils/db'
 import { hashPassword, createSession, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
 import { verifyAndConsumeCode } from '../../utils/verification'
 import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
-import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/rsa-hybrid'
 import { getRealClientIP } from '../../utils/ip-helper'
 import { checkRateLimit, recordFailedAttempt } from '../../utils/rate-limiter'
 
@@ -57,11 +57,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const captchaToken = String(body?.captchaToken || '')
-  if (!captchaToken || !captchaToken.startsWith('XO_SLIDER_')) {
+  const captchaCheck = vaultVerifySliderToken(captchaToken)
+  if (!captchaCheck.valid) {
     recordFailedAttempt(`register-ip:${ip}`, 5, 10 * 60)
     throw createError({
       statusCode: 400,
-      statusMessage: '安全人机校验未通过，请滑动完成滑块安全校验后再注册。'
+      statusMessage: captchaCheck.reason || '安全人机校验未通过，请滑动完成滑块安全校验后再注册。'
     })
   }
 

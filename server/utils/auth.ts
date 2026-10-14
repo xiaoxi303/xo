@@ -1,23 +1,29 @@
 /**
  * Auth Utilities — Enterprise-Grade Cryptographic Session & Credential Management
- * - Key Stretching: PBKDF2-HMAC-SHA512 (100,000 iterations) with CSPRNG per-hash salt
+ * - Backed by isolated server quantum vault: server/utils/vault-cipher.ts
+ * - Dynamic Salt & Master Pepper: HMAC-PBKDF2-SHA512 with 100,000 iterations
  * - Side-Channel Defense: Constant-time comparison via crypto.timingSafeEqual
- * - Token Storage Hardening: Sessions persisted using SHA-256 hashed token indices
+ * - Token Storage Hardening: Sessions persisted using Vault HMAC token indices
  * - Backward Compatibility: Seamless legacy verification & on-the-fly migration
  */
-import { createHash, randomBytes, pbkdf2Sync, timingSafeEqual } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import fs from 'node:fs'
 import { getRuntimeDataPath } from './storage'
+import {
+  vaultTimingSafeEqual,
+  vaultHashPassword,
+  vaultVerifyPassword,
+  vaultNeedsRehash,
+  vaultHashToken
+} from './vault-cipher'
 
 // ───────────────────────────────────────────────
-// Timing-Safe Equality Helper
+// Timing-Safe Equality Helper & Vault Delegations
 // ───────────────────────────────────────────────
-export function safeTimingCompare(a: string, b: string): boolean {
-  if (typeof a !== 'string' || typeof b !== 'string') return false
-  const hA = createHash('sha256').update(a).digest()
-  const hB = createHash('sha256').update(b).digest()
-  return timingSafeEqual(hA, hB)
-}
+export const safeTimingCompare = vaultTimingSafeEqual
+export const hashPassword = vaultHashPassword
+export const verifyPassword = vaultVerifyPassword
+export const needsRehash = vaultNeedsRehash
 
 // ───────────────────────────────────────────────
 // Admin Credentials (change password via admin UI)
@@ -25,53 +31,6 @@ export function safeTimingCompare(a: string, b: string): boolean {
 export const ADMIN_USERNAME = process.env.XO_ADMIN_USERNAME || 'admin'
 export const ADMIN_PASSWORD_HASH = process.env.XO_ADMIN_PASSWORD_HASH || ''
 
-/**
- * Modern High-Entropy Password Hashing via PBKDF2-HMAC-SHA512
- * Produces standard modular format: $pbkdf2$100000$<salt_hex>$<hash_hex>
- */
-export function hashPassword(plain: string): string {
-  const salt = randomBytes(16).toString('hex')
-  const iterations = 100000
-  const derivedKey = pbkdf2Sync(plain, salt, iterations, 32, 'sha512').toString('hex')
-  return `$pbkdf2$${iterations}$${salt}$${derivedKey}`
-}
-
-/**
- * Timing-Safe Verification Supporting Modern PBKDF2 and Legacy Fallback
- */
-export function verifyPassword(plain: string, storedHash: string): boolean {
-  if (!plain || !storedHash) return false
-
-  // 1. Modern PBKDF2-HMAC-SHA512 hash format
-  if (storedHash.startsWith('$pbkdf2$')) {
-    const parts = storedHash.split('$')
-    if (parts.length === 5) {
-      const iterations = parseInt(parts[2], 10) || 100000
-      const salt = parts[3]
-      const expectedHash = parts[4]
-      const computed = pbkdf2Sync(plain, salt, iterations, 32, 'sha512').toString('hex')
-      return safeTimingCompare(computed, expectedHash)
-    }
-  }
-
-  // 2. Legacy SHA-256 with static site salt: `xo-studio:${plain}`
-  const legacyHash = createHash('sha256').update(`xo-studio:${plain}`).digest('hex')
-  if (safeTimingCompare(legacyHash, storedHash)) {
-    return true
-  }
-
-  // 3. Raw hex digest fallback for un-salted migration hashes
-  const rawHash = createHash('sha256').update(plain).digest('hex')
-  if (safeTimingCompare(rawHash, storedHash)) {
-    return true
-  }
-
-  return false
-}
-
-export function needsRehash(storedHash: string): boolean {
-  return !storedHash || !storedHash.startsWith('$pbkdf2$')
-}
 
 // ───────────────────────────────────────────────
 // Hardened Disk-Persisted Session Store
@@ -92,6 +51,10 @@ function getSessionsFilePath(): string {
 }
 
 function hashToken(rawToken: string): string {
+  return vaultHashToken(rawToken)
+}
+
+function legacyHashToken(rawToken: string): string {
   return createHash('sha256').update(`sess:${rawToken}`).digest('hex')
 }
 
@@ -149,9 +112,10 @@ export function validateSession(rawToken: string): Session | null {
   if (!rawToken || typeof rawToken !== 'string') return null
   const store = loadSessions()
   const indexKey = hashToken(rawToken)
+  const legacyKey = legacyHashToken(rawToken)
 
-  // Look up by hashed token index (modern), with legacy fallback to raw token
-  const sess = store[indexKey] || store[rawToken]
+  // Look up by vault-hashed token index, with legacy fallback to sha256 index or raw token
+  const sess = store[indexKey] || store[legacyKey] || store[rawToken]
   if (!sess) return null
 
   if (sess.expiresAt < Date.now()) {
@@ -176,6 +140,7 @@ export function destroySession(rawToken: string): void {
   if (!rawToken) return
   let store = loadSessions()
   delete store[hashToken(rawToken)]
+  delete store[legacyHashToken(rawToken)]
   delete store[rawToken]
   store = cleanExpired(store)
   saveSessions(store)

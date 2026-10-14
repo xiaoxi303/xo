@@ -67,68 +67,79 @@
             ref="trackRef"
             class="relative h-14 w-full bg-black/60 border border-white/10 rounded-2xl overflow-hidden flex items-center px-1 shadow-inner select-none"
             :class="[
-              isVerified ? 'border-emerald-500/50 bg-emerald-950/20' : isDragging ? 'border-amber-500/40' : ''
+              isVerified ? 'border-emerald-500/50 bg-emerald-950/20' : isDragging ? 'border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]' : '',
+              isShaking ? 'shake-animation border-rose-500/40 bg-rose-950/20' : ''
             ]"
           >
-            <!-- Highlight Progress Fill -->
+            <!-- Highlight Progress Fill with Gold Shimmer -->
             <div
-              class="absolute left-0 top-0 bottom-0 transition-all pointer-events-none rounded-xl"
+              class="absolute left-0 top-0 bottom-0 transition-all pointer-events-none rounded-xl overflow-hidden"
               :class="[
                 isVerified
-                  ? 'bg-gradient-to-r from-emerald-600 to-emerald-400 opacity-80'
-                  : 'bg-gradient-to-r from-amber-800/80 via-amber-600/70 to-amber-500/80'
+                  ? 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-400 opacity-90 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
+                  : 'bg-gradient-to-r from-amber-900/90 via-amber-600/80 to-amber-400/90'
               ]"
               :style="{
                 width: `${fillWidth}px`,
-                transition: isDragging ? 'none' : 'width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)'
+                transition: isDragging ? 'none' : 'width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
               }"
-            />
+            >
+              <!-- Shimmer light sweep -->
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+            </div>
 
-            <!-- Track Placeholder Text -->
+            <!-- Track Placeholder Text with Dynamic Percentage -->
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-12">
               <span
                 class="text-xs font-bold font-mono tracking-wider transition-opacity duration-300 flex items-center gap-1.5"
                 :class="[
                   isVerified
-                    ? 'text-emerald-300 animate-pulse'
+                    ? 'text-emerald-300 font-bold'
                     : isDragging
-                      ? 'text-white/80'
+                      ? 'text-amber-200'
                       : 'text-slate-400/80 animate-pulse'
                 ]"
               >
-                <span v-if="isVerified">✓ 验证成功，正在处理...</span>
-                <span v-else>向右拖动滑块完成验证 ❯❯❯</span>
+                <span v-if="isVerified" class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  ✓ 安全校验已通过 · 正在解密放行
+                </span>
+                <span v-else-if="isDragging" class="flex items-center gap-1 text-[11px] font-mono text-amber-300">
+                  <span>拖动校验 {{ dragPercent }}%</span>
+                  <span class="text-amber-400/80 tracking-widest">❯❯❯</span>
+                </span>
+                <span v-else>向右滑动滑块完成安全校验 ❯❯❯</span>
               </span>
             </div>
 
-            <!-- Draggable Slider Handle Button -->
+            <!-- Draggable Slider Handle Button with Golden Obsidian Glow -->
             <div
               ref="thumbRef"
               class="absolute top-1 bottom-1 w-12 rounded-xl flex items-center justify-center z-20 cursor-grab active:cursor-grabbing select-none transition-transform shadow-lg"
               :class="[
                 isVerified
-                  ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.5)] cursor-default'
+                  ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.6)] cursor-default'
                   : isDragging
-                    ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 scale-105 shadow-[0_0_25px_rgba(245,158,11,0.6)]'
-                    : 'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-900 hover:from-amber-300 hover:to-amber-500 hover:text-slate-950 hover:shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                    ? 'bg-gradient-to-br from-amber-300 via-amber-500 to-amber-600 text-slate-950 scale-105 shadow-[0_0_30px_rgba(245,158,11,0.8)]'
+                    : 'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-900 hover:from-amber-300 hover:to-amber-500 hover:text-slate-950 hover:shadow-[0_0_18px_rgba(245,158,11,0.4)]'
               ]"
               :style="{
                 transform: `translateX(${dragX}px)`,
-                transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)'
+                transition: isDragging ? 'none' : 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
               }"
               @pointerdown="onPointerDown"
             >
               <span v-if="isVerified" class="text-base font-bold">✓</span>
-              <span v-else-if="isVerifying" class="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+              <span v-else-if="isVerifying" class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
               <IconSax v-else name="arrow-right" :size="16" />
             </div>
           </div>
 
           <!-- Bottom Footer Security Notice -->
           <div class="mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono text-slate-500">
-            <span class="flex items-center gap-1.5 text-amber-400/80">
-              <IconSax name="security-safe" :size="12" />
-              <span>智能防刷保护</span>
+            <span class="flex items-center gap-1.5 text-amber-400/90 font-semibold">
+              <IconSax name="shield-security" :size="12" />
+              <span>QUANTUM VAULT · 智能防刷保护</span>
             </span>
             <span class="text-slate-600">XO ANTI-BOT · 2026</span>
           </div>
@@ -165,6 +176,7 @@ const thumbRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 const isVerified = ref(false)
 const isVerifying = ref(false)
+const isShaking = ref(false)
 const dragX = ref(0)
 
 // Anti-bot trajectory recording
@@ -179,6 +191,11 @@ const maxDrag = computed(() => {
   return Math.max(100, trackWidth - thumbWidth - 8)
 })
 
+const dragPercent = computed(() => {
+  if (!maxDrag.value) return 0
+  return Math.min(100, Math.max(0, Math.round((dragX.value / maxDrag.value) * 100)))
+})
+
 const fillWidth = computed(() => {
   if (isVerified.value && trackRef.value) {
     return trackRef.value.clientWidth
@@ -190,6 +207,7 @@ const resetSlider = () => {
   isDragging.value = false
   isVerified.value = false
   isVerifying.value = false
+  isShaking.value = false
   dragX.value = 0
   startPointerX = 0
   dragStartTime = 0
@@ -216,6 +234,7 @@ const handleBackdropClick = () => {
 const onPointerDown = (e: PointerEvent) => {
   if (isVerified.value || isVerifying.value) return
   isDragging.value = true
+  isShaking.value = false
   startPointerX = e.clientX
   dragStartTime = Date.now()
   trajectoryCount = 0
@@ -235,7 +254,13 @@ const onPointerMove = (e: PointerEvent) => {
   if (!isDragging.value || isVerified.value) return
   trajectoryCount++
   const deltaX = e.clientX - startPointerX
-  const targetX = Math.max(0, Math.min(deltaX, maxDrag.value))
+  
+  // Magnetic snap effect: when dragged past 88%, magnetic guidance pulls it towards 100%
+  let targetX = Math.max(0, Math.min(deltaX, maxDrag.value))
+  if (targetX >= maxDrag.value * 0.88) {
+    const progressBeyond = (targetX - maxDrag.value * 0.88) / (maxDrag.value * 0.12)
+    targetX = maxDrag.value * 0.88 + progressBeyond * (maxDrag.value * 0.12)
+  }
   dragX.value = targetX
 }
 
@@ -254,14 +279,21 @@ const onPointerUp = (e: PointerEvent) => {
   }
 
   const duration = Date.now() - dragStartTime
-  const reachedEnd = dragX.value >= maxDrag.value - 10
+  const reachedEnd = dragX.value >= maxDrag.value - 8
 
   // Anti-bot heuristic: must take more than 120ms and have at least 5 movement samples (not instant programmatic click)
   if (reachedEnd && duration > 120 && trajectoryCount >= 5) {
     handleSuccess(duration)
   } else {
-    // Rebound back to start
+    // Elastic spring rebound back to start with failure shake feedback
     dragX.value = 0
+    isShaking.value = true
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try { navigator.vibrate(30) } catch {}
+    }
+    setTimeout(() => {
+      isShaking.value = false
+    }, 450)
   }
 }
 
@@ -273,9 +305,9 @@ const handleSuccess = (duration: number) => {
     isVerifying.value = false
     isVerified.value = true
 
-    // Haptic feedback for mobile devices
+    // Multi-beat luxury haptic feedback pattern for mobile devices
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      try { navigator.vibrate(40) } catch {}
+      try { navigator.vibrate([30, 40, 60]) } catch {}
     }
 
     // Generate cryptographic anti-bot verification token
@@ -305,12 +337,27 @@ onUnmounted(() => {
 <style scoped>
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .fade-slide-enter-from,
 .fade-slide-leave-to {
   opacity: 0;
-  transform: scale(0.95);
+  transform: scale(0.94);
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.shake-animation {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 </style>

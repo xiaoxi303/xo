@@ -4,7 +4,7 @@ import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
 
 import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
-import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/rsa-hybrid'
 
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../utils/rate-limiter'
 
@@ -56,16 +56,17 @@ export default defineEventHandler(async (event) => {
   }
 
   const captchaToken = String(body?.captchaToken || '')
-  if (!captchaToken || !captchaToken.startsWith('XO_SLIDER_')) {
+  const captchaCheck = vaultVerifySliderToken(captchaToken)
+  if (!captchaCheck.valid) {
     logSecurityEvent({
       type: 'Client Login Guard',
       ip,
-      action: 'Client login blocked: missing or invalid slider captcha token',
+      action: `Client login blocked: ${captchaCheck.reason || 'invalid slider captcha token'}`,
       status: 'blocked'
     })
     throw createError({
       statusCode: 400,
-      statusMessage: '安全人机校验未通过，请滑动完成滑块安全校验后再试。'
+      statusMessage: captchaCheck.reason || '安全人机校验未通过，请滑动完成滑块安全校验后再试。'
     })
   }
 

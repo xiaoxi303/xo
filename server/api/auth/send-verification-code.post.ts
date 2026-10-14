@@ -2,7 +2,7 @@ import { dbGetUsers } from '../../utils/db'
 import { sendVerificationCodeEmail } from '../../utils/email'
 import { generateVerificationCode, storeVerificationCode, getCooldownRemaining } from '../../utils/verification'
 import { getRealClientIP } from '../../utils/ip-helper'
-import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/rsa-hybrid'
 import { decryptE2EE, isE2EEPayload } from '../../utils/e2ee'
 
 const ipSendHistory = new Map<string, number[]>()
@@ -54,10 +54,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const captchaToken = String(body?.captchaToken || '')
-  if (!captchaToken || !captchaToken.startsWith('XO_SLIDER_')) {
+  const captchaCheck = vaultVerifySliderToken(captchaToken)
+  if (!captchaCheck.valid) {
     throw createError({
       statusCode: 400,
-      statusMessage: '安全人机验证未通过，请滑动完成安全校验后重试。'
+      statusMessage: captchaCheck.reason || '安全人机验证未通过，请滑动完成安全校验后重试。'
     })
   }
 
