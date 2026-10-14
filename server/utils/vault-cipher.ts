@@ -27,7 +27,19 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
-// 客户端提交的混合加密负载接口
+// 单个密文舱封装（真假两舱具有完全一致的密文格式与长度外观）
+export interface ChamberEnvelope {
+  chamberId: string
+  encryptedKey: string
+  iv: string
+  ciphertext: string
+  authTag: string
+  clientPublicKey: JsonWebKey
+  signature: string
+  digest: string
+}
+
+// 客户端提交的混合加密负载接口（支持单舱与一真一假双舱模式）
 export interface RsaHybridPayload {
   rsaHybrid: true
   version: '1'
@@ -42,6 +54,9 @@ export interface RsaHybridPayload {
   signature: string
   digest: string
   md5?: string
+  // 双舱混淆：一真一假两个密文舱，完全随机排列，外部任何嗅探均无法识别哪个为真
+  dualChambers?: [ChamberEnvelope, ChamberEnvelope]
+  truthNonce?: string
 }
 
 // 一次性公钥凭证票据结构
@@ -336,6 +351,69 @@ export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
 }
 
 /**
+ * 解密单个密文舱并完成独立完整性校验
+ */
+function decryptChamberRaw(
+  chamber: ChamberEnvelope,
+  targetPrivateKey: crypto.KeyObject,
+  keyId: string,
+  timestamp: string
+): string {
+  // 1. 验证密文舱独立 RSA-PSS 数字签名
+  const clientPublicKey = crypto.createPublicKey({
+    key: chamber.clientPublicKey as crypto.JsonWebKeyInput,
+    format: 'jwk'
+  })
+  const verifier = crypto.createVerify('sha256')
+  verifier.update(JSON.stringify({
+    keyId,
+    encryptedKey: chamber.encryptedKey,
+    iv: chamber.iv,
+    ciphertext: chamber.ciphertext,
+    authTag: chamber.authTag,
+    timestamp,
+    clientPublicKey: chamber.clientPublicKey,
+    digest: chamber.digest
+  }))
+  verifier.end()
+
+  const isValidSignature = verifier.verify(
+    {
+      key: clientPublicKey,
+      padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+      saltLength: 32
+    },
+    decodeBase64Url(chamber.signature)
+  )
+
+  if (!isValidSignature) {
+    throw new Error('密文舱数字签名无效')
+  }
+
+  // 2. 验证密文舱 SHA-256 完整性摘要
+  const ciphertextBuffer = decodeBase64Url(chamber.ciphertext)
+  const calculatedDigest = crypto.createHash('sha256').update(ciphertextBuffer).digest('base64url')
+  if (calculatedDigest !== chamber.digest) {
+    throw new Error('密文舱摘要不匹配')
+  }
+
+  // 3. 使用金库私钥解出对称密钥
+  const aesRawKey = crypto.privateDecrypt(
+    {
+      key: targetPrivateKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: 'sha256'
+    },
+    decodeBase64Url(chamber.encryptedKey)
+  )
+
+  // 4. AES-256-GCM 认证解密
+  const decipher = crypto.createDecipheriv('aes-256-gcm', aesRawKey, decodeBase64Url(chamber.iv))
+  decipher.setAuthTag(decodeBase64Url(chamber.authTag))
+  return Buffer.concat([decipher.update(ciphertextBuffer), decipher.final()]).toString('utf8')
+}
+
+/**
  * 解密混合加密载荷，并在成功后立即就地销毁一次性凭证
  */
 export function decryptRsaHybridWithVault(payload: RsaHybridPayload): string {
@@ -370,6 +448,47 @@ export function decryptRsaHybridWithVault(payload: RsaHybridPayload): string {
   let targetPrivateKey: crypto.KeyObject = vault.keyPair.privateKey
   if (previousEpochVault && payload.keyId.includes(previousEpochVault.epochId)) {
     targetPrivateKey = previousEpochVault.keyPair.privateKey
+  }
+
+  // ========================================================================
+  // 3.5. 【一真一假双舱混淆架构处理】：仅由服务端金库私钥完成真假验算与裁决
+  // ========================================================================
+  if (Array.isArray(payload.dualChambers) && payload.dualChambers.length === 2) {
+    const chambers = payload.dualChambers
+    let genuinePlaintext: string | null = null
+    let genuineMatches = 0
+
+    for (let i = 0; i < chambers.length; i++) {
+      try {
+        const decryptedContent = decryptChamberRaw(chambers[i], targetPrivateKey, payload.keyId, payload.timestamp)
+        const parsed = JSON.parse(decryptedContent)
+
+        // 核心验算：必须具备真实舱标识，且其内部真理 Nonce 与外层一致
+        if (
+          parsed?.__xo_chamber === 'GENUINE_CHAMBER' &&
+          parsed?.__truth_nonce === payload.truthNonce &&
+          parsed?.data !== undefined
+        ) {
+          genuinePlaintext = typeof parsed.data === 'string' ? parsed.data : JSON.stringify(parsed.data)
+          genuineMatches++
+        }
+      } catch {
+        // 蜜罐诱饵舱或非法篡改舱静默忽略
+      }
+    }
+
+    if (genuineMatches !== 1 || !genuinePlaintext) {
+      throw new Error('双舱加密裁决失败：未能与金库私钥匹配出唯一合法真实载荷（存在伪造或诱饵碰撞）')
+    }
+
+    // 成功解密：执行一次性公钥凭证就地销毁与防重放
+    if (ticket) {
+      ticket.burned = true
+      activeTickets.set(payload.keyId, ticket)
+    }
+    consumedPayloadDigests.set(replayToken, Date.now())
+
+    return genuinePlaintext
   }
 
   // 4. 验证客户端 RSA-PSS 数字签名（防止中间人篡改载荷）
