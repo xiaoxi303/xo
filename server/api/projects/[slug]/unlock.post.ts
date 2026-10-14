@@ -4,15 +4,43 @@ import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
 import { getDailyPassword, getBeijingDateString, verifyProjectPassword } from '../../../utils/password-utils'
 import { assertDeliveryAccess } from '../../../utils/delivery-access'
+import { decryptRsaHybrid, isRsaHybridPayload } from '../../../utils/rsa-hybrid'
+import { decryptE2EE, isE2EEPayload } from '../../../utils/e2ee'
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../../utils/rate-limiter'
 
 const unlockTokens = new Map()
 const UNLOCK_TTL_MS = 24 * 60 * 60 * 1000
 
 export default defineEventHandler(async (event) => {
+  const ip = getRealClientIP(event)
   const slug = String(getRouterParam(event, 'slug') || '').trim().replace(/^\/+|\/+$/g, '').split('/')[0].toLowerCase()
   if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing slug.' })
 
-  const body = await readBody(event)
+  // Rate limit unlock brute-force attempts
+  const rateLimitKey = `unlock:${ip}:${slug}`
+  const ipLock = checkRateLimit(rateLimitKey)
+  if (ipLock.isLocked) {
+    setResponseHeader(event, 'Retry-After', String(ipLock.remainingLockSeconds))
+    throw createError({
+      statusCode: 429,
+      statusMessage: `授权密码尝试过于频繁，已被临时锁定，请等待 ${ipLock.remainingLockSeconds} 秒。`
+    })
+  }
+
+  let body = await readBody(event)
+  if (isRsaHybridPayload(body)) {
+    try {
+      body = JSON.parse(decryptRsaHybrid(body))
+    } catch (e: any) {
+      throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 请求解密失败' })
+    }
+  } else if (isE2EEPayload(body)) {
+    try {
+      body = JSON.parse(decryptE2EE(body))
+    } catch (e: any) {
+      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败' })
+    }
+  }
   const { password } = body || {}
   if (!password) throw createError({ statusCode: 400, statusMessage: 'Please enter access password.' })
 
@@ -60,16 +88,22 @@ export default defineEventHandler(async (event) => {
   }
 
   if (!isPasswordValid) {
-    const ip = getRealClientIP(event)
+    const rec = recordFailedAttempt(rateLimitKey, 5, 15 * 60)
     logSecurityEvent({
       type: 'Project Password Guard',
       ip,
-      action: 'Failed password attempt for project "' + slug + '"',
+      action: `Failed password attempt for project "${slug}" (failCount: ${rec.failedAttempts})`,
       status: 'blocked'
     })
     await new Promise(r => setTimeout(r, 600))
-    throw createError({ statusCode: 401, statusMessage: '密码错误，请检查输入的授权密码。' })
+    if (rec.failedAttempts >= 5) {
+      throw createError({ statusCode: 429, statusMessage: '授权密码连续输入错误次数过多，已被临时锁定 15 分钟。' })
+    }
+    throw createError({ statusCode: 401, statusMessage: `密码错误，请检查输入的授权密码 (已失败 ${rec.failedAttempts}/5 次)。` })
   }
+
+  // Reset rate limit on success
+  resetRateLimit(rateLimitKey)
 
   // Password matches - generate unlock token
   const token = randomBytes(24).toString('hex')

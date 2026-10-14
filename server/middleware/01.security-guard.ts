@@ -17,6 +17,13 @@ export default defineEventHandler((event) => {
   const rawHost = getRequestHeader(event, 'host') || ''
   const hostWithoutPort = rawHost.split(':')[0].trim()
 
+  // Enforce HTTPS: Force all plain HTTP traffic to HTTPS via 301 permanent redirect
+  const proto = getRequestHeader(event, 'x-forwarded-proto')
+  if (proto === 'http' && process.env.NODE_ENV === 'production') {
+    const targetHost = rawHost || 'xo.xoxox.bond'
+    return sendRedirect(event, `https://${targetHost}${url.pathname}${url.search}`, 301)
+  }
+
   // 2. Direct IP Cloaking & Origin Shielding:
   // When malicious scanners or crawler bots probe the server via raw IP (e.g. http://123.45.67.89/)
   // rather than the genuine domain, reject to prevent the origin server IP from being mapped.

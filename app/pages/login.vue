@@ -516,7 +516,8 @@ const handleSendCode = async () => {
   if (!email || !email.includes('@')) { error.value = '请输入格式正确的电子邮箱地址。'; return }
   sendingCode.value = true
   try {
-    const res = await $fetch<any>('/api/auth/send-verification-code', { method: 'POST', body: { email } })
+    const payload = await encryptRsaHybrid({ email })
+    const res = await $fetch<any>('/api/auth/send-verification-code', { method: 'POST', body: payload })
     if (res.success) { codeSentMsg.value = res.message || '验证码已发送至您的邮箱（60 秒内有效），请注意查收。'; startCooldown() }
   } catch (err: any) { error.value = err.data?.statusMessage || '发送验证码失败，请检查邮箱或稍后重试。' }
   finally { sendingCode.value = false }

@@ -2,6 +2,8 @@ import { dbGetUsers } from '../../utils/db'
 import { sendVerificationCodeEmail } from '../../utils/email'
 import { generateVerificationCode, storeVerificationCode, getCooldownRemaining } from '../../utils/verification'
 import { getRealClientIP } from '../../utils/ip-helper'
+import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
+import { decryptE2EE, isE2EEPayload } from '../../utils/e2ee'
 
 const ipSendHistory = new Map<string, number[]>()
 
@@ -36,7 +38,20 @@ const ALLOWED_EMAIL_DOMAINS = [
 ]
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  let body = await readBody(event)
+  if (isRsaHybridPayload(body)) {
+    try {
+      body = JSON.parse(decryptRsaHybrid(body))
+    } catch (e: any) {
+      throw createError({ statusCode: 400, statusMessage: 'RSA 请求解密失败' })
+    }
+  } else if (isE2EEPayload(body)) {
+    try {
+      body = JSON.parse(decryptE2EE(body))
+    } catch (e: any) {
+      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败' })
+    }
+  }
   const email = body?.email ? body.email.trim().toLowerCase() : ''
 
   if (!email) {

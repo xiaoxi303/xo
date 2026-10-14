@@ -1174,6 +1174,7 @@
 </template>
 
 <script setup lang="ts">
+import { encryptRsaHybrid } from '~/utils/rsa-hybrid'
 const route = useRoute()
 const currentSlug = computed(() => {
   let raw = String(route.params.slug || '').trim()
@@ -1469,9 +1470,15 @@ const verifyPassword = async () => {
   passwordLoading.value = true
   passwordError.value = ''
   try {
+    let payload: any = { password: inputPassword.value }
+    try {
+      payload = await encryptRsaHybrid(payload)
+    } catch (e) {
+      console.warn('Encryption fallback:', e)
+    }
     const res = await $fetch<any>(`/api/projects/${currentSlug.value}/unlock`, {
       method: 'POST',
-      body: { password: inputPassword.value }
+      body: payload
     })
     if (res.success) {
       isUnlocked.value = true
