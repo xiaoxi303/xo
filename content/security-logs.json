@@ -1,5 +1,45 @@
 [
   {
+    "type": "Admin Access Gate",
+    "ip": "127.0.0.1",
+    "action": "Admin session issued for \"admin\"",
+    "status": "success",
+    "id": "log-1791986439015-qgo5",
+    "timestamp": 1791986439015
+  },
+  {
+    "type": "Plaintext Mutation Intercepted",
+    "ip": "127.0.0.1",
+    "action": "Blocked unencrypted plaintext POST request to /api/auth/verify-suffix",
+    "status": "blocked",
+    "id": "log-1791986417626-hwby",
+    "timestamp": 1791986417626
+  },
+  {
+    "type": "Plaintext Mutation Intercepted",
+    "ip": "127.0.0.1",
+    "action": "Blocked unencrypted plaintext POST request to /api/auth/verify-suffix",
+    "status": "blocked",
+    "id": "log-1791986417561-nghm",
+    "timestamp": 1791986417561
+  },
+  {
+    "type": "Client Access Gate",
+    "ip": "127.0.0.1",
+    "action": "Client session issued for \"123\"",
+    "status": "success",
+    "id": "log-1791986272464-8mi7",
+    "timestamp": 1791986272464
+  },
+  {
+    "type": "Client Login Guard",
+    "ip": "127.0.0.1",
+    "action": "Wrong password for user \"123\" (failCount: 1)",
+    "status": "blocked",
+    "id": "log-1791986263350-awip",
+    "timestamp": 1791986263350
+  },
+  {
     "type": "Client Login Guard",
     "ip": "127.0.0.1",
     "action": "Blocked login for blacklisted user \"123\" (Client attempted to open a project outside its delivery authorization: commercial-tvc-showcase. Fees are non-refundable.)",
