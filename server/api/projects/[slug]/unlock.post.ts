@@ -4,7 +4,7 @@ import { logSecurityEvent } from '../../../utils/security-logger'
 import { getRealClientIP } from '../../../utils/ip-helper'
 import { getDailyPassword, getBeijingDateString, verifyProjectPassword } from '../../../utils/password-utils'
 import { assertDeliveryAccess } from '../../../utils/delivery-access'
-import { decryptRsaHybrid, isRsaHybridPayload } from '../../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload } from '../../../utils/vault-cipher'
 import { decryptE2EE, isE2EEPayload } from '../../../utils/e2ee'
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../../utils/rate-limiter'
 

@@ -44,6 +44,11 @@ export default defineEventHandler((event) => {
     })
   }
 
+  // Allow internal Nitro prerendering engine during build phase
+  if (getHeader(event, 'x-nitro-prerender')) {
+    return
+  }
+
   // 3. Automated Vulnerability Scanner & Internal Build Artifacts Probing Filter
   // Immediately drop known probing paths and internal build artifacts (sql_dump.txt) without hitting application logic
   const BLOCKED_PROBE_PATTERNS = [

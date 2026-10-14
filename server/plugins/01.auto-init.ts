@@ -14,6 +14,11 @@ import { issueOneTimePublicKey } from '../utils/vault-cipher'
  * 4. 全流程无缝一体化，部署时一键启动即完整就绪。
  */
 export default defineNitroPlugin(() => {
+  // 生产编译或预渲染构建阶段无需启动常驻服务时钟与运行时初始化，仅在实际服务器运行服务(dev/start/node)时挂载
+  if (process.env.npm_lifecycle_event === 'build' || process.env.npm_lifecycle_event === 'build:nuxt' || process.env.NITRO_PRESET === 'prerender') {
+    return
+  }
+
   try {
     const contentDir = getRuntimeDataDir()
     const projectsDir = path.join(contentDir, 'projects')

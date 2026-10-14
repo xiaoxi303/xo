@@ -263,6 +263,7 @@ function scheduleNightlyAutoRotation() {
   nightlyRotationTimer = setTimeout(() => {
     rotateProtocolVault()
   }, msUntilMidnight)
+  nightlyRotationTimer?.unref?.()
 }
 
 // ============================================================================
@@ -728,4 +729,9 @@ export function vaultVerifySliderToken(token: string): { valid: boolean; reason?
     return { valid: false, reason: '滑块凭证解析损坏' }
   }
 }
+
+// 统一门面导出别名，彻底避免重复导入警告并保持向下兼容
+export const getRsaPublicKey = issueOneTimePublicKey
+export const decryptRsaHybrid = decryptRsaHybridWithVault
+
 

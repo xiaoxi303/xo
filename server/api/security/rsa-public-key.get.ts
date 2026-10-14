@@ -1,4 +1,4 @@
-import { getRsaPublicKey } from '../../utils/rsa-hybrid'
+import { getRsaPublicKey } from '../../utils/vault-cipher'
 import { getRealClientIP } from '../../utils/ip-helper'
 
 export default defineEventHandler((event) => {

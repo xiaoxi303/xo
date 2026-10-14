@@ -99,6 +99,11 @@ export default defineNuxtConfig({
     preset: 'node-server',
     minify: true,
     sourcemap: false,
-    hidePoweredBy: true
+    hidePoweredBy: true,
+    prerender: {
+      crawlLinks: false,
+      failOnError: false,
+      ignore: ['/__nuxt_content/**', '**/sql_dump.txt']
+    }
   }
 })

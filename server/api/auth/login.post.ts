@@ -12,7 +12,7 @@ import {
 import { dbGetSiteConfig } from '../../utils/db'
 import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
-import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/vault-cipher'
 import { decryptE2EE, isE2EEPayload } from '../../utils/e2ee'
 
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../utils/rate-limiter'

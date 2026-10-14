@@ -2,7 +2,7 @@ import { dbCreateUser, dbGetUsers } from '../../utils/db'
 import { hashPassword, createSession, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
 import { verifyAndConsumeCode } from '../../utils/verification'
 import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
-import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/vault-cipher'
 import { getRealClientIP } from '../../utils/ip-helper'
 import { checkRateLimit, recordFailedAttempt } from '../../utils/rate-limiter'
 

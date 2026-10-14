@@ -2,7 +2,7 @@ import { dbGetUsers } from '../../utils/db'
 import { sendVerificationCodeEmail } from '../../utils/email'
 import { generateVerificationCode, storeVerificationCode, getCooldownRemaining } from '../../utils/verification'
 import { getRealClientIP } from '../../utils/ip-helper'
-import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/vault-cipher'
 import { decryptE2EE, isE2EEPayload } from '../../utils/e2ee'
 
 const ipSendHistory = new Map<string, number[]>()

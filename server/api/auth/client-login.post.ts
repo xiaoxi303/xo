@@ -4,7 +4,7 @@ import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
 
 import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
-import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/vault-cipher'
 
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../utils/rate-limiter'
 

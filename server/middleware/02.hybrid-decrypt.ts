@@ -1,5 +1,5 @@
 import { defineEventHandler, readBody, getRequestHeader, getRequestURL, createError } from 'h3'
-import { decryptRsaHybrid, isRsaHybridPayload } from '../utils/rsa-hybrid'
+import { decryptRsaHybrid, isRsaHybridPayload } from '../utils/vault-cipher'
 import { getRealClientIP } from '../utils/ip-helper'
 import { logSecurityEvent } from '../utils/security-logger'
 
