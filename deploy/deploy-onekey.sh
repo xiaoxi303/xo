@@ -27,11 +27,7 @@ echo "✅ Node.js 环境正常: $(node -v)"
 # 2. 检查或安装依赖
 echo ""
 echo "📦 正在检查与同步项目依赖..."
-if [ -f "package-lock.json" ]; then
-  npm ci --prefer-offline --no-audit || npm install --no-audit
-else
-  npm install --no-audit
-fi
+npm install --no-audit
 echo "✅ 依赖同步就绪。"
 
 # 3. 生产环境编译构建
