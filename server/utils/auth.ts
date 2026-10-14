@@ -181,6 +181,23 @@ export function destroySession(rawToken: string): void {
   saveSessions(store)
 }
 
+export function destroyAllUserSessions(username: string): void {
+  if (!username) return
+  let store = loadSessions()
+  let modified = false
+  const targetLower = username.toLowerCase()
+  for (const [key, sess] of Object.entries(store)) {
+    if (sess.username && sess.username.toLowerCase() === targetLower) {
+      delete store[key]
+      modified = true
+    }
+  }
+  if (modified) {
+    store = cleanExpired(store)
+    saveSessions(store)
+  }
+}
+
 // ───────────────────────────────────────────────
 // Cookie helpers
 // ───────────────────────────────────────────────

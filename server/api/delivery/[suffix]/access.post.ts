@@ -18,6 +18,7 @@ import { getRealClientIP } from '../../../utils/ip-helper'
 import { logSecurityEvent } from '../../../utils/security-logger'
 import { getDailyPassword } from '../../../utils/password-utils'
 import { getDeliveryItemsBySuffix } from '../../../utils/delivery-items'
+import { checkRateLimit, recordFailedAttempt, clearFailedAttempts } from '../../../utils/rate-limiter'
 
 function cleanSuffix(value: unknown) {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 64)
@@ -114,15 +115,32 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const ip = getRealClientIP(event)
+  const rateLimitKey = `delivery-key:${ip}:${suffix}`
+  const { isLocked, remainingLockSeconds } = checkRateLimit(rateLimitKey)
+  if (isLocked) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: `查看密钥尝试次数过多，该放映室已被暂时锁定，请等待 ${remainingLockSeconds} 秒后再试。`
+    })
+  }
+
   if (!verifyDeliveryKey(target, key)) {
+    // Record failed attempt: 5 attempts max, 15 minutes lockout
+    recordFailedAttempt(rateLimitKey, 5, 15 * 60)
     logSecurityEvent({
       type: 'Delivery Key Guard',
-      ip: getRealClientIP(event),
+      ip,
       action: `Invalid delivery key for suffix ${suffix}`,
       status: 'blocked'
     })
+    // Delay slightly to prevent timing attacks
+    await new Promise(resolve => setTimeout(resolve, 250))
     throw createError({ statusCode: 401, statusMessage: '查看密钥不正确。' })
   }
+
+  // Clear failed attempts upon successful verification
+  clearFailedAttempts(rateLimitKey)
 
   // A delivery key authenticates the client for the duration of the normal client session.
   const sessionToken = createSession(target.username)

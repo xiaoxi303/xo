@@ -954,15 +954,29 @@
               />
             </div>
 
-            <!-- Password -->
-            <div class="space-y-1">
-              <label class="text-[10px] font-bold uppercase tracking-wider block text-[#5e6066]">新密码 (留空则保持原密码不变)</label>
-              <input 
-                v-model="editForm.password" 
-                type="password" 
-                placeholder="•••••••• (至少 6 位)" 
-                class="form-input text-xs w-full px-3.5 py-2.5 border rounded-2xl border-black/10 bg-white/90 font-mono"
-              />
+            <!-- Password & Current Password -->
+            <div class="space-y-3 pt-1 border-t border-black/5">
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider block text-[#5e6066]">新密码 (留空则保持原密码不变)</label>
+                <input 
+                  v-model="editForm.password" 
+                  type="password" 
+                  placeholder="•••••••• (至少 6 位)" 
+                  class="form-input text-xs w-full px-3.5 py-2.5 border rounded-2xl border-black/10 bg-white/90 font-mono"
+                />
+              </div>
+
+              <!-- Current Password Confirmation (Required when changing password) -->
+              <div v-if="editForm.password" class="space-y-1 bg-amber-500/5 border border-amber-500/20 p-3 rounded-2xl">
+                <label class="text-[10px] font-bold uppercase tracking-wider block text-amber-700">当前原密码 (修改密码时必填安全校验)</label>
+                <input 
+                  v-model="editForm.currentPassword" 
+                  type="password" 
+                  placeholder="请输入当前正在使用的原密码" 
+                  class="form-input text-xs w-full px-3.5 py-2.5 border rounded-xl border-amber-500/30 bg-white font-mono text-amber-950 placeholder:text-amber-800/40"
+                />
+                <p class="text-[10px] text-amber-800/70">为确保账号安全，修改密码时需验证当前原密码。修改成功后将刷新登录会话。</p>
+              </div>
             </div>
 
             <div v-if="modalError" class="text-[11px] text-rose-600 font-semibold bg-rose-50 border border-rose-100 p-3 rounded-2xl">
@@ -1015,7 +1029,8 @@ const editForm = ref({
   email: '',
   wechat: '',
   avatar: '👤',
-  password: ''
+  password: '',
+  currentPassword: ''
 })
 
 const emojiOptions = ['👤', '🎬', '🎥', '🎨', '💻', '🔊', '🎙️', '📷', '🍿', '💎', '🦊', '⚡', '👑', '🏆', '🔥']
@@ -1212,6 +1227,7 @@ const openEditModal = () => {
   editForm.value.wechat = dashboardData.value.profile.wechat || ''
   editForm.value.avatar = dashboardData.value.profile.avatar || '👤'
   editForm.value.password = ''
+  editForm.value.currentPassword = ''
   modalError.value = ''
   isEditModalOpen.value = true
 }
@@ -1230,6 +1246,19 @@ const submitProfile = async () => {
     return
   }
 
+  if (editForm.value.password) {
+    if (editForm.value.password.trim().length < 6) {
+      modalError.value = '新密码长度至少为 6 位。'
+      modalSubmitting.value = false
+      return
+    }
+    if (!editForm.value.currentPassword?.trim()) {
+      modalError.value = '修改密码需输入当前原密码进行安全确认。'
+      modalSubmitting.value = false
+      return
+    }
+  }
+
   try {
     const res = await $fetch<any>('/api/client/profile', {
       method: 'POST',
@@ -1238,7 +1267,8 @@ const submitProfile = async () => {
         email: editForm.value.email,
         wechat: editForm.value.wechat,
         avatar: editForm.value.avatar,
-        password: editForm.value.password ? editForm.value.password : undefined
+        password: editForm.value.password ? editForm.value.password : undefined,
+        currentPassword: editForm.value.currentPassword ? editForm.value.currentPassword : undefined
       }
     })
     if (res.success) {

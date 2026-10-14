@@ -5,8 +5,22 @@ import { getOrderPage } from '../../../utils/order-pages'
 import { saveOrder } from '../../../utils/order-store'
 import { decryptRsaHybrid, isRsaHybridPayload, md5Fingerprint } from '../../../utils/rsa-hybrid'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../../utils/auth'
+import { getRealClientIP } from '../../../utils/ip-helper'
+import { checkRateLimit, recordFailedAttempt } from '../../../utils/rate-limiter'
 
 export default defineEventHandler(async (event) => {
+  const ip = getRealClientIP(event)
+  const rateLimitKey = `order-create:${ip}`
+  const { isLocked, remainingLockSeconds } = checkRateLimit(rateLimitKey)
+  if (isLocked) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: `下单请求过于频繁，请等待 ${remainingLockSeconds} 秒后再试。`
+    })
+  }
+  // Flood protection: max 15 orders per 10 minutes per IP
+  recordFailedAttempt(rateLimitKey, 15, 10 * 60)
+
   const config = readAlipayConfig()
   if (!config.enabled || !config.appId || !config.privateKey) {
     throw createError({ statusCode: 503, statusMessage: '支付宝支付尚未完成配置' })
