@@ -67,26 +67,14 @@ export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
   )
 }
 
-let cachedServerKey: RsaPublicKeyResponse | null = null
-let keyFetchPromise: Promise<RsaPublicKeyResponse> | null = null
-
 async function getServerPublicKey(): Promise<RsaPublicKeyResponse> {
-  if (cachedServerKey) return cachedServerKey
-  if (!keyFetchPromise) {
-    keyFetchPromise = $fetch<RsaPublicKeyResponse>('/api/security/rsa-public-key')
-      .then((res) => {
-        cachedServerKey = res
-        return res
-      })
-      .catch((err) => {
-        cachedServerKey = null
-        throw err
-      })
-      .finally(() => {
-        keyFetchPromise = null
-      })
-  }
-  return keyFetchPromise
+  // Always obtain a fresh ephemeral One-Time Public Key (OTPK) with single-use ticket
+  return $fetch<RsaPublicKeyResponse>('/api/security/rsa-public-key', {
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      Pragma: 'no-cache'
+    }
+  })
 }
 
 export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload> {

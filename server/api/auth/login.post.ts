@@ -69,6 +69,20 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const captchaToken = String(body?.captchaToken || '')
+  if (!captchaToken || !captchaToken.startsWith('XO_SLIDER_')) {
+    logSecurityEvent({
+      type: 'Admin Login Guard',
+      ip,
+      action: 'Admin login blocked: missing or invalid slider captcha token',
+      status: 'blocked'
+    })
+    throw createError({
+      statusCode: 400,
+      statusMessage: '安全人机校验未通过，请滑动完成滑块安全校验后再试。'
+    })
+  }
+
   const { username, password } = body || {}
 
   if (!username || !password) {

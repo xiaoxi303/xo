@@ -442,6 +442,15 @@
         © {{ new Date().getFullYear() }} Xo Studio · 好莱坞工业级电影后期调色与母带制作全流程
       </p>
     </footer>
+
+    <!-- Luxury Slider Captcha Verification Card -->
+    <SliderCaptchaModal
+      v-model="showSliderModal"
+      :title="sliderTitle"
+      :subtitle="sliderSubtitle"
+      :action-name="sliderActionName"
+      @verified="onSliderVerified"
+    />
   </div>
 </template>
 
@@ -509,25 +518,69 @@ const checkRegistrationAvailability = async (field: 'username' | 'email') => {
   }
 }
 
-const handleSendCode = async () => {
+const showSliderModal = ref(false)
+const sliderTitle = ref('安全人机校验')
+const sliderSubtitle = ref('拖动下方滑块至最右端完成人机验证')
+const sliderActionName = ref('安全验证')
+let pendingAction: 'sendCode' | 'login' | 'register' | null = null
+
+const openSliderCaptcha = (action: 'sendCode' | 'login' | 'register', actionName: string, title = '安全人机校验') => {
+  pendingAction = action
+  sliderActionName.value = actionName
+  sliderTitle.value = title
+  sliderSubtitle.value = `拖动滑块通过校验后将立即执行【${actionName}】。`
+  showSliderModal.value = true
+}
+
+const onSliderVerified = (token: string) => {
+  if (pendingAction === 'sendCode') {
+    executeSendCode(token)
+  } else if (pendingAction === 'login') {
+    executeLogin(token)
+  } else if (pendingAction === 'register') {
+    executeRegister(token)
+  }
+  pendingAction = null
+}
+
+const handleSendCode = () => {
   error.value = ''
   codeSentMsg.value = ''
   const email = registerForm.value.email.trim()
   if (!email || !email.includes('@')) { error.value = '请输入格式正确的电子邮箱地址。'; return }
+  if (cooldown.value > 0) return
+  openSliderCaptcha('sendCode', '发送邮箱验证码', '验证码安全风控校验')
+}
+
+const executeSendCode = async (captchaToken: string) => {
+  error.value = ''
+  codeSentMsg.value = ''
+  const email = registerForm.value.email.trim()
   sendingCode.value = true
   try {
-    const payload = await encryptRsaHybrid({ email })
+    const payload = await encryptRsaHybrid({ email, captchaToken })
     const res = await $fetch<any>('/api/auth/send-verification-code', { method: 'POST', body: payload })
     if (res.success) { codeSentMsg.value = res.message || '验证码已发送至您的邮箱（60 秒内有效），请注意查收。'; startCooldown() }
   } catch (err: any) { error.value = err.data?.statusMessage || '发送验证码失败，请检查邮箱或稍后重试。' }
   finally { sendingCode.value = false }
 }
 
-const handleLogin = async () => {
+const handleLogin = () => {
+  error.value = ''
+  if (!loginForm.value.username?.trim()) { error.value = '请输入用户名。'; return }
+  if (!loginForm.value.password) { error.value = '请输入登录密码。'; return }
+  openSliderCaptcha('login', '客户账号登录', '客户中心安全准入核验')
+}
+
+const executeLogin = async (captchaToken: string) => {
   error.value = ''
   loading.value = true
   try {
-    const encryptedPayload = await encryptRsaHybrid(loginForm.value)
+    const encryptedPayload = await encryptRsaHybrid({
+      username: loginForm.value.username.trim(),
+      password: loginForm.value.password,
+      captchaToken
+    })
     const res = await $fetch<any>('/api/auth/client-login', { method: 'POST', body: encryptedPayload })
     if (res.success) { router.push('/client'); if (import.meta.client) setTimeout(() => { window.location.href = '/client' }, 100) }
   } catch (err: any) { error.value = err.data?.statusMessage || '登录失败，请检查您的用户名和密码。' }
@@ -537,23 +590,26 @@ const handleLogin = async () => {
 const handleRegister = async () => {
   error.value = ''
   codeSentMsg.value = ''
-  if (usernameAvailability.value === false) { error.value = '该用户名已被注册，请更换用户名。'; return }
-  if (emailAvailability.value === false) { error.value = '该电子邮箱已被注册，请更换邮箱。'; return }
-  await checkRegistrationAvailability('username')
-  await checkRegistrationAvailability('email')
-  if (usernameAvailability.value === false) { error.value = '该用户名已被注册，请更换用户名。'; return }
-  if (emailAvailability.value === false) { error.value = '该电子邮箱已被注册，请更换邮箱。'; return }
-  if (!registerForm.value.email.trim()) { error.value = '请填写电子邮箱。'; return }
-  if (!registerForm.value.code.trim()) { error.value = '请填写邮箱验证码。'; return }
+  if (!registerForm.value.username?.trim()) { error.value = '请填写用户名。'; return }
+  if (!registerForm.value.email?.trim()) { error.value = '请填写电子邮箱。'; return }
+  if (!registerForm.value.code?.trim()) { error.value = '请填写邮箱验证码。'; return }
+  if (!registerForm.value.password) { error.value = '请设置账户密码。'; return }
   if (registerForm.value.password !== registerForm.value.confirmPassword) { error.value = '两次输入的密码不一致，请检查。'; return }
+  if (usernameAvailability.value === false) { error.value = '该用户名已被注册，请更换用户名。'; return }
+  if (emailAvailability.value === false) { error.value = '该电子邮箱已被注册，请更换邮箱。'; return }
+  openSliderCaptcha('register', '创建客户专属档案', '新客户安全注册核验')
+}
+
+const executeRegister = async (captchaToken: string) => {
   loading.value = true
   try {
     const encryptedPayload = await encryptRsaHybrid({
-      username: registerForm.value.username,
-      email: registerForm.value.email,
-      code: registerForm.value.code,
-      wechat: registerForm.value.wechat,
-      password: registerForm.value.password
+      username: registerForm.value.username.trim(),
+      email: registerForm.value.email.trim(),
+      code: registerForm.value.code.trim(),
+      wechat: registerForm.value.wechat?.trim() || '',
+      password: registerForm.value.password,
+      captchaToken
     })
     const res = await $fetch<any>('/api/auth/register', { method: 'POST', body: encryptedPayload })
     if (res.success) { router.push('/client'); if (import.meta.client) setTimeout(() => { window.location.href = '/client' }, 100) }

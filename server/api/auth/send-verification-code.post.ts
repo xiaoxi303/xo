@@ -48,10 +48,19 @@ export default defineEventHandler(async (event) => {
   } else if (isE2EEPayload(body)) {
     try {
       body = JSON.parse(decryptE2EE(body))
-    } catch (e: any) {
+    } catch {
       throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败' })
     }
   }
+
+  const captchaToken = String(body?.captchaToken || '')
+  if (!captchaToken || !captchaToken.startsWith('XO_SLIDER_')) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: '安全人机验证未通过，请滑动完成安全校验后重试。'
+    })
+  }
+
   const email = body?.email ? body.email.trim().toLowerCase() : ''
 
   if (!email) {

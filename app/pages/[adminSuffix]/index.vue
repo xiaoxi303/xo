@@ -287,9 +287,17 @@
             <p class="text-[9px] font-mono text-slate-500">
               端到端签名密文校验 · RSA-OAEP-256 + AES-256-GCM
             </p>
-          </div>
         </div>
       </div>
+
+      <!-- Admin Luxury Slider Captcha Verification Card -->
+      <SliderCaptchaModal
+        v-model="showAdminSliderModal"
+        title="管理员安全人机校验"
+        subtitle="检测到关键管理中枢接入请求，请拖动滑块通过安全核验"
+        action-name="管理员安全登录"
+        @verified="executeAdminLogin"
+      />
     </div>
 
     <!-- 3. Config Panel (Authenticated Master Studio Control Suite) -->
@@ -6562,7 +6570,9 @@ const checkAuth = async () => {
   }
 }
 
-const handleLogin = async () => {
+const showAdminSliderModal = ref(false)
+
+const handleLogin = () => {
   if (!loginForm.value.username?.trim()) {
     loginError.value = '请输入管理员账号。'
     return
@@ -6571,7 +6581,11 @@ const handleLogin = async () => {
     loginError.value = '请输入管理员安全密码。'
     return
   }
+  loginError.value = ''
+  showAdminSliderModal.value = true
+}
 
+const executeAdminLogin = async (captchaToken: string) => {
   loginLoading.value = true
   loginError.value = ''
 
@@ -6579,7 +6593,8 @@ const handleLogin = async () => {
     // Encrypt credentials via RSA Hybrid OAEP + AES-256-GCM + RSA-PSS signature
     let payload: any = {
       username: loginForm.value.username.trim(),
-      password: loginForm.value.password
+      password: loginForm.value.password,
+      captchaToken
     }
 
     try {
