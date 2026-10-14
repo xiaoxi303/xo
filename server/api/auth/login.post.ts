@@ -39,31 +39,33 @@ export default defineEventHandler(async (event) => {
   let body = await readBody(event)
 
   // 2. Strict Encryption Enforcement: Reject unencrypted plaintext logins completely
-  if (!isRsaHybridPayload(body) && !isE2EEPayload(body)) {
-    logSecurityEvent({
-      type: 'Admin Login Guard',
-      ip,
-      action: 'Plaintext login attempt blocked: encryption required',
-      status: 'blocked'
-    })
-    throw createError({
-      statusCode: 400,
-      statusMessage: '安全策略强制要求端到端/RSA加密传输，明文提交已被拒绝。'
-    })
-  }
-
-  // 3. Decrypt RSA Hybrid encrypted payload or E2EE payload
-  if (isRsaHybridPayload(body)) {
-    try {
-      body = JSON.parse(decryptRsaHybrid(body))
-    } catch (e: any) {
-      throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 混合加密解密失败。' })
+  if (!event.context.hybridDecrypted) {
+    if (!isRsaHybridPayload(body) && !isE2EEPayload(body)) {
+      logSecurityEvent({
+        type: 'Admin Login Guard',
+        ip,
+        action: 'Plaintext login attempt blocked: encryption required',
+        status: 'blocked'
+      })
+      throw createError({
+        statusCode: 400,
+        statusMessage: '安全策略强制要求端到端/RSA加密传输，明文提交已被拒绝。'
+      })
     }
-  } else if (isE2EEPayload(body)) {
-    try {
-      body = JSON.parse(decryptE2EE(body))
-    } catch (e: any) {
-      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败：请求数据损坏或被篡改。' })
+
+    // 3. Decrypt RSA Hybrid encrypted payload or E2EE payload
+    if (isRsaHybridPayload(body)) {
+      try {
+        body = JSON.parse(decryptRsaHybrid(body))
+      } catch (e: any) {
+        throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 混合加密解密失败。' })
+      }
+    } else if (isE2EEPayload(body)) {
+      try {
+        body = JSON.parse(decryptE2EE(body))
+      } catch (e: any) {
+        throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败：数据损坏或被篡改' })
+      }
     }
   }
 

@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   let body = await readBody(event)
 
   // Strict Encryption Enforcement: Reject unencrypted booking submissions
-  if (!isRsaHybridPayload(body) && !isE2EEPayload(body)) {
+  if (!event.context.hybridDecrypted && !isRsaHybridPayload(body) && !isE2EEPayload(body)) {
     recordFailedAttempt(`booking-ip:${ip}`, 5, 15 * 60)
     throw createError({
       statusCode: 400,
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (isRsaHybridPayload(body)) {
+  if (!event.context.hybridDecrypted && isRsaHybridPayload(body)) {
     try {
       body = JSON.parse(decryptRsaHybrid(body))
     } catch (error: any) {

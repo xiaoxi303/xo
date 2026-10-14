@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   }
 
   let body = await readBody(event)
-  if (isRsaHybridPayload(body)) {
+  if (!event.context.hybridDecrypted && isRsaHybridPayload(body)) {
     try {
       body = JSON.parse(decryptRsaHybrid(body))
     } catch (e: any) {

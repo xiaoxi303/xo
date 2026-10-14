@@ -53,11 +53,47 @@ function canonicalPayload(payload: Pick<RsaHybridPayload, 'keyId' | 'encryptedKe
   })
 }
 
+export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
+  return Boolean(
+    value &&
+    typeof value === 'object' &&
+    value.rsaHybrid === true &&
+    value.version === '1' &&
+    value.ciphertext &&
+    value.encryptedKey &&
+    value.iv &&
+    value.authTag &&
+    value.signature
+  )
+}
+
+let cachedServerKey: RsaPublicKeyResponse | null = null
+let keyFetchPromise: Promise<RsaPublicKeyResponse> | null = null
+
 async function getServerPublicKey(): Promise<RsaPublicKeyResponse> {
-  return await $fetch<RsaPublicKeyResponse>('/api/security/rsa-public-key')
+  if (cachedServerKey) return cachedServerKey
+  if (!keyFetchPromise) {
+    keyFetchPromise = $fetch<RsaPublicKeyResponse>('/api/security/rsa-public-key')
+      .then((res) => {
+        cachedServerKey = res
+        return res
+      })
+      .catch((err) => {
+        cachedServerKey = null
+        throw err
+      })
+      .finally(() => {
+        keyFetchPromise = null
+      })
+  }
+  return keyFetchPromise
 }
 
 export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload> {
+  if (isRsaHybridPayload(value)) {
+    return value
+  }
+
   if (!import.meta.client || !window.crypto?.subtle) {
     throw new Error('当前浏览器不支持 Web Crypto API')
   }

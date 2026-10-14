@@ -23,34 +23,35 @@ export default defineEventHandler(async (event) => {
   let body = await readBody(event)
 
   // Strict Encryption Enforcement: Reject unencrypted plaintext logins completely
-  if (!isRsaHybridPayload(body) && !isE2EEPayload(body)) {
-    logSecurityEvent({
-      type: 'Client Login Guard',
-      ip,
-      action: 'Plaintext client login attempt blocked: encryption required',
-      status: 'blocked'
-    })
-    throw createError({
-      statusCode: 400,
-      statusMessage: '安全策略强制要求端到端/RSA加密传输，明文提交已被拦截拒绝。'
-    })
-  }
-
-  if (isRsaHybridPayload(body)) {
-    try {
-      body = JSON.parse(decryptRsaHybrid(body))
-    } catch (e: any) {
-      throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 请求解密失败' })
+  if (!event.context.hybridDecrypted) {
+    if (!isRsaHybridPayload(body) && !isE2EEPayload(body)) {
+      logSecurityEvent({
+        type: 'Client Login Guard',
+        ip,
+        action: 'Plaintext client login attempt blocked: encryption required',
+        status: 'blocked'
+      })
+      throw createError({
+        statusCode: 400,
+        statusMessage: '安全策略强制要求端到端/RSA加密传输，明文提交已被拦截拒绝。'
+      })
     }
-  }
 
-  // Handle E2EE payload decryption if client sent E2EE encrypted request
-  else if (isE2EEPayload(body)) {
-    try {
-      const decryptedString = decryptE2EE(body)
-      body = JSON.parse(decryptedString)
-    } catch (e: any) {
-      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败：请求数据损坏或被篡改。' })
+    if (isRsaHybridPayload(body)) {
+      try {
+        body = JSON.parse(decryptRsaHybrid(body))
+      } catch (e: any) {
+        throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 请求解密失败' })
+      }
+    }
+    // Handle E2EE payload decryption if client sent E2EE encrypted request
+    else if (isE2EEPayload(body)) {
+      try {
+        const decryptedString = decryptE2EE(body)
+        body = JSON.parse(decryptedString)
+      } catch (e: any) {
+        throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败：请求数据损坏或被篡改。' })
+      }
     }
   }
 
