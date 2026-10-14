@@ -4,10 +4,15 @@
  * 提供每日午夜自动协议更新、一次性自毁公钥分发与多层信封认证解密
  */
 
+export type { RsaHybridPayload } from './vault-cipher'
 export {
   issueOneTimePublicKey as getRsaPublicKey,
-  decryptRsaHybridWithVault as decryptRsaHybrid
+  isRsaHybridPayload,
+  decryptRsaHybridWithVault as decryptRsaHybrid,
+  md5Fingerprint,
+  vaultVerifySliderToken
 } from './vault-cipher'
+
 
 
 

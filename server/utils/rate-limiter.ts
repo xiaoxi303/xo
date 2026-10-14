@@ -89,3 +89,6 @@ export function resetRateLimit(identifier: string): void {
     attemptsMap.delete(identifier)
   }
 }
+
+export const clearFailedAttempts = resetRateLimit
+
