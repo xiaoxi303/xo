@@ -64,7 +64,8 @@ export default defineNuxtConfig({
         'X-Frame-Options': 'SAMEORIGIN',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
         'X-XSS-Protection': '1; mode=block',
-        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss: ws:; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none';"
       }
     },
     '/api/**': {
@@ -94,6 +95,7 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'node-server',
     minify: true,
-    sourcemap: false
+    sourcemap: false,
+    hidePoweredBy: true
   }
 })

@@ -369,12 +369,9 @@ if (siteConfigData.value && typeof siteConfigData.value === 'object') {
   siteConfig.value = { ...siteConfig.value, ...siteConfigData.value }
 }
 
-const configuredAdminPath = computed(() => (siteConfig.value?.admin?.adminPath || 'admin').trim().toLowerCase())
-
 const isAdminPage = computed(() => {
   const path = (route.path || '').replace(/^\/|\/$/, '').toLowerCase()
-  const adminPath = (configuredAdminPath.value || 'admin').replace(/^\/|\/$/, '').toLowerCase()
-  return path === adminPath || path.startsWith(`${adminPath}/`)
+  return Boolean(route.params.adminSuffix) || path === 'admin' || path.startsWith('admin/')
 })
 
 const isPanelPage = computed(() => {

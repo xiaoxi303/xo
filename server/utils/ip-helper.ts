@@ -2,21 +2,20 @@
  * Get real client IP address, handling various proxy scenarios
  */
 export function getRealClientIP(event: any): string {
-  // Try X-Forwarded-For first (common proxy header)
+  // Prioritize Cloudflare CF-Connecting-IP (set by edge proxy, tamper-proof)
+  const cfip = getRequestHeader(event, 'cf-connecting-ip')
+  if (cfip) return cfip.trim()
+
+  // Try X-Real-IP (trusted reverse proxy / Nginx)
+  const xri = getRequestHeader(event, 'x-real-ip')
+  if (xri) return xri.trim()
+
+  // Try X-Forwarded-For
   const xff = getRequestHeader(event, 'x-forwarded-for')
   if (xff) {
-    // X-Forwarded-For can be "client, proxy1, proxy2" - take the first one
     const ip = xff.split(',')[0].trim()
     if (ip) return ip
   }
-  
-  // Try X-Real-IP (Nginx proxy)
-  const xri = getRequestHeader(event, 'x-real-ip')
-  if (xri) return xri.trim()
-  
-  // Try CF-Connecting-IP (Cloudflare)
-  const cfip = getRequestHeader(event, 'cf-connecting-ip')
-  if (cfip) return cfip.trim()
   
   // Try X-Client-IP
   const xci = getRequestHeader(event, 'x-client-ip')

@@ -4,16 +4,10 @@ import { validateSession, SESSION_COOKIE, hashPassword } from '../utils/auth'
 function publicSiteConfig(config: any) {
   if (!config || typeof config !== 'object') return {}
   const copy = JSON.parse(JSON.stringify(config))
-  if (copy.admin) {
-    delete copy.admin.passwordHash
-    delete copy.admin.newPassword
-  }
-  if (copy.emailSettings) {
-    delete copy.emailSettings.smtpPass
-  }
-  if (copy.aiSettings) {
-    delete copy.aiSettings.apiKey
-  }
+  // Strict property stripping to prevent SSR hydration state leakage
+  delete copy.admin
+  delete copy.emailSettings
+  delete copy.aiSettings
   if (copy.watermark) {
     delete copy.watermark.extractPassword
   }

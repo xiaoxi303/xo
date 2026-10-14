@@ -16,39 +16,73 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Missing video url' })
   }
 
-  // Bind proxied project media to the same delivery ownership guard used by
-  // project pages. Existing anonymous/public proxy requests remain compatible;
-  // authenticated clients are checked either by an explicit slug or by
-  // matching the requested URL against the project's published media list.
-  const requestedSlug = normalizeDeliverySlug(query.slug)
-  if (requestedSlug) {
-    await assertDeliveryAccess(event, requestedSlug)
-  } else {
+  // SSRF & Open-Proxy Prevention: Strictly validate target URL
+  const isHttp = /^https?:\/\//i.test(targetUrl)
+  if (isHttp) {
+    let parsed: URL
+    try {
+      parsed = new URL(targetUrl)
+    } catch {
+      throw createError({ statusCode: 400, message: 'Invalid media URL format' })
+    }
+
+    // Allowed video hosting domains
+    const ALLOWED_HOST_SUFFIXES = [
+      '976896.xyz',
+      'pexels.com',
+      'mixkit.co',
+      'vimeo.com',
+      'xoxox.bond',
+      'r2.cloudflarestorage.com'
+    ]
+
+    const host = parsed.hostname.toLowerCase()
+    const isAllowedHost = ALLOWED_HOST_SUFFIXES.some(suffix => host === suffix || host.endsWith('.' + suffix))
+
+    // Check if target matches any registered project or home video
     const projects = await dbGetProjectsRaw(event).catch(() => [])
-    const target = String(targetUrl)
-    const ownerProject = projects.find((project: any) => {
+    const target = String(targetUrl).trim()
+    const ownerProject = Array.isArray(projects) ? projects.find((project: any) => {
       const urls = Array.isArray(project?.videoUrls)
         ? project.videoUrls
         : [project?.videoUrl]
       return urls.some((url: any) => String(url || '').trim() === target)
-    })
-    if (ownerProject?.slug) {
+    }) : null
+
+    const requestedSlug = normalizeDeliverySlug(query.slug)
+    if (requestedSlug) {
+      await assertDeliveryAccess(event, requestedSlug)
+    } else if (ownerProject?.slug) {
       await assertDeliveryAccess(event, ownerProject.slug)
     }
-  }
 
-  // Set response headers for video streaming
-  setResponseHeader(event, 'Content-Type', 'video/mp4')
-  setResponseHeader(event, 'Access-Control-Allow-Origin', '*')
+    // If host is not in allowed domain whitelist AND not attached to any project, reject SSRF attempt
+    if (!isAllowedHost && !ownerProject) {
+      throw createError({
+        statusCode: 403,
+        message: '安全拦截：该媒体源未获授权或不在系统允许的分发列表中。'
+      })
+    }
 
-  if (/^https?:\/\//i.test(targetUrl)) {
+    // Set response headers for video streaming
+    setResponseHeader(event, 'Content-Type', 'video/mp4')
+    setResponseHeader(event, 'Access-Control-Allow-Origin', '*')
+
     const range = getHeader(event, 'range')
     const upstream = await fetchSafeUpstream(targetUrl, {
       headers: range ? { range } : undefined,
-    }).catch(() => null)
+    }).catch((err) => {
+      console.warn('[video-stream] Upstream fetch failure:', err?.message || err)
+      return null
+    })
+
     if (!upstream || (!upstream.ok && upstream.status !== 206)) {
-      throw createError({ statusCode: upstream?.status || 502, message: 'Unable to fetch video source' })
+      throw createError({
+        statusCode: upstream?.status || 502,
+        message: '上游媒体服务暂不可用或视频已被归档，请稍后重试。'
+      })
     }
+
     setResponseStatus(event, upstream.status)
     for (const name of ['content-type', 'content-length', 'content-range']) {
       const value = upstream.headers.get(name)

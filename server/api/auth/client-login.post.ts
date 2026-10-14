@@ -6,7 +6,20 @@ import { getRealClientIP } from '../../utils/ip-helper'
 import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
 import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
 
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../utils/rate-limiter'
+
 export default defineEventHandler(async (event) => {
+  const ip = getRealClientIP(event)
+
+  const ipLock = checkRateLimit(`client-ip:${ip}`)
+  if (ipLock.isLocked) {
+    setResponseHeader(event, 'Retry-After', String(ipLock.remainingLockSeconds))
+    throw createError({
+      statusCode: 429,
+      statusMessage: `登录尝试过于频繁，IP 已被安全锁定，请等待 ${ipLock.remainingLockSeconds} 秒。`
+    })
+  }
+
   let body = await readBody(event)
 
   if (isRsaHybridPayload(body)) {
@@ -77,15 +90,24 @@ export default defineEventHandler(async (event) => {
 
   // Verify client password with timing-safe comparison
   if (!verifyPassword(password, userRecord.password)) {
+    const rec = recordFailedAttempt(`client-ip:${ip}`, 5, 15 * 60)
+    recordFailedAttempt(`client-user:${username}`, 5, 15 * 60)
     logSecurityEvent({
       type: 'Client Login Guard',
       ip,
-      action: `Wrong password for user "${username}"`,
+      action: `Wrong password for user "${username}" (failCount: ${rec.failedAttempts})`,
       status: 'blocked'
     })
     await new Promise(resolve => setTimeout(resolve, 800))
-    throw createError({ statusCode: 401, statusMessage: '密码错误，请重新输入。' })
+    if (rec.failedAttempts >= 5) {
+      throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户与 IP 已被临时锁定 15 分钟。' })
+    }
+    throw createError({ statusCode: 401, statusMessage: `密码错误，请重新输入 (已失败 ${rec.failedAttempts}/5 次)。` })
   }
+
+  // Reset rate limits on successful authentication
+  resetRateLimit(`client-ip:${ip}`)
+  resetRateLimit(`client-user:${username}`)
 
   // Transparent cryptographic upgrade: Re-hash legacy passwords to high-entropy PBKDF2-HMAC-SHA512
   if (needsRehash(userRecord.password)) {

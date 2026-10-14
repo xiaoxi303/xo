@@ -201,14 +201,6 @@
                   <span class="text-amber-400 font-bold">[01]</span>
                   <span>管理员账号</span>
                 </label>
-                <button
-                  type="button"
-                  @click="quickFillAdmin"
-                  class="text-[10px] text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
-                  title="自动填入默认账号 admin"
-                >
-                  填入 admin
-                </button>
               </div>
               <div class="relative flex items-center">
                 <span class="absolute left-4 text-slate-400 pointer-events-none flex items-center">
@@ -220,7 +212,7 @@
                   required
                   autocomplete="username"
                   class="w-full pl-11 pr-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 focus:border-amber-500/70 focus:bg-white/[0.08] focus:ring-4 focus:ring-amber-500/15 text-xs text-white placeholder-slate-500 transition-all outline-none font-mono"
-                  placeholder="请输入账号 (如: admin)"
+                  placeholder="请输入管理员账号"
                   :disabled="loginLoading"
                 />
               </div>
@@ -233,16 +225,6 @@
                   <span class="text-amber-400 font-bold">[02]</span>
                   <span>管理安全密钥</span>
                 </label>
-                <div class="flex items-center gap-2">
-                  <button
-                    type="button"
-                    @click="quickFillDefaultPassword('xiaoxi1209')"
-                    class="text-[10px] text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
-                    title="一键填入默认初始密码"
-                  >
-                    快捷填入密钥
-                  </button>
-                </div>
               </div>
               <div class="relative flex items-center">
                 <span class="absolute left-4 text-slate-400 pointer-events-none flex items-center">
@@ -4755,18 +4737,20 @@ const route = useRoute()
 const router = useRouter()
 const currentSuffix = computed(() => String(route.params.adminSuffix || '').toLowerCase())
 
-// Fetch config to validate suffix (only on client or SSR)
-const { data: _rawConfig } = useFetch<any>('/api/site-config', { lazy: true })
-const configuredPath = computed(() => String(_rawConfig.value?.admin?.adminPath || 'admin').toLowerCase())
-
-watch(_rawConfig, (cfg) => {
-  if (cfg?.admin?.adminPath) {
-    const target = String(cfg.admin.adminPath).toLowerCase()
-    if (currentSuffix.value !== target) {
+// Validate admin suffix entrance securely without exposing paths in public SSR payload
+onMounted(async () => {
+  try {
+    const res = await $fetch<{ valid: boolean }>('/api/auth/verify-suffix', {
+      method: 'POST',
+      body: { suffix: currentSuffix.value }
+    })
+    if (!res?.valid) {
       router.replace('/404')
     }
+  } catch (e) {
+    router.replace('/404')
   }
-}, { immediate: true })
+})
 
 useHead({ title: '配置工作台 — Xo' })
 
@@ -4774,14 +4758,8 @@ const isLoggedIn = ref(false)
 const isCheckingAuth = ref(true)
 const loginLoading = ref(false)
 const loginError = ref('')
-const loginForm = ref({ username: 'admin', password: '' })
+const loginForm = ref({ username: '', password: '' })
 const showLoginPassword = ref(false)
-const quickFillAdmin = () => {
-  loginForm.value.username = 'admin'
-}
-const quickFillDefaultPassword = (pwd: string = 'xiaoxi1209') => {
-  loginForm.value.password = pwd
-}
 
 const handlePresetAudioSelect = (e: Event) => {
   const val = (e.target as HTMLSelectElement).value
@@ -6606,8 +6584,10 @@ const handleLogin = async () => {
 
     try {
       payload = await encryptRsaHybrid(payload)
-    } catch (encErr) {
-      console.warn('RSA hybrid encryption fallback to plain body:', encErr)
+    } catch (encErr: any) {
+      loginLoading.value = false
+      loginError.value = '安全传输模块初始化或加密失败，为保障安全已拦截明文传输：' + (encErr?.message || 'Web Crypto 不可用')
+      return
     }
 
     const res = await $fetch('/api/auth/login', {
@@ -6617,7 +6597,7 @@ const handleLogin = async () => {
 
     if (res?.success) {
       isLoggedIn.value = true
-      loginForm.value = { username: 'admin', password: '' }
+      loginForm.value = { username: '', password: '' }
 
       // Fetch dashboard datasets safely without letting any single failed request stall the login
       await Promise.allSettled([
