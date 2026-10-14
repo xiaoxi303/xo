@@ -3,10 +3,14 @@ import { getRealClientIP } from '../utils/ip-helper'
 import { logSecurityEvent } from '../utils/security-logger'
 
 export default defineEventHandler((event) => {
-  // 1. Scrub Framework and Server Identity Headers
+  // 1. Scrub Framework and Server Identity Headers & Enforce HTTPS HSTS
   removeResponseHeader(event, 'x-powered-by')
   removeResponseHeader(event, 'x-nitro-version')
   setResponseHeader(event, 'Server', 'cloudflare-nginx')
+  setResponseHeader(event, 'Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+  setResponseHeader(event, 'Cross-Origin-Opener-Policy', 'same-origin')
+  setResponseHeader(event, 'Cross-Origin-Resource-Policy', 'same-origin')
+  setResponseHeader(event, 'X-Permitted-Cross-Domain-Policies', 'none')
 
   const url = getRequestURL(event)
   const pathname = url.pathname.toLowerCase()
@@ -33,8 +37,8 @@ export default defineEventHandler((event) => {
     })
   }
 
-  // 3. Automated Vulnerability Scanner Probing Filter
-  // Immediately drop known probing paths without hitting application logic
+  // 3. Automated Vulnerability Scanner & Internal Build Artifacts Probing Filter
+  // Immediately drop known probing paths and internal build artifacts (sql_dump.txt) without hitting application logic
   const BLOCKED_PROBE_PATTERNS = [
     /\/\.env/i,
     /\/\.git/i,
@@ -44,7 +48,9 @@ export default defineEventHandler((event) => {
     /\/actuator/i,
     /\/solr/i,
     /\/cgi-bin/i,
-    /\/xmlrpc\.php/i
+    /\/xmlrpc\.php/i,
+    /\/__nuxt_content/i,
+    /sql_dump\.txt/i
   ]
 
   for (const pattern of BLOCKED_PROBE_PATTERNS) {

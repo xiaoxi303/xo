@@ -22,6 +22,20 @@ export default defineEventHandler(async (event) => {
 
   let body = await readBody(event)
 
+  // Strict Encryption Enforcement: Reject unencrypted plaintext logins completely
+  if (!isRsaHybridPayload(body) && !isE2EEPayload(body)) {
+    logSecurityEvent({
+      type: 'Client Login Guard',
+      ip,
+      action: 'Plaintext client login attempt blocked: encryption required',
+      status: 'blocked'
+    })
+    throw createError({
+      statusCode: 400,
+      statusMessage: '安全策略强制要求端到端/RSA加密传输，明文提交已被拦截拒绝。'
+    })
+  }
+
   if (isRsaHybridPayload(body)) {
     try {
       body = JSON.parse(decryptRsaHybrid(body))
@@ -41,7 +55,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const { username, password } = body || {}
-  const ip = getRealClientIP(event)
 
   if (!username || !password) {
     throw createError({ statusCode: 400, statusMessage: '请输入用户名和密码。' })
@@ -51,15 +64,20 @@ export default defineEventHandler(async (event) => {
   const userRecord: any = await dbGetUserRecord(event, username)
 
   if (!userRecord) {
+    const rec = recordFailedAttempt(`client-ip:${ip}`, 5, 15 * 60)
+    recordFailedAttempt(`client-user:${username}`, 5, 15 * 60)
     logSecurityEvent({
       type: 'Client Login Guard',
       ip,
-      action: `Login attempt for non-existent user "${username}"`,
+      action: `Login attempt for non-existent user "${username}" (failCount: ${rec.failedAttempts})`,
       status: 'warning'
     })
-    // Artificial delay to prevent brute force timing attacks
     await new Promise(resolve => setTimeout(resolve, 800))
-    throw createError({ statusCode: 404, statusMessage: '该账户不存在，请先注册。' })
+    if (rec.failedAttempts >= 5) {
+      throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户与 IP 已被临时锁定 15 分钟。' })
+    }
+    // Prevent account enumeration by returning identical 401 message as wrong password
+    throw createError({ statusCode: 401, statusMessage: '用户名或密码错误。' })
   }
 
   // A blacklisted account cannot create a new client session.

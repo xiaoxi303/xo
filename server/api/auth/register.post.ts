@@ -3,6 +3,8 @@ import { hashPassword, createSession, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS
 import { verifyAndConsumeCode } from '../../utils/verification'
 import { isE2EEPayload, decryptE2EE } from '../../utils/e2ee'
 import { decryptRsaHybrid, isRsaHybridPayload } from '../../utils/rsa-hybrid'
+import { getRealClientIP } from '../../utils/ip-helper'
+import { checkRateLimit, recordFailedAttempt } from '../../utils/rate-limiter'
 
 const ALLOWED_EMAIL_DOMAINS = [
   'qq.com', 'vip.qq.com', 'foxmail.com',
@@ -13,7 +15,28 @@ const ALLOWED_EMAIL_DOMAINS = [
 ]
 
 export default defineEventHandler(async (event) => {
+  const ip = getRealClientIP(event)
+
+  // Rate limit registration submissions
+  const ipLock = checkRateLimit(`register-ip:${ip}`)
+  if (ipLock.isLocked) {
+    setResponseHeader(event, 'Retry-After', String(ipLock.remainingLockSeconds))
+    throw createError({
+      statusCode: 429,
+      statusMessage: `注册尝试过于频繁，IP 已被安全锁定，请等待 ${ipLock.remainingLockSeconds} 秒。`
+    })
+  }
+
   let body = await readBody(event)
+
+  // Strict Encryption Enforcement: Reject unencrypted registration requests completely
+  if (!isRsaHybridPayload(body) && !isE2EEPayload(body)) {
+    recordFailedAttempt(`register-ip:${ip}`, 10, 15 * 60)
+    throw createError({
+      statusCode: 400,
+      statusMessage: '安全策略强制要求端到端/RSA加密传输，明文提交已被拦截拒绝。'
+    })
+  }
 
   if (isRsaHybridPayload(body)) {
     try {

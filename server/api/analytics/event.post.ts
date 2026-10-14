@@ -3,8 +3,19 @@ import fs from 'node:fs'
 import { getRuntimeDataPath } from '../../utils/storage'
 import { readBody, readRawBody, getQuery, defineEventHandler } from 'h3'
 import { broadcastAnalyticsChange } from '../../utils/broadcaster'
+import { getRealClientIP } from '../../utils/ip-helper'
+import { checkRateLimit, recordFailedAttempt } from '../../utils/rate-limiter'
 
 export default defineEventHandler(async (event) => {
+  const ip = getRealClientIP(event)
+
+  // Rate limit event submissions (max 60 per minute per IP)
+  const ipLock = checkRateLimit(`event-ip:${ip}`)
+  if (ipLock.isLocked) {
+    return { ok: false, message: 'Too many analytics events' }
+  }
+  recordFailedAttempt(`event-ip:${ip}`, 60, 60)
+
   let body: any = null
   try {
     body = await readBody(event)
