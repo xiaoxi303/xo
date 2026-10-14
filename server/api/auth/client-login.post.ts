@@ -96,6 +96,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: '用户名或密码错误。' })
   }
 
+  // Verify client password with timing-safe comparison
+  if (!verifyPassword(password, userRecord.password)) {
+    const rec = recordFailedAttempt(`client-ip:${ip}`, 5, 15 * 60)
+    recordFailedAttempt(`client-user:${username}`, 5, 15 * 60)
+    logSecurityEvent({
+      type: 'Client Login Guard',
+      ip,
+      action: `Wrong password for user "${username}" (failCount: ${rec.failedAttempts})`,
+      status: 'blocked'
+    })
+    await new Promise(resolve => setTimeout(resolve, 800))
+    if (rec.failedAttempts >= 5) {
+      throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户与 IP 已被临时锁定 15 分钟。' })
+    }
+    throw createError({ statusCode: 401, statusMessage: `密码错误，请重新输入 (已失败 ${rec.failedAttempts}/5 次)。` })
+  }
+
   // A blacklisted account cannot create a new client session.
   const blacklist = await dbGetBlacklist(event).catch(() => [])
   const usernameValue = String(userRecord.username || username).toLowerCase()
@@ -112,31 +129,18 @@ export default defineEventHandler(async (event) => {
       const value = String(item?.value || '').trim().toLowerCase()
       return value && (value === usernameValue || value === emailValue)
     })
-    const reason = userRecord.blacklistReason || matchingEntry?.reason || 'Account access has been blocked.'
-    logSecurityEvent({
-      type: 'Client Login Guard',
-      ip,
-      action: `Blocked login for blacklisted user "${username}" (${reason})`,
-      status: 'blocked'
-    })
-    throw createError({ statusCode: 403, statusMessage: reason })
-  }
-
-  // Verify client password with timing-safe comparison
-  if (!verifyPassword(password, userRecord.password)) {
-    const rec = recordFailedAttempt(`client-ip:${ip}`, 5, 15 * 60)
-    recordFailedAttempt(`client-user:${username}`, 5, 15 * 60)
-    logSecurityEvent({
-      type: 'Client Login Guard',
-      ip,
-      action: `Wrong password for user "${username}" (failCount: ${rec.failedAttempts})`,
-      status: 'blocked'
-    })
-    await new Promise(resolve => setTimeout(resolve, 800))
-    if (rec.failedAttempts >= 5) {
-      throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户与 IP 已被临时锁定 15 分钟。' })
+    let rawReason = userRecord.blacklistReason || matchingEntry?.reason || '账号已被管理员停用'
+    if (rawReason.includes('Fees are non-refundable') || rawReason.includes('outside its delivery authorization')) {
+      rawReason = '系统检测到异常越权访问记录，账号已被保护性冻结'
     }
-    throw createError({ statusCode: 401, statusMessage: `密码错误，请重新输入 (已失败 ${rec.failedAttempts}/5 次)。` })
+    const friendlyReason = `该账号已被暂停使用（${rawReason}）。如有疑问请联系客服或管理员协助解封。`
+    logSecurityEvent({
+      type: 'Client Login Guard',
+      ip,
+      action: `Blocked login for blacklisted user "${username}" (${rawReason})`,
+      status: 'blocked'
+    })
+    throw createError({ statusCode: 403, statusMessage: friendlyReason })
   }
 
   // Reset rate limits on successful authentication

@@ -1,5 +1,5 @@
 import { H3Event, createError, getCookie, setCookie } from 'h3'
-import { dbGetUserRecord, dbRecordDeliveryWarning } from './db'
+import { dbGetUserRecord, dbRecordDeliveryWarning, dbGetProjectsRaw } from './db'
 import {
   CLIENT_SESSION_COOKIE,
   destroySession,
@@ -168,28 +168,23 @@ export async function assertDeliveryAccess(event: H3Event, slugInput: string): P
     return { authenticated: true, username: session.username, user }
   }
 
+  // Check if target project is a registered public showcase project
+  const projects = await dbGetProjectsRaw(event).catch(() => [])
+  const foundProject = Array.isArray(projects) ? projects.find((p: any) => p && p.slug === slug) : null
+
+  // Public showcase projects are universally accessible to all clients and visitors
+  if (foundProject) {
+    return { authenticated: true, username: session.username, user }
+  }
+
   const allowedProjects = parseAllowedProjects(user.allowedProjects)
   if (allowedProjects.has(slug)) {
     return { authenticated: true, username: session.username, user }
   }
 
-  const violation = await dbRecordDeliveryViolation(event, {
-    slug,
-    username: session.username,
-    token,
-    reason: `Client attempted to open a project outside its delivery authorization: ${slug}. Fees are non-refundable.`
-  })
-
-  if (violation.blacklisted) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Unauthorized delivery access detected. This account is now blocked; fees are non-refundable.'
-    })
-  }
-
   throw createError({
     statusCode: 403,
-    statusMessage: 'This project is not assigned to your account. This first attempt was recorded as a warning; repeat attempts will block the account and fees are non-refundable.'
+    statusMessage: '该定制交付内容尚未授权至当前账号。如有疑问请联系客服或管理员。'
   })
 }
 

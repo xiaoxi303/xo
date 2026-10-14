@@ -1,5 +1,13 @@
 [
   {
+    "type": "Client Login Guard",
+    "ip": "127.0.0.1",
+    "action": "Blocked login for blacklisted user \"123\" (Client attempted to open a project outside its delivery authorization: commercial-tvc-showcase. Fees are non-refundable.)",
+    "status": "blocked",
+    "id": "log-1791985468075-3fsc",
+    "timestamp": 1791985468075
+  },
+  {
     "type": "Admin Access Gate",
     "ip": "127.0.0.1",
     "action": "Admin session issued for \"admin\"",

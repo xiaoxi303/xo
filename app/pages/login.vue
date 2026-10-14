@@ -153,9 +153,12 @@
 
           <!-- Notification Feedback Banners -->
           <Transition name="fade">
-            <div v-if="error" class="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2" role="alert">
-              <span class="text-base">⚠️</span>
-              <span>{{ error }}</span>
+            <div v-if="error" class="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center justify-between gap-2" role="alert">
+              <div class="flex items-center gap-2">
+                <span class="text-base shrink-0">⚠️</span>
+                <span>{{ error }}</span>
+              </div>
+              <button type="button" class="text-rose-400 hover:text-rose-700 text-xs px-1 cursor-pointer font-bold" title="关闭提示" @click="error = ''">✕</button>
             </div>
           </Transition>
           <Transition name="fade">
@@ -561,7 +564,7 @@ const executeSendCode = async (captchaToken: string) => {
     const payload = await encryptRsaHybrid({ email, captchaToken })
     const res = await $fetch<any>('/api/auth/send-verification-code', { method: 'POST', body: payload })
     if (res.success) { codeSentMsg.value = res.message || '验证码已发送至您的邮箱（60 秒内有效），请注意查收。'; startCooldown() }
-  } catch (err: any) { error.value = err.data?.statusMessage || '发送验证码失败，请检查邮箱或稍后重试。' }
+  } catch (err: any) { error.value = err.data?.statusMessage || err.data?.message || err.statusMessage || err.message || '发送验证码失败，请检查邮箱或稍后重试。' }
   finally { sendingCode.value = false }
 }
 
@@ -583,7 +586,7 @@ const executeLogin = async (captchaToken: string) => {
     })
     const res = await $fetch<any>('/api/auth/client-login', { method: 'POST', body: encryptedPayload })
     if (res.success) { router.push('/client'); if (import.meta.client) setTimeout(() => { window.location.href = '/client' }, 100) }
-  } catch (err: any) { error.value = err.data?.statusMessage || '登录失败，请检查您的用户名和密码。' }
+  } catch (err: any) { error.value = err.data?.statusMessage || err.data?.message || err.statusMessage || err.message || '登录失败，请检查您的用户名和密码。' }
   finally { loading.value = false }
 }
 
@@ -613,7 +616,15 @@ const executeRegister = async (captchaToken: string) => {
     })
     const res = await $fetch<any>('/api/auth/register', { method: 'POST', body: encryptedPayload })
     if (res.success) { router.push('/client'); if (import.meta.client) setTimeout(() => { window.location.href = '/client' }, 100) }
-  } catch (err: any) { error.value = err.data?.statusMessage || '注册失败，请稍后重试。' }
+  } catch (err: any) { error.value = err.data?.statusMessage || err.data?.message || err.statusMessage || err.message || '注册失败，请稍后重试。' }
   finally { loading.value = false }
 }
+
+// Automatically clear error banner when user begins re-typing
+watch([() => loginForm.value.username, () => loginForm.value.password], () => {
+  if (error.value) error.value = ''
+})
+watch([() => registerForm.value.username, () => registerForm.value.email, () => registerForm.value.password], () => {
+  if (error.value) error.value = ''
+})
 </script>
