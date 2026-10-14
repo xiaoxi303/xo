@@ -1,5 +1,21 @@
 [
   {
+    "type": "Plaintext Mutation Intercepted",
+    "ip": "127.0.0.1",
+    "action": "Blocked unencrypted plaintext POST request to /api/auth/client-login",
+    "status": "blocked",
+    "id": "log-1791990315650-bdru",
+    "timestamp": 1791990315650
+  },
+  {
+    "type": "Plaintext Mutation Intercepted",
+    "ip": "127.0.0.1",
+    "action": "Blocked unencrypted plaintext POST request to /api/auth/client-login",
+    "status": "blocked",
+    "id": "log-1791990315632-4zy7",
+    "timestamp": 1791990315632
+  },
+  {
     "type": "Admin Access Gate",
     "ip": "127.0.0.1",
     "action": "Admin session issued for \"admin\"",

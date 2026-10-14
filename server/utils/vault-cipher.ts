@@ -39,23 +39,14 @@ export interface ChamberEnvelope {
   digest: string
 }
 
-// 客户端提交的混合加密负载接口（支持单舱与一真一假双舱模式）
+// 客户端提交的混合加密负载接口（必须为一真一假双舱混淆共识架构）
 export interface RsaHybridPayload {
   rsaHybrid: true
-  version: '1'
-  algorithm: 'RSA-OAEP-256+AES-256-GCM+RSA-PSS-SHA256'
+  version: '2' | '1'
   keyId: string
-  encryptedKey: string
-  iv: string
-  ciphertext: string
-  authTag: string
   timestamp: string
-  clientPublicKey: JsonWebKey
-  signature: string
-  digest: string
-  md5?: string
   // 双舱混淆：一真一假两个密文舱，完全随机排列，外部任何嗅探均无法识别哪个为真
-  dualChambers?: [ChamberEnvelope, ChamberEnvelope]
+  dualChambers: [ChamberEnvelope, ChamberEnvelope]
   truthNonce?: string
 }
 
@@ -67,6 +58,7 @@ interface OtpkTicket {
   expiresAt: number
   burned: boolean
   clientIp?: string
+  consensusSecret: string
 }
 
 // 纪元密钥对封装
@@ -85,6 +77,9 @@ interface EpochKeyVault {
 const OTPK_TICKET_TTL_MS = 180 * 1000 // 一次性公钥有效窗口 3 分钟
 const MAX_CLOCK_SKEW_MS = 120 * 1000  // 允许最大时钟偏差 120 秒
 const GRACE_PERIOD_MS = 15 * 60 * 1000 // 跨日轮转 15 分钟平滑过渡期
+
+// 金库主私密随机种子（512位高熵密钥，完全驻留服务端内存，绝不外泄）
+const VAULT_MASTER_SECRET = process.env.VAULT_MASTER_SECRET || crypto.randomBytes(64).toString('hex')
 
 // 当前活动纪元与上一纪元（用于平滑过渡）
 let activeEpochVault: EpochKeyVault | null = null
@@ -290,16 +285,22 @@ function cleanupExpiredTickets(forceAll = false) {
 
 /**
  * 分发带有一次性自毁票据的公钥凭据
- * 每次调用都会生成全新的专属 keyId，且附带服务端防伪 HMAC 校验签章
+ * 每次调用都会生成全新的专属 keyId，且附带服务端防伪 HMAC 校验签章与金库真理共识种子
  */
 export function issueOneTimePublicKey(clientIp?: string) {
   const vault = ensureVaultInitialized()
   cleanupExpiredTickets()
 
-  const nonce = crypto.randomBytes(12).toString('hex')
+  const nonce = crypto.randomBytes(16).toString('hex')
   const ticketId = `OTPK_${vault.epochId}_${nonce}`
   const now = Date.now()
   const expiresAt = now + OTPK_TICKET_TTL_MS
+
+  // 基于金库专属 Master Secret 派生当前会话独有的真理共识种子
+  const consensusSecret = crypto
+    .createHmac('sha256', VAULT_MASTER_SECRET)
+    .update(`${ticketId}:${vault.epochId}:${now}`)
+    .digest('hex')
 
   // 记录此一次性凭据
   activeTickets.set(ticketId, {
@@ -308,19 +309,20 @@ export function issueOneTimePublicKey(clientIp?: string) {
     createdAt: now,
     expiresAt,
     burned: false,
-    clientIp
+    clientIp,
+    consensusSecret
   })
 
-  // 生成服务端防篡改指纹 (Anti-Tamper Signature)
+  // 生成服务端防篡改指纹
   const tamperProofSign = crypto
     .createHmac('sha256', vault.keyFingerprint)
-    .update(`${ticketId}:${vault.publicKeyPem}:${expiresAt}`)
+    .update(`${ticketId}:${vault.publicKeyPem}:${expiresAt}:${consensusSecret}`)
     .digest('hex')
 
   return {
     publicKey: vault.publicKeyPem,
     keyId: ticketId,
-    algorithm: 'RSA-OAEP-256+AES-256-GCM+RSA-PSS-SHA256' as const,
+    consensusSeed: consensusSecret,
     epoch: vault.epochId,
     expiresAt: new Date(expiresAt).toISOString(),
     tamperProofSign
@@ -328,26 +330,31 @@ export function issueOneTimePublicKey(clientIp?: string) {
 }
 
 // ============================================================================
-// 4. 多层混合加密校验、解密与一次性密钥就地销毁 (Burn-on-Use)
+// 4. 一真一假双舱混淆共识校验、私钥解密与一次性密钥就地销毁 (Burn-on-Use)
 // ============================================================================
 
 /**
- * 校验载荷格式是否为合法的 RSA 混合加密结构
+ * 校验载荷格式是否为合法的双舱混淆共识加密结构
+ * 强制要求必须包含双舱且格式完备，拒绝任何单舱明文
  */
 export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
-  return Boolean(
-    value?.rsaHybrid === true &&
-    value?.version === '1' &&
-    value?.algorithm === 'RSA-OAEP-256+AES-256-GCM+RSA-PSS-SHA256' &&
-    typeof value?.keyId === 'string' &&
-    typeof value?.encryptedKey === 'string' &&
-    typeof value?.iv === 'string' &&
-    typeof value?.ciphertext === 'string' &&
-    typeof value?.authTag === 'string' &&
-    typeof value?.timestamp === 'string' &&
-    value?.clientPublicKey &&
-    typeof value?.signature === 'string' &&
-    typeof value?.digest === 'string'
+  if (!value || typeof value !== 'object') return false
+  if (value.rsaHybrid !== true) return false
+  if (typeof value.keyId !== 'string' || !value.keyId.startsWith('OTPK_')) return false
+  if (typeof value.timestamp !== 'string') return false
+  if (!Array.isArray(value.dualChambers) || value.dualChambers.length !== 2) return false
+
+  return value.dualChambers.every((c: any) =>
+    c &&
+    typeof c.chamberId === 'string' &&
+    typeof c.encryptedKey === 'string' &&
+    typeof c.iv === 'string' &&
+    typeof c.ciphertext === 'string' &&
+    typeof c.authTag === 'string' &&
+    typeof c.signature === 'string' &&
+    typeof c.digest === 'string' &&
+    c.clientPublicKey &&
+    typeof c.clientPublicKey === 'object'
   )
 }
 
@@ -415,34 +422,34 @@ function decryptChamberRaw(
 }
 
 /**
- * 解密混合加密载荷，并在成功后立即就地销毁一次性凭证
+ * 解密一真一假双舱混淆载荷，仅由服务端金库私钥与专属共识种子联合裁决真实载荷
+ * 并在成功后立即就地物理销毁一次性凭据
  */
 export function decryptRsaHybridWithVault(payload: RsaHybridPayload): string {
   const vault = ensureVaultInitialized()
 
-  // 1. 验证一次性公钥凭证票据 (OTPK)
+  // 1. 严格校验一次性公钥凭证票据 (OTPK) - 必须存在于金库活动表中且未被使用
   const ticket = activeTickets.get(payload.keyId)
-
-  // 容错兼容：若在过渡期内或者是前缀匹配的合法凭据
-  if (ticket) {
-    if (ticket.burned) {
-      throw new Error('当前一次性安全公钥已被使用并销毁，请刷新获取最新公钥重试')
-    }
-    if (Date.now() > ticket.expiresAt) {
-      activeTickets.delete(payload.keyId)
-      throw new Error('一次性安全公钥已过期，请重新发起安全会话')
-    }
+  if (!ticket) {
+    throw new Error('安全拒绝：一次性公钥凭证不存在或未在金库登记')
+  }
+  if (ticket.burned) {
+    throw new Error('安全拒绝：当前一次性公钥已被使用并就地销毁，不可重复提交')
+  }
+  if (Date.now() > ticket.expiresAt) {
+    activeTickets.delete(payload.keyId)
+    throw new Error('安全拒绝：一次性公钥已超时失效，请重新获取密钥')
   }
 
   // 2. 时钟偏差与防重放校验
   const payloadTimestamp = Date.parse(payload.timestamp)
   if (!Number.isFinite(payloadTimestamp) || Math.abs(Date.now() - payloadTimestamp) > MAX_CLOCK_SKEW_MS) {
-    throw new Error('请求时间戳已失效或超出允许的时钟偏差范围')
+    throw new Error('安全拒绝：请求时间戳已失效或超出允许的时钟偏差范围')
   }
 
-  const replayToken = `${payload.keyId}:${payload.digest}:${payload.timestamp}`
+  const replayToken = `${payload.keyId}:${payload.timestamp}`
   if (consumedPayloadDigests.has(replayToken)) {
-    throw new Error('检测到重复提交的安全载荷，请求已被防重放机制拦截')
+    throw new Error('安全拒绝：检测到重复提交的安全载荷，请求已被防重放机制拦截')
   }
 
   // 3. 确定使用的私钥金库（支持当前活动纪元或上一纪元过渡）
@@ -451,115 +458,51 @@ export function decryptRsaHybridWithVault(payload: RsaHybridPayload): string {
     targetPrivateKey = previousEpochVault.keyPair.privateKey
   }
 
-  // ========================================================================
-  // 3.5. 【一真一假双舱混淆架构处理】：仅由服务端金库私钥完成真假验算与裁决
-  // ========================================================================
-  if (Array.isArray(payload.dualChambers) && payload.dualChambers.length === 2) {
-    const chambers = payload.dualChambers
-    let genuinePlaintext: string | null = null
-    let genuineMatches = 0
+  // 4. 【一真一假双舱混淆共识架构处理】：严格由服务端金库私钥与专属共识种子联合裁决
+  if (!Array.isArray(payload.dualChambers) || payload.dualChambers.length !== 2) {
+    throw new Error('安全策略拦截：仅允许一真一假双舱混淆共识加密载荷')
+  }
 
-    for (let i = 0; i < chambers.length; i++) {
-      try {
-        const decryptedContent = decryptChamberRaw(chambers[i], targetPrivateKey, payload.keyId, payload.timestamp)
-        const parsed = JSON.parse(decryptedContent)
+  // 服务端独立计算期望的真理共识证明 (基于服务端私有票据秘密与时间戳)
+  const expectedTruthProof = crypto
+    .createHmac('sha256', ticket.consensusSecret)
+    .update(`${payload.keyId}:${payload.timestamp}:TRUE_CHAMBER`)
+    .digest('hex')
 
-        // 核心验算：必须具备真实舱标识，且其内部真理 Nonce 与外层一致
-        if (
-          parsed?.__xo_chamber === 'GENUINE_CHAMBER' &&
-          parsed?.__truth_nonce === payload.truthNonce &&
-          parsed?.data !== undefined
-        ) {
-          genuinePlaintext = typeof parsed.data === 'string' ? parsed.data : JSON.stringify(parsed.data)
-          genuineMatches++
-        }
-      } catch {
-        // 蜜罐诱饵舱或非法篡改舱静默忽略
+  const chambers = payload.dualChambers
+  let genuinePlaintext: string | null = null
+  let genuineMatches = 0
+
+  for (let i = 0; i < chambers.length; i++) {
+    try {
+      const decryptedContent = decryptChamberRaw(chambers[i], targetPrivateKey, payload.keyId, payload.timestamp)
+      const parsed = JSON.parse(decryptedContent)
+
+      // 核心验算：必须具备真实舱标识，且内部真理证明必须与服务端独立计算的完全一致
+      if (
+        parsed?.__vault_auth === 'GENUINE_MATRIX' &&
+        parsed?.consensusProof === expectedTruthProof &&
+        parsed?.data !== undefined
+      ) {
+        genuinePlaintext = typeof parsed.data === 'string' ? parsed.data : JSON.stringify(parsed.data)
+        genuineMatches++
       }
+    } catch {
+      // 蜜罐诱饵舱或非法伪造舱解密失败静默忽略
     }
-
-    if (genuineMatches !== 1 || !genuinePlaintext) {
-      throw new Error('双舱加密裁决失败：未能与金库私钥匹配出唯一合法真实载荷（存在伪造或诱饵碰撞）')
-    }
-
-    // 成功解密：执行一次性公钥凭证就地销毁与防重放
-    if (ticket) {
-      ticket.burned = true
-      activeTickets.set(payload.keyId, ticket)
-    }
-    consumedPayloadDigests.set(replayToken, Date.now())
-
-    return genuinePlaintext
   }
 
-  // 4. 验证客户端 RSA-PSS 数字签名（防止中间人篡改载荷）
-  try {
-    const clientPublicKey = crypto.createPublicKey({
-      key: payload.clientPublicKey as crypto.JsonWebKeyInput,
-      format: 'jwk'
-    })
-    const verifier = crypto.createVerify('sha256')
-    verifier.update(canonicalPayload(payload))
-    verifier.end()
-
-    const isValidSignature = verifier.verify(
-      {
-        key: clientPublicKey,
-        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
-        saltLength: 32
-      },
-      decodeBase64Url(payload.signature)
-    )
-
-    if (!isValidSignature) {
-      throw new Error('RSA-PSS 客户端数字签名验证未通过，数据可能被非法篡改')
-    }
-  } catch (err: any) {
-    throw new Error(`数字签名校验失败: ${err?.message || '非法客户端签章'}`)
+  // 必须且仅能有唯一一个密文舱与金库私钥达成共识
+  if (genuineMatches !== 1 || !genuinePlaintext) {
+    throw new Error('双舱加密共识校验失败：未能与金库私钥达成唯一合法真理共识')
   }
 
-  // 5. 校验密文摘要完整性
-  const ciphertextBuffer = decodeBase64Url(payload.ciphertext)
-  const calculatedDigest = crypto.createHash('sha256').update(ciphertextBuffer).digest('base64url')
-  if (calculatedDigest !== payload.digest) {
-    throw new Error('密文 SHA-256 完整性摘要不匹配，数据已损坏')
-  }
-
-  // 6. 使用 RSA-OAEP SHA-256 私钥解开对称会话密钥 AES Key
-  let aesRawKey: Buffer
-  try {
-    aesRawKey = crypto.privateDecrypt(
-      {
-        key: targetPrivateKey,
-        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-        oaepHash: 'sha256'
-      },
-      decodeBase64Url(payload.encryptedKey)
-    )
-  } catch {
-    throw new Error('RSA 私钥解密对称密钥失败，密钥版本可能不一致')
-  }
-
-  // 7. 使用 AES-256-GCM 认证解密密文，并验证 128 位认证标签 (AuthTag)
-  let plaintext: string
-  try {
-    const decipher = crypto.createDecipheriv('aes-256-gcm', aesRawKey, decodeBase64Url(payload.iv))
-    decipher.setAuthTag(decodeBase64Url(payload.authTag))
-    plaintext = Buffer.concat([decipher.update(ciphertextBuffer), decipher.final()]).toString('utf8')
-  } catch (err: any) {
-    throw new Error(`AES-256-GCM 认证解密失败: ${err?.message || '认证标签错误'}`)
-  }
-
-  // ============================================================================
-  // 8. 成功解密：执行【一次性公钥就地销毁 (Burn-on-Use)】与防重放登记
-  // ============================================================================
-  if (ticket) {
-    ticket.burned = true
-    activeTickets.set(payload.keyId, ticket)
-  }
+  // 成功解密：执行一次性公钥凭证就地物理销毁与防重放登记
+  ticket.burned = true
+  activeTickets.delete(payload.keyId)
   consumedPayloadDigests.set(replayToken, Date.now())
 
-  return plaintext
+  return genuinePlaintext
 }
 
 /**

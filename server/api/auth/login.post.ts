@@ -13,7 +13,6 @@ import { dbGetSiteConfig } from '../../utils/db'
 import { logSecurityEvent } from '../../utils/security-logger'
 import { getRealClientIP } from '../../utils/ip-helper'
 import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/vault-cipher'
-import { decryptE2EE, isE2EEPayload } from '../../utils/e2ee'
 
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../utils/rate-limiter'
 
@@ -40,7 +39,7 @@ export default defineEventHandler(async (event) => {
 
   // 2. Strict Encryption Enforcement: Reject unencrypted plaintext logins completely
   if (!event.context.hybridDecrypted) {
-    if (!isRsaHybridPayload(body) && !isE2EEPayload(body)) {
+    if (!isRsaHybridPayload(body)) {
       logSecurityEvent({
         type: 'Admin Login Guard',
         ip,
@@ -49,23 +48,14 @@ export default defineEventHandler(async (event) => {
       })
       throw createError({
         statusCode: 400,
-        statusMessage: '安全策略强制要求端到端/RSA加密传输，明文提交已被拒绝。'
+        statusMessage: '安全策略拦截：仅支持金库双舱混淆共识加密传输。'
       })
     }
 
-    // 3. Decrypt RSA Hybrid encrypted payload or E2EE payload
-    if (isRsaHybridPayload(body)) {
-      try {
-        body = JSON.parse(decryptRsaHybrid(body))
-      } catch (e: any) {
-        throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 混合加密解密失败。' })
-      }
-    } else if (isE2EEPayload(body)) {
-      try {
-        body = JSON.parse(decryptE2EE(body))
-      } catch (e: any) {
-        throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败：数据损坏或被篡改' })
-      }
+    try {
+      body = JSON.parse(decryptRsaHybrid(body))
+    } catch {
+      throw createError({ statusCode: 400, statusMessage: '安全策略拦截：请求未通过金库共识解密校验。' })
     }
   }
 

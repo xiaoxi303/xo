@@ -3,7 +3,6 @@ import { defineEventHandler, readBody, getCookie } from 'h3'
 import { getRuntimeDataPath } from '../utils/storage'
 import { logSecurityEvent } from '../utils/security-logger'
 import { decryptRsaHybrid, isRsaHybridPayload } from '../utils/vault-cipher'
-import { decryptE2EE, isE2EEPayload } from '../utils/e2ee'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../utils/auth'
 import { getRealClientIP } from '../utils/ip-helper'
 import { checkRateLimit, recordFailedAttempt } from '../utils/rate-limiter'
@@ -24,27 +23,22 @@ export default defineEventHandler(async (event) => {
   let body = await readBody(event)
 
   // Strict Encryption Enforcement: Reject unencrypted booking submissions
-  if (!event.context.hybridDecrypted && !isRsaHybridPayload(body) && !isE2EEPayload(body)) {
-    recordFailedAttempt(`booking-ip:${ip}`, 5, 15 * 60)
-    throw createError({
-      statusCode: 400,
-      statusMessage: '安全策略强制要求端到端/RSA加密传输，明文提交已被拦截拒绝。'
-    })
-  }
+  if (!event.context.hybridDecrypted) {
+    if (!isRsaHybridPayload(body)) {
+      recordFailedAttempt(`booking-ip:${ip}`, 5, 15 * 60)
+      throw createError({
+        statusCode: 400,
+        statusMessage: '安全策略拦截：仅支持金库双舱混淆共识加密传输。'
+      })
+    }
 
-  if (!event.context.hybridDecrypted && isRsaHybridPayload(body)) {
     try {
       body = JSON.parse(decryptRsaHybrid(body))
-    } catch (error: any) {
-      throw createError({ statusCode: 400, statusMessage: error?.message || 'RSA 请求解密失败' })
-    }
-  } else if (isE2EEPayload(body)) {
-    try {
-      body = JSON.parse(decryptE2EE(body))
-    } catch (error: any) {
-      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败：数据损坏或被篡改' })
+    } catch {
+      throw createError({ statusCode: 400, statusMessage: '安全策略拦截：请求未通过金库共识解密校验。' })
     }
   }
+
   const { name, phone, email, company, serviceType, budget, timeline, description, referenceLinks } = body || {}
 
   // Validation

@@ -5,7 +5,6 @@ import { getRealClientIP } from '../../../utils/ip-helper'
 import { getDailyPassword, getBeijingDateString, verifyProjectPassword } from '../../../utils/password-utils'
 import { assertDeliveryAccess } from '../../../utils/delivery-access'
 import { decryptRsaHybrid, isRsaHybridPayload } from '../../../utils/vault-cipher'
-import { decryptE2EE, isE2EEPayload } from '../../../utils/e2ee'
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../../utils/rate-limiter'
 
 const unlockTokens = new Map()
@@ -28,19 +27,20 @@ export default defineEventHandler(async (event) => {
   }
 
   let body = await readBody(event)
-  if (!event.context.hybridDecrypted && isRsaHybridPayload(body)) {
+  if (!event.context.hybridDecrypted) {
+    if (!isRsaHybridPayload(body)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '安全策略拦截：仅支持金库双舱混淆共识加密传输。'
+      })
+    }
     try {
       body = JSON.parse(decryptRsaHybrid(body))
-    } catch (e: any) {
-      throw createError({ statusCode: 400, statusMessage: e?.message || 'RSA 请求解密失败' })
-    }
-  } else if (isE2EEPayload(body)) {
-    try {
-      body = JSON.parse(decryptE2EE(body))
-    } catch (e: any) {
-      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败' })
+    } catch {
+      throw createError({ statusCode: 400, statusMessage: '安全策略拦截：请求未通过金库共识解密校验。' })
     }
   }
+
   const { password } = body || {}
   if (!password) throw createError({ statusCode: 400, statusMessage: 'Please enter access password.' })
 

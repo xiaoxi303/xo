@@ -3,7 +3,6 @@ import { sendVerificationCodeEmail } from '../../utils/email'
 import { generateVerificationCode, storeVerificationCode, getCooldownRemaining } from '../../utils/verification'
 import { getRealClientIP } from '../../utils/ip-helper'
 import { decryptRsaHybrid, isRsaHybridPayload, vaultVerifySliderToken } from '../../utils/vault-cipher'
-import { decryptE2EE, isE2EEPayload } from '../../utils/e2ee'
 
 const ipSendHistory = new Map<string, number[]>()
 
@@ -39,17 +38,17 @@ const ALLOWED_EMAIL_DOMAINS = [
 
 export default defineEventHandler(async (event) => {
   let body = await readBody(event)
-  if (!event.context.hybridDecrypted && isRsaHybridPayload(body)) {
+  if (!event.context.hybridDecrypted) {
+    if (!isRsaHybridPayload(body)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '安全策略拦截：仅支持金库双舱混淆共识加密传输。'
+      })
+    }
     try {
       body = JSON.parse(decryptRsaHybrid(body))
-    } catch (e: any) {
-      throw createError({ statusCode: 400, statusMessage: 'RSA 请求解密失败' })
-    }
-  } else if (isE2EEPayload(body)) {
-    try {
-      body = JSON.parse(decryptE2EE(body))
     } catch {
-      throw createError({ statusCode: 400, statusMessage: 'E2EE 解密失败' })
+      throw createError({ statusCode: 400, statusMessage: '安全策略拦截：请求未通过金库共识解密校验。' })
     }
   }
 

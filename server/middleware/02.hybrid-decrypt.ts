@@ -83,7 +83,7 @@ export default defineEventHandler(async (event) => {
       })
       throw createError({
         statusCode: 400,
-        statusMessage: `RSA 混合加密解密失败: ${decryptErr?.message || '非法或损坏的密文'}`
+        statusMessage: '安全策略拦截：密文共识校验未通过或凭证已失效。'
       })
     }
   }
@@ -98,6 +98,6 @@ export default defineEventHandler(async (event) => {
 
   throw createError({
     statusCode: 400,
-    statusMessage: '全链路强制要求使用 RSA 混合加密传输 (RSA-OAEP-256 + AES-256-GCM + RSA-PSS)，已拦截未加密的明文请求。'
+    statusMessage: '安全策略拦截：全链路要求安全加密传输，拒绝未授权请求。'
   })
 })

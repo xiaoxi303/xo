@@ -1,7 +1,8 @@
 export interface RsaPublicKeyResponse {
   publicKey: string
   keyId: string
-  algorithm: string
+  consensusSeed?: string
+  algorithm?: string
   epoch?: string
   expiresAt?: string
   tamperProofSign?: string
@@ -20,20 +21,10 @@ export interface ChamberEnvelope {
 
 export interface RsaHybridPayload {
   rsaHybrid: true
-  version: '1'
-  algorithm: 'RSA-OAEP-256+AES-256-GCM+RSA-PSS-SHA256'
+  version: '2' | '1'
   keyId: string
-  encryptedKey: string
-  iv: string
-  ciphertext: string
-  authTag: string
   timestamp: string
-  clientPublicKey: JsonWebKey
-  signature: string
-  digest: string
-  md5?: string
-  // 双舱混淆：一真一假两个密文舱，随机混排在数组中
-  dualChambers?: [ChamberEnvelope, ChamberEnvelope]
+  dualChambers: [ChamberEnvelope, ChamberEnvelope]
   truthNonce?: string
 }
 
@@ -57,7 +48,16 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   return fromBase64(pem).buffer
 }
 
-function canonicalPayload(payload: Pick<RsaHybridPayload, 'keyId' | 'encryptedKey' | 'iv' | 'ciphertext' | 'authTag' | 'timestamp' | 'clientPublicKey' | 'digest'>): string {
+function canonicalPayload(payload: {
+  keyId: string
+  encryptedKey: string
+  iv: string
+  ciphertext: string
+  authTag: string
+  timestamp: string
+  clientPublicKey: JsonWebKey
+  digest: string
+}): string {
   return JSON.stringify({
     keyId: payload.keyId,
     encryptedKey: payload.encryptedKey,
@@ -70,17 +70,42 @@ function canonicalPayload(payload: Pick<RsaHybridPayload, 'keyId' | 'encryptedKe
   })
 }
 
+async function computeConsensusProof(secret: string, message: string): Promise<string> {
+  const enc = new TextEncoder()
+  const key = await window.crypto.subtle.importKey(
+    'raw',
+    enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const signature = await window.crypto.subtle.sign('HMAC', key, enc.encode(message))
+  return Array.from(new Uint8Array(signature))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
 export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
   return Boolean(
     value &&
     typeof value === 'object' &&
     value.rsaHybrid === true &&
-    value.version === '1' &&
-    value.ciphertext &&
-    value.encryptedKey &&
-    value.iv &&
-    value.authTag &&
-    value.signature
+    (value.version === '2' || value.version === '1') &&
+    typeof value.keyId === 'string' &&
+    typeof value.timestamp === 'string' &&
+    Array.isArray(value.dualChambers) &&
+    value.dualChambers.length === 2 &&
+    value.dualChambers.every((c: any) =>
+      c &&
+      typeof c.chamberId === 'string' &&
+      typeof c.encryptedKey === 'string' &&
+      typeof c.iv === 'string' &&
+      typeof c.ciphertext === 'string' &&
+      typeof c.authTag === 'string' &&
+      c.clientPublicKey &&
+      typeof c.signature === 'string' &&
+      typeof c.digest === 'string'
+    )
   )
 }
 
@@ -159,9 +184,10 @@ async function buildSingleChamber(
 }
 
 /**
- * 一真一假双舱混合加密 (Dual-Chamber Decoy Hybrid Encryption)
- * 客户端同时构造两个密码学格式完全相同的密文舱，并随机排列顺序；
- * 外部任何抓包嗅探均无法区分真假，最终仅由服务端金库私钥完成核验裁决与真实载荷解包。
+ * 一真一假双舱共识混合加密 (Dual-Chamber Decoy Consensus Hybrid Encryption)
+ * 客户端构造两个密码学格式完全相同的密文舱，并随机排列顺序；
+ * 真实舱包含与服务端派生的真理共识证明 (Consensus Proof)，诱饵舱包含仿真蜜罐数据；
+ * 外部抓包无法区分真假，最终仅由服务端金库私钥与共识秘密完成解密裁决。
  */
 export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload> {
   if (isRsaHybridPayload(value)) {
@@ -189,10 +215,18 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
   const timestamp = new Date().toISOString()
   const truthNonce = toBase64Url(window.crypto.getRandomValues(new Uint8Array(16)))
 
-  // 1. 真实密文舱：封入真实数据与金库校验真理 Nonce
+  // 计算与服务端金库私钥达成一致的真理共识证明
+  const consensusSeed = serverKey.consensusSeed || serverKey.keyId
+  const consensusProof = await computeConsensusProof(
+    consensusSeed,
+    `${serverKey.keyId}:${timestamp}:TRUE_CHAMBER`
+  )
+
+  // 1. 真实密文舱：封入真实数据与金库真理共识标识与证明
   const genuinePayload = {
-    __xo_chamber: 'GENUINE_CHAMBER',
-    __truth_nonce: truthNonce,
+    __vault_auth: 'GENUINE_MATRIX',
+    consensusProof,
+    truthNonce,
     data: value
   }
   const genuineChamber = await buildSingleChamber(
@@ -206,9 +240,10 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
 
   // 2. 蜜罐诱饵密文舱：封入高仿真随机拟态数据（格式、长度、签名、IV均一致）
   const decoyEntropy = toBase64Url(window.crypto.getRandomValues(new Uint8Array(16)))
+  const decoyProof = toBase64Url(window.crypto.getRandomValues(new Uint8Array(32)))
   const decoyPayload = {
-    __xo_chamber: 'DECOY_HONEYPOT',
-    __truth_nonce: `DECOY_${decoyEntropy}`,
+    __vault_auth: 'DECOY_HONEYPOT',
+    consensusProof: decoyProof,
     data: {
       syntheticToken: decoyEntropy,
       timestamp: Date.now(),
@@ -232,17 +267,9 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
 
   return {
     rsaHybrid: true,
-    version: '1',
-    algorithm: 'RSA-OAEP-256+AES-256-GCM+RSA-PSS-SHA256',
+    version: '2',
     keyId: serverKey.keyId,
-    encryptedKey: genuineChamber.encryptedKey,
-    iv: genuineChamber.iv,
-    ciphertext: genuineChamber.ciphertext,
-    authTag: genuineChamber.authTag,
     timestamp,
-    clientPublicKey: genuineChamber.clientPublicKey,
-    signature: genuineChamber.signature,
-    digest: genuineChamber.digest,
     dualChambers,
     truthNonce
   }
