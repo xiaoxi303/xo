@@ -2113,6 +2113,156 @@
               </table>
             </div>
           </div>
+
+          <!-- 2. 全站封禁黑名单与实时安全锁定管理 (一键解除限制) -->
+          <div class="glass-card overflow-hidden mt-6 space-y-6">
+            <div class="p-6 border-b flex flex-wrap items-center justify-between gap-4" style="border-color: var(--color-border)">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">🛡️</span>
+                  <h3 class="font-display font-bold text-base" style="color: var(--color-ink-1)">IP 与安全防护封禁池 (Blacklist & Security Lockout)</h3>
+                </div>
+                <p class="text-xs mt-1" style="color: var(--color-ink-4)">
+                  统一监控与管理因恶意探测、连续输错密码或违规被系统或管理员封锁的 IP 地址、设备机器码与账户，支持在后台面板一键实时解除所有限制。
+                </p>
+              </div>
+              <div class="flex items-center gap-3">
+                <button
+                  type="button"
+                  @click="fetchBlacklist"
+                  class="btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5"
+                  :disabled="blacklistLoading"
+                >
+                  <span>🔄</span>
+                  <span>{{ blacklistLoading ? '刷新中...' : '刷新状态' }}</span>
+                </button>
+                <button
+                  type="button"
+                  @click="clearAllSecurityLocks"
+                  class="btn-secondary text-xs py-2 px-3.5 text-amber-700 hover:text-amber-800 border-amber-700/20 hover:border-amber-700/40 flex items-center gap-1.5"
+                >
+                  <span>⚡</span>
+                  <span>一键清除全站临时锁定</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 手动添加封禁快速栏 -->
+            <div class="px-6 py-4 bg-black/[0.015] border-y flex flex-wrap items-center gap-3" style="border-color: var(--color-border)">
+              <span class="text-xs font-bold" style="color: var(--color-ink-2)">快捷封禁：</span>
+              <div class="flex-1 min-w-[200px]">
+                <input
+                  v-model="newBanInput.value"
+                  placeholder="输入要封禁的 IP (如 1.2.3.4)、用户账号或邮箱..."
+                  class="form-input text-xs py-1.5 font-mono"
+                  @keydown.enter.prevent="addBanTarget"
+                />
+              </div>
+              <select v-model="newBanInput.type" class="form-input text-xs py-1.5 w-28 font-mono">
+                <option value="ip">IP 地址</option>
+                <option value="user">用户账号</option>
+                <option value="device">设备机器码</option>
+                <option value="contact">联系方式</option>
+              </select>
+              <input
+                v-model="newBanInput.reason"
+                placeholder="封禁原因 (选填)"
+                class="form-input text-xs py-1.5 w-44"
+                @keydown.enter.prevent="addBanTarget"
+              />
+              <button
+                type="button"
+                @click="addBanTarget"
+                class="btn-primary text-xs py-1.5 px-4 flex items-center gap-1"
+              >
+                <span>🚫</span>
+                <span>添加封禁</span>
+              </button>
+            </div>
+
+            <!-- 1. 实时内存频率与密码锁定池 -->
+            <div class="p-6 space-y-3" v-if="activeSecurityLocks.length > 0">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-2 text-rose-700">
+                  <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                  实时触发拦截中的终端 / 账户 (共 {{ activeSecurityLocks.length }} 项生效中)
+                </h4>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div
+                  v-for="lock in activeSecurityLocks"
+                  :key="lock.identifier"
+                  class="p-3.5 rounded-xl border border-rose-500/20 bg-rose-500/[0.04] flex items-center justify-between shadow-sm"
+                >
+                  <div class="space-y-0.5 overflow-hidden">
+                    <div class="font-mono text-xs font-bold text-rose-800 truncate" :title="lock.identifier">
+                      {{ lock.identifier }}
+                    </div>
+                    <div class="text-[10px] text-slate-500 font-mono">
+                      失败 {{ lock.failedAttempts }} 次 · 剩余锁定: {{ lock.remainingLockSeconds }} 秒
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="unbanTarget(lock.identifier, lock.identifier)"
+                    class="ml-2 px-2.5 py-1 text-xs font-bold bg-white text-emerald-700 border border-emerald-600/30 rounded-lg hover:bg-emerald-50 transition-colors shadow-xs shrink-0"
+                  >
+                    ⚡ 一键解除
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. 持久化黑名单列表 -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="text-[10px] font-mono uppercase tracking-wider border-b" style="color: var(--color-ink-4); border-color: var(--color-border); background: rgba(0,0,0,0.01)">
+                    <th class="py-3 px-6 font-semibold">封禁目标 (IP / 用户 / 标识)</th>
+                    <th class="py-3 px-6 font-semibold">类型</th>
+                    <th class="py-3 px-6 font-semibold">封禁原因</th>
+                    <th class="py-3 px-6 font-semibold">记录时间</th>
+                    <th class="py-3 px-6 font-semibold text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y text-xs" style="divide-color: var(--color-border)">
+                  <tr v-if="blacklistItems.length === 0">
+                    <td colspan="5" class="py-10 text-center" style="color: var(--color-ink-5)">
+                      <span class="text-xl block mb-1">🛡️</span>
+                      暂无持久化黑名单记录，所有正常访客均畅通无阻。
+                    </td>
+                  </tr>
+                  <tr v-for="item in blacklistItems" :key="item.id || item.value" class="hover:bg-black/[0.01] transition-colors">
+                    <td class="py-3.5 px-6 font-mono font-bold text-rose-800 flex items-center gap-2">
+                      <span>🚫</span>
+                      <span>{{ item.value }}</span>
+                    </td>
+                    <td class="py-3.5 px-6">
+                      <span class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase font-mono bg-black/5 text-slate-700 border border-black/10">
+                        {{ item.type || 'IP' }}
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-6 text-slate-600 max-w-xs truncate" :title="item.reason">
+                      {{ item.reason || '管理员手动拉黑' }}
+                    </td>
+                    <td class="py-3.5 px-6 font-mono text-[11px]" style="color: var(--color-ink-4)">
+                      {{ item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN', { hour12: false }) : '—' }}
+                    </td>
+                    <td class="py-3.5 px-6 text-right">
+                      <button
+                        type="button"
+                        @click="unbanTarget(item.value, item.value)"
+                        class="px-3 py-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg transition-colors inline-flex items-center gap-1"
+                      >
+                        <span>✅</span>
+                        <span>一键解除限制</span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
           <!-- TAB: BLOG MANAGEMENT -->
@@ -4792,7 +4942,7 @@ const exportFullBackup = async () => {
       siteConfig: cfg,
       projects: projs,
       users: usrs,
-      blacklist: bl
+      blacklist: Array.isArray(bl) ? bl : ((bl as any)?.blacklist || [])
     }
 
     const jsonStr = JSON.stringify(backupData, null, 2)
@@ -4959,6 +5109,10 @@ watch(activeTab, (newTab) => {
   }
   if (newTab === 'analytics') {
     fetchSystemStatus()
+  }
+  if (newTab === 'users') {
+    fetchUsers()
+    fetchBlacklist()
   }
 
   // Auto-switch preview route based on current editing tab if appropriate
@@ -5854,6 +6008,14 @@ const fetchPasswordRequests = async () => {
   }
 }
 const registeredUsers = ref<any[]>([])
+const blacklistItems = ref<any[]>([])
+const activeSecurityLocks = ref<any[]>([])
+const blacklistLoading = ref(false)
+const newBanInput = ref({
+  value: '',
+  type: 'ip',
+  reason: '管理员手动封禁'
+})
 const bookings = ref<any[]>([])
 const bookingFilterStatus = ref<'all' | 'pending' | 'confirmed' | 'awaiting_payment' | 'paid' | 'converted' | 'archived'>('all')
 const bookingSearchQuery = ref('')
@@ -6297,7 +6459,7 @@ const toggleUserWhitelist = async (u: any) => {
 
 const toggleUserBlacklist = async (u: any) => {
   const nextVal = !u.isBlacklisted
-  const actionText = nextVal ? '拉黑用户（申请需手动审核）' : '解除拉黑'
+  const actionText = nextVal ? '拉黑用户（申请需手动审核）' : '解除拉黑并恢复全部访问限制'
   if (!confirm(`确认要将客户【${u.username}】${actionText}吗？`)) return
   try {
     await $fetch('/api/admin/users', {
@@ -6311,9 +6473,85 @@ const toggleUserBlacklist = async (u: any) => {
         isBlacklisted: nextVal
       }
     })
-    await fetchUsers()
+    await Promise.all([fetchUsers(), fetchBlacklist()])
   } catch (err: any) {
     alert(err.statusMessage || '更新拉黑状态失败。')
+  }
+}
+
+const fetchBlacklist = async () => {
+  blacklistLoading.value = true
+  try {
+    const res = await $fetch<any>('/api/admin/blacklist?t=' + Date.now())
+    if (res && res.success) {
+      blacklistItems.value = res.blacklist || []
+      activeSecurityLocks.value = res.activeLocks || []
+    } else if (Array.isArray(res)) {
+      blacklistItems.value = res
+      activeSecurityLocks.value = []
+    }
+  } catch (err) {
+    console.error('Failed to fetch blacklist:', err)
+  } finally {
+    blacklistLoading.value = false
+  }
+}
+
+const unbanTarget = async (val: string, label?: string) => {
+  const targetLabel = label || val
+  if (!confirm(`确认要对【${targetLabel}】执行一键解除限制吗？`)) return
+  try {
+    const res = await $fetch<any>('/api/admin/blacklist', {
+      method: 'POST',
+      body: {
+        action: 'remove',
+        value: val
+      }
+    })
+    alert(res.message || `已成功解除【${targetLabel}】的全部限制！`)
+    await Promise.all([fetchBlacklist(), fetchUsers(), fetchPasswordRequests()])
+  } catch (err: any) {
+    alert(err.statusMessage || '解除限制失败。')
+  }
+}
+
+const addBanTarget = async () => {
+  const val = newBanInput.value.value.trim()
+  if (!val) {
+    alert('请输入要封禁的 IP 地址、用户账号或邮箱')
+    return
+  }
+  try {
+    const res = await $fetch<any>('/api/admin/blacklist', {
+      method: 'POST',
+      body: {
+        action: 'add',
+        value: val,
+        type: newBanInput.value.type,
+        reason: newBanInput.value.reason || '管理员手动封禁'
+      }
+    })
+    alert(res.message || `已将【${val}】加入封禁名单！`)
+    newBanInput.value.value = ''
+    await Promise.all([fetchBlacklist(), fetchUsers()])
+  } catch (err: any) {
+    alert(err.statusMessage || '添加封禁失败。')
+  }
+}
+
+const clearAllSecurityLocks = async () => {
+  if (!confirm('确认要一键清除全站所有正在生效的临时 IP 封锁与频率限制吗？（包括密码连续试错锁定、爬虫探测临时锁定等）')) return
+  try {
+    const res = await $fetch<any>('/api/admin/blacklist', {
+      method: 'POST',
+      body: {
+        action: 'clear_all'
+      }
+    })
+    alert(res.message || '已成功清除全站所有实时封锁！')
+    await fetchBlacklist()
+  } catch (err: any) {
+    alert(err.statusMessage || '清除失败。')
   }
 }
 
@@ -6558,6 +6796,7 @@ const checkAuth = async () => {
         fetchSystemStatus(),
         fetchPasswordRequests(),
         fetchUsers(),
+        fetchBlacklist(),
         fetchBookings()
       ]).catch(() => {})
     } else {
@@ -6622,6 +6861,7 @@ const executeAdminLogin = async (captchaToken: string) => {
         fetchSystemStatus(),
         fetchPasswordRequests(),
         fetchUsers(),
+        fetchBlacklist(),
         fetchBookings()
       ])
       await nextTick()

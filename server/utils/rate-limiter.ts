@@ -92,3 +92,33 @@ export function resetRateLimit(identifier: string): void {
 
 export const clearFailedAttempts = resetRateLimit
 
+/**
+ * Retrieve all currently active rate-limit locks.
+ */
+export function getActiveRateLimits(): Array<{
+  identifier: string
+  failedAttempts: number
+  remainingLockSeconds: number
+  lockedUntil: number
+  lastAttempt: number
+}> {
+  const now = Date.now()
+  const list = []
+  for (const [key, record] of attemptsMap.entries()) {
+    if (record.lockedUntil > now) {
+      list.push({
+        identifier: key,
+        failedAttempts: record.failedAttempts,
+        remainingLockSeconds: Math.ceil((record.lockedUntil - now) / 1000),
+        lockedUntil: record.lockedUntil,
+        lastAttempt: record.lastAttempt
+      })
+    }
+  }
+  return list
+}
+
+export function clearAllRateLimits(): void {
+  attemptsMap.clear()
+}
+

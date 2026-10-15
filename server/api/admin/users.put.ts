@@ -61,6 +61,21 @@ export default defineEventHandler(async (event) => {
 
   try {
     await dbUpdateUser(event, id, updateData)
+
+    // 若解除拉黑，同步清除频率限制与 blacklist.json 中的条目
+    if (isBlacklisted === false) {
+      const { dbGetUsers, dbRemoveBlacklist } = await import('../../utils/db')
+      const { resetRateLimit } = await import('../../utils/rate-limiter')
+      const users = await dbGetUsers(event).catch(() => [])
+      const u = users.find((item: any) => String(item.id) === String(id))
+      if (u) {
+        resetRateLimit(`client-user:${u.username}`)
+        if (u.email) resetRateLimit(`client-user:${u.email}`)
+        await dbRemoveBlacklist(event, u.username).catch(() => {})
+        if (u.email) await dbRemoveBlacklist(event, u.email).catch(() => {})
+      }
+    }
+
     return { success: true }
   } catch (error: any) {
     console.error('Failed to update user:', error)
