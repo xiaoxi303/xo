@@ -89,49 +89,120 @@ fi
 
 echo "✅ 生产构建完成，静态资源与服务端运行时已就绪于 .output/。"
 
-# 6. 自动管理并同步启动服务集群 (优先 PM2，次选后台守护)
+# 6. 端口智能探测与可用性自愈 (优先环境变量 PORT，次选 3000，冲突时自动搜索可用端口如 3007)
 echo ""
-echo "🔄 正在同步启动与加载服务集群..."
+echo "🔍 正在进行运行端口状态探测与智能分配..."
+
+DESIRED_PORT="${PORT:-3000}"
+
+is_port_in_use() {
+  local p="$1"
+  node -e "
+    const net = require('net');
+    const server = net.createServer();
+    server.once('error', (err) => {
+      if (err.code === 'EADDRINUSE') process.exit(1);
+      process.exit(0);
+    });
+    server.once('listening', () => {
+      server.close(() => process.exit(0));
+    });
+    server.listen($p, '127.0.0.1');
+  " >/dev/null 2>&1
+  if [ $? -eq 1 ]; then
+    return 0 # in use
+  else
+    return 1 # free
+  fi
+}
+
+APP_PORT="$DESIRED_PORT"
+
+if is_port_in_use "$DESIRED_PORT"; then
+  echo "⚠️ 端口 $DESIRED_PORT 当前已被占用，正在检查并清理历史孤儿进程..."
+  
+  # 优先尝试平滑清理旧的本程序进程
+  OLD_PIDS=$(lsof -t -i :"$DESIRED_PORT" 2>/dev/null || fuser "$DESIRED_PORT"/tcp 2>/dev/null || true)
+  if [ -n "$OLD_PIDS" ]; then
+    echo "🛑 发现占用端口 $DESIRED_PORT 的历史进程 PID: $OLD_PIDS，正在释放..."
+    kill -15 $OLD_PIDS 2>/dev/null || true
+    sleep 1
+    if is_port_in_use "$DESIRED_PORT"; then
+      kill -9 $OLD_PIDS 2>/dev/null || true
+      sleep 1
+    fi
+  fi
+fi
+
+# 如果端口仍被占用（非本程序或被其他固定服务占用），自动查找可用候选端口（优先 3007，次选 3001~3020）
+if is_port_in_use "$DESIRED_PORT"; then
+  echo "⚠️ 端口 $DESIRED_PORT 仍被外部服务占用，启动智能端口查找机制..."
+  CANDIDATE_PORTS=(3007 3001 3002 3003 3004 3005 3006 3008 3009 3010 3020 3080)
+  FOUND_PORT=""
+  for cp in "${CANDIDATE_PORTS[@]}"; do
+    if ! is_port_in_use "$cp"; then
+      FOUND_PORT="$cp"
+      break
+    fi
+  done
+
+  if [ -n "$FOUND_PORT" ]; then
+    APP_PORT="$FOUND_PORT"
+    echo "🎯 成功自动切换至空闲可用端口: $APP_PORT"
+  else
+    echo "❌ 常见端口均被占用，请手动指定 PORT=xxxx 执行部署。"
+    exit 1
+  fi
+else
+  echo "✅ 端口 $APP_PORT 空闲就绪。"
+fi
+
+export PORT="$APP_PORT"
+export HOST="127.0.0.1"
+
+# 7. 自动管理并同步启动服务集群 (优先 PM2，次选后台守护)
+echo ""
+echo "🔄 正在同步启动与加载服务集群 (监听 127.0.0.1:$APP_PORT)..."
 
 if command -v pm2 >/dev/null 2>&1; then
-  echo "⚡ 检测到 PM2，正在通过 ecosystem.config.cjs 进行零停机热重载/同步启动..."
-  pm2 reload ecosystem.config.cjs --update-env || pm2 start ecosystem.config.cjs
+  echo "⚡ 检测到 PM2，正在通过 ecosystem.config.cjs 在端口 $APP_PORT 启动服务集群..."
+  PORT=$APP_PORT pm2 reload ecosystem.config.cjs --update-env || PORT=$APP_PORT pm2 start ecosystem.config.cjs --update-env
   pm2 save
-  echo "✅ PM2 双实例集群服务已同步启动并保存开机状态。"
+  echo "✅ PM2 双实例集群服务已在端口 $APP_PORT 启动并保存开机状态。"
 else
   echo "⚠️ 未检测到全局 PM2，尝试使用 npx pm2 或直接拉起 node 守护进程..."
   if npx --no-install pm2 -v >/dev/null 2>&1; then
-    npx pm2 reload ecosystem.config.cjs --update-env || npx pm2 start ecosystem.config.cjs
-    echo "✅ npx pm2 集群服务已同步启动。"
+    PORT=$APP_PORT npx pm2 reload ecosystem.config.cjs --update-env || PORT=$APP_PORT npx pm2 start ecosystem.config.cjs --update-env
+    echo "✅ npx pm2 集群服务已在端口 $APP_PORT 启动。"
   else
     echo "ℹ️ 使用 nohup 启动生产服务 (建议后续安装 pm2: npm install -g pm2)..."
     PID=$(pgrep -f ".output/server/index.mjs" || true)
     if [ -n "$PID" ]; then
       echo "🛑 正在平滑停止旧进程 PID: $PID"
-      kill -15 "$PID" || true
+      kill -15 "$PID" 2>/dev/null || true
       sleep 2
     fi
-    PORT=3000 HOST=127.0.0.1 nohup node .output/server/index.mjs > server.log 2>&1 &
-    echo "✅ 生产服务已在后台运行，日志输出至 server.log。"
+    PORT=$APP_PORT HOST=127.0.0.1 nohup node .output/server/index.mjs > server.log 2>&1 &
+    echo "✅ 生产服务已在后台运行 (端口: $APP_PORT)，日志输出至 server.log。"
   fi
 fi
 
-# 7. 全链路三联健康自检 (握手探测 + 滑块引擎 + 主站渲染)
+# 8. 全链路三联健康自检 (握手探测 + 滑块引擎 + 主站渲染)
 echo ""
-echo "🩺 正在等待服务就绪并执行全链路三联自检..."
+echo "🩺 正在等待服务就绪并执行全链路三联自检 (端口: $APP_PORT)..."
 sleep 3
 
-MAX_RETRIES=10
+MAX_RETRIES=15
 RETRY_COUNT=0
 ALL_READY=false
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
   # 探测 1: 金库一次性公钥握手 (OTPK)
-  CODE_KEY=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/security/rsa-public-key || echo "000")
+  CODE_KEY=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/rsa-public-key" || echo "000")
   # 探测 2: 智能光影人机安全核验引擎挑战
-  CODE_SLIDER=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/security/slider-challenge || echo "000")
+  CODE_SLIDER=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/slider-challenge" || echo "000")
   # 探测 3: SSR 主站 HTML 渲染
-  CODE_INDEX=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/ || echo "000")
+  CODE_INDEX=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/" || echo "000")
 
   if [ "$CODE_KEY" = "200" ] && [ "$CODE_SLIDER" = "200" ] && [ "$CODE_INDEX" = "200" ]; then
     ALL_READY=true
@@ -148,13 +219,13 @@ if [ "$ALL_READY" = "true" ]; then
   echo "🎉 部署完成！XO Studio 整体项目已全量同步启动就绪！"
   echo "🔐 量子独立密库已预热，一次性公钥池与午夜自动轮换正常运作。"
   echo "🛡️ 智能光影生物安全核验引擎已就绪 (/api/security/slider-challenge)。"
-  echo "🌐 本地服务端点: http://127.0.0.1:3000"
+  echo "🌐 本地服务端点: http://127.0.0.1:$APP_PORT"
   echo "=========================================================="
   
-  # 8. 智能同步 Nginx 反向代理配置
+  # 9. 智能同步 Nginx 反向代理配置 (动态适配 $APP_PORT)
   if command -v nginx >/dev/null 2>&1; then
     echo ""
-    echo "🌐 正在检查与同步 Nginx 反向代理与 TLS 配置..."
+    echo "🌐 正在检查与同步 Nginx 反向代理 (上游端口: $APP_PORT)..."
     if [ "$(id -u)" -eq 0 ]; then
       if [ -f "deploy/nginx/cloudflare-ips.conf" ]; then
         mkdir -p /etc/nginx/snippets
@@ -162,21 +233,24 @@ if [ "$ALL_READY" = "true" ]; then
       fi
       if [ -f "deploy/nginx/xo.xoxox.bond.conf" ]; then
         mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-        cp deploy/nginx/xo.xoxox.bond.conf /etc/nginx/sites-available/xo.xoxox.bond.conf
+        # 动态替换 proxy_pass 端口为实际分配的 $APP_PORT
+        sed "s|proxy_pass http://127.0.0.1:[0-9]\+;|proxy_pass http://127.0.0.1:$APP_PORT;|g" \
+          deploy/nginx/xo.xoxox.bond.conf > /etc/nginx/sites-available/xo.xoxox.bond.conf
         ln -sf /etc/nginx/sites-available/xo.xoxox.bond.conf /etc/nginx/sites-enabled/xo.xoxox.bond.conf
         # 彻底下线默认与残缺旧 vhost，杜绝 apex 域名 502 错误
         rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf 2>/dev/null || true
         if nginx -t >/dev/null 2>&1; then
           systemctl reload nginx 2>/dev/null || nginx -s reload 2>/dev/null || true
-          echo "✅ Nginx 站点配置已自动同步、检验通过并完成热重载 (残缺默认站点已自动下线)。"
+          echo "✅ Nginx 站点配置已自动同步至端口 $APP_PORT，检验通过并完成热重载。"
         else
           echo "⚠️ Nginx 配置语法检测未通过，请检查 SSL 证书路径后重试: nginx -t"
         fi
       fi
     else
-      echo "💡 当前为非 root 用户，如需同步更新公网 Nginx 代理，请执行以下指令:"
+      echo "💡 当前为非 root 用户，如需同步更新公网 Nginx 代理至端口 $APP_PORT，请执行以下指令:"
       echo "   sudo cp deploy/nginx/cloudflare-ips.conf /etc/nginx/snippets/"
-      echo "   sudo cp deploy/nginx/xo.xoxox.bond.conf /etc/nginx/sites-available/"
+      echo "   sudo sed 's|proxy_pass http://127.0.0.1:[0-9]\\+;|proxy_pass http://127.0.0.1:$APP_PORT;|g' deploy/nginx/xo.xoxox.bond.conf > /tmp/xo.conf"
+      echo "   sudo cp /tmp/xo.conf /etc/nginx/sites-available/xo.xoxox.bond.conf"
       echo "   sudo ln -sf /etc/nginx/sites-available/xo.xoxox.bond.conf /etc/nginx/sites-enabled/"
       echo "   sudo nginx -t && sudo systemctl reload nginx"
     fi
