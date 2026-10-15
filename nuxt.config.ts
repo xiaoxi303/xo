@@ -99,12 +99,27 @@ export default defineNuxtConfig({
     compatibilityVersion: 4
   },
 
+  hooks: {
+    'close': () => {
+      if (process.env.NODE_ENV === 'production') {
+        setTimeout(() => process.exit(0), 400).unref()
+      }
+    }
+  },
+
   // Nitro 部署预设与服务端代码混淆/压缩配置
   nitro: {
     preset: 'node-server',
     minify: true,
     sourcemap: false,
     hidePoweredBy: true,
+    hooks: {
+      'compiled': () => {
+        if (process.env.NODE_ENV === 'production') {
+          setTimeout(() => process.exit(0), 600).unref()
+        }
+      }
+    },
     prerender: {
       crawlLinks: false,
       failOnError: false,
