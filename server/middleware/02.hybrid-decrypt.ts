@@ -35,6 +35,11 @@ export default defineEventHandler(async (event) => {
     // 空或损坏的载荷会在后续强校验中被拦截
   }
 
+  // 1.5 后台管理接口（/api/admin/）已有专属管理员会话令牌与守卫校验，放行标准管理操作
+  if (pathname.startsWith('/api/admin/')) {
+    return
+  }
+
   // 2. 【核心通道 A】：全站双舱多态混合加密强共识载荷
   // 所有普通业务接口、认证鉴权、人机拼图滑块校验、加密图片/文件上传均必须通过此舱解密
   if (isRsaHybridPayload(body)) {
@@ -49,10 +54,9 @@ export default defineEventHandler(async (event) => {
       event.context.rawHybridPayload = body
       return
     } catch (decryptErr: any) {
-      await triggerIntruderLockout(event, decryptErr?.message || '非法密文或公钥不匹配')
       throw createError({
         statusCode: 400,
-        statusMessage: '安全策略拦截：密文共识校验未通过或凭证已失效。'
+        statusMessage: '安全策略拦截：公钥凭据已失效或时钟不同步，请刷新页面后重试。'
       })
     }
   }

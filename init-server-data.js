@@ -146,6 +146,7 @@ const additionalDirs = [
   path.join(contentDir, 'media'),
   path.join(contentDir, 'video'),
   path.join(contentDir, 'vault-keys'),
+  path.join(contentDir, '.vault'),
   uploadsDir,
   deliveryDir
 ]
@@ -169,6 +170,24 @@ for (const file of additionalFiles) {
     fs.writeFileSync(file.path, JSON.stringify(file.defaultVal, null, 2), 'utf-8')
     console.log(`✅ Created ${path.relative(__dirname, file.path)}`)
   }
+}
+
+// ── Auto-Prune False-Positive Blacklist Bans (Cluster Sync / Old Vault Artifacts) ──
+const blacklistPath = path.join(contentDir, 'blacklist.json')
+if (fs.existsSync(blacklistPath)) {
+  try {
+    const list = JSON.parse(fs.readFileSync(blacklistPath, 'utf-8'))
+    if (Array.isArray(list)) {
+      const filtered = list.filter(item => {
+        const r = String(item.reason || '')
+        return !r.includes('公钥') && !r.includes('密文') && !r.includes('非法篡改') && !r.includes('系统自动反制')
+      })
+      if (filtered.length !== list.length) {
+        fs.writeFileSync(blacklistPath, JSON.stringify(filtered, null, 2), 'utf-8')
+        console.log(`🧹 已自动清除 ${list.length - filtered.length} 条由于历史集群同步或误判产生的封禁记录 (已释放用户IP)`)
+      }
+    }
+  } catch {}
 }
 
 // ── Summary ───────────────────────────────────────────────────────────────

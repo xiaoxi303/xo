@@ -6511,7 +6511,7 @@ const unbanTarget = async (val: string, label?: string) => {
     alert(res.message || `已成功解除【${targetLabel}】的全部限制！`)
     await Promise.all([fetchBlacklist(), fetchUsers(), fetchPasswordRequests()])
   } catch (err: any) {
-    alert(err.statusMessage || '解除限制失败。')
+    alert(err.data?.statusMessage || err.data?.message || err.statusMessage || err.message || '解除限制失败。')
   }
 }
 

@@ -62,6 +62,9 @@ content/client-accounts.json
 # Locally uploaded files (media/avatars)
 public/uploads/
 
+# Vault runtime keys & master secret (cluster local)
+content/.vault/
+
 
 
 

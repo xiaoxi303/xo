@@ -1,8 +1,9 @@
-import { getRequestHeader, setResponseHeader, removeResponseHeader, getRequestURL, getHeader, sendRedirect, createError } from 'h3'
+import { getRequestHeader, setResponseHeader, removeResponseHeader, getRequestURL, getHeader, sendRedirect, createError, getCookie } from 'h3'
 import { getRealClientIP } from '../utils/ip-helper'
 import { logSecurityEvent } from '../utils/security-logger'
 import { checkRateLimit } from '../utils/rate-limiter'
 import { triggerIntruderLockout } from '../utils/vault-cipher'
+import { validateSession, SESSION_COOKIE } from '../utils/auth'
 
 export default defineEventHandler(async (event) => {
   // 1. Scrub Framework and Server Identity Headers & Enforce Strict Airtight Security Headers
@@ -26,21 +27,27 @@ export default defineEventHandler(async (event) => {
   const machineId = getRequestHeader(event, 'x-machine-id') || ''
 
   // 2. Active Defense: IP and Machine Lockout Enforcement
-  const ipLock = checkRateLimit(clientIp)
-  if (ipLock.isLocked) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: `安全防御系统已触发：当前终端存在恶意探测攻击记录，已被安全封锁。`
-    })
-  }
+  // 校验是否存在合法有效的管理员会话，杜绝管理员因误报或网络切换被锁在后台之外
+  const adminCookie = getCookie(event, SESSION_COOKIE)
+  const isAdminAuthenticated = !!(adminCookie && validateSession(adminCookie))
 
-  if (machineId) {
-    const machLock = checkRateLimit(`mach:${machineId}`)
-    if (machLock.isLocked) {
+  if (!isAdminAuthenticated) {
+    const ipLock = checkRateLimit(clientIp)
+    if (ipLock.isLocked) {
       throw createError({
         statusCode: 403,
-        statusMessage: `安全防御系统已触发：该设备机器码已被锁定。`
+        statusMessage: `安全防御系统已触发：当前终端存在恶意探测攻击记录，已被安全封锁。`
       })
+    }
+
+    if (machineId) {
+      const machLock = checkRateLimit(`mach:${machineId}`)
+      if (machLock.isLocked) {
+        throw createError({
+          statusCode: 403,
+          statusMessage: `安全防御系统已触发：该设备机器码已被锁定。`
+        })
+      }
     }
   }
 
