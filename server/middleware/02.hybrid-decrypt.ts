@@ -19,27 +19,6 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // 1. 0字节信号端点（如登出通知、视图浏览计数等无载荷信号）
-  const contentLength = Number(getRequestHeader(event, 'content-length') || 0)
-  if (
-    (pathname === '/api/auth/logout' || pathname === '/api/auth/client-logout' || pathname.endsWith('/view')) &&
-    contentLength === 0
-  ) {
-    return
-  }
-
-  // 1.5 管理员特权通道：
-  // 经校验具备有效管理会话（/api/site-config、/api/projects、/api/upload、/api/admin/** 等）直接放行
-  const adminCookie = getCookie(event, SESSION_COOKIE)
-  if (adminCookie && validateSession(adminCookie)) {
-    return
-  }
-
-  // 1.6 后台管理专有路径放行（由下游 admin-guard 与端点自行校验会话）
-  if (pathname.startsWith('/api/admin/')) {
-    return
-  }
-
   // 读取请求载荷
   let body: any = null
   try {
@@ -48,8 +27,8 @@ export default defineEventHandler(async (event) => {
     // 空或损坏的载荷会在后续强校验中被拦截
   }
 
-  // 2. 【核心通道 A】：全站双舱多态混合加密强共识载荷
-  // 所有普通业务接口、认证鉴权、人机拼图滑块校验、加密图片/文件上传均必须通过此舱解密
+  // 1. 【核心通道 A】：全站双舱多态混合加密强共识载荷
+  // 所有普通业务接口、认证鉴权、人机核验校验、加密数据必须优先通过此舱解密（无论请求者是否携带管理员会话）
   if (isRsaHybridPayload(body)) {
     try {
       const decryptedString = await decryptRsaHybrid(body, event)
@@ -68,6 +47,27 @@ export default defineEventHandler(async (event) => {
         statusMessage: '安全策略拦截：公钥凭据已失效或时钟不同步，请刷新页面后重试。'
       })
     }
+  }
+
+  // 2. 0字节信号端点（如登出通知、视图浏览计数等无载荷信号）
+  const contentLength = Number(getRequestHeader(event, 'content-length') || 0)
+  if (
+    (pathname === '/api/auth/logout' || pathname === '/api/auth/client-logout' || pathname.endsWith('/view')) &&
+    contentLength === 0
+  ) {
+    return
+  }
+
+  // 3. 管理员特权通道：
+  // 经校验具备有效管理会话（/api/site-config、/api/projects、/api/upload 等后台明文操作）直接放行
+  const adminCookie = getCookie(event, SESSION_COOKIE)
+  if (adminCookie && validateSession(adminCookie)) {
+    return
+  }
+
+  // 4. 后台管理专有路径放行（由下游 admin-guard 与端点自行校验会话）
+  if (pathname.startsWith('/api/admin/')) {
+    return
   }
 
   // 3. 【核心通道 B】：专属支付网关金库共识验签通道 (针对支付宝异步回调)

@@ -1,14 +1,21 @@
 import { readBody, createError } from 'h3'
-import { verifySecurityChallenge } from '../../utils/vault-cipher'
+import { verifySecurityChallenge, decryptRsaHybrid, isRsaHybridPayload } from '../../utils/vault-cipher'
 import { getRealClientIP } from '../../utils/ip-helper'
 
 export default defineEventHandler(async (event) => {
   let body: any = event.context.decryptedBody || {}
   if (!body.challengeId) {
     try {
-      body = (await readBody(event)) || body
-    } catch {
-      // fallback
+      const raw = await readBody(event)
+      if (isRsaHybridPayload(raw)) {
+        const decryptedString = await decryptRsaHybrid(raw, event)
+        body = JSON.parse(decryptedString)
+        event.context.decryptedBody = body
+      } else if (raw && typeof raw === 'object') {
+        body = raw
+      }
+    } catch (err: any) {
+      console.error('[slider-verify] Decrypt fallback error:', err?.message || err)
     }
   }
 
