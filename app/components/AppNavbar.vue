@@ -79,7 +79,7 @@
       <div class="flex items-center gap-2 md:gap-3 flex-shrink-0 z-10">
         <!-- Contact button -->
         <AppContactBtn
-          :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')"
+          :siteInfo="siteConfig?.siteInfo"
           :customClass="[
             'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-xs group cursor-pointer border',
             isScrolled 
@@ -129,7 +129,8 @@
         </NuxtLink>
         <div class="border-t mt-2 pt-2 px-1" style="border-color: rgba(0,0,0,0.06);">
           <a 
-            :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" 
+            :href="mobileMailto" 
+            @click="handleMobileContact"
             class="group flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-slate-900 to-slate-800 hover:from-amber-600 hover:to-amber-700 shadow-md hover:shadow-[0_8px_25px_rgba(217,119,6,0.4)] transition-all duration-300 active:scale-[0.98]"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 opacity-90 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">
@@ -145,12 +146,26 @@
 </template>
 
 <script setup lang="ts">
+import { resolveSafeEmail } from '../utils/email-armor'
+
 const route = useRoute()
 const navbarRef = ref<HTMLElement | null>(null)
 const isScrolled = ref(false)
 const mobileOpen = ref(false)
 
 const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
+
+const mobileMailto = computed(() => {
+  const email = resolveSafeEmail(siteConfig.value?.siteInfo)
+  return email ? `mailto:${email}` : '#'
+})
+
+const handleMobileContact = () => {
+  const email = resolveSafeEmail(siteConfig.value?.siteInfo)
+  if (email && import.meta.client) {
+    try { navigator.clipboard.writeText(email) } catch {}
+  }
+}
 
 const navLinks = [
   { label: '首页', to: '/' },

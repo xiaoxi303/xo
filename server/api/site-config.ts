@@ -11,6 +11,17 @@ function publicSiteConfig(config: any) {
   if (copy.watermark) {
     delete copy.watermark.extractPassword
   }
+
+  // 防爬虫邮件装甲：将对外展示邮箱在公网输出前进行异或混淆封装，源码不包含明文 @ 与域名
+  if (copy.siteInfo && copy.siteInfo.contactEmail) {
+    const rawEmail = String(copy.siteInfo.contactEmail).trim()
+    if (rawEmail) {
+      const xorBuf = Buffer.from(rawEmail, 'utf8').map(b => b ^ 0x7E)
+      copy.siteInfo.contactEmailArmored = 'XO_ARMOR_' + xorBuf.toString('base64url')
+      copy.siteInfo.contactEmail = 'protected'
+    }
+  }
+
   return copy
 }
 
@@ -55,6 +66,14 @@ export default defineEventHandler(async (event) => {
       }
       if (!body.aiSettings && existing?.aiSettings) {
         body.aiSettings = existing.aiSettings
+      }
+
+      // Preserve actual contactEmail if client sent masked string
+      if (body.siteInfo) {
+        if (body.siteInfo.contactEmail === 'protected' && existing?.siteInfo?.contactEmail) {
+          body.siteInfo.contactEmail = existing.siteInfo.contactEmail
+        }
+        delete body.siteInfo.contactEmailArmored
       }
 
       await dbSaveSiteConfig(event, body)

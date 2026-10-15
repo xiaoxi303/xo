@@ -38,7 +38,8 @@
 
             <div class="pt-2 flex flex-wrap items-center gap-3">
               <a 
-                :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@Xo')" 
+                :href="safeMailto" 
+                @click="handleContactClick"
                 class="xo-kinetic-btn group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-lg hover:from-amber-600 hover:via-amber-500 hover:to-amber-700 hover:border-amber-400/40 hover:shadow-[0_12px_32px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 cursor-pointer"
               >
                 <span>发起邮件合作咨询</span>
@@ -164,6 +165,8 @@
 </template>
 
 <script setup lang="ts">
+import { resolveSafeEmail } from '../utils/email-armor'
+
 useHead({
   title: '剪辑总监履历 — Xo',
   meta: [{ name: 'description', content: '了解电影调色指导 Xo 的工作年谱、调色流程与后期制作观念。' }]
@@ -172,6 +175,18 @@ useHead({
 const { data: siteConfig } = useFetch<any>('/api/site-config', {
   key: 'site-config-about'
 })
+
+const safeMailto = computed(() => {
+  const email = resolveSafeEmail(siteConfig.value?.siteInfo)
+  return email ? `mailto:${email}` : '#'
+})
+
+const handleContactClick = () => {
+  const email = resolveSafeEmail(siteConfig.value?.siteInfo)
+  if (email && import.meta.client) {
+    try { navigator.clipboard.writeText(email) } catch {}
+  }
+}
 
 const experiences = computed(() => {
   const configuredExperiences = siteConfig.value?.about?.experiences

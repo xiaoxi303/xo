@@ -1054,7 +1054,7 @@
                   <NuxtLink to="/booking/form" class="xo-kinetic-btn w-full justify-center py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-800 hover:to-amber-800 shadow-lg shadow-amber-700/20 flex items-center gap-2">
                     <span>🎬 预约商业档期 / 提案</span>
                   </NuxtLink>
-                  <a :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev')" class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-amber-700 py-2 transition-colors">
+                  <a :href="projectSafeMailto" @click="handleProjectEmailClick" class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-amber-700 py-2 transition-colors">
                     <span>发送邮件咨询</span>
                     <span>&rarr;</span>
                   </a>
@@ -1215,6 +1215,7 @@
 
 <script setup lang="ts">
 import { encryptRsaHybrid } from '~/utils/rsa-hybrid'
+import { resolveSafeEmail } from '~/utils/email-armor'
 const route = useRoute()
 const currentSlug = computed(() => {
   let raw = String(route.params.slug || '').trim()
@@ -1276,9 +1277,20 @@ watch(projectVideoUrls, (urls) => {
   if (activeVideoIndex.value >= urls.length) activeVideoIndex.value = 0
 })
 
-// Check unlock status from server (uses HTTP-only cookie)
 const { data: siteConfigData } = useFetch('/api/site-config', { lazy: true })
 const siteConfig = useState<any>('site-config', () => siteConfigData.value || {})
+
+const projectSafeMailto = computed(() => {
+  const email = resolveSafeEmail(siteConfig.value?.siteInfo)
+  return email ? `mailto:${email}` : '#'
+})
+
+const handleProjectEmailClick = () => {
+  const email = resolveSafeEmail(siteConfig.value?.siteInfo)
+  if (email && import.meta.client) {
+    try { navigator.clipboard.writeText(email) } catch {}
+  }
+}
 
 const logoWatermarkEnabled = computed(() => siteConfig.value?.watermark?.logoEnabled ?? true)
 const invisibleWatermarkEnabled = computed(() => siteConfig.value?.watermark?.invisibleEnabled ?? true)

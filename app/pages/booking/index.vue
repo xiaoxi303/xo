@@ -278,7 +278,7 @@
                   >
                     <div class="flex items-center gap-2 text-slate-700 min-w-0 truncate">
                       <IconSax name="mail" :size="16" class="text-amber-700 shrink-0" />
-                      <span class="truncate font-mono">{{ siteConfig?.siteInfo?.contactEmail || 'hello@xo.dev' }}</span>
+                      <span class="truncate font-mono">{{ displayContactEmail }}</span>
                     </div>
                     <span class="text-[10px] font-mono text-amber-700 font-bold shrink-0 ml-2">
                       {{ copiedEmail ? '已复制 ✓' : '点击复制' }}
@@ -542,6 +542,7 @@
 
 <script setup lang="ts">
 import { encryptRsaHybrid } from '../../utils/rsa-hybrid'
+import { resolveSafeEmail } from '../../utils/email-armor'
 
 useHead({
   title: '商业合作与后期排期 - XO Studio',
@@ -552,6 +553,10 @@ useHead({
 
 const { data: siteConfig } = useFetch<any>('/api/site-config', { lazy: true })
 const { data: clientMe } = await useFetch<any>('/api/auth/client-me')
+
+const displayContactEmail = computed(() => {
+  return resolveSafeEmail(siteConfig.value?.siteInfo)
+})
 
 const submitted = ref(false)
 const submitting = ref(false)
@@ -699,7 +704,7 @@ const selectServiceAndScroll = (title: string) => {
 }
 
 const copyEmail = async () => {
-  const email = siteConfig.value?.siteInfo?.contactEmail || 'hello@xo.dev'
+  const email = displayContactEmail.value
   await copyToClipboard(email)
   copiedEmail.value = true
   setTimeout(() => {

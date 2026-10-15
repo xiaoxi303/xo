@@ -54,7 +54,7 @@
               </NuxtLink>
 
               <AppContactBtn
-                :href="'mailto:' + (siteConfig?.siteInfo?.contactEmail || 'hello@xo.studio')"
+                :siteInfo="siteConfig?.siteInfo"
                 customClass="px-6 py-3 text-xs font-bold text-[var(--color-ink-1)] bg-white/90 border border-amber-600/20 shadow-md xo-kinetic-btn"
                 @click="trackEvent('contact_click', 'homepage')"
               >
