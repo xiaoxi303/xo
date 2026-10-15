@@ -78,3 +78,16 @@ sudo bash deploy/scripts/setup-server-firewall.sh
 | **作品交付授权解锁** | 全链路双舱多态混合加密传输 | 强制密文，单终端连续 5 次失败自动锁定 15 分钟 |
 | **支付通知回调通道** | 专属支付金库官方 RSA2 强共识验签 | 绝非普通免检豁免；严格校验官方 RSA2 签名与数据库金额对齐，伪造回调秒级硬拉黑 |
 
+---
+
+## 五、重点安全漏洞闭环与防御矩阵 (L1 / L4 / L5 / L10 / L17)
+
+| 漏洞编号 | 问题描述 | 根因与修复方案 | 当前防护状态 |
+|---|---|---|---|
+| **L1** | `sql_dump.txt 仍公开` | 编译后自动彻底清理 `.output/public` 中的 `__nuxt_content` 目录与静态导出；同时在 Nitro 中间件及 Nginx 针对 `sql_dump.txt` 与 `__nuxt_content` 返回 404 并记录黑客封禁。 | **已闭环 (零泄露)** |
+| **L4** | `客户登录可区分账号 (密码错误 N/5)` | 消除已存在账号与不存在账号在报错内容、失败计数泄漏及耗时侧信道差异：统一返回 `用户名或密码错误，请重新输入。`，且不存在账号自动执行同等密码 Hash 耗时对齐。 | **已闭环 (防枚举)** |
+| **L5** | `源站 SSH (:22) 仍公网开放` | 提供一键加固脚本 `sudo bash deploy/scripts/harden-ssh.sh`，强制启用公钥认证（禁用密码暴力破解）；同时防火墙支持 `ADMIN_SSH_IP=你的公网IP sudo bash deploy/scripts/setup-server-firewall.sh` 仅对特定管理 IP 放行 22 端口。 | **已闭环 (限IP/仅密钥)** |
+| **L10** | `apex / 残缺 vhost 仍 502` | 在 `xo.xoxox.bond.conf` 中为 Apex 根域名 (`xoxox.bond` / `www.xoxox.bond`) 增加完整的 HTTP/HTTPS 301 自动跳转至主站；并在部署时自动清理系统残留默认残缺站点 (`rm -f /etc/nginx/sites-enabled/default`)。 | **已闭环 (下线/自动重定向)** |
+| **L17** | `滑块是纯客户端行为可伪造凭证` | 彻底移除历史向后兼容的离线未签名凭据 (`XO_SLIDER_`)。所有凭据必须基于服务端签发的 PoW / 空间光影挑战 (`issueSecurityChallenge`)，通过后由服务端在内存票据池签发一次性物理自毁票据 (`XO_VAULT_GATE_`)。任何非服务端生成的公开伪造凭据一律拒绝。 | **已闭环 (全服务端Challenge)** |
+
+

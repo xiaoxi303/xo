@@ -92,6 +92,8 @@ export default defineEventHandler(async (event) => {
     /\/cgi-bin/i,
     /\/xmlrpc\.php/i,
     /\/__nuxt_content/i,
+    /\/sql_dump/i,
+    /\/schema_dump/i,
     /\/content\//i,
     /\/package(-lock)?\.json/i,
     /\/tsconfig\.json/i,

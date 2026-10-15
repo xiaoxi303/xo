@@ -102,7 +102,11 @@ export default defineEventHandler(async (event) => {
   // Normalize username comparison (case-insensitive for safety, standard admin)
   const isUsernameMatch = username === allowedUsername || username.toLowerCase() === allowedUsername.toLowerCase()
 
+  const DUMMY_HASH = 'pbkdf2$10000$ffffffffffffffff$ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+
   if (!isUsernameMatch) {
+    // Equalize computational timing to prevent side-channel timing enumeration
+    verifyPassword(password, DUMMY_HASH)
     const rec = recordFailedAttempt(ip, 5, 15 * 60)
     recordFailedAttempt(`admin:${username}`, 5, 15 * 60)
     logSecurityEvent({
@@ -137,7 +141,7 @@ export default defineEventHandler(async (event) => {
     if (rec.failedAttempts >= 5) {
       throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户及 IP 已被安全锁定 15 分钟。' })
     }
-    throw createError({ statusCode: 401, statusMessage: `管理员安全密码错误，连续失败 ${rec.failedAttempts} 次 (5次将锁定)。` })
+    throw createError({ statusCode: 401, statusMessage: '管理员账号或安全密码错误。' })
   }
 
   // Login successful: reset rate limit counters

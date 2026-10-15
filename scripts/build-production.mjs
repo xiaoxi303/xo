@@ -149,6 +149,14 @@ async function main() {
 
   await runNuxtBuild()
   runSync(['run', 'verify:production'], 'verify production artifacts')
+
+  // Scrub internal schema dumps and nuxt-content metadata from public distribution
+  try {
+    const publicContentDir = path.resolve(process.cwd(), '.output', 'public', '__nuxt_content')
+    fs.rmSync(publicContentDir, { recursive: true, force: true })
+    console.log('[build] Cleaned sensitive internal schema dumps (__nuxt_content) from public directory.')
+  } catch {}
+
   console.log('\n[build] Production build completed successfully.')
 }
 

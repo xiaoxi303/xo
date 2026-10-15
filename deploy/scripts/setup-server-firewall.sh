@@ -24,9 +24,14 @@ fi
 ufw default deny incoming
 ufw default allow outgoing
 
-# 2. SSH 远程管理端口防护 (防止被锁在外)
-# 限制暴力破解（10秒内超过6次连接自动封禁）
-ufw limit 22/tcp comment 'SSH Rate Limited'
+# 2. SSH 远程管理端口防护 (限 IP 或防暴破限速)
+if [ -n "$ADMIN_SSH_IP" ]; then
+  echo "🔒 检测到管理员指定 IP ($ADMIN_SSH_IP)，仅允许该 IP 连接 SSH 端口 22..."
+  ufw allow from "$ADMIN_SSH_IP" to any port 22 proto tcp comment 'Admin SSH Only'
+else
+  echo "⚠️ 未指定 ADMIN_SSH_IP，应用公网速率限制防护（建议通过 ADMIN_SSH_IP=你的IP 运行以收敛公网暴露面）..."
+  ufw limit 22/tcp comment 'SSH Rate Limited'
+fi
 
 # 3. 下载最新的 Cloudflare 官方 IPV4 段并放行 80/443
 echo "📥 正在获取 Cloudflare 官方 IPv4 节点列表..."

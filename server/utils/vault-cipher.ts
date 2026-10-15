@@ -831,6 +831,7 @@ interface SecurityChallengeItem {
 }
 
 const activeSecurityChallenges = new Map<string, SecurityChallengeItem>()
+const activeIssuedSecurityTickets = new Map<string, { expiresAt: number; clientIp?: string }>()
 const consumedSecurityTokens = new Set<string>()
 
 // 定期清理过期安全挑战与已消耗凭据缓存
@@ -839,6 +840,11 @@ setInterval(() => {
   for (const [id, item] of activeSecurityChallenges.entries()) {
     if (now > item.expiresAt) {
       activeSecurityChallenges.delete(id)
+    }
+  }
+  for (const [ticketId, ticket] of activeIssuedSecurityTickets.entries()) {
+    if (now > ticket.expiresAt) {
+      activeIssuedSecurityTickets.delete(ticketId)
     }
   }
   if (consumedSecurityTokens.size > 20000) {
@@ -983,6 +989,12 @@ export function verifySecurityChallenge(params: {
 
   const token = `XO_VAULT_GATE_${ticketId}_${now}_${signature}`
 
+  // 严格记录服务端已核验成功的票据凭证（有效窗口 180 秒，杜绝客户端无 challenge 伪造）
+  activeIssuedSecurityTickets.set(ticketId, {
+    expiresAt: now + 180 * 1000,
+    clientIp
+  })
+
   return {
     success: true,
     token
@@ -990,8 +1002,8 @@ export function verifySecurityChallenge(params: {
 }
 
 /**
- * 金库人机安全验证 Token 统一校验 (全面支持 XO_VAULT_GATE_、XO_VAULT_SLIDER_ 及向后兼容)
- * 具备单次物理自毁 (Burn-on-Use) 与防重放保护
+ * 金库人机安全验证 Token 统一校验 (全面支持 XO_VAULT_GATE_ 与 XO_VAULT_SLIDER_)
+ * 必须经由服务端挑战核验签发，具备严格单次物理自毁 (Burn-on-Use) 与防重放保护
  */
 export function vaultVerifyCaptchaToken(token: string, event?: any): { valid: boolean; reason?: string } {
   if (!token || typeof token !== 'string') {
@@ -1003,84 +1015,77 @@ export function vaultVerifyCaptchaToken(token: string, event?: any): { valid: bo
     return { valid: false, reason: '人机安全验证凭据已被使用，不可重复提交' }
   }
 
-  // 1. 升级版金库门禁令牌 (XO_VAULT_GATE_ / XO_VAULT_SLIDER_)
+  // 仅放行经服务端 challenge 签名认证的金库门禁令牌 (XO_VAULT_GATE_ / XO_VAULT_SLIDER_)
   const isVaultGate = token.startsWith('XO_VAULT_GATE_')
   const isVaultSlider = token.startsWith('XO_VAULT_SLIDER_')
 
-  if (isVaultGate || isVaultSlider) {
-    const prefix = isVaultGate ? 'XO_VAULT_GATE_' : 'XO_VAULT_SLIDER_'
-    const parts = token.slice(prefix.length).split('_')
-    if (parts.length !== 3) {
-      return { valid: false, reason: '非法的人机验证凭证签名结构' }
-    }
-    const [ticketId, timestampStr, signature] = parts
-    const timestamp = parseInt(timestampStr, 10)
-    const now = Date.now()
-
-    // 180秒有效窗口
-    if (!timestamp || now - timestamp > 180 * 1000 || timestamp > now + 30 * 1000) {
-      return { valid: false, reason: '人机安全验证已过期，请重新核验' }
-    }
-
-    const pepper = getVaultMasterPepper()
-    const clientIp = event ? getRealClientIP(event) : undefined
-
-    let verified = false
-
-    // 标准独立签名比对 (${ticketId}:${timestamp})
-    const standardSign = crypto
-      .createHmac('sha256', pepper)
-      .update(`${ticketId}:${timestamp}`)
-      .digest('hex')
-      .slice(0, 32)
-
-    if (vaultTimingSafeEqual(standardSign, signature)) {
-      verified = true
-    } else {
-      // 容错候选候选集 (处理 IP 动态切换或跨代理环境)
-      for (const ipCandidate of [clientIp, '127.0.0.1', '::1', 'client', '']) {
-        const candidateSign = crypto
-          .createHmac('sha256', pepper)
-          .update(`${ticketId}:${timestamp}:${ipCandidate || 'client'}`)
-          .digest('hex')
-          .slice(0, 32)
-        if (vaultTimingSafeEqual(candidateSign, signature)) {
-          verified = true
-          break
-        }
-      }
-    }
-
-    if (!verified) {
-      return { valid: false, reason: '人机安全验证签名未通过' }
-    }
-
-    // 验证成功，立即就地自毁（物理防重放）
-    consumedSecurityTokens.add(token)
-    return { valid: true }
+  if (!isVaultGate && !isVaultSlider) {
+    return { valid: false, reason: '拒绝使用未经验证的离线验证凭据，请重新完成安全人机核验' }
   }
 
-  // 2. 向后兼容轻量离线令牌 (XO_SLIDER_${base64})
-  if (token.startsWith('XO_SLIDER_')) {
-    try {
-      const b64 = token.slice('XO_SLIDER_'.length).replace(/-/g, '+').replace(/_/g, '/')
-      const padded = b64 + '==='.slice((b64.length + 3) % 4)
-      const jsonStr = Buffer.from(padded, 'base64').toString('utf8')
-      const parsed = JSON.parse(jsonStr)
+  const prefix = isVaultGate ? 'XO_VAULT_GATE_' : 'XO_VAULT_SLIDER_'
+  const parts = token.slice(prefix.length).split('_')
+  if (parts.length !== 3) {
+    return { valid: false, reason: '非法的人机验证凭证签名结构' }
+  }
+  const [ticketId, timestampStr, signature] = parts
+  const timestamp = parseInt(timestampStr, 10)
+  const now = Date.now()
 
-      const now = Date.now()
-      if (!parsed.t || now - parsed.t > 180 * 1000 || parsed.t > now + 30 * 1000) {
-        return { valid: false, reason: '安全验证已过期，请重新完成核验' }
+  // 180秒有效窗口
+  if (!timestamp || now - timestamp > 180 * 1000 || timestamp > now + 30 * 1000) {
+    return { valid: false, reason: '人机安全验证已过期，请重新核验' }
+  }
+
+  // 核心防御：必须存在由服务端合法签发的挑战通过票据（杜绝任何公开算法伪造凭证）
+  if (!activeIssuedSecurityTickets.has(ticketId)) {
+    return { valid: false, reason: '未找到对应服务端人机核验挑战记录，严禁伪造凭证' }
+  }
+
+  const ticketInfo = activeIssuedSecurityTickets.get(ticketId)!
+  if (now > ticketInfo.expiresAt) {
+    activeIssuedSecurityTickets.delete(ticketId)
+    return { valid: false, reason: '人机安全验证挑战凭证已超时，请重新核验' }
+  }
+
+  const pepper = getVaultMasterPepper()
+  const clientIp = event ? getRealClientIP(event) : undefined
+
+  let verified = false
+
+  // 标准独立签名比对 (${ticketId}:${timestamp})
+  const standardSign = crypto
+    .createHmac('sha256', pepper)
+    .update(`${ticketId}:${timestamp}`)
+    .digest('hex')
+    .slice(0, 32)
+
+  if (vaultTimingSafeEqual(standardSign, signature)) {
+    verified = true
+  } else {
+    // 容错候选候选集 (处理 IP 动态切换或跨代理环境)
+    for (const ipCandidate of [clientIp, '127.0.0.1', '::1', 'client', '']) {
+      const candidateSign = crypto
+        .createHmac('sha256', pepper)
+        .update(`${ticketId}:${timestamp}:${ipCandidate || 'client'}`)
+        .digest('hex')
+        .slice(0, 32)
+      if (vaultTimingSafeEqual(candidateSign, signature)) {
+        verified = true
+        break
       }
-
-      consumedSecurityTokens.add(token)
-      return { valid: true }
-    } catch {
-      return { valid: false, reason: '验证凭据解析损坏' }
     }
   }
 
-  return { valid: false, reason: '未知的人机安全验证凭据格式' }
+  if (!verified) {
+    return { valid: false, reason: '人机安全验证签名未通过' }
+  }
+
+  // 校验通过，立即双重就地销毁（单次消费，物理防重放）
+  activeIssuedSecurityTickets.delete(ticketId)
+  consumedSecurityTokens.add(token)
+
+  return { valid: true }
 }
 
 // 统一门面与向后兼容导出别名

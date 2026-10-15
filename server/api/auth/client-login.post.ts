@@ -74,7 +74,11 @@ export default defineEventHandler(async (event) => {
   // Retrieve the raw user record (including password hash) through the shared D1/JSON adapter.
   const userRecord: any = await dbGetUserRecord(event, username)
 
+  const DUMMY_HASH = 'pbkdf2$10000$ffffffffffffffff$ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+
   if (!userRecord) {
+    // Equalize computational timing to prevent side-channel timing enumeration
+    verifyPassword(password, DUMMY_HASH)
     const rec = recordFailedAttempt(`client-ip:${ip}`, 5, 15 * 60)
     recordFailedAttempt(`client-user:${username}`, 5, 15 * 60)
     logSecurityEvent({
@@ -87,8 +91,8 @@ export default defineEventHandler(async (event) => {
     if (rec.failedAttempts >= 5) {
       throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户与 IP 已被临时锁定 15 分钟。' })
     }
-    // Prevent account enumeration by returning identical 401 message as wrong password
-    throw createError({ statusCode: 401, statusMessage: `用户名或密码错误，请重新输入 (已失败 ${rec.failedAttempts}/5 次)。` })
+    // Prevent account enumeration by returning unified generic message
+    throw createError({ statusCode: 401, statusMessage: '用户名或密码错误，请重新输入。' })
   }
 
   // Verify client password with timing-safe comparison
@@ -105,7 +109,7 @@ export default defineEventHandler(async (event) => {
     if (rec.failedAttempts >= 5) {
       throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户与 IP 已被临时锁定 15 分钟。' })
     }
-    throw createError({ statusCode: 401, statusMessage: `用户名或密码错误，请重新输入 (已失败 ${rec.failedAttempts}/5 次)。` })
+    throw createError({ statusCode: 401, statusMessage: '用户名或密码错误，请重新输入。' })
   }
 
   // A blacklisted account cannot create a new client session.

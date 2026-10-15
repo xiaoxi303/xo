@@ -164,9 +164,11 @@ if [ "$ALL_READY" = "true" ]; then
         mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
         cp deploy/nginx/xo.xoxox.bond.conf /etc/nginx/sites-available/xo.xoxox.bond.conf
         ln -sf /etc/nginx/sites-available/xo.xoxox.bond.conf /etc/nginx/sites-enabled/xo.xoxox.bond.conf
+        # 彻底下线默认与残缺旧 vhost，杜绝 apex 域名 502 错误
+        rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf 2>/dev/null || true
         if nginx -t >/dev/null 2>&1; then
           systemctl reload nginx 2>/dev/null || nginx -s reload 2>/dev/null || true
-          echo "✅ Nginx 站点配置已自动同步、检验通过并完成热重载。"
+          echo "✅ Nginx 站点配置已自动同步、检验通过并完成热重载 (残缺默认站点已自动下线)。"
         else
           echo "⚠️ Nginx 配置语法检测未通过，请检查 SSL 证书路径后重试: nginx -t"
         fi
