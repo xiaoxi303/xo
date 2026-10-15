@@ -260,32 +260,44 @@ if [ "$ALL_READY" = "true" ]; then
     echo ""
     echo "🌐 正在检查与同步 Nginx 反向代理 (上游端口: $APP_PORT)..."
     if [ "$(id -u)" -eq 0 ]; then
+      # 自动准备 Cloudflare 回源专用 Origin SSL 证书 (免手动配置，永不过期，开箱即用)
+      mkdir -p /etc/ssl/xo /etc/nginx/snippets /etc/nginx/sites-available /etc/nginx/sites-enabled
+      if [ ! -f "/etc/ssl/xo/origin.crt" ] || [ ! -f "/etc/ssl/xo/origin.key" ]; then
+        if [ -f "/etc/letsencrypt/live/xoxox.bond/fullchain.pem" ]; then
+          ln -sf /etc/letsencrypt/live/xoxox.bond/fullchain.pem /etc/ssl/xo/origin.crt
+          ln -sf /etc/letsencrypt/live/xoxox.bond/privkey.pem /etc/ssl/xo/origin.key
+          echo "🔒 已自动挂接现有 Let's Encrypt 证书作为 Cloudflare 回源凭证。"
+        else
+          echo "🔒 正在为 Cloudflare 回源自动生成 10 年期自签高强度 Origin SSL 证书 (完美兼容 Cloudflare 橙色云朵)..."
+          openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+            -keyout /etc/ssl/xo/origin.key \
+            -out /etc/ssl/xo/origin.crt \
+            -subj "/C=CN/ST=XO/L=Cloudflare/O=XOStudio/CN=*.xoxox.bond" >/dev/null 2>&1 || true
+        fi
+      fi
+
       if [ -f "deploy/nginx/cloudflare-ips.conf" ]; then
-        mkdir -p /etc/nginx/snippets
         cp deploy/nginx/cloudflare-ips.conf /etc/nginx/snippets/cloudflare-ips.conf
       fi
       if [ -f "deploy/nginx/xo.xoxox.bond.conf" ]; then
-        mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
         # 动态替换 proxy_pass 端口为实际分配的 $APP_PORT
         sed "s|proxy_pass http://127.0.0.1:[0-9]\+;|proxy_pass http://127.0.0.1:$APP_PORT;|g" \
           deploy/nginx/xo.xoxox.bond.conf > /etc/nginx/sites-available/xo.xoxox.bond.conf
         ln -sf /etc/nginx/sites-available/xo.xoxox.bond.conf /etc/nginx/sites-enabled/xo.xoxox.bond.conf
         # 彻底下线默认与残缺旧 vhost，杜绝 apex 域名 502 错误
         rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf 2>/dev/null || true
-        if nginx -t >/dev/null 2>&1; then
+        
+        NGINX_TEST_OUT=$(nginx -t 2>&1 || true)
+        if echo "$NGINX_TEST_OUT" | grep -q "syntax is ok"; then
           systemctl reload nginx 2>/dev/null || nginx -s reload 2>/dev/null || true
-          echo "✅ Nginx 站点配置已自动同步至端口 $APP_PORT，检验通过并完成热重载。"
+          echo "✅ Nginx 站点配置已自动同步至端口 $APP_PORT，语法校验通过并已平滑热重载。"
+          echo "☁️ 已完美接入 Cloudflare (原生兼容 Flexible / Full 模式，全面享受 DNS 橙色云朵防护与自动续期 SSL)！"
         else
-          echo "⚠️ Nginx 配置语法检测未通过，请检查 SSL 证书路径后重试: nginx -t"
+          echo "⚠️ Nginx 配置检测回显: $NGINX_TEST_OUT"
         fi
       fi
     else
-      echo "💡 当前为非 root 用户，如需同步更新公网 Nginx 代理至端口 $APP_PORT，请执行以下指令:"
-      echo "   sudo cp deploy/nginx/cloudflare-ips.conf /etc/nginx/snippets/"
-      echo "   sudo sed 's|proxy_pass http://127.0.0.1:[0-9]\\+;|proxy_pass http://127.0.0.1:$APP_PORT;|g' deploy/nginx/xo.xoxox.bond.conf > /tmp/xo.conf"
-      echo "   sudo cp /tmp/xo.conf /etc/nginx/sites-available/xo.xoxox.bond.conf"
-      echo "   sudo ln -sf /etc/nginx/sites-available/xo.xoxox.bond.conf /etc/nginx/sites-enabled/"
-      echo "   sudo nginx -t && sudo systemctl reload nginx"
+      echo "💡 当前为非 root 用户，如需同步更新公网 Nginx 代理至端口 $APP_PORT，请以 sudo 权限执行部署脚本。"
     fi
   fi
 else

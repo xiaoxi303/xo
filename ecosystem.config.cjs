@@ -20,6 +20,12 @@ function isPortAvailable(port, host = '127.0.0.1') {
 }
 
 function resolveSmartPort() {
+  // 1. 若外部环境变量已显式传入 PORT，直接采用 (例如 deploy-onekey.sh 已经排查并指定了目标端口，或 PM2 集群重载)
+  if (process.env.PORT && !isNaN(Number(process.env.PORT))) {
+    const p = Number(process.env.PORT);
+    return p === 3000 ? 3007 : p;
+  }
+
   const envPath = path.resolve(__dirname, '.env');
   let envPort = null;
   if (fs.existsSync(envPath)) {
@@ -31,7 +37,7 @@ function resolveSmartPort() {
   }
 
   // 默认项目专属基准端口: 3007 (若是 3000 则智能自动升级至 3007)
-  let targetPort = Number(process.env.PORT) || Number(process.env.NITRO_PORT) || envPort || 3007;
+  let targetPort = envPort || 3007;
   if (targetPort === 3000) {
     targetPort = 3007;
   }
