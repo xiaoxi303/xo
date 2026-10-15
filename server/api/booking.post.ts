@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-      body = JSON.parse(decryptRsaHybrid(body))
+      body = JSON.parse(await decryptRsaHybrid(body, event))
     } catch {
       throw createError({ statusCode: 400, statusMessage: '安全策略拦截：请求未通过金库共识解密校验。' })
     }
@@ -94,6 +94,9 @@ export default defineEventHandler(async (event) => {
   }
 
   fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+
+  // Throttle booking frequency: max 3 submissions per 10 minutes per IP
+  recordFailedAttempt(`booking-ip:${ip}`, 3, 10 * 60)
 
   // Log security event
   logSecurityEvent({

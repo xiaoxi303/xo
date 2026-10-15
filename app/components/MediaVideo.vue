@@ -221,22 +221,25 @@
       v-if="hasVideo"
       ref="videoRef"
       :poster="poster"
-      preload="metadata"
+      preload="auto"
       muted
       loop
       playsinline
       class="w-full h-full object-cover transition-all duration-300 cursor-pointer"
       :style="{
-        opacity: isVideoReady && (enhancementMode === 'normal' || !webglAvailable) ? 1 : 0,
+        opacity: (enhancementMode === 'normal' || !webglAvailable) ? 1 : 0,
         filter: enhancementMode === 'normal' ? 'none' : enhancementSvgFilters[enhancementMode],
         imageRendering: '-webkit-optimize-contrast',
         transform: 'translateZ(0)'
       }"
+      @loadedmetadata="onLoadedMetadata"
+      @loadeddata="onLoadedData"
       @canplay="onCanPlay"
       @waiting="isLoading = true"
       @playing="isLoading = false"
       @timeupdate="onTimeUpdate"
       @ended="isPlaying = false"
+      @error="onVideoError"
       @click="togglePlay"
     />
 
@@ -395,76 +398,113 @@
 
         <div class="flex items-center gap-3">
           <!-- A-B Loop Button -->
-          <div class="relative group/ab">
+          <div 
+            class="relative group/ab"
+            @mouseenter="onPopoverEnter('ab')"
+            @mouseleave="onPopoverLeave('ab')"
+          >
             <button
               type="button"
-              @click="toggleABLoop"
-              class="px-2 py-1 rounded text-[10px] font-mono transition-colors border cursor-pointer"
+              @click="togglePopover('ab')"
+              class="px-2 py-1 rounded text-[10px] font-mono transition-colors border cursor-pointer select-none"
               :class="pointA !== null || pointB !== null
                 ? 'bg-amber-500 text-black font-bold border-amber-400'
-                : 'bg-white/10 text-slate-300 hover:bg-white/20 border-white/10'"
+                : (activePopover === 'ab' || hoverPopover === 'ab')
+                  ? 'bg-white/25 text-white border-white/30'
+                  : 'bg-white/10 text-slate-300 hover:bg-white/20 border-white/10'"
             >
               A-B 循环
             </button>
-            <div class="absolute bottom-full right-0 mb-1.5 bg-black/95 border border-white/15 rounded-xl p-2 shadow-2xl min-w-[140px] opacity-0 translate-y-1 pointer-events-none group-hover/ab:opacity-100 group-hover/ab:translate-y-0 group-hover/ab:pointer-events-auto transition-all duration-200 text-center space-y-1.5 before:content-[''] before:absolute before:top-full before:left-0 before:right-0 before:h-4 before:bg-transparent">
-              <div class="text-[10px] text-slate-400 font-mono">A-B 复播切断器</div>
-              <div class="flex gap-1 justify-center">
-                <button type="button" @click="setPointA" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 rounded text-[10px] font-mono border border-emerald-500/30 cursor-pointer">
-                  设 A 点
-                </button>
-                <button type="button" @click="setPointB" class="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 rounded text-[10px] font-mono border border-rose-500/30 cursor-pointer">
-                  设 B 点
+            <div 
+              v-show="activePopover === 'ab' || hoverPopover === 'ab'"
+              class="absolute bottom-full right-0 pb-2 z-50 pointer-events-auto"
+            >
+              <div class="bg-black/95 border border-white/15 rounded-xl p-2.5 shadow-2xl min-w-[140px] text-center space-y-1.5 backdrop-blur-xl">
+                <div class="text-[10px] text-slate-400 font-mono">A-B 复播切断器</div>
+                <div class="flex gap-1 justify-center">
+                  <button type="button" @click="setPointA" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 rounded text-[10px] font-mono border border-emerald-500/30 cursor-pointer">
+                    设 A 点
+                  </button>
+                  <button type="button" @click="setPointB" class="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 rounded text-[10px] font-mono border border-rose-500/30 cursor-pointer">
+                    设 B 点
+                  </button>
+                </div>
+                <button v-if="pointA !== null || pointB !== null" type="button" @click="clearABLoop" class="w-full py-0.5 text-rose-400 hover:text-rose-300 text-[10px] font-mono cursor-pointer border-t border-white/10 pt-1">
+                  清除循环区间
                 </button>
               </div>
-              <button v-if="pointA !== null || pointB !== null" type="button" @click="clearABLoop" class="w-full py-0.5 text-rose-400 hover:text-rose-300 text-[10px] font-mono cursor-pointer">
-                清除循环区间
-              </button>
             </div>
           </div>
 
           <!-- Enhancement Filter Selector -->
-          <div class="relative group/enh">
+          <div 
+            class="relative group/enh"
+            @mouseenter="onPopoverEnter('enh')"
+            @mouseleave="onPopoverLeave('enh')"
+          >
             <button
               type="button"
-              class="px-2 py-1 rounded text-[10px] font-mono transition-colors border flex items-center gap-1 cursor-pointer"
+              @click="togglePopover('enh')"
+              class="px-2 py-1 rounded text-[10px] font-mono transition-colors border flex items-center gap-1 cursor-pointer select-none"
               :class="enhancementMode !== 'normal'
                 ? 'bg-amber-500 text-black font-bold border-amber-400'
-                : 'bg-white/10 text-slate-300 hover:bg-white/20 border-white/10'"
+                : (activePopover === 'enh' || hoverPopover === 'enh')
+                  ? 'bg-white/25 text-white border-white/30'
+                  : 'bg-white/10 text-slate-300 hover:bg-white/20 border-white/10'"
             >
               <span>实时画质:</span>
               <span>{{ enhancementLabels[enhancementMode] }}</span>
             </button>
-            <div class="absolute bottom-full right-0 mb-1.5 bg-black/95 border border-white/15 rounded-xl py-1 shadow-2xl min-w-[120px] opacity-0 translate-y-1 pointer-events-none group-hover/enh:opacity-100 group-hover/enh:translate-y-0 group-hover/enh:pointer-events-auto transition-all duration-200 before:content-[''] before:absolute before:top-full before:left-0 before:right-0 before:h-4 before:bg-transparent">
-              <button
-                v-for="(label, key) in enhancementLabels"
-                :key="key"
-                type="button"
-                @click="enhancementMode = key as any"
-                class="w-full text-left px-3 py-1.5 hover:bg-white/10 transition-colors text-[10px] font-mono flex items-center justify-between cursor-pointer"
-                :class="enhancementMode === key ? 'text-amber-400 font-bold' : 'text-slate-300'"
-              >
-                <span>{{ label }}</span>
-                <span v-if="enhancementMode === key">✓</span>
-              </button>
+            <div 
+              v-show="activePopover === 'enh' || hoverPopover === 'enh'"
+              class="absolute bottom-full right-0 pb-2 z-50 pointer-events-auto"
+            >
+              <div class="bg-black/95 border border-white/15 rounded-xl py-1 shadow-2xl min-w-[125px] backdrop-blur-xl">
+                <button
+                  v-for="(label, key) in enhancementLabels"
+                  :key="key"
+                  type="button"
+                  @click="selectEnhancement(key)"
+                  class="w-full text-left px-3 py-1.5 hover:bg-white/10 transition-colors text-[10px] font-mono flex items-center justify-between cursor-pointer"
+                  :class="enhancementMode === key ? 'text-amber-400 font-bold' : 'text-slate-300'"
+                >
+                  <span>{{ label }}</span>
+                  <span v-if="enhancementMode === key">✓</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- Speed Selector Popover -->
-          <div class="relative group/speed">
-            <button type="button" class="px-2 py-1 bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white rounded text-[10px] font-mono border border-white/10 cursor-pointer">
+          <div 
+            class="relative group/speed"
+            @mouseenter="onPopoverEnter('speed')"
+            @mouseleave="onPopoverLeave('speed')"
+          >
+            <button 
+              type="button" 
+              @click="togglePopover('speed')"
+              class="px-2 py-1 bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white rounded text-[10px] font-mono border border-white/10 cursor-pointer select-none"
+              :class="(activePopover === 'speed' || hoverPopover === 'speed') ? 'bg-white/25 text-white' : ''"
+            >
               {{ playbackRate.toFixed(2) }}x
             </button>
-            <div class="absolute bottom-full right-0 mb-1.5 bg-black/95 border border-white/15 rounded-xl py-1 shadow-2xl min-w-[80px] opacity-0 translate-y-1 pointer-events-none group-hover/speed:opacity-100 group-hover/speed:translate-y-0 group-hover/speed:pointer-events-auto transition-all duration-200 before:content-[''] before:absolute before:top-full before:left-0 before:right-0 before:h-4 before:bg-transparent">
-              <button 
-                v-for="r in [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0]"
-                :key="r" 
-                type="button" 
-                @click="setPlaybackRate(r)"
-                class="w-full text-center py-1 hover:bg-white/10 transition-colors text-[10px] font-mono cursor-pointer"
-                :class="{ 'text-amber-400 font-bold': playbackRate === r }"
-              >
-                {{ r.toFixed(2) }}x
-              </button>
+            <div 
+              v-show="activePopover === 'speed' || hoverPopover === 'speed'"
+              class="absolute bottom-full right-0 pb-2 z-50 pointer-events-auto"
+            >
+              <div class="bg-black/95 border border-white/15 rounded-xl py-1 shadow-2xl min-w-[80px] backdrop-blur-xl">
+                <button 
+                  v-for="r in [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0]"
+                  :key="r" 
+                  type="button" 
+                  @click="selectPlaybackRate(r)"
+                  class="w-full text-center py-1 hover:bg-white/10 transition-colors text-[10px] font-mono cursor-pointer"
+                  :class="{ 'text-amber-400 font-bold': playbackRate === r }"
+                >
+                  {{ r.toFixed(2) }}x
+                </button>
+              </div>
             </div>
           </div>
 
@@ -677,9 +717,7 @@ const initVideoDecodingEngine = async () => {
   if (!process.client || !props.src || !videoRef.value) return
 
   const rawUrl = props.src.trim()
-  const srcUrl = /^https?:\/\//i.test(rawUrl)
-    ? `/api/video-stream?url=${encodeURIComponent(rawUrl)}`
-    : rawUrl
+  const srcUrl = rawUrl
   await checkWebCodecsHardwareSupport()
 
   // Clean up existing HLS instance
@@ -794,11 +832,37 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
+function onLoadedMetadata() {
+  isVideoReady.value = true
+  if (videoRef.value) {
+    duration.value = videoRef.value.duration || 0
+  }
+}
+
+function onLoadedData() {
+  isVideoReady.value = true
+  isLoading.value = false
+  if (videoRef.value && (!duration.value || isNaN(duration.value))) {
+    duration.value = videoRef.value.duration || 0
+  }
+}
+
 function onCanPlay() {
   isVideoReady.value = true
   isLoading.value = false
-  if (videoRef.value) {
+  if (videoRef.value && (!duration.value || isNaN(duration.value))) {
     duration.value = videoRef.value.duration || 0
+  }
+}
+
+function onVideoError() {
+  if (!videoRef.value || !props.src) return
+  const rawUrl = props.src.trim()
+  const currentSrc = videoRef.value.src || ''
+  if (/^https?:\/\//i.test(rawUrl) && !currentSrc.includes('/api/video-stream')) {
+    console.warn('[MediaVideo] Direct stream error, falling back to stream proxy:', rawUrl)
+    videoRef.value.src = `/api/video-stream?url=${encodeURIComponent(rawUrl)}`
+    videoRef.value.load()
   }
 }
 
@@ -924,8 +988,56 @@ function onProgressHover(e: MouseEvent) {
   hoverTime.value = percent * duration.value
 }
 
+// Popover Menu Controls (A-B loop, Quality, Speed)
+const activePopover = ref<'ab' | 'enh' | 'speed' | null>(null)
+const hoverPopover = ref<'ab' | 'enh' | 'speed' | null>(null)
+let popoverLeaveTimer: ReturnType<typeof setTimeout> | null = null
+
+const onPopoverEnter = (name: 'ab' | 'enh' | 'speed') => {
+  if (popoverLeaveTimer) {
+    clearTimeout(popoverLeaveTimer)
+    popoverLeaveTimer = null
+  }
+  hoverPopover.value = name
+  showControls.value = true
+}
+
+const onPopoverLeave = (name: 'ab' | 'enh' | 'speed') => {
+  if (popoverLeaveTimer) clearTimeout(popoverLeaveTimer)
+  popoverLeaveTimer = setTimeout(() => {
+    if (hoverPopover.value === name) {
+      hoverPopover.value = null
+    }
+  }, 220)
+}
+
+const togglePopover = (name: 'ab' | 'enh' | 'speed') => {
+  activePopover.value = activePopover.value === name ? null : name
+  showControls.value = true
+}
+
+const selectEnhancement = (key: any) => {
+  enhancementMode.value = key
+  activePopover.value = null
+  hoverPopover.value = null
+}
+
+const selectPlaybackRate = (rate: number) => {
+  setPlaybackRate(rate)
+  activePopover.value = null
+  hoverPopover.value = null
+}
+
 function resetControlsHover() {
+  if (activePopover.value || hoverPopover.value) return
   showControls.value = false
+}
+
+const handleGlobalClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest?.('.group\\/ab') && !target.closest?.('.group\\/enh') && !target.closest?.('.group\\/speed')) {
+    activePopover.value = null
+  }
 }
 
 const initWebGLShaderEngine = () => {
@@ -1246,6 +1358,10 @@ onMounted(() => {
   measureFps()
   statsInterval = setInterval(updateStats, 1000)
 
+  if (process.client) {
+    document.addEventListener('click', handleGlobalClick)
+  }
+
   nextTick(() => {
     drawInvisibleWatermark()
     initWebGLShaderEngine()
@@ -1254,6 +1370,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (process.client) {
+    document.removeEventListener('click', handleGlobalClick)
+  }
   if (playTimer) clearTimeout(playTimer)
   if (statsInterval) clearInterval(statsInterval)
   if (fpsFrameCallbackId !== null && process.client) {

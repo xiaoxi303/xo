@@ -1,20 +1,6 @@
 import { defineEventHandler, readBody, getRequestHeader, getRequestURL, createError } from 'h3'
-import { decryptRsaHybrid, isRsaHybridPayload } from '../utils/vault-cipher'
-import { getRealClientIP } from '../utils/ip-helper'
-import { logSecurityEvent } from '../utils/security-logger'
-
-// Excluded API routes that must remain unencrypted or handle external third-party protocols:
-// 1. /api/security/rsa-public-key: Initial client key retrieval for hybrid encryption handshake
-// 2. /api/upload: Multipart binary file upload
-// 3. /api/admin/delivery-upload: Admin delivery binary file upload
-// 4. /api/order/notify & /api/order/*/notify: Alipay asynchronous payment callback (signed via Alipay RSA2)
-const EXCLUDED_PATHS = [
-  /^\/api\/security\/rsa-public-key/i,
-  /^\/api\/upload/i,
-  /^\/api\/admin\/delivery-upload/i,
-  /^\/api\/order\/.*notify/i,
-  /^\/api\/order\/notify/i
-]
+import { decryptRsaHybrid, isRsaHybridPayload, triggerIntruderLockout } from '../utils/vault-cipher'
+import { readAlipayConfig, normalizePublicKey, verifyAlipayNotify } from '../utils/alipay'
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
@@ -27,25 +13,12 @@ export default defineEventHandler(async (event) => {
   const url = getRequestURL(event)
   const pathname = url.pathname.toLowerCase()
 
-  // Only apply strict hybrid encryption enforcement to API endpoints
+  // 全链路强约束：仅拦截 /api/ 范围内的全部变更接口，严禁任何降级与普通绕过
   if (!pathname.startsWith('/api/')) {
     return
   }
 
-  // Check if route is explicitly exempted
-  for (const pattern of EXCLUDED_PATHS) {
-    if (pattern.test(pathname)) {
-      return
-    }
-  }
-
-  // Exclude native multipart/form-data requests
-  const contentType = getRequestHeader(event, 'content-type') || ''
-  if (contentType.toLowerCase().includes('multipart/form-data')) {
-    return
-  }
-
-  // Exempt empty requests on endpoints that accept 0-byte signals (e.g. view heat count, logout)
+  // 1. 0字节信号端点（如登出通知、视图浏览计数等无载荷信号）
   const contentLength = Number(getRequestHeader(event, 'content-length') || 0)
   if (
     (pathname === '/api/auth/logout' || pathname === '/api/auth/client-logout' || pathname.endsWith('/view')) &&
@@ -54,33 +27,29 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // Read request body
+  // 读取请求载荷
   let body: any = null
   try {
     body = await readBody(event)
-  } catch (err: any) {
-    // Empty or unparseable body will be caught below
+  } catch {
+    // 空或损坏的载荷会在后续强校验中被拦截
   }
 
-  // If body is an RSA-Hybrid encrypted payload, decrypt and unpack
+  // 2. 【核心通道 A】：全站双舱多态混合加密强共识载荷
+  // 所有普通业务接口、认证鉴权、人机拼图滑块校验、加密图片/文件上传均必须通过此舱解密
   if (isRsaHybridPayload(body)) {
     try {
-      const decryptedString = decryptRsaHybrid(body)
+      const decryptedString = await decryptRsaHybrid(body, event)
       const decryptedObj = JSON.parse(decryptedString)
 
-      // Replace parsed body in h3 internal store so all downstream handlers calling readBody(event) receive the plain decrypted object
+      // 覆盖挂载至 h3 解析存储中，供下游所有业务端点直接透明读取解密后的数据对象
       event.node.req[Symbol.for('h3ParsedBody')] = decryptedObj
       event.context.hybridDecrypted = true
       event.context.decryptedBody = decryptedObj
       event.context.rawHybridPayload = body
       return
     } catch (decryptErr: any) {
-      logSecurityEvent({
-        type: 'Hybrid Decryption Failure',
-        ip: getRealClientIP(event),
-        action: `Failed to decrypt RSA Hybrid payload for ${method} ${pathname}: ${decryptErr?.message || 'Decryption error'}`,
-        status: 'blocked'
-      })
+      await triggerIntruderLockout(event, decryptErr?.message || '非法密文或公钥不匹配')
       throw createError({
         statusCode: 400,
         statusMessage: '安全策略拦截：密文共识校验未通过或凭证已失效。'
@@ -88,16 +57,29 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // If a mutation request targeting an API endpoint is NOT hybrid encrypted, reject it immediately
-  logSecurityEvent({
-    type: 'Plaintext Mutation Intercepted',
-    ip: getRealClientIP(event),
-    action: `Blocked unencrypted plaintext ${method} request to ${pathname}`,
-    status: 'blocked'
-  })
+  // 3. 【核心通道 B】：专属支付网关金库共识验签通道 (针对支付宝异步回调)
+  // 严格杜绝作为无保护豁免，必须在此处完成官方公钥 RSA2 签名核验，伪造请求秒级拉黑
+  if (pathname === '/api/order/notify' || /^\/api\/order\/.*notify/i.test(pathname)) {
+    const alipayConfig = readAlipayConfig()
+    const alipayPubKey = normalizePublicKey(alipayConfig.alipayPublicKey)
 
+    if (body && typeof body === 'object' && alipayPubKey && verifyAlipayNotify(body, alipayPubKey)) {
+      event.context.paymentVaultVerified = true
+      return
+    }
+
+    // 签名伪造或非官方支付回调探测：立即触发主动反制封禁
+    await triggerIntruderLockout(event, '伪造支付回调通知或RSA2验签未通过')
+    throw createError({
+      statusCode: 400,
+      statusMessage: '安全策略拦截：支付网关共识验签未通过，已记录恶意探测行为。'
+    })
+  }
+
+  // 4. 【严厉拦截】：任何试图以明文、未经双舱加密的请求或伪造格式探测 API 的行为，一律拒绝并触发入侵锁定
+  await triggerIntruderLockout(event, '未通过加密传输/尝试明文探测')
   throw createError({
     statusCode: 400,
-    statusMessage: '安全策略拦截：全链路要求安全加密传输，拒绝未授权请求。'
+    statusMessage: '安全策略拦截：全链路强制要求安全加密传输，拒绝未授权请求。'
   })
 })

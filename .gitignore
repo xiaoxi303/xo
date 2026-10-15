@@ -56,6 +56,8 @@ content/blog-categories.json
 content/events.json
 content/security-logs.json
 content/project-heat.json
+content/blacklist.json
+content/client-accounts.json
 
 # Locally uploaded files (media/avatars)
 public/uploads/

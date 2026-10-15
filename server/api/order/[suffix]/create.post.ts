@@ -18,8 +18,8 @@ export default defineEventHandler(async (event) => {
       statusMessage: `下单请求过于频繁，请等待 ${remainingLockSeconds} 秒后再试。`
     })
   }
-  // Flood protection: max 15 orders per 10 minutes per IP
-  recordFailedAttempt(rateLimitKey, 15, 10 * 60)
+  // Flood protection: max 5 orders per 10 minutes per IP
+  recordFailedAttempt(rateLimitKey, 5, 10 * 60)
 
   const config = readAlipayConfig()
   if (!config.enabled || !config.appId || !config.privateKey) {
@@ -35,11 +35,11 @@ export default defineEventHandler(async (event) => {
     try {
       body = JSON.parse(decryptRsaHybrid(body))
       body.security = {
-        algorithm: 'RSA-OAEP-256+AES-256-GCM+RSA-PSS-SHA256',
+        algorithm: 'SECURE-QUANTUM-HYBRID',
         md5: md5Fingerprint(JSON.stringify(body))
       }
-    } catch (error: any) {
-      throw createError({ statusCode: 400, statusMessage: error?.message || 'RSA 请求解密失败' })
+    } catch {
+      throw createError({ statusCode: 400, statusMessage: '安全策略拦截：密文校验未通过或凭证失效。' })
     }
   }
   const amount = Number(page.amount)

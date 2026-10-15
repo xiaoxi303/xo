@@ -210,7 +210,7 @@
             
             <div class="flex items-center gap-3 text-xs font-mono text-slate-300">
               <span class="px-3 py-1 rounded-lg bg-white/5 border border-white/10">
-                🔒 RSA-4096 混合加密传输
+                🔒 全链路高阶安全加密传输
               </span>
             </div>
           </div>

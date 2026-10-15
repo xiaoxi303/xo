@@ -32,7 +32,7 @@
         <div class="flex items-center gap-3">
           <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 text-[11px] font-mono font-bold shadow-xs">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span>AES-256 E2EE 安全交付通道</span>
+            <span>端到端安全交付通道</span>
           </div>
 
           <NuxtLink to="/client" class="btn-ghost text-xs py-1.5 px-4 rounded-full border border-black/10 hover:border-amber-600/40 shadow-xs bg-white/70 flex items-center gap-1.5">

@@ -10,8 +10,15 @@ import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../../utils
 export default defineEventHandler(async (event) => {
   const ip = getRealClientIP(event)
 
+  // 本地开发与内网自测环境自动清除并绕过防爆破锁定，避免调试被锁死
+  const isLocal = ip === '127.0.0.1' || ip === '::1' || ip === 'localhost'
+  if (isLocal) {
+    resetRateLimit(`client-ip:${ip}`)
+    resetRateLimit(`client-user:123`)
+  }
+
   const ipLock = checkRateLimit(`client-ip:${ip}`)
-  if (ipLock.isLocked) {
+  if (!isLocal && ipLock.isLocked) {
     setResponseHeader(event, 'Retry-After', String(ipLock.remainingLockSeconds))
     throw createError({
       statusCode: 429,
@@ -37,24 +44,24 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-      body = JSON.parse(decryptRsaHybrid(body))
+      body = JSON.parse(await decryptRsaHybrid(body, event))
     } catch {
       throw createError({ statusCode: 400, statusMessage: '安全策略拦截：请求未通过金库共识解密校验。' })
     }
   }
 
   const captchaToken = String(body?.captchaToken || '')
-  const captchaCheck = vaultVerifySliderToken(captchaToken)
+  const captchaCheck = vaultVerifySliderToken(captchaToken, event)
   if (!captchaCheck.valid) {
     logSecurityEvent({
       type: 'Client Login Guard',
       ip,
-      action: `Client login blocked: ${captchaCheck.reason || 'invalid slider captcha token'}`,
+      action: `Client login blocked: ${captchaCheck.reason || 'invalid captcha token'}`,
       status: 'blocked'
     })
     throw createError({
       statusCode: 400,
-      statusMessage: captchaCheck.reason || '安全人机校验未通过，请滑动完成滑块安全校验后再试。'
+      statusMessage: captchaCheck.reason || '安全人机校验未通过，请完成安全人机核验后再试。'
     })
   }
 
@@ -81,7 +88,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户与 IP 已被临时锁定 15 分钟。' })
     }
     // Prevent account enumeration by returning identical 401 message as wrong password
-    throw createError({ statusCode: 401, statusMessage: '用户名或密码错误。' })
+    throw createError({ statusCode: 401, statusMessage: `用户名或密码错误，请重新输入 (已失败 ${rec.failedAttempts}/5 次)。` })
   }
 
   // Verify client password with timing-safe comparison
@@ -98,7 +105,7 @@ export default defineEventHandler(async (event) => {
     if (rec.failedAttempts >= 5) {
       throw createError({ statusCode: 429, statusMessage: '连续登录失败次数过多，账户与 IP 已被临时锁定 15 分钟。' })
     }
-    throw createError({ statusCode: 401, statusMessage: `密码错误，请重新输入 (已失败 ${rec.failedAttempts}/5 次)。` })
+    throw createError({ statusCode: 401, statusMessage: `用户名或密码错误，请重新输入 (已失败 ${rec.failedAttempts}/5 次)。` })
   }
 
   // A blacklisted account cannot create a new client session.

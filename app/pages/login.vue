@@ -100,7 +100,7 @@
           <div class="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
             <span class="flex items-center gap-1.5 text-emerald-400 font-bold">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              E2EE 安全连接
+              量子金库安全连接
             </span>
             <span class="text-white/40">XO STUDIO · 2026</span>
           </div>
@@ -446,13 +446,13 @@
       </p>
     </footer>
 
-    <!-- Luxury Slider Captcha Verification Card -->
-    <SliderCaptchaModal
-      v-model="showSliderModal"
-      :title="sliderTitle"
-      :subtitle="sliderSubtitle"
-      :action-name="sliderActionName"
-      @verified="onSliderVerified"
+    <!-- Luxury Security Verification Modal -->
+    <SecurityVerificationModal
+      v-model="showSecurityModal"
+      :title="securityTitle"
+      :subtitle="securitySubtitle"
+      :action-name="securityActionName"
+      @verified="onSecurityVerified"
     />
   </div>
 </template>
@@ -521,21 +521,21 @@ const checkRegistrationAvailability = async (field: 'username' | 'email') => {
   }
 }
 
-const showSliderModal = ref(false)
-const sliderTitle = ref('安全人机校验')
-const sliderSubtitle = ref('拖动下方滑块至最右端完成人机验证')
-const sliderActionName = ref('安全验证')
+const showSecurityModal = ref(false)
+const securityTitle = ref('安全人机核验')
+const securitySubtitle = ref('点击光影微感应器完成人机验证')
+const securityActionName = ref('安全核验')
 let pendingAction: 'sendCode' | 'login' | 'register' | null = null
 
-const openSliderCaptcha = (action: 'sendCode' | 'login' | 'register', actionName: string, title = '安全人机校验') => {
+const openSecurityModal = (action: 'sendCode' | 'login' | 'register', actionName: string, title = '安全人机核验') => {
   pendingAction = action
-  sliderActionName.value = actionName
-  sliderTitle.value = title
-  sliderSubtitle.value = `拖动滑块通过校验后将立即执行【${actionName}】。`
-  showSliderModal.value = true
+  securityActionName.value = actionName
+  securityTitle.value = title
+  securitySubtitle.value = `通过智能人机核验后将立即执行【${actionName}】。`
+  showSecurityModal.value = true
 }
 
-const onSliderVerified = (token: string) => {
+const onSecurityVerified = (token: string) => {
   if (pendingAction === 'sendCode') {
     executeSendCode(token)
   } else if (pendingAction === 'login') {
@@ -552,7 +552,7 @@ const handleSendCode = () => {
   const email = registerForm.value.email.trim()
   if (!email || !email.includes('@')) { error.value = '请输入格式正确的电子邮箱地址。'; return }
   if (cooldown.value > 0) return
-  openSliderCaptcha('sendCode', '发送邮箱验证码', '验证码安全风控校验')
+  openSecurityModal('sendCode', '发送邮箱验证码', '验证码安全风控校验')
 }
 
 const executeSendCode = async (captchaToken: string) => {
@@ -572,7 +572,7 @@ const handleLogin = () => {
   error.value = ''
   if (!loginForm.value.username?.trim()) { error.value = '请输入用户名。'; return }
   if (!loginForm.value.password) { error.value = '请输入登录密码。'; return }
-  openSliderCaptcha('login', '客户账号登录', '客户中心安全准入核验')
+  openSecurityModal('login', '客户账号登录', '客户中心安全准入核验')
 }
 
 const executeLogin = async (captchaToken: string) => {
@@ -600,7 +600,7 @@ const handleRegister = async () => {
   if (registerForm.value.password !== registerForm.value.confirmPassword) { error.value = '两次输入的密码不一致，请检查。'; return }
   if (usernameAvailability.value === false) { error.value = '该用户名已被注册，请更换用户名。'; return }
   if (emailAvailability.value === false) { error.value = '该电子邮箱已被注册，请更换邮箱。'; return }
-  openSliderCaptcha('register', '创建客户专属档案', '新客户安全注册核验')
+  openSecurityModal('register', '创建客户专属档案', '新客户安全注册核验')
 }
 
 const executeRegister = async (captchaToken: string) => {

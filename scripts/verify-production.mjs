@@ -21,18 +21,21 @@ async function walk(directory) {
 
 const files = await walk(outputRoot).catch(() => [])
 const mapFiles = files.filter(file => file.endsWith('.map'))
+const sensitiveLeaks = []
 const sourceLeaks = []
+const sensitivePattern = /(?:-----BEGIN (?:RSA )?PRIVATE KEY-----|"passwordHash"|"smtpPass"|"alipayPrivateKey")/i
 
 const publicFiles = await walk(publicRoot).catch(() => [])
-for (const file of publicFiles.filter(file => /\.(js|mjs|css)$/.test(file))) {
+for (const file of publicFiles.filter(file => /\.(js|mjs|css|html)$/.test(file))) {
   const content = await fs.readFile(file, 'utf8')
   if (sourceMapPattern.test(content)) sourceLeaks.push(file)
+  if (sensitivePattern.test(content)) sensitiveLeaks.push(file)
 }
 
-if (mapFiles.length || sourceLeaks.length) {
-  console.error(`[verify] Production artifact check failed: ${mapFiles.length} map files, ${sourceLeaks.length} source references`)
-  for (const file of [...mapFiles, ...sourceLeaks].slice(0, 20)) console.error(` - ${file}`)
+if (mapFiles.length || sourceLeaks.length || sensitiveLeaks.length) {
+  console.error(`[verify] Production artifact check failed: ${mapFiles.length} map files, ${sourceLeaks.length} source references, ${sensitiveLeaks.length} sensitive leaks`)
+  for (const file of [...mapFiles, ...sourceLeaks, ...sensitiveLeaks].slice(0, 20)) console.error(` - ${file}`)
   process.exit(1)
 }
 
-console.log(`[verify] Production artifact check passed: ${files.length} files, no sourcemaps or source references`)
+console.log(`[verify] Production artifact check passed: ${files.length} files, zero sourcemaps, zero server credential leaks, zero source references.`)

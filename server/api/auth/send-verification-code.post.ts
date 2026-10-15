@@ -46,18 +46,18 @@ export default defineEventHandler(async (event) => {
       })
     }
     try {
-      body = JSON.parse(decryptRsaHybrid(body))
+      body = JSON.parse(await decryptRsaHybrid(body, event))
     } catch {
       throw createError({ statusCode: 400, statusMessage: '安全策略拦截：请求未通过金库共识解密校验。' })
     }
   }
 
   const captchaToken = String(body?.captchaToken || '')
-  const captchaCheck = vaultVerifySliderToken(captchaToken)
+  const captchaCheck = vaultVerifySliderToken(captchaToken, event)
   if (!captchaCheck.valid) {
     throw createError({
       statusCode: 400,
-      statusMessage: captchaCheck.reason || '安全人机验证未通过，请滑动完成安全校验后重试。'
+      statusMessage: captchaCheck.reason || '安全人机验证未通过，请完成安全人机核验后重试。'
     })
   }
 

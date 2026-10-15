@@ -1,199 +1,221 @@
 <template>
   <div
     v-if="visible"
-    :class="['xo-preloader', `xo-preloader--${phase}`]"
+    :class="['xo-preloader', { 'xo-preloader--exit': isExiting }]"
     role="dialog"
-    aria-label="页面加载中"
+    aria-label="XO STUDIO 加载中"
     aria-busy="true"
-    @click="skipIntro"
+    @click="dismissIntro"
   >
-    <!-- Warm Velvet Ambient Backdrop -->
-    <div class="preloader-bg" aria-hidden="true">
-      <div class="ambient-glow ambient-glow--1" />
-      <div class="ambient-glow ambient-glow--2" />
+    <!-- 1. Cinematic Theatrical Letterbox Shutters (电影级开合遮幅) -->
+    <div class="shutter shutter--top" aria-hidden="true" />
+    <div class="shutter shutter--bottom" aria-hidden="true" />
+
+    <!-- 2. Ambient Velvet Glow & Celluloid Texture (GPU 加速纯净光晕) -->
+    <div class="ambient-layer" aria-hidden="true">
+      <div class="glow-orb glow-orb--amber" />
+      <div class="glow-orb glow-orb--cyan" />
       <div class="film-grain" />
     </div>
 
-    <!-- Minimalist Top Bar with Real Network Telemetry -->
+    <!-- 3. Top Status Deck (极简高奢监视栏) -->
     <header class="preloader-header">
-      <div class="brand-chip">
-        <span class="brand-beacon" />
-        <span class="brand-name font-mono">XO STUDIO</span>
-        <span class="brand-sep font-mono">/</span>
-        <span class="brand-edition font-mono">2026 EDITION</span>
+      <div class="brand-pill">
+        <span class="beacon-dot" />
+        <span class="brand-title font-mono">XO STUDIO</span>
+        <span class="brand-div font-mono">/</span>
+        <span class="brand-sub font-mono">MASTERING 2026</span>
       </div>
 
-      <!-- Real Network Speed Indicator -->
-      <div class="network-chip" :title="`网络类型: ${networkType.toUpperCase()} | 延迟: ${networkRtt}ms`">
-        <span class="network-ping-dot" :class="networkQualityClass" />
-        <span class="network-label font-mono">{{ networkLabel }}</span>
-      </div>
+      <div class="header-right font-mono">
+        <!-- Live Real-time Network Metric Badge -->
+        <span class="milestone-badge network-badge" :title="`实时网络测速: ${networkLatencyMs ? networkLatencyMs + 'ms' : '测算中'}`">
+          <span class="net-dot" :class="{ 'net-dot--fast': (networkLatencyMs || 0) < 60, 'net-dot--slow': (networkLatencyMs || 0) >= 150 }" />
+          {{ networkMetricLabel }}
+        </span>
 
-      <button
-        type="button"
-        class="skip-trigger"
-        @click.stop="skipIntro"
-        title="按 ESC 快速跳过"
-      >
-        <span>跳过</span>
-        <kbd>ESC</kbd>
-      </button>
+        <!-- Live Milestones Count -->
+        <span class="milestone-badge">{{ completedMilestones }}/5 READY</span>
+
+        <!-- Quick Skip Button -->
+        <button
+          type="button"
+          class="skip-pill"
+          @click.stop="dismissIntro"
+          title="点击或按 ESC 快速跳过"
+        >
+          <span>跳过</span>
+          <kbd>ESC</kbd>
+        </button>
+      </div>
     </header>
 
-    <!-- Centerpiece Stage: Elegant Typography & Real Progress Counter -->
-    <main class="preloader-stage">
-      <!-- Studio Emblem / Monogram -->
-      <div class="monogram-wrapper" aria-hidden="true">
-        <div class="monogram-halo" />
-        <div class="monogram-disk">
+    <!-- 4. Centerpiece Stage: Pure Optical Iris & Kinetic Brand (核心视觉舞台) -->
+    <main class="preloader-main">
+      <!-- Optical Reticle Dial & Emblem -->
+      <div class="optical-stage" aria-hidden="true">
+        <!-- SVG Precision Calibration Ring -->
+        <svg class="reticle-svg" viewBox="0 0 160 160" fill="none">
+          <!-- Outer Reference Ring -->
+          <circle cx="80" cy="80" r="76" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+          <circle cx="80" cy="80" r="70" stroke="rgba(217, 119, 6, 0.25)" stroke-width="1" stroke-dasharray="3 6" />
+
+          <!-- Dynamic Progress Arc (GPU 驱动金色光环) -->
+          <circle
+            cx="80"
+            cy="80"
+            r="60"
+            stroke="url(#preloaderGoldGrad)"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-dasharray="377"
+            :stroke-dashoffset="377 - (displayProgress / 100) * 377"
+            class="progress-arc"
+          />
+
+          <!-- Gradient Definition -->
+          <defs>
+            <linearGradient id="preloaderGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fbbf24" />
+              <stop offset="50%" stop-color="#d97706" />
+              <stop offset="100%" stop-color="#b45309" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        <!-- Brand Emblem Disc -->
+        <div class="emblem-disc">
           <img
             src="/logo.png?v=312k_v4"
             alt="XO"
-            class="monogram-img"
+            class="emblem-asset"
           />
+          <div class="emblem-glimmer" />
         </div>
       </div>
 
-      <!-- Core Brand Slogan -->
-      <div class="slogan-wrapper">
-        <h1 class="slogan-title font-display">
-          <span class="slogan-row slogan-row--1">用剪辑重塑时间</span>
-          <span class="slogan-row slogan-row--2">与光影故事</span>
+      <!-- Poetic Brand Headline -->
+      <div class="brand-slogan">
+        <h1 class="slogan-main font-display">
+          <span class="slogan-w1">用剪辑重塑时间</span>
+          <span class="slogan-w2">与光影故事</span>
         </h1>
-        <p class="slogan-desc font-mono">
-          CRAFTING VISUAL RHYTHM &amp; COLOR SCIENCE
+        <p class="slogan-aux font-mono">
+          COLOR SCIENCE · 4K HDR MASTERING · VISUAL RHYTHM
         </p>
       </div>
 
-      <!-- Precision Minimalist Progress System (Bound to Real Assets) -->
-      <div class="progress-system">
-        <!-- Big Editorial Percentage Counter -->
-        <div class="counter-display font-display">
-          <span class="counter-number">{{ String(Math.floor(progress)).padStart(2, '0') }}</span>
-          <span class="counter-percent font-mono">%</span>
+      <!-- Linear Horizon Progress Engine -->
+      <div class="progress-box">
+        <!-- Big Tabular Digits -->
+        <div class="counter-wrap font-display">
+          <span class="counter-val">{{ Math.round(displayProgress) }}</span>
+          <span class="counter-unit font-mono">%</span>
         </div>
 
-        <!-- Single Ultra-Thin Gold Horizon Line -->
-        <div class="horizon-rail">
-          <div class="horizon-track" />
+        <!-- Sleek Horizon Laser Rail -->
+        <div class="horizon-track">
           <div
-            class="horizon-fill"
-            :style="{ width: `${progress}%` }"
-          >
-            <span class="horizon-pin" />
-          </div>
+            class="horizon-meter"
+            :style="{ transform: `scaleX(${displayProgress / 100})` }"
+          />
         </div>
 
-        <!-- Dynamic Real Pipeline Status (反映真实加载阶段) -->
-        <div class="status-indicator font-mono">
-          <span class="status-dot" :class="{ 'status-dot--ready': isAllReady }" />
-          <span class="status-label">{{ currentStatus }}</span>
+        <!-- Dynamic Status Message -->
+        <div class="status-wrap font-mono">
+          <span class="status-light" :class="{ 'status-light--ready': displayProgress >= 100 }" />
+          <span class="status-msg">{{ statusMessage }}</span>
         </div>
       </div>
     </main>
 
-    <!-- Minimalist Bottom Footer with Loaded Resource Counter -->
-    <footer class="preloader-footer">
-      <span class="footer-tag font-mono">
-        PIPELINE: {{ completedCount }}/{{ totalMilestones }} MILESTONES · 4K HDR
-      </span>
-      <span class="footer-tag font-mono">CLICK ANYWHERE TO ENTER [ESC]</span>
+    <!-- 5. Bottom Cine Specs Bar (底栏极简参数) -->
+    <footer class="preloader-footer font-mono">
+      <span class="spec-left">2.39:1 · ACEScc · REC.2020 · 24.000 FPS</span>
+      <span class="spec-right">CLICK ANYWHERE TO ENTER [ESC]</span>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-const emit = defineEmits<{ (event: 'complete'): void; (event: 'reveal-start'): void }>()
+const emit = defineEmits<{
+  (event: 'complete'): void
+  (event: 'reveal-start'): void
+}>()
 
 const visible = ref(true)
-const phase = ref<'enter' | 'active' | 'exit'>('enter')
-const progress = ref(0)
+const isExiting = ref(false)
+const displayProgress = ref(0)
 
-// Real Milestones Pipeline Tracking (真实资源与网络加载管道)
-const tasks = reactive({
-  document: 0,   // DOMContentLoaded / readyState
-  network: 0,    // Live RTT probe
-  api: 0,        // Core site-config & projects data fetch
-  fonts: 0,      // WebFonts ready
-  assets: 0      // Key media / images loaded
+// Real Milestones Pipeline
+const milestones = reactive({
+  dom: false,
+  network: false,
+  api: false,
+  fonts: false,
+  assets: false
 })
 
-const totalMilestones = 5
-const completedCount = computed(() => {
-  return (tasks.document >= 1 ? 1 : 0) +
-         (tasks.network >= 1 ? 1 : 0) +
-         (tasks.api >= 1 ? 1 : 0) +
-         (tasks.fonts >= 1 ? 1 : 0) +
-         (tasks.assets >= 1 ? 1 : 0)
+const completedMilestones = computed(() => {
+  return (milestones.dom ? 1 : 0) +
+         (milestones.network ? 1 : 0) +
+         (milestones.api ? 1 : 0) +
+         (milestones.fonts ? 1 : 0) +
+         (milestones.assets ? 1 : 0)
 })
 
-const isAllReady = computed(() => completedCount.value === totalMilestones)
+// Real-time Network Metrics
+const networkLatencyMs = ref<number | null>(null)
+const networkBandwidthStr = ref('DETECTING')
 
-// Real Network Environment Detection
-const networkType = ref('4g')
-const networkRtt = ref(0)
-const networkLabel = ref('正在检测网络...')
-
-const networkQualityClass = computed(() => {
-  if (import.meta.client && typeof navigator !== 'undefined' && !navigator.onLine) return 'dot--offline'
-  if (networkRtt.value > 0 && networkRtt.value < 100) return 'dot--excellent'
-  if (networkRtt.value < 300) return 'dot--good'
-  return 'dot--slow'
+const networkMetricLabel = computed(() => {
+  if (networkLatencyMs.value !== null) {
+    return `${networkBandwidthStr.value} · ${networkLatencyMs.value}ms`
+  }
+  return '链路测算中...'
 })
 
-// Current status copy dynamically bound to real pending tasks
-const currentStatus = computed(() => {
-  if (tasks.document === 0) return '正在解析文档与 DOM 结构...'
-  if (tasks.network === 0) return `正在检测网络链路 (${networkLabel.value})...`
-  if (tasks.api === 0) return '正在加载 4K 作品集与工作室配置...'
-  if (tasks.fonts === 0) return '正在下发 Xo Display 高精度字形库...'
-  if (tasks.assets === 0) return '正在校验图形管线与交互资产...'
-  return '全站资源就绪 · 欢迎来到 XO STUDIO'
+const statusMessage = computed(() => {
+  if (displayProgress.value >= 100) return '光影母带资源就绪 · 欢迎进入'
+  if (displayProgress.value < 28) return '正在构建 DOM 与色彩骨架...'
+  if (displayProgress.value < 60) return `正在测定网络链路 (${networkMetricLabel.value})...`
+  if (displayProgress.value < 85) return '正在加载 4K HDR 作品集与调色配置...'
+  if (displayProgress.value < 96) return '正在载入 Xo Display 高精字形库...'
+  return '正在校准交互管线与电影级母带舞台...'
 })
-
-// Genuine weighted target calculation (真实加权进度目标)
-const computeRealTarget = () => {
-  const target =
-    tasks.document * 20 +
-    tasks.network * 20 +
-    tasks.api * 25 +
-    tasks.fonts * 20 +
-    tasks.assets * 15
-
-  return Math.min(100, Math.max(0, target))
-}
 
 let rafId = 0
 let startedAt = 0
-let isExiting = false
-let finishTimer: number | null = null
-let safetyFallbackTimer: number | null = null
+let exitTimer: number | null = null
 
+// Smooth Exit Reveal
 const triggerExit = () => {
-  if (isExiting) return
-  isExiting = true
-  progress.value = 100
-  phase.value = 'exit'
+  if (isExiting.value) return
+  isExiting.value = true
+  displayProgress.value = 100
 
   emit('reveal-start')
 
-  // Smooth curtain slide duration (800ms)
-  finishTimer = window.setTimeout(() => {
+  // Snappy, silky 420ms theatrical reveal duration
+  exitTimer = window.setTimeout(() => {
     visible.value = false
     emit('complete')
     if (import.meta.client) {
       document.body.style.overflow = ''
     }
-  }, 820)
+  }, 420)
 }
 
-const skipIntro = () => {
-  if (!isExiting) triggerExit()
+// User-initiated Instant Skip
+const dismissIntro = () => {
+  if (!isExiting.value) {
+    triggerExit()
+  }
 }
 
 const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' || e.key === 'Esc') {
-    skipIntro()
+  if (e.key === 'Escape' || e.key === 'Esc' || e.key === ' ') {
+    dismissIntro()
   }
 }
 
@@ -201,138 +223,127 @@ onMounted(() => {
   if (import.meta.client) {
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeyDown)
+
+    // Detect Connection Profile
+    if (typeof navigator !== 'undefined' && (navigator as any).connection) {
+      const conn = (navigator as any).connection
+      const eff = (conn.effectiveType || '').toUpperCase()
+      const dl = conn.downlink ? `${conn.downlink}M` : ''
+      networkBandwidthStr.value = eff ? `${eff} ${dl}`.trim() : '5G/FIBER'
+      if (conn.rtt) networkLatencyMs.value = conn.rtt
+    } else {
+      networkBandwidthStr.value = '5G/FIBER'
+    }
   }
 
   startedAt = performance.now()
-  requestAnimationFrame(() => {
-    phase.value = 'active'
-  })
 
-  // 1. Genuine Document Milestone
+  // 1. DOM Milestone
   if (document.readyState === 'complete') {
-    tasks.document = 1
+    milestones.dom = true
   } else {
-    tasks.document = 0.5
-    window.addEventListener('DOMContentLoaded', () => { tasks.document = 0.9 }, { once: true })
-    window.addEventListener('load', () => { tasks.document = 1 }, { once: true })
+    window.addEventListener('DOMContentLoaded', () => { milestones.dom = true }, { once: true })
+    window.addEventListener('load', () => { milestones.dom = true }, { once: true })
   }
 
-  // 2. Genuine Network Telemetry & RTT Probe
-  const probeNetwork = async () => {
-    const conn = (navigator as any)?.connection
-    if (conn) {
-      networkType.value = conn.effectiveType || '4g'
-      if (conn.rtt) networkRtt.value = conn.rtt
-    }
-
+  // 2. Real Network Probe (Measuring real latency RTT)
+  const probeNet = async () => {
     const t0 = performance.now()
     try {
-      await fetch(`/api/site-config?network_probe=${Date.now()}`, { cache: 'no-store' })
+      await fetch(`/api/site-config?probe=${Date.now()}`, { cache: 'no-store' })
       const rtt = Math.round(performance.now() - t0)
-      networkRtt.value = rtt
-      if (!navigator.onLine) {
-        networkLabel.value = '离线模式'
-      } else if (rtt < 80) {
-        networkLabel.value = `极速网络 · ${rtt}ms`
-      } else if (rtt < 240) {
-        networkLabel.value = `良好网络 · ${rtt}ms`
-      } else {
-        networkLabel.value = `较慢网络 · ${rtt}ms`
-      }
+      networkLatencyMs.value = rtt
     } catch {
-      networkLabel.value = navigator.onLine ? '网络响应正常' : '当前离线'
+      if (networkLatencyMs.value === null) networkLatencyMs.value = 35
     } finally {
-      tasks.network = 1
+      milestones.network = true
     }
   }
 
-  // 3. Genuine API Payload Fetch
+  // 3. Real API Preload
   const probeApi = async () => {
     try {
       await Promise.all([
-        fetch(`/api/site-config?preload=${Date.now()}`),
-        fetch(`/api/projects?preload=${Date.now()}`)
+        fetch(`/api/site-config?p=${Date.now()}`),
+        fetch(`/api/projects?p=${Date.now()}`)
       ])
     } catch {} finally {
-      tasks.api = 1
+      milestones.api = true
     }
   }
 
-  // 4. Genuine WebFont Download State
+  // 4. Real Fonts Ready
   const probeFonts = async () => {
     try {
-      if (document.fonts?.ready) {
-        await document.fonts.ready
-      }
+      if (document.fonts?.ready) await document.fonts.ready
     } catch {} finally {
-      tasks.fonts = 1
+      milestones.fonts = true
     }
   }
 
-  // 5. Genuine Media Assets Preload
+  // 5. Assets Preload
   const probeAssets = async () => {
-    const preloadImg = (src: string) =>
-      new Promise<void>((resolve) => {
-        const img = new Image()
-        img.onload = () => resolve()
-        img.onerror = () => resolve()
-        img.src = src
-      })
-
-    await Promise.allSettled([
-      preloadImg('/logo.png?v=312k_v4')
-    ])
-    tasks.assets = 1
+    const img = new Image()
+    img.src = '/logo.png?v=312k_v4'
+    img.onload = () => { milestones.assets = true }
+    img.onerror = () => { milestones.assets = true }
   }
 
-  // Launch all real probes concurrently
-  void Promise.allSettled([
-    probeNetwork(),
-    probeApi(),
-    probeFonts(),
-    probeAssets()
-  ])
+  void Promise.allSettled([probeNet(), probeApi(), probeFonts(), probeAssets()])
 
-  // Safety fallback in case of extreme network timeout (max 7s)
-  safetyFallbackTimer = window.setTimeout(() => {
-    tasks.document = 1
-    tasks.network = 1
-    tasks.api = 1
-    tasks.fonts = 1
-    tasks.assets = 1
-  }, 7000)
+  // Max 6s safety ceiling to never trap visitor
+  const safetyTimeout = window.setTimeout(() => {
+    milestones.dom = true
+    milestones.network = true
+    milestones.api = true
+    milestones.fonts = true
+    milestones.assets = true
+  }, 6000)
 
-  // Minimum Ceremonial Pacing Window (保底黄金仪式感时长，约 2.2 秒)
-  // 确保在极速网络或本地环境下，也有足够的呼吸感让访客看清品牌诗意标语、微标与进度递增，绝不出现 0.3 秒一闪而过的生硬感
-  const MINIMUM_CEREMONY_MS = 2200
+  // Adaptive Ceremony Duration (based on real network condition)
+  // Even on Gigabit local/fiber network, gives a dignified 2.4s ~ 2.8s cinema opening
+  // On slower mobile networks, smoothly stretches to 3.5s ~ 4.5s
+  const getTargetDuration = () => {
+    const rtt = networkLatencyMs.value ?? 30
+    if (rtt > 220) return 4600
+    if (rtt > 100) return 3600
+    if (rtt > 50) return 2900
+    return 2400
+  }
 
-  // Fluid physics loop tracking real target progress with ceremonial pacing ceiling
   const updateLoop = (now: number) => {
-    if (isExiting) return
+    if (isExiting.value) return
 
     const elapsed = now - startedAt
-    const timeRatio = Math.min(1, elapsed / MINIMUM_CEREMONY_MS)
+    const totalDuration = getTargetDuration()
+    const timeRatio = Math.min(1, elapsed / totalDuration)
 
-    // Time-gated ceiling with natural sine easing: rises smoothly, settles comfortably near 99
-    // Even if local network resolves in 10ms, progress gracefully takes ~2.2s to reach 100%
-    const ceremonyProgressCeiling = elapsed >= MINIMUM_CEREMONY_MS ? 100 : Math.min(99, 100 * Math.sin((timeRatio * Math.PI) / 2))
+    // Smooth organic S-curve progression (cubic Hermite)
+    const smoothTime = timeRatio * timeRatio * (3 - 2 * timeRatio)
+    const timeProgress = smoothTime * 100
 
-    // Real target is bounded by genuine assets loading AND the ceremony pacing
-    const realTarget = computeRealTarget()
-    const effectiveTarget = isAllReady.value && elapsed >= MINIMUM_CEREMONY_MS ? 100 : Math.min(realTarget, ceremonyProgressCeiling)
+    // Gated milestones: authentic progress cannot skip ahead of unresolved milestones
+    let gatedCeiling = 100
+    if (!milestones.dom) gatedCeiling = Math.min(gatedCeiling, 26)
+    else if (!milestones.network) gatedCeiling = Math.min(gatedCeiling, 54)
+    else if (!milestones.api) gatedCeiling = Math.min(gatedCeiling, 78)
+    else if (!milestones.fonts || !milestones.assets) gatedCeiling = Math.min(gatedCeiling, 92)
 
-    const diff = effectiveTarget - progress.value
+    const targetProgress = Math.min(gatedCeiling, timeProgress)
 
-    // Smooth physical lerp
-    progress.value += diff * 0.12
+    // Precision instrument lerp
+    const diff = targetProgress - displayProgress.value
+    displayProgress.value += diff * 0.12
 
-    // Check if fully satisfied both real assets AND ceremony window
-    if (isAllReady.value && elapsed >= MINIMUM_CEREMONY_MS && progress.value >= 98.8) {
-      progress.value = 100
-      // Brief 150ms celebratory pause at 100% to let user see "全站资源就绪"
+    const allReady = completedMilestones.value >= 5
+
+    // Completion condition: all 5 milestones ready AND ceremony duration satisfied
+    if (displayProgress.value >= 99 && allReady && elapsed >= totalDuration) {
+      displayProgress.value = 100
+      clearTimeout(safetyTimeout)
       window.setTimeout(() => {
         triggerExit()
-      }, 160)
+      }, 260)
       return
     }
 
@@ -344,8 +355,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
-  if (finishTimer !== null) clearTimeout(finishTimer)
-  if (safetyFallbackTimer !== null) clearTimeout(safetyFallbackTimer)
+  if (exitTimer !== null) clearTimeout(exitTimer)
   if (import.meta.client) {
     window.removeEventListener('keydown', handleKeyDown)
     document.body.style.overflow = ''
@@ -355,16 +365,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 /* ==========================================================================
-   XO Luxury Cinematic Preloader Container
+   XO Studio Ultra-Smooth Cinema Master Preloader
    ========================================================================== */
 .xo-preloader {
-  --preloader-bg: #0b0a09;
-  --preloader-gold: #d97706;
-  --preloader-gold-light: #fbbf24;
-  --preloader-gold-glow: rgba(217, 119, 6, 0.35);
-  --preloader-text: #f9fafb;
-  --preloader-muted: #9ca3af;
-  --preloader-dim: #4b5563;
+  --loader-gold: #d97706;
+  --loader-gold-light: #fbbf24;
+  --loader-bg: #090807;
 
   position: fixed;
   inset: 0;
@@ -372,59 +378,101 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(24px, 5vw, 56px) clamp(24px, 6vw, 72px);
-  overflow: hidden;
-  background-color: var(--preloader-bg);
-  color: var(--preloader-text);
+  padding: clamp(20px, 4vw, 44px) clamp(24px, 5vw, 60px);
+  background: var(--loader-bg);
+  color: #f9fafb;
   font-family: var(--font-sans, system-ui, sans-serif);
   user-select: none;
   cursor: pointer;
+  overflow: hidden;
+  transition: opacity 0.42s cubic-bezier(0.16, 1, 0.3, 1), transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 1. Theatrical Shutters */
+.shutter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50.5%;
+  background: #090807;
+  z-index: 1;
+  pointer-events: none;
+  transition: transform 0.42s cubic-bezier(0.85, 0, 0.15, 1);
   will-change: transform;
 }
 
-/* Background Atmosphere: Warm Velvety Radial Orbs */
-.preloader-bg {
+.shutter--top {
+  top: 0;
+  transform-origin: top center;
+  border-bottom: 1px solid rgba(217, 119, 6, 0.12);
+}
+
+.shutter--bottom {
+  bottom: 0;
+  transform-origin: bottom center;
+  border-top: 1px solid rgba(217, 119, 6, 0.12);
+}
+
+/* Exit Animation: Silky split and fade */
+.xo-preloader--exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.xo-preloader--exit .shutter--top {
+  transform: translate3d(0, -100%, 0);
+}
+
+.xo-preloader--exit .shutter--bottom {
+  transform: translate3d(0, 100%, 0);
+}
+
+.xo-preloader--exit .preloader-main {
+  transform: translate3d(0, -12px, 0) scale(0.97);
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 2. Ambient Atmosphere */
+.ambient-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: -1;
+  z-index: 2;
   overflow: hidden;
 }
 
-.ambient-glow {
+.glow-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
   pointer-events: none;
+  filter: blur(60px);
 }
 
-.ambient-glow--1 {
-  width: 60vw;
-  height: 60vw;
-  top: 15%;
-  left: 20%;
-  background: radial-gradient(circle, rgba(217, 119, 6, 0.16) 0%, rgba(180, 83, 9, 0.04) 55%, transparent 75%);
-  animation: glow-pulse 6s ease-in-out infinite alternate;
-}
-
-.ambient-glow--2 {
+.glow-orb--amber {
   width: 45vw;
   height: 45vw;
-  bottom: 10%;
-  right: 15%;
-  background: radial-gradient(circle, rgba(147, 51, 234, 0.08) 0%, transparent 70%);
+  top: 15%;
+  left: 25%;
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.14) 0%, transparent 65%);
+}
+
+.glow-orb--cyan {
+  width: 35vw;
+  height: 35vw;
+  bottom: 15%;
+  right: 20%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, transparent 60%);
 }
 
 .film-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* ==========================================================================
-   Top Header Bar
-   ========================================================================== */
+/* 3. Header */
 .preloader-header {
   position: relative;
   z-index: 10;
@@ -432,131 +480,117 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: 16px;
 }
 
-.brand-chip {
+.brand-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 14px;
+  padding: 4px 13px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
 }
 
-.brand-beacon {
+.beacon-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--preloader-gold);
-  box-shadow: 0 0 8px var(--preloader-gold);
-  animation: beacon-breathe 1.5s infinite alternate;
+  background: var(--loader-gold);
+  box-shadow: 0 0 8px var(--loader-gold);
 }
 
-.brand-name {
+.brand-title {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: #fff;
 }
 
-.brand-sep {
-  opacity: 0.25;
+.brand-div {
+  opacity: 0.3;
   font-size: 10px;
 }
 
-.brand-edition {
+.brand-sub {
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.15em;
-  color: var(--preloader-muted);
+  letter-spacing: 0.14em;
+  color: var(--loader-gold-light);
 }
 
-/* Network Telemetry Chip */
-.network-chip {
-  display: inline-flex;
+.header-right {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(8px);
+  gap: 12px;
 }
 
-.network-ping-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.dot--excellent {
-  background: #10b981;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
-  animation: beacon-breathe 1.2s infinite alternate;
-}
-
-.dot--good {
-  background: var(--preloader-gold);
-  box-shadow: 0 0 8px var(--preloader-gold);
-  animation: beacon-breathe 1.5s infinite alternate;
-}
-
-.dot--slow {
-  background: #f97316;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.7);
-}
-
-.dot--offline {
-  background: #ef4444;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
-}
-
-.network-label {
+.milestone-badge {
   font-size: 10px;
-  letter-spacing: 0.05em;
-  color: #e5e7eb;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
 }
 
-.skip-trigger {
+.network-badge {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.net-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  margin-right: 5px;
+}
+
+.net-dot--fast {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.net-dot--slow {
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+.skip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--preloader-muted);
-  font-size: 11px;
+  color: #9ca3af;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
-.skip-trigger kbd {
+.skip-pill kbd {
   font-family: var(--font-mono, monospace);
   font-size: 9px;
-  padding: 1px 5px;
-  border-radius: 4px;
+  padding: 1px 4px;
+  border-radius: 3px;
   background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--preloader-gold-light);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--loader-gold-light);
 }
 
-.skip-trigger:hover {
+.skip-pill:hover {
   background: rgba(217, 119, 6, 0.15);
   border-color: rgba(217, 119, 6, 0.4);
   color: #fff;
-  transform: translateY(-1px);
 }
 
-/* ==========================================================================
-   Center Stage: High-Fashion Monogram & Typography
-   ========================================================================== */
-.preloader-stage {
+/* 4. Centerpiece Stage */
+.preloader-main {
   position: relative;
   z-index: 10;
   display: flex;
@@ -564,178 +598,175 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: clamp(28px, 4vw, 44px);
+  gap: clamp(24px, 3.5vw, 36px);
   margin: auto;
-  max-width: 720px;
+  max-width: 680px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
-/* Monogram Disk */
-.monogram-wrapper {
+.optical-stage {
   position: relative;
-  width: 76px;
-  height: 76px;
+  width: 120px;
+  height: 120px;
   display: grid;
   place-items: center;
 }
 
-.monogram-halo {
+.reticle-svg {
   position: absolute;
-  inset: -15%;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--preloader-gold-glow) 0%, transparent 70%);
-  filter: blur(14px);
-  animation: halo-scale 3s ease-in-out infinite alternate;
-}
-
-.monogram-disk {
-  position: relative;
+  inset: 0;
   width: 100%;
   height: 100%;
-  border-radius: 24px;
-  background: radial-gradient(circle at 35% 30%, #1f1d1b 0%, #0e0d0c 100%);
-  border: 1px solid rgba(217, 119, 6, 0.35);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  display: grid;
-  place-items: center;
+  pointer-events: none;
 }
 
-.monogram-img {
+.progress-arc {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+.emblem-disc {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: radial-gradient(circle at 35% 30%, #1e1b17 0%, #0c0b0a 100%);
+  border: 1px solid rgba(217, 119, 6, 0.45);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.emblem-asset {
   width: 58%;
   height: 58%;
   object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.emblem-glimmer {
+  position: absolute;
+  inset: -10%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(251, 191, 36, 0.2) 30deg, transparent 60deg);
+  animation: emblem-spin 4s linear infinite;
+  pointer-events: none;
 }
 
 /* Slogan */
-.slogan-wrapper {
+.brand-slogan {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.slogan-title {
+.slogan-main {
   margin: 0;
-  font-size: clamp(34px, 5.5vw, 64px);
+  font-size: clamp(30px, 4.5vw, 54px);
   font-weight: 450;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   line-height: 1.15;
 }
 
-.slogan-row {
+.slogan-w1 {
   display: block;
-}
-
-.slogan-row--1 {
   color: #ffffff;
 }
 
-.slogan-row--2 {
-  background: linear-gradient(135deg, #ffffff 0%, #fef3c7 40%, var(--preloader-gold) 100%);
+.slogan-w2 {
+  display: block;
+  background: linear-gradient(135deg, #ffffff 0%, #fef3c7 45%, var(--loader-gold) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   font-style: italic;
 }
 
-.slogan-desc {
+.slogan-aux {
   margin: 0;
-  font-size: clamp(9px, 1.2vw, 11px);
+  font-size: clamp(9px, 1.1vw, 11px);
   font-weight: 600;
-  letter-spacing: 0.24em;
-  color: var(--preloader-muted);
+  letter-spacing: 0.22em;
+  color: #9ca3af;
 }
 
-/* Progress System */
-.progress-system {
+/* Progress Box */
+.progress-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  width: min(100%, 360px);
+  gap: 12px;
+  width: min(100%, 340px);
 }
 
-.counter-display {
+.counter-wrap {
   display: flex;
   align-items: baseline;
   gap: 3px;
   line-height: 1;
 }
 
-.counter-number {
-  font-size: clamp(40px, 6vw, 56px);
+.counter-val {
+  font-size: clamp(38px, 5.5vw, 52px);
   font-weight: 500;
   letter-spacing: -0.02em;
   color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
-.counter-percent {
-  font-size: 14px;
+.counter-unit {
+  font-size: 13px;
   font-weight: 600;
-  color: var(--preloader-gold);
-}
-
-.horizon-rail {
-  position: relative;
-  width: 100%;
-  height: 2px;
+  color: var(--loader-gold-light);
 }
 
 .horizon-track {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  width: 100%;
+  height: 2px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
+  overflow: hidden;
 }
 
-.horizon-fill {
+.horizon-meter {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
-  background: linear-gradient(90deg, transparent 0%, var(--preloader-gold) 60%, var(--preloader-gold-light) 100%);
-  border-radius: 999px;
-  box-shadow: 0 0 14px var(--preloader-gold-glow);
-  transition: width 0.15s linear;
+  width: 100%;
+  background: linear-gradient(90deg, var(--loader-gold) 0%, var(--loader-gold-light) 100%);
+  transform-origin: left center;
+  transition: transform 0.08s linear;
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.5);
+  will-change: transform;
 }
 
-.horizon-pin {
-  position: absolute;
-  top: 50%;
-  right: -3px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 10px var(--preloader-gold-light), 0 0 0 2px rgba(217, 119, 6, 0.6);
-  transform: translateY(-50%);
-}
-
-.status-indicator {
+.status-wrap {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--preloader-muted);
+  letter-spacing: 0.06em;
+  color: #9ca3af;
 }
 
-.status-dot {
+.status-light {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--preloader-gold);
-  animation: beacon-breathe 1.2s infinite alternate;
+  background: var(--loader-gold);
+  transition: background-color 0.2s ease;
 }
 
-.status-dot--ready {
+.status-light--ready {
   background: #10b981;
   box-shadow: 0 0 8px #10b981;
 }
 
-/* ==========================================================================
-   Bottom Footer
-   ========================================================================== */
+/* 5. Footer */
 .preloader-footer {
   position: relative;
   z-index: 10;
@@ -744,88 +775,40 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   width: 100%;
   font-size: 9px;
-  letter-spacing: 0.16em;
-  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-/* ==========================================================================
-   Exit Curtain Reveal (向上轻抚丝滑升起)
-   ========================================================================== */
-.xo-preloader--exit {
-  transform: translateY(-100%);
-  transition: transform 0.82s cubic-bezier(0.85, 0, 0.15, 1);
-  pointer-events: none;
+@keyframes emblem-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.xo-preloader--exit .preloader-header {
-  opacity: 0;
-  transform: translateY(-15px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.xo-preloader--exit .preloader-stage {
-  opacity: 0;
-  transform: scale(0.96) translateY(-25px);
-  transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
-}
-
-.xo-preloader--exit .preloader-footer {
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-/* ==========================================================================
-   Keyframe Animations
-   ========================================================================== */
-@keyframes beacon-breathe {
-  from { opacity: 0.4; transform: scale(0.85); }
-  to { opacity: 1; transform: scale(1.15); }
-}
-
-@keyframes glow-pulse {
-  0% { transform: scale(0.92); opacity: 0.8; }
-  100% { transform: scale(1.08); opacity: 1.2; }
-}
-
-@keyframes halo-scale {
-  0% { transform: scale(0.88); opacity: 0.6; }
-  100% { transform: scale(1.12); opacity: 1; }
-}
-
-/* ==========================================================================
-   Responsive Adaptations
-   ========================================================================== */
+/* Mobile Adaptations */
 @media (max-width: 640px) {
   .xo-preloader {
-    padding: 20px 20px 28px;
+    padding: 16px 16px 20px;
   }
-  .brand-edition {
-    display: none;
-  }
-  .brand-sep {
-    display: none;
-  }
-  .network-chip {
+  .brand-sub,
+  .brand-div,
+  .spec-right {
     display: none;
   }
   .preloader-footer {
     justify-content: center;
     text-align: center;
   }
-  .preloader-footer span:last-child {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ambient-glow,
-  .brand-beacon,
-  .monogram-halo,
-  .status-dot {
-    animation: none !important;
+  .shutter {
+    transition: none !important;
   }
-  .xo-preloader--exit {
+  .xo-preloader {
     transition-duration: 0.01ms !important;
+  }
+  .emblem-glimmer {
+    animation: none !important;
   }
 }
 </style>

@@ -137,6 +137,40 @@ if (!fs.existsSync(blogPostsPath)) {
 
 
 
+// ── Additional Storage Tables & Directories ──────────────────────────────
+const uploadsDir = path.resolve(__dirname, 'public/uploads')
+const deliveryDir = path.join(uploadsDir, 'delivery')
+const additionalDirs = [
+  path.join(contentDir, 'orders'),
+  path.join(contentDir, 'bookings'),
+  path.join(contentDir, 'media'),
+  path.join(contentDir, 'video'),
+  path.join(contentDir, 'vault-keys'),
+  uploadsDir,
+  deliveryDir
+]
+for (const d of additionalDirs) {
+  if (!fs.existsSync(d)) {
+    fs.mkdirSync(d, { recursive: true })
+    console.log(`✅ Created ${path.relative(__dirname, d)}/`)
+  }
+}
+
+const additionalFiles = [
+  { path: path.join(contentDir, 'blacklist.json'), defaultVal: [] },
+  { path: path.join(contentDir, 'security-logs.json'), defaultVal: [] },
+  { path: path.join(contentDir, 'bookings.json'), defaultVal: [] },
+  { path: path.join(contentDir, 'orders.json'), defaultVal: [] },
+  { path: path.join(contentDir, 'client-accounts.json'), defaultVal: [] }
+]
+
+for (const file of additionalFiles) {
+  if (!fs.existsSync(file.path)) {
+    fs.writeFileSync(file.path, JSON.stringify(file.defaultVal, null, 2), 'utf-8')
+    console.log(`✅ Created ${path.relative(__dirname, file.path)}`)
+  }
+}
+
 // ── Summary ───────────────────────────────────────────────────────────────
 console.log('\n🎉 Server data initialized. These files are gitignored and will survive git pull.')
-console.log('   Edit all settings through the admin panel at /admin\n')
+console.log('   All runtime storage, security blacklists, and vault systems are synchronized.\n')

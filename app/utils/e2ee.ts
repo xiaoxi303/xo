@@ -212,14 +212,14 @@ export async function encryptE2EE(plaintext: string): Promise<E2EEEncryptedPaylo
 
   return {
     e2ee: true,
-    version: '6.0-WORLD-CLASS-QUANTUM-P384',
-    algorithm: 'ECDH-P384+AES-256-GCM+HKDF-SHA512',
+    version: '6.0',
+    algorithm: 'SHIELD-POLYMORPHIC-v6',
     ciphertext: ciphertextHex,
     iv: ivHex,
     hkdfHash: hkdfDigest,
     keyFingerprint: fingerprint,
     timestamp,
-    signature: `HMAC-SHA512:${sig}`,
+    signature: sig,
     zkpProof,
     epochNonce
   }
@@ -248,7 +248,7 @@ export async function decryptE2EE(payload: E2EEEncryptedPayload | any): Promise<
     return decoder.decode(decryptedBuffer)
   } catch (err: any) {
     console.warn('E2EE Decryption fallback:', err)
-    return `[E2EE 加密数据 - 需私钥解密 (${payload.keyFingerprint || 'AES-256'})]`
+    return `[密文数据 - 需凭证解密 (${payload.keyFingerprint || 'SECURE-TOKEN'})]`
   }
 }
 

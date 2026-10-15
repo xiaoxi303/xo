@@ -39,29 +39,31 @@ export default defineEventHandler(async (event) => {
     const host = parsed.hostname.toLowerCase()
     const isAllowedHost = ALLOWED_HOST_SUFFIXES.some(suffix => host === suffix || host.endsWith('.' + suffix))
 
-    // Check if target matches any registered project or home video
-    const projects = await dbGetProjectsRaw(event).catch(() => [])
-    const target = String(targetUrl).trim()
-    const ownerProject = Array.isArray(projects) ? projects.find((project: any) => {
-      const urls = Array.isArray(project?.videoUrls)
-        ? project.videoUrls
-        : [project?.videoUrl]
-      return urls.some((url: any) => String(url || '').trim() === target)
-    }) : null
-
     const requestedSlug = normalizeDeliverySlug(query.slug)
     if (requestedSlug) {
       await assertDeliveryAccess(event, requestedSlug)
-    } else if (ownerProject?.slug) {
-      await assertDeliveryAccess(event, ownerProject.slug)
     }
 
-    // If host is not in allowed domain whitelist AND not attached to any project, reject SSRF attempt
-    if (!isAllowedHost && !ownerProject) {
-      throw createError({
-        statusCode: 403,
-        message: '安全拦截：该媒体源未获授权或不在系统允许的分发列表中。'
-      })
+    if (!isAllowedHost) {
+      // Check if target matches any registered project or home video
+      const projects = await dbGetProjectsRaw(event).catch(() => [])
+      const target = String(targetUrl).trim()
+      const ownerProject = Array.isArray(projects) ? projects.find((project: any) => {
+        const urls = Array.isArray(project?.videoUrls)
+          ? project.videoUrls
+          : [project?.videoUrl]
+        return urls.some((url: any) => String(url || '').trim() === target)
+      }) : null
+
+      if (!ownerProject) {
+        throw createError({
+          statusCode: 403,
+          message: '安全拦截：该媒体源未获授权或不在系统允许的分发列表中。'
+        })
+      }
+      if (!requestedSlug && ownerProject.slug) {
+        await assertDeliveryAccess(event, ownerProject.slug)
+      }
     }
 
     // Set response headers for video streaming

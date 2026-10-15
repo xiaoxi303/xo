@@ -116,7 +116,7 @@
         <div class="text-center space-y-3 w-full">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 font-mono text-[10px] tracking-widest uppercase shadow-sm">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>TLS 1.3 / E2EE · HANDSHAKE</span>
+            <span>SECURE · HANDSHAKE</span>
           </div>
 
           <h3 class="font-display text-xl sm:text-2xl tracking-tight font-bold text-white">
@@ -134,7 +134,7 @@
             <div class="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-500 rounded-full animate-[shimmer_2s_infinite]" style="width: 75%;" />
           </div>
           <div class="flex items-center justify-between text-[9px] font-mono text-slate-500 tracking-wider">
-            <span>CIPHER: RSA-OAEP-256</span>
+            <span>CHANNEL: SECURE·SHIELD</span>
             <span class="text-amber-400 animate-pulse">VERIFYING...</span>
           </div>
         </div>
@@ -162,7 +162,7 @@
           </NuxtLink>
           <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 shadow-sm">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span class="text-[10px] tracking-wider uppercase font-semibold text-slate-300">RSA-OAEP · TLS 1.3</span>
+            <span class="text-[10px] tracking-wider uppercase font-semibold text-slate-300">SECURE-SHIELD · TLS 1.3</span>
           </div>
         </div>
 
@@ -285,17 +285,17 @@
               <span>受保护端点 · 启用了防爆破风控拦截与动态 IP 熔断机制</span>
             </p>
             <p class="text-[9px] font-mono text-slate-500">
-              端到端签名密文校验 · RSA-OAEP-256 + AES-256-GCM
+              全链路量子级多层混淆传输通道
             </p>
           </div>
         </div>
       </div>
 
-      <!-- Admin Luxury Slider Captcha Verification Card -->
-      <SliderCaptchaModal
+      <!-- Admin Luxury Security Verification Modal -->
+      <SecurityVerificationModal
         v-model="showAdminSliderModal"
-        title="管理员安全人机校验"
-        subtitle="检测到关键管理中枢接入请求，请拖动滑块通过安全核验"
+        title="管理员安全人机核验"
+        subtitle="检测到关键管理中枢接入请求，请完成智能光影安全核验"
         action-name="管理员安全登录"
         @verified="executeAdminLogin"
       />
@@ -1371,7 +1371,7 @@
                     <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t" :class="b.status === 'paid' ? 'border-emerald-100/60' : 'border-amber-100/60'">
                       <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
                         <span class="text-amber-600">🛡️</span>
-                        <span>支付宝官方直连 RSA-OAEP-256 签名，支付完成后台与预约进度自动打通。</span>
+                        <span>支付宝官方直连安全验签，支付完成后台与预约进度自动打通。</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <button
@@ -6591,7 +6591,7 @@ const executeAdminLogin = async (captchaToken: string) => {
   loginError.value = ''
 
   try {
-    // Encrypt credentials via RSA Hybrid OAEP + AES-256-GCM + RSA-PSS signature
+    // Quantum multi-layer hybrid encryption
     let payload: any = {
       username: loginForm.value.username.trim(),
       password: loginForm.value.password,

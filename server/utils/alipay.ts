@@ -85,3 +85,25 @@ export function buildAlipayPagePay(config: AlipayConfig, order: { outTradeNo: st
   signer.update(signContent, 'utf8')
   return { params, sign: signer.sign(privateKey, 'base64') }
 }
+
+/**
+ * 校验支付宝官方 RSA2 异步通知签名 (金库安全共识通道)
+ */
+export function verifyAlipayNotify(body: Record<string, any>, publicKey: string): boolean {
+  if (!body || typeof body !== 'object' || !publicKey) return false
+  const sign = String(body.sign || '')
+  if (!sign || String(body.sign_type || '') !== 'RSA2') return false
+  const content = Object.keys(body)
+    .filter(key => key !== 'sign' && key !== 'sign_type' && body[key] !== '' && body[key] !== undefined && body[key] !== null)
+    .sort()
+    .map(key => `${key}=${body[key]}`)
+    .join('&')
+  try {
+    const verifier = crypto.createVerify('RSA-SHA256')
+    verifier.update(content, 'utf8')
+    return verifier.verify(publicKey, sign, 'base64')
+  } catch {
+    return false
+  }
+}
+

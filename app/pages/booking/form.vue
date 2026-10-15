@@ -198,7 +198,7 @@
               </button>
 
               <div class="flex items-center justify-between text-[11px] text-slate-600 font-mono px-1">
-                <span>🔒 RSA-4096 混合高强加密传输</span>
+                <span>🔒 全链路高阶安全加密传输</span>
                 <span>✓ 24小时内极速反馈</span>
               </div>
 

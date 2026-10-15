@@ -31,13 +31,13 @@ export default defineEventHandler(async (event) => {
     if (!isRsaHybridPayload(body)) {
       throw createError({
         statusCode: 400,
-        statusMessage: '安全策略拦截：仅支持金库双舱混淆共识加密传输。'
+        statusMessage: '安全策略拦截：全链路要求安全加密传输，拒绝未授权请求。'
       })
     }
     try {
-      body = JSON.parse(decryptRsaHybrid(body))
+      body = JSON.parse(await decryptRsaHybrid(body, event))
     } catch {
-      throw createError({ statusCode: 400, statusMessage: '安全策略拦截：请求未通过金库共识解密校验。' })
+      throw createError({ statusCode: 400, statusMessage: '安全策略拦截：密文共识校验未通过或凭证已失效。' })
     }
   }
 

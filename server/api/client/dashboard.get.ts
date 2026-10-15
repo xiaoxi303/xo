@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const rawUserRecord = (await dbGetUserRecord(event, username).catch(() => null)) || {}
-    const { password: _p, ...clientProfile } = foundUser
+    const { password: _p, passwordHash: _ph, deliveryKeyHash: _dkh, ...clientProfile } = foundUser
     const clientEmail = String(clientProfile.email || '').trim().toLowerCase()
     const clientPhone = String(clientProfile.phone || '').trim()
 

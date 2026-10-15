@@ -238,7 +238,7 @@
                 <span class="security-icon">🔒</span>
                 <div>
                   <strong>端到端防篡改</strong>
-                  <span>RSA-OAEP-256 加密</span>
+                  <span>高阶安全加密保护</span>
                 </div>
               </div>
               <div class="security-chip">
