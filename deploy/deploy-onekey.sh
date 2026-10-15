@@ -103,6 +103,14 @@ if [ "$DESIRED_PORT" = "3000" ]; then
   DESIRED_PORT=3007
 fi
 
+# 确保在重新拉起前彻底清除旧构建的残留进程，杜绝 ESM 动态分块哈希错位与端口幽灵锁定
+if command -v pm2 >/dev/null 2>&1; then
+  pm2 delete xo-studio 2>/dev/null || true
+fi
+pkill -9 -f ".output/server/index.mjs" 2>/dev/null || true
+fuser -k "$DESIRED_PORT"/tcp 2>/dev/null || true
+sleep 1
+
 is_port_in_use() {
   local p="$1"
   node -e "
@@ -126,55 +134,23 @@ is_port_in_use() {
 
 APP_PORT="$DESIRED_PORT"
 
-# 检查 PM2 是否正在守护运行当前项目
-IS_PM2_RUNNING=false
-if command -v pm2 >/dev/null 2>&1; then
-  if pm2 list 2>/dev/null | grep -q "xo-studio"; then
-    IS_PM2_RUNNING=true
-  fi
-fi
-
 if is_port_in_use "$DESIRED_PORT"; then
-  if [ "$IS_PM2_RUNNING" = "true" ]; then
-    echo "ℹ️ 检测到 PM2 已在端口 $DESIRED_PORT 守护运行本服务，准备进行无缝集群热重载..."
-    APP_PORT="$DESIRED_PORT"
+  echo "⚠️ 端口 $DESIRED_PORT 仍被外部固定服务占用，启动全自动智能候选端口池..."
+  CANDIDATE_PORTS=(3007 3008 3009 3010 3011 3012 3015 3020 3080 3001 3002 3003 3004 3005 3006)
+  FOUND_PORT=""
+  for cp in "${CANDIDATE_PORTS[@]}"; do
+    if ! is_port_in_use "$cp"; then
+      FOUND_PORT="$cp"
+      break
+    fi
+  done
+
+  if [ -n "$FOUND_PORT" ]; then
+    APP_PORT="$FOUND_PORT"
+    echo "🎯 成功全自动切换至空闲可用智能端口: $APP_PORT"
   else
-    echo "⚠️ 端口 $DESIRED_PORT 当前已被占用，正在智能检索占用来源并尝试释放..."
-    
-    # 尝试多种方式探测占用 PID (兼容无 lsof / fuser 环境)
-    OLD_PIDS=$(lsof -t -i :"$DESIRED_PORT" 2>/dev/null || fuser "$DESIRED_PORT"/tcp 2>/dev/null || ss -tlpn "sport = :$DESIRED_PORT" 2>/dev/null | grep -o 'pid=[0-9]*' | cut -d= -f2 || true)
-    if [ -n "$OLD_PIDS" ]; then
-      echo "🛑 发现占用端口 $DESIRED_PORT 的历史孤儿进程 PID: $OLD_PIDS，正在优雅释放..."
-      kill -15 $OLD_PIDS 2>/dev/null || true
-      sleep 1
-      if is_port_in_use "$DESIRED_PORT"; then
-        kill -9 $OLD_PIDS 2>/dev/null || true
-        sleep 1
-      fi
-    fi
-
-    # 如果仍被占用（被外部固定服务占用），全自动智能寻找空闲端口 (3007, 3008~3020, 3080)
-    if is_port_in_use "$DESIRED_PORT"; then
-      echo "⚠️ 端口 $DESIRED_PORT 仍被外部固定服务占用，启动全自动智能候选端口池..."
-      CANDIDATE_PORTS=(3007 3008 3009 3010 3011 3012 3015 3020 3080 3001 3002 3003 3004 3005 3006)
-      FOUND_PORT=""
-      for cp in "${CANDIDATE_PORTS[@]}"; do
-        if ! is_port_in_use "$cp"; then
-          FOUND_PORT="$cp"
-          break
-        fi
-      done
-
-      if [ -n "$FOUND_PORT" ]; then
-        APP_PORT="$FOUND_PORT"
-        echo "🎯 成功全自动切换至空闲可用智能端口: $APP_PORT"
-      else
-        echo "❌ 常见端口均被占用，请手动指定 PORT=xxxx 执行部署。"
-        exit 1
-      fi
-    else
-      echo "✅ 端口 $APP_PORT 历史占用已释放，空闲就绪。"
-    fi
+    echo "❌ 常见端口均被占用，请手动指定 PORT=xxxx 执行部署。"
+    exit 1
   fi
 else
   echo "✅ 专属智能端口 $APP_PORT 空闲就绪。"
@@ -198,24 +174,19 @@ echo ""
 echo "🔄 正在同步启动与加载服务集群 (监听 127.0.0.1:$APP_PORT)..."
 
 if command -v pm2 >/dev/null 2>&1; then
-  echo "⚡ 检测到 PM2，正在通过 ecosystem.config.cjs 在端口 $APP_PORT 启动服务集群..."
-  PORT=$APP_PORT NITRO_PORT=$APP_PORT pm2 reload ecosystem.config.cjs --update-env || PORT=$APP_PORT NITRO_PORT=$APP_PORT pm2 start ecosystem.config.cjs --update-env
+  echo "⚡ 检测到 PM2，正在通过 ecosystem.config.cjs 在端口 $APP_PORT 全新启动服务集群..."
+  PORT=$APP_PORT NITRO_PORT=$APP_PORT pm2 start ecosystem.config.cjs --update-env
   pm2 save
-  echo "✅ PM2 双实例集群服务已在端口 $APP_PORT 启动并保存开机状态。"
+  echo "✅ PM2 双实例集群服务已在端口 $APP_PORT 全新启动并保存开机状态。"
 else
   echo "⚠️ 未检测到全局 PM2，尝试使用 npx pm2 或直接拉起 node 守护进程..."
   if npx --no-install pm2 -v >/dev/null 2>&1; then
-    PORT=$APP_PORT NITRO_PORT=$APP_PORT npx pm2 reload ecosystem.config.cjs --update-env || PORT=$APP_PORT NITRO_PORT=$APP_PORT npx pm2 start ecosystem.config.cjs --update-env
-    echo "✅ npx pm2 集群服务已在端口 $APP_PORT 启动。"
+    npx pm2 delete xo-studio 2>/dev/null || true
+    PORT=$APP_PORT NITRO_PORT=$APP_PORT npx pm2 start ecosystem.config.cjs --update-env
+    echo "✅ npx pm2 集群服务已在端口 $APP_PORT 全新启动。"
   else
     echo "ℹ️ 使用 nohup 启动生产服务 (建议后续安装 pm2: npm install -g pm2)..."
-    PID=$(pgrep -f ".output/server/index.mjs" || true)
-    if [ -n "$PID" ]; then
-      echo "🛑 正在平滑停止旧进程 PID: $PID"
-      kill -15 "$PID" 2>/dev/null || true
-      sleep 2
-    fi
-    PORT=$APP_PORT NITRO_PORT=$APP_PORT HOST=127.0.0.1 nohup node .output/server/index.mjs > server.log 2>&1 &
+    PORT=$APP_PORT NITRO_PORT=$APP_PORT HOST=127.0.0.1 nohup node scripts/start-production.mjs > server.log 2>&1 &
     echo "✅ 生产服务已在后台运行 (端口: $APP_PORT)，日志输出至 server.log。"
   fi
 fi
