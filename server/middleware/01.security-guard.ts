@@ -27,11 +27,17 @@ export default defineEventHandler(async (event) => {
   const machineId = getRequestHeader(event, 'x-machine-id') || ''
 
   // 2. Active Defense: IP and Machine Lockout Enforcement
-  // 校验是否存在合法有效的管理员会话，杜绝管理员因误报或网络切换被锁在后台之外
+  const url = getRequestURL(event)
+  const pathname = url.pathname.toLowerCase()
+  const hostWithoutPort = rawHost.split(':')[0].trim()
+
+  // 允许人机安全核验门与公钥分发通道进行准入挑战验证（以便真实用户完成人机认证并自愈解封）
+  const isSecurityChallengeRoute = pathname.startsWith('/api/security/')
+
   const adminCookie = getCookie(event, SESSION_COOKIE)
   const isAdminAuthenticated = !!(adminCookie && validateSession(adminCookie))
 
-  if (!isAdminAuthenticated) {
+  if (!isAdminAuthenticated && !isSecurityChallengeRoute) {
     const ipLock = checkRateLimit(clientIp)
     if (ipLock.isLocked) {
       throw createError({
@@ -50,10 +56,6 @@ export default defineEventHandler(async (event) => {
       }
     }
   }
-
-  const url = getRequestURL(event)
-  const pathname = url.pathname.toLowerCase()
-  const hostWithoutPort = rawHost.split(':')[0].trim()
 
   // Enforce HTTPS: Force all plain HTTP traffic to HTTPS via 301 permanent redirect
   const proto = getRequestHeader(event, 'x-forwarded-proto')

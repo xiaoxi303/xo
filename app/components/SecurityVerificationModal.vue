@@ -285,14 +285,16 @@ const switchMode = (mode: 'smart-touch' | 'symbol-match') => {
 // Fetch a fresh challenge from the server
 let refreshPromise: Promise<void> | null = null
 
-const refreshChallenge = async () => {
+const refreshChallenge = async (silent = false) => {
   if (refreshPromise) {
     return refreshPromise
   }
   refreshPromise = (async () => {
-    state.value = 'idle'
-    selectedSymbolCandidate.value = ''
-    statusText.value = activeMode.value === 'smart-touch' ? '点击激活光影智能安全核验' : '请点击匹配上方的目标符号'
+    if (!silent) {
+      state.value = 'idle'
+      selectedSymbolCandidate.value = ''
+      statusText.value = activeMode.value === 'smart-touch' ? '点击激活光影智能安全核验' : '请点击匹配上方的目标符号'
+    }
     openedAt = performance.now()
 
     try {
@@ -300,7 +302,7 @@ const refreshChallenge = async () => {
       if (res?.challengeId) {
         currentChallengeId.value = res.challengeId
         currentSalt.value = res.salt || 'xosalt'
-        currentDifficulty.value = res.difficulty || 3
+        currentDifficulty.value = res.difficulty || 2
         if (res.targetSymbol) {
           targetSymbol.value = res.targetSymbol
         } else {
@@ -312,8 +314,10 @@ const refreshChallenge = async () => {
         const shuffledOthers = others.sort(() => Math.random() - 0.5).slice(0, 3)
         symbolCandidates.value = [targetSymbol.value, ...shuffledOthers].sort(() => Math.random() - 0.5)
       }
-    } catch (err) {
-      statusText.value = '获取安全挑战失败，请点击刷新'
+    } catch (err: any) {
+      if (!silent) {
+        statusText.value = err?.data?.statusMessage || err?.message || '获取安全挑战失败，请点击刷新'
+      }
     } finally {
       refreshPromise = null
     }
@@ -321,19 +325,31 @@ const refreshChallenge = async () => {
   return refreshPromise
 }
 
-// Client Proof-of-Work Solver (毫秒级在浏览器中计算哈希解，有效遏制无头机器人)
-const solveProofOfWork = async (challengeId: string, salt: string, difficulty = 3): Promise<number> => {
-  const prefix = '0'.repeat(difficulty)
+// Client Proof-of-Work Solver (高效字节级 SHA-256 运算，毫秒级快速完成)
+const solveProofOfWork = async (challengeId: string, salt: string, difficulty = 2): Promise<number> => {
   const encoder = new TextEncoder()
+  const subtle = (typeof window !== 'undefined' && window.crypto?.subtle) || (globalThis as any)?.crypto?.subtle
+  if (!subtle) return 42
 
-  // Use WebCrypto SHA-256
-  for (let nonce = 0; nonce < 100000; nonce++) {
+  for (let nonce = 0; nonce < 50000; nonce++) {
     const data = encoder.encode(`${challengeId}:${salt}:${nonce}`)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-    if (hashHex.startsWith(prefix)) {
-      return nonce
+    const hashBuffer = await subtle.digest('SHA-256', data)
+    const bytes = new Uint8Array(hashBuffer)
+
+    if (difficulty === 1) {
+      if ((bytes[0] & 0xf0) === 0) return nonce
+    } else if (difficulty === 2) {
+      if (bytes[0] === 0) return nonce
+    } else if (difficulty === 3) {
+      if (bytes[0] === 0 && (bytes[1] & 0xf0) === 0) return nonce
+    } else {
+      let ok = true
+      for (let i = 0; i < difficulty; i++) {
+        const byte = bytes[Math.floor(i / 2)]
+        const nibble = (i % 2 === 0) ? (byte >> 4) : (byte & 0x0f)
+        if (nibble !== 0) { ok = false; break }
+      }
+      if (ok) return nonce
     }
   }
   return 42
@@ -365,11 +381,11 @@ const triggerSmartTouchVerification = async () => {
       currentDifficulty.value
     )
 
-    // Ensure realistic human duration feeling (~350ms)
+    // Ensure realistic human duration feeling (~300ms)
     const elapsed = Math.round(performance.now() - t0)
     const totalDuration = Math.max(380, Math.round(performance.now() - openedAt))
-    if (elapsed < 350) {
-      await new Promise(r => setTimeout(r, 350 - elapsed))
+    if (elapsed < 300) {
+      await new Promise(r => setTimeout(r, 300 - elapsed))
     }
 
     // 2. Gather natural client browser entropy (no private data, purely execution environment)
@@ -405,10 +421,11 @@ const triggerSmartTouchVerification = async () => {
       throw new Error(res?.reason || '核验未通过')
     }
   } catch (err: any) {
+    console.error('[SecurityVerificationModal] verification error:', err)
     state.value = 'error'
-    statusText.value = err?.data?.statusMessage || err?.message || '安全校验超时，请点击重试'
+    statusText.value = err?.data?.statusMessage || err?.data?.message || err?.message || '安全校验未通过，请点击重试'
     currentChallengeId.value = ''
-    refreshChallenge()
+    refreshChallenge(true)
   }
 }
 
@@ -454,10 +471,11 @@ const triggerSymbolMatchVerification = async (selected: string) => {
       throw new Error(res?.reason || '符号匹配未通过')
     }
   } catch (err: any) {
+    console.error('[SecurityVerificationModal] symbol verification error:', err)
     state.value = 'error'
-    statusText.value = err?.data?.statusMessage || err?.message || '所选符号不匹配或已失效，请重试'
+    statusText.value = err?.data?.statusMessage || err?.data?.message || err?.message || '所选符号不匹配或已失效，请重试'
     currentChallengeId.value = ''
-    refreshChallenge()
+    refreshChallenge(true)
   }
 }
 

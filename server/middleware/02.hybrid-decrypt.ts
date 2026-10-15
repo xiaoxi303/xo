@@ -62,6 +62,7 @@ export default defineEventHandler(async (event) => {
       event.context.rawHybridPayload = body
       return
     } catch (decryptErr: any) {
+      console.error('[02.hybrid-decrypt] Decrypt error:', decryptErr?.message || decryptErr)
       throw createError({
         statusCode: 400,
         statusMessage: '安全策略拦截：公钥凭据已失效或时钟不同步，请刷新页面后重试。'

@@ -27,7 +27,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { getRealClientIP } from './ip-helper'
 import { logSecurityEvent } from './security-logger'
-import { recordFailedAttempt } from './rate-limiter'
+import { recordFailedAttempt, resetRateLimit } from './rate-limiter'
 import { dbAddBlacklist } from './db'
 import { getRequestHeader } from 'h3'
 
@@ -589,11 +589,12 @@ export async function decryptRsaHybridWithVault(payload: RsaHybridPayload, event
   // 如果内存中未命中（跨 PM2 集群工作进程、或进程重启），通过防伪自验证签名进行集群无感验签
   if (!ticket && typeof payload.keyId === 'string' && payload.keyId.startsWith('OTPK_')) {
     const parts = payload.keyId.split('_')
+    // OTPK_${epochId}_${expiresAt}_${nonce}_${ticketSig} where epochId can contain underscores (e.g. EPOCH_20261015_0000)
     if (parts.length >= 5) {
-      const epochId = parts[1]
-      const expiresAt = Number(parts[2])
-      const nonce = parts[3]
-      const ticketSig = parts[4]
+      const ticketSig = parts[parts.length - 1]
+      const nonce = parts[parts.length - 2]
+      const expiresAt = Number(parts[parts.length - 3])
+      const epochId = parts.slice(1, parts.length - 3).join('_')
 
       const expectedConsensus = crypto
         .createHmac('sha256', Buffer.from(VAULT_MASTER_SECRET, 'utf8'))
@@ -936,7 +937,7 @@ setInterval(() => {
 export function issueSecurityChallenge(clientIp?: string) {
   const pepper = getVaultMasterPepper()
   const salt = crypto.randomBytes(12).toString('hex')
-  const difficulty = 3 // 客户端 PoW 难度（毫秒级瞬时计算，彻底拦截无头爬虫）
+  const difficulty = 2 // 客户端 PoW 难度（毫秒级瞬时计算，彻底拦截无头爬虫，保障各端极速响应）
   const symbols = ['4K HDR', 'ACEScc', 'DAVINCI', 'PRORES', 'REC.2020', 'SHUTTER 180°']
   const targetSymbol = symbols[Math.floor(Math.random() * symbols.length)]
   const targetCode = `XO_${crypto.randomBytes(3).toString('hex').toUpperCase()}`
@@ -1128,6 +1129,12 @@ export function verifySecurityChallenge(params: {
     expiresAt: now + 180 * 1000,
     clientIp
   })
+
+  // 真实人类完成人机核验：自动即时解封客户端 IP 的临时锁定限制
+  if (clientIp) {
+    resetRateLimit(clientIp)
+    resetRateLimit(`client-ip:${clientIp}`)
+  }
 
   return {
     success: true,
