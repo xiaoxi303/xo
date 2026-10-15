@@ -283,32 +283,42 @@ const switchMode = (mode: 'smart-touch' | 'symbol-match') => {
 }
 
 // Fetch a fresh challenge from the server
+let refreshPromise: Promise<void> | null = null
+
 const refreshChallenge = async () => {
-  state.value = 'idle'
-  selectedSymbolCandidate.value = ''
-  statusText.value = activeMode.value === 'smart-touch' ? '点击激活光影智能安全核验' : '请点击匹配上方的目标符号'
-  openedAt = performance.now()
-
-  try {
-    const res = await $fetch<any>('/api/security/slider-challenge')
-    if (res?.challengeId) {
-      currentChallengeId.value = res.challengeId
-      currentSalt.value = res.salt || 'xosalt'
-      currentDifficulty.value = res.difficulty || 3
-      if (res.targetSymbol) {
-        targetSymbol.value = res.targetSymbol
-      } else {
-        targetSymbol.value = allSymbols[Math.floor(Math.random() * allSymbols.length)]
-      }
-
-      // Generate 4 randomized unique options including target
-      const others = allSymbols.filter(s => s !== targetSymbol.value)
-      const shuffledOthers = others.sort(() => Math.random() - 0.5).slice(0, 3)
-      symbolCandidates.value = [targetSymbol.value, ...shuffledOthers].sort(() => Math.random() - 0.5)
-    }
-  } catch (err) {
-    statusText.value = '获取安全挑战失败，请点击刷新'
+  if (refreshPromise) {
+    return refreshPromise
   }
+  refreshPromise = (async () => {
+    state.value = 'idle'
+    selectedSymbolCandidate.value = ''
+    statusText.value = activeMode.value === 'smart-touch' ? '点击激活光影智能安全核验' : '请点击匹配上方的目标符号'
+    openedAt = performance.now()
+
+    try {
+      const res = await $fetch<any>('/api/security/slider-challenge')
+      if (res?.challengeId) {
+        currentChallengeId.value = res.challengeId
+        currentSalt.value = res.salt || 'xosalt'
+        currentDifficulty.value = res.difficulty || 3
+        if (res.targetSymbol) {
+          targetSymbol.value = res.targetSymbol
+        } else {
+          targetSymbol.value = allSymbols[Math.floor(Math.random() * allSymbols.length)]
+        }
+
+        // Generate 4 randomized unique options including target
+        const others = allSymbols.filter(s => s !== targetSymbol.value)
+        const shuffledOthers = others.sort(() => Math.random() - 0.5).slice(0, 3)
+        symbolCandidates.value = [targetSymbol.value, ...shuffledOthers].sort(() => Math.random() - 0.5)
+      }
+    } catch (err) {
+      statusText.value = '获取安全挑战失败，请点击刷新'
+    } finally {
+      refreshPromise = null
+    }
+  })()
+  return refreshPromise
 }
 
 // Client Proof-of-Work Solver (毫秒级在浏览器中计算哈希解，有效遏制无头机器人)
@@ -335,6 +345,12 @@ const triggerSmartTouchVerification = async () => {
 
   if (!currentChallengeId.value) {
     await refreshChallenge()
+  }
+
+  if (!currentChallengeId.value) {
+    state.value = 'error'
+    statusText.value = '获取人机挑战凭据失败，请点击重试'
+    return
   }
 
   state.value = 'verifying'
@@ -392,12 +408,23 @@ const triggerSmartTouchVerification = async () => {
     state.value = 'error'
     statusText.value = err?.data?.statusMessage || err?.message || '安全校验超时，请点击重试'
     currentChallengeId.value = ''
+    refreshChallenge()
   }
 }
 
 // Trigger Symbol Match Mode Verification
 const triggerSymbolMatchVerification = async (selected: string) => {
   if (state.value === 'verifying' || state.value === 'success') return
+
+  if (!currentChallengeId.value) {
+    await refreshChallenge()
+  }
+
+  if (!currentChallengeId.value) {
+    state.value = 'error'
+    statusText.value = '获取人机挑战凭据失败，请点击重试'
+    return
+  }
 
   selectedSymbolCandidate.value = selected
   state.value = 'verifying'
@@ -430,6 +457,7 @@ const triggerSymbolMatchVerification = async (selected: string) => {
     state.value = 'error'
     statusText.value = err?.data?.statusMessage || err?.message || '所选符号不匹配或已失效，请重试'
     currentChallengeId.value = ''
+    refreshChallenge()
   }
 }
 

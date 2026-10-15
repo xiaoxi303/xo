@@ -934,7 +934,7 @@ setInterval(() => {
  * 包含密码学工作量证明 (PoW) 盐值、光影符号靶标与反自动化环境特征
  */
 export function issueSecurityChallenge(clientIp?: string) {
-  const challengeId = `sc_${crypto.randomBytes(16).toString('hex')}`
+  const pepper = getVaultMasterPepper()
   const salt = crypto.randomBytes(12).toString('hex')
   const difficulty = 3 // 客户端 PoW 难度（毫秒级瞬时计算，彻底拦截无头爬虫）
   const symbols = ['4K HDR', 'ACEScc', 'DAVINCI', 'PRORES', 'REC.2020', 'SHUTTER 180°']
@@ -948,6 +948,17 @@ export function issueSecurityChallenge(clientIp?: string) {
   const targetY = Math.floor(20 + Math.random() * 60)
   const profileId = Math.floor(1 + Math.random() * 4)
   const bgSeed = Math.floor(1 + Math.random() * 5)
+
+  // 跨 PM2 集群工作进程防伪 HMAC 签名自验凭据: SC_${now}_${expiresAt}_${difficulty}_${symbolHex}_${targetX}_${salt}_${sig}
+  const symbolHex = Buffer.from(targetSymbol, 'utf8').toString('hex')
+  const payloadBase = `SC_${now}_${expiresAt}_${difficulty}_${symbolHex}_${targetX}_${salt}`
+  const challengeSig = crypto
+    .createHmac('sha256', pepper)
+    .update(payloadBase)
+    .digest('hex')
+    .slice(0, 24)
+
+  const challengeId = `${payloadBase}_${challengeSig}`
 
   activeSecurityChallenges.set(challengeId, {
     challengeId,
@@ -1000,7 +1011,53 @@ export function verifySecurityChallenge(params: {
     return { success: false, reason: '缺少人机安全挑战凭据' }
   }
 
-  const challenge = activeSecurityChallenges.get(challengeId)
+  let challenge = activeSecurityChallenges.get(challengeId)
+
+  // 若跨 PM2 集群工作进程或内存重启，通过防伪自验签名进行集群一致性重构
+  if (!challenge && challengeId.startsWith('SC_')) {
+    const pepper = getVaultMasterPepper()
+    const parts = challengeId.split('_')
+    // parts: ['SC', now, expiresAt, difficulty, symbolHex, targetX, salt, sig]
+    if (parts.length >= 8) {
+      const issuedAt = Number(parts[1])
+      const expiresAt = Number(parts[2])
+      const difficulty = Number(parts[3])
+      const symbolHex = parts[4]
+      const targetX = Number(parts[5])
+      const salt = parts[6]
+      const sig = parts[7]
+
+      const payloadBase = `SC_${issuedAt}_${expiresAt}_${difficulty}_${symbolHex}_${targetX}_${salt}`
+      const expectedSig = crypto
+        .createHmac('sha256', pepper)
+        .update(payloadBase)
+        .digest('hex')
+        .slice(0, 24)
+
+      if (sig === expectedSig) {
+        let sym = '4K HDR'
+        try {
+          sym = Buffer.from(symbolHex, 'hex').toString('utf8')
+        } catch {}
+
+        challenge = {
+          challengeId,
+          salt,
+          difficulty,
+          targetCode: 'XO_GATE',
+          targetSymbol: sym,
+          targetX,
+          targetY: 30,
+          profileId: 1,
+          bgSeed: 1,
+          issuedAt,
+          expiresAt,
+          clientIp
+        }
+      }
+    }
+  }
+
   if (!challenge) {
     return { success: false, reason: '安全核验会话已失效或已过期，请刷新重试' }
   }
@@ -1114,17 +1171,6 @@ export function vaultVerifyCaptchaToken(token: string, event?: any): { valid: bo
     return { valid: false, reason: '人机安全验证已过期，请重新核验' }
   }
 
-  // 核心防御：必须存在由服务端合法签发的挑战通过票据（杜绝任何公开算法伪造凭证）
-  if (!activeIssuedSecurityTickets.has(ticketId)) {
-    return { valid: false, reason: '未找到对应服务端人机核验挑战记录，严禁伪造凭证' }
-  }
-
-  const ticketInfo = activeIssuedSecurityTickets.get(ticketId)!
-  if (now > ticketInfo.expiresAt) {
-    activeIssuedSecurityTickets.delete(ticketId)
-    return { valid: false, reason: '人机安全验证挑战凭证已超时，请重新核验' }
-  }
-
   const pepper = getVaultMasterPepper()
   const clientIp = event ? getRealClientIP(event) : undefined
 
@@ -1158,9 +1204,9 @@ export function vaultVerifyCaptchaToken(token: string, event?: any): { valid: bo
     return { valid: false, reason: '人机安全验证签名未通过' }
   }
 
-  // 校验通过，立即双重就地销毁（单次消费，物理防重放）
-  activeIssuedSecurityTickets.delete(ticketId)
+  // 校验通过：立即消费自毁并加入防重放集合
   consumedSecurityTokens.add(token)
+  activeIssuedSecurityTickets.delete(ticketId)
 
   return { valid: true }
 }
