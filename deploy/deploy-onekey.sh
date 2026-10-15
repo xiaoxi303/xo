@@ -81,6 +81,12 @@ echo "✅ 项目依赖同步就绪。"
 echo ""
 echo "🔨 正在执行生产环境编译打包 (含安全加固与校验)..."
 npm run build
+
+if [ ! -f ".output/server/index.mjs" ]; then
+  echo "❌ 错误: 未检测到服务端入口产物 .output/server/index.mjs，构建未完全生成！"
+  exit 1
+fi
+
 echo "✅ 生产构建完成，静态资源与服务端运行时已就绪于 .output/。"
 
 # 6. 自动管理并同步启动服务集群 (优先 PM2，次选后台守护)

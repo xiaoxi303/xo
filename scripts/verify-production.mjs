@@ -20,6 +20,14 @@ async function walk(directory) {
 }
 
 const files = await walk(outputRoot).catch(() => [])
+const serverEntry = path.join(outputRoot, 'server', 'index.mjs')
+const hasServerEntry = await fs.stat(serverEntry).then(s => s.isFile() && s.size > 0).catch(() => false)
+
+if (!hasServerEntry) {
+  console.error(`[verify] Critical Error: Server entry missing or empty at ${serverEntry}`)
+  process.exit(1)
+}
+
 const mapFiles = files.filter(file => file.endsWith('.map'))
 const sensitiveLeaks = []
 const sourceLeaks = []

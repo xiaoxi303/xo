@@ -47,62 +47,92 @@ const runSync = (args, label) => {
   }
 }
 
+const killProcessTree = (pid) => {
+  if (!pid) return
+  if (process.platform === 'win32') {
+    try {
+      spawnSync('taskkill', ['/pid', String(pid), '/T', '/F'], { stdio: 'ignore' })
+    } catch {}
+  } else {
+    try {
+      process.kill(-pid, 'SIGKILL')
+    } catch {
+      try { process.kill(pid, 'SIGKILL') } catch {}
+    }
+  }
+}
+
 const runNuxtBuild = () => {
   console.log(`\n[build] compile production bundle`)
   return new Promise((resolve, reject) => {
     const child = spawn(npmCommand, [npmCli, 'run', 'build:nuxt'], {
       stdio: ['inherit', 'pipe', 'pipe'],
       env,
-      shell: false
+      shell: false,
+      detached: process.platform !== 'win32'
     })
 
+    const outputEntry = path.resolve(process.cwd(), '.output', 'server', 'index.mjs')
     let buildCompleteDetected = false
     let autoExitTimer = null
+    let pollInterval = null
+    let textBuffer = ''
 
     const checkCompleteAndExit = () => {
       if (buildCompleteDetected) return
       buildCompleteDetected = true
 
-      // Allow 2 seconds for natural exit before releasing lingering event loop handles
-      autoExitTimer = setTimeout(() => {
-        const outputEntry = path.resolve(process.cwd(), '.output', 'server', 'index.mjs')
-        if (fs.existsSync(outputEntry)) {
-          console.log('\n[build] Production bundle verified at .output/server/index.mjs. Releasing build process.')
-          try { child.kill('SIGTERM') } catch {}
-          setTimeout(() => {
-            try { child.kill('SIGKILL') } catch {}
-            resolve()
-          }, 600)
-        }
-      }, 2000)
+      // Poll until .output/server/index.mjs is actually flushed to disk
+      pollInterval = setInterval(() => {
+        try {
+          if (fs.existsSync(outputEntry) && fs.statSync(outputEntry).size > 0) {
+            clearInterval(pollInterval)
+            pollInterval = null
+            console.log('\n[build] Production bundle verified at .output/server/index.mjs.')
+
+            // Allow 2 seconds for natural exit before forcefully terminating lingering handles
+            autoExitTimer = setTimeout(() => {
+              killProcessTree(child.pid)
+              resolve()
+            }, 2000)
+          }
+        } catch {}
+      }, 500)
     }
 
-    child.stdout.on('data', (chunk) => {
+    const onData = (chunk) => {
       process.stdout.write(chunk)
-      const text = chunk.toString()
-      if (text.includes('Build complete') || text.includes('You can preview this build')) {
+      textBuffer = (textBuffer + chunk.toString()).slice(-8192)
+      if (
+        textBuffer.includes('Nuxt Nitro server built') ||
+        textBuffer.includes('Build complete') ||
+        textBuffer.includes('You can preview this build')
+      ) {
         checkCompleteAndExit()
       }
-    })
+    }
 
-    child.stderr.on('data', (chunk) => {
-      process.stderr.write(chunk)
-      const text = chunk.toString()
-      if (text.includes('Build complete') || text.includes('You can preview this build')) {
-        checkCompleteAndExit()
-      }
-    })
+    child.stdout.on('data', onData)
+    child.stderr.on('data', onData)
 
     child.on('close', (code) => {
+      if (pollInterval) clearInterval(pollInterval)
       if (autoExitTimer) clearTimeout(autoExitTimer)
-      if (code === 0 || buildCompleteDetected) {
+
+      let hasEntry = false
+      try {
+        hasEntry = fs.existsSync(outputEntry) && fs.statSync(outputEntry).size > 0
+      } catch {}
+
+      if (hasEntry) {
         resolve()
       } else {
-        reject(new Error(`nuxt build failed with exit code ${code}`))
+        reject(new Error(`nuxt build finished without generating .output/server/index.mjs (exit code: ${code})`))
       }
     })
 
     child.on('error', (err) => {
+      if (pollInterval) clearInterval(pollInterval)
       if (autoExitTimer) clearTimeout(autoExitTimer)
       reject(err)
     })
@@ -111,6 +141,12 @@ const runNuxtBuild = () => {
 
 async function main() {
   runSync(['run', 'init-data'], 'prepare runtime data')
+
+  // Clean old server bundle before building to ensure freshness
+  try {
+    fs.rmSync(path.resolve(process.cwd(), '.output', 'server'), { recursive: true, force: true })
+  } catch {}
+
   await runNuxtBuild()
   runSync(['run', 'verify:production'], 'verify production artifacts')
   console.log('\n[build] Production build completed successfully.')
