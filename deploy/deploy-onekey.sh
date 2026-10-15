@@ -41,7 +41,7 @@ if [ ! -f ".env" ]; then
   cat <<EOF > .env
 # XO STUDIO 生产环境安全配置文件 (自动生成)
 NODE_ENV=production
-PORT=3000
+PORT=3007
 HOST=127.0.0.1
 VAULT_MASTER_SECRET=$VAULT_SECRET
 SESSION_SECRET=$SESSION_SEC
@@ -59,6 +59,11 @@ else
     SESSION_SEC=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
     echo "SESSION_SECRET=$SESSION_SEC" >> .env
     echo "🔑 已为现有 .env 自动补齐 256 位会话安全密钥。"
+  fi
+  # 若现有 .env 仍包含旧的 3000 端口，全自动平滑升级为专属智能端口 3007
+  if grep -q "^PORT=3000" .env; then
+    sed -i "s/^PORT=3000/PORT=3007/" .env
+    echo "⚡ 检测到 .env 为旧的 3000 端口，已全自动平滑升级为专属智能端口 3007。"
   fi
   chmod 600 .env 2>/dev/null || true
   echo "✅ 生产配置文件已就绪 (.env 权限 600 保护)。"
@@ -89,11 +94,14 @@ fi
 
 echo "✅ 生产构建完成，静态资源与服务端运行时已就绪于 .output/。"
 
-# 6. 端口智能探测与可用性自愈 (优先环境变量 PORT，次选 3000，冲突时自动搜索可用端口如 3007)
+# 6. 全自动智能端口机制 (专属基准端口 3007，智能检测自愈，冲突自动换可用端口并持久化)
 echo ""
 echo "🔍 正在进行运行端口状态探测与智能分配..."
 
-DESIRED_PORT="${PORT:-3000}"
+DESIRED_PORT="${PORT:-3007}"
+if [ "$DESIRED_PORT" = "3000" ]; then
+  DESIRED_PORT=3007
+fi
 
 is_port_in_use() {
   local p="$1"
@@ -118,46 +126,71 @@ is_port_in_use() {
 
 APP_PORT="$DESIRED_PORT"
 
-if is_port_in_use "$DESIRED_PORT"; then
-  echo "⚠️ 端口 $DESIRED_PORT 当前已被占用，正在检查并清理历史孤儿进程..."
-  
-  # 优先尝试平滑清理旧的本程序进程
-  OLD_PIDS=$(lsof -t -i :"$DESIRED_PORT" 2>/dev/null || fuser "$DESIRED_PORT"/tcp 2>/dev/null || true)
-  if [ -n "$OLD_PIDS" ]; then
-    echo "🛑 发现占用端口 $DESIRED_PORT 的历史进程 PID: $OLD_PIDS，正在释放..."
-    kill -15 $OLD_PIDS 2>/dev/null || true
-    sleep 1
-    if is_port_in_use "$DESIRED_PORT"; then
-      kill -9 $OLD_PIDS 2>/dev/null || true
-      sleep 1
-    fi
+# 检查 PM2 是否正在守护运行当前项目
+IS_PM2_RUNNING=false
+if command -v pm2 >/dev/null 2>&1; then
+  if pm2 list 2>/dev/null | grep -q "xo-studio"; then
+    IS_PM2_RUNNING=true
   fi
 fi
 
-# 如果端口仍被占用（非本程序或被其他固定服务占用），自动查找可用候选端口（优先 3007，次选 3001~3020）
 if is_port_in_use "$DESIRED_PORT"; then
-  echo "⚠️ 端口 $DESIRED_PORT 仍被外部服务占用，启动智能端口查找机制..."
-  CANDIDATE_PORTS=(3007 3001 3002 3003 3004 3005 3006 3008 3009 3010 3020 3080)
-  FOUND_PORT=""
-  for cp in "${CANDIDATE_PORTS[@]}"; do
-    if ! is_port_in_use "$cp"; then
-      FOUND_PORT="$cp"
-      break
-    fi
-  done
-
-  if [ -n "$FOUND_PORT" ]; then
-    APP_PORT="$FOUND_PORT"
-    echo "🎯 成功自动切换至空闲可用端口: $APP_PORT"
+  if [ "$IS_PM2_RUNNING" = "true" ]; then
+    echo "ℹ️ 检测到 PM2 已在端口 $DESIRED_PORT 守护运行本服务，准备进行无缝集群热重载..."
+    APP_PORT="$DESIRED_PORT"
   else
-    echo "❌ 常见端口均被占用，请手动指定 PORT=xxxx 执行部署。"
-    exit 1
+    echo "⚠️ 端口 $DESIRED_PORT 当前已被占用，正在智能检索占用来源并尝试释放..."
+    
+    # 尝试多种方式探测占用 PID (兼容无 lsof / fuser 环境)
+    OLD_PIDS=$(lsof -t -i :"$DESIRED_PORT" 2>/dev/null || fuser "$DESIRED_PORT"/tcp 2>/dev/null || ss -tlpn "sport = :$DESIRED_PORT" 2>/dev/null | grep -o 'pid=[0-9]*' | cut -d= -f2 || true)
+    if [ -n "$OLD_PIDS" ]; then
+      echo "🛑 发现占用端口 $DESIRED_PORT 的历史孤儿进程 PID: $OLD_PIDS，正在优雅释放..."
+      kill -15 $OLD_PIDS 2>/dev/null || true
+      sleep 1
+      if is_port_in_use "$DESIRED_PORT"; then
+        kill -9 $OLD_PIDS 2>/dev/null || true
+        sleep 1
+      fi
+    fi
+
+    # 如果仍被占用（被外部固定服务占用），全自动智能寻找空闲端口 (3007, 3008~3020, 3080)
+    if is_port_in_use "$DESIRED_PORT"; then
+      echo "⚠️ 端口 $DESIRED_PORT 仍被外部固定服务占用，启动全自动智能候选端口池..."
+      CANDIDATE_PORTS=(3007 3008 3009 3010 3011 3012 3015 3020 3080 3001 3002 3003 3004 3005 3006)
+      FOUND_PORT=""
+      for cp in "${CANDIDATE_PORTS[@]}"; do
+        if ! is_port_in_use "$cp"; then
+          FOUND_PORT="$cp"
+          break
+        fi
+      done
+
+      if [ -n "$FOUND_PORT" ]; then
+        APP_PORT="$FOUND_PORT"
+        echo "🎯 成功全自动切换至空闲可用智能端口: $APP_PORT"
+      else
+        echo "❌ 常见端口均被占用，请手动指定 PORT=xxxx 执行部署。"
+        exit 1
+      fi
+    else
+      echo "✅ 端口 $APP_PORT 历史占用已释放，空闲就绪。"
+    fi
   fi
 else
-  echo "✅ 端口 $APP_PORT 空闲就绪。"
+  echo "✅ 专属智能端口 $APP_PORT 空闲就绪。"
+fi
+
+# 自动持久化回写 .env，确保单机重启或直接用 pm2 restart 依然保持正确端口
+if [ -f ".env" ]; then
+  if grep -q "^PORT=" .env; then
+    sed -i "s/^PORT=.*/PORT=$APP_PORT/" .env
+  else
+    echo "PORT=$APP_PORT" >> .env
+  fi
 fi
 
 export PORT="$APP_PORT"
+export NITRO_PORT="$APP_PORT"
 export HOST="127.0.0.1"
 
 # 7. 自动管理并同步启动服务集群 (优先 PM2，次选后台守护)
@@ -166,13 +199,13 @@ echo "🔄 正在同步启动与加载服务集群 (监听 127.0.0.1:$APP_PORT).
 
 if command -v pm2 >/dev/null 2>&1; then
   echo "⚡ 检测到 PM2，正在通过 ecosystem.config.cjs 在端口 $APP_PORT 启动服务集群..."
-  PORT=$APP_PORT pm2 reload ecosystem.config.cjs --update-env || PORT=$APP_PORT pm2 start ecosystem.config.cjs --update-env
+  PORT=$APP_PORT NITRO_PORT=$APP_PORT pm2 reload ecosystem.config.cjs --update-env || PORT=$APP_PORT NITRO_PORT=$APP_PORT pm2 start ecosystem.config.cjs --update-env
   pm2 save
   echo "✅ PM2 双实例集群服务已在端口 $APP_PORT 启动并保存开机状态。"
 else
   echo "⚠️ 未检测到全局 PM2，尝试使用 npx pm2 或直接拉起 node 守护进程..."
   if npx --no-install pm2 -v >/dev/null 2>&1; then
-    PORT=$APP_PORT npx pm2 reload ecosystem.config.cjs --update-env || PORT=$APP_PORT npx pm2 start ecosystem.config.cjs --update-env
+    PORT=$APP_PORT NITRO_PORT=$APP_PORT npx pm2 reload ecosystem.config.cjs --update-env || PORT=$APP_PORT NITRO_PORT=$APP_PORT npx pm2 start ecosystem.config.cjs --update-env
     echo "✅ npx pm2 集群服务已在端口 $APP_PORT 启动。"
   else
     echo "ℹ️ 使用 nohup 启动生产服务 (建议后续安装 pm2: npm install -g pm2)..."
@@ -182,7 +215,7 @@ else
       kill -15 "$PID" 2>/dev/null || true
       sleep 2
     fi
-    PORT=$APP_PORT HOST=127.0.0.1 nohup node .output/server/index.mjs > server.log 2>&1 &
+    PORT=$APP_PORT NITRO_PORT=$APP_PORT HOST=127.0.0.1 nohup node .output/server/index.mjs > server.log 2>&1 &
     echo "✅ 生产服务已在后台运行 (端口: $APP_PORT)，日志输出至 server.log。"
   fi
 fi
