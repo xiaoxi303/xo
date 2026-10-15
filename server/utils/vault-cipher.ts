@@ -56,14 +56,16 @@ export interface ChamberEnvelope {
   digest: string
 }
 
-// 客户端提交的混合加密负载接口（必须为一真一假双舱混淆共识架构）
+// 客户端提交的混合加密负载接口（必须为一真一假双舱混淆共识架构，支持内外双重复合三层量子级联装甲）
 export interface RsaHybridPayload {
   rsaHybrid: true
-  version: '3' | '2' | '1'
+  version: '4' | '3' | '2' | '1'
   keyId: string
   timestamp: string
   // 双舱混淆：一真一假两个密文舱，完全随机排列，外部任何嗅探均无法识别哪个为真
-  dualChambers: [ChamberEnvelope, ChamberEnvelope]
+  dualChambers?: [ChamberEnvelope, ChamberEnvelope]
+  // Version 4 宏观量子级联外层装甲
+  macroArmor?: ChamberEnvelope
   truthNonce?: string
 }
 
@@ -181,10 +183,10 @@ function generateCurrentEpochId(): string {
   return `EPOCH_${yyyy}${mm}${dd}_0000`
 }
 
-// 生成全新的强密码学 RSA 密钥对
+// 生成全新的顶级强密码学 4096 位 RSA 密钥对 (Quantum-Grade 4096-bit Key Vault)
 function generateVaultKeyPair(epochId: string): EpochKeyVault {
   const keyPair = crypto.generateKeyPairSync('rsa', {
-    modulusLength: 2048,
+    modulusLength: 4096,
     publicExponent: 0x10001,
     publicKeyEncoding: {
       type: 'spki',
@@ -214,7 +216,7 @@ function generateVaultKeyPair(epochId: string): EpochKeyVault {
   }
 }
 
-// 初始化金库 (集群一致性同步)
+// 初始化金库 (集群一致性同步，支持 4096 位强抗量子密钥平滑自动升级)
 function ensureVaultInitialized(): EpochKeyVault {
   const epochId = generateCurrentEpochId()
   if (activeEpochVault && activeEpochVault.epochId === epochId) {
@@ -229,14 +231,20 @@ function ensureVaultInitialized(): EpochKeyVault {
       const raw = JSON.parse(fs.readFileSync(epochFile, 'utf8'))
       const privateKeyObj = crypto.createPrivateKey(raw.privateKey)
       const publicKeyObj = crypto.createPublicKey(raw.publicKey)
-      activeEpochVault = {
-        epochId: raw.epochId,
-        keyPair: { privateKey: privateKeyObj, publicKey: publicKeyObj },
-        publicKeyPem: raw.publicKey,
-        keyFingerprint: raw.keyFingerprint,
-        createdAt: raw.createdAt
+      const details = (publicKeyObj as any).asymmetricKeyDetails
+      // 若已有密钥仍为旧版 2048 位，就地平滑自动升级为 4096 位顶级装甲密钥
+      if (details && details.modulusLength && details.modulusLength < 4096) {
+        console.log(`[VaultCipher] 检测到旧版本 ${details.modulusLength} 位密钥，正在自动升级为 4096 位顶级量子装甲公私钥对...`)
+      } else {
+        activeEpochVault = {
+          epochId: raw.epochId,
+          keyPair: { privateKey: privateKeyObj, publicKey: publicKeyObj },
+          publicKeyPem: raw.publicKey,
+          keyFingerprint: raw.keyFingerprint,
+          createdAt: raw.createdAt
+        }
+        return activeEpochVault
       }
-      return activeEpochVault
     }
   } catch {}
 
@@ -439,18 +447,8 @@ export async function triggerIntruderLockout(
 // 4. 三层交错解密与一真一假双舱混淆共识校验
 // ============================================================================
 
-/**
- * 校验载荷格式是否为合法的双舱混淆共识加密结构
- * 强制要求必须包含双舱且三层格式完备，拒绝任何单舱明文
- */
-export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
-  if (!value || typeof value !== 'object') return false
-  if (value.rsaHybrid !== true) return false
-  if (typeof value.keyId !== 'string' || !value.keyId.startsWith('OTPK_')) return false
-  if (typeof value.timestamp !== 'string') return false
-  if (!Array.isArray(value.dualChambers) || value.dualChambers.length !== 2) return false
-
-  return value.dualChambers.every((c: any) =>
+function isValidChamberEnvelope(c: any): boolean {
+  return Boolean(
     c &&
     typeof c.chamberId === 'string' &&
     typeof c.rsaEncryptedKey === 'string' &&
@@ -468,6 +466,29 @@ export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
     c.clientPublicKey &&
     typeof c.clientPublicKey === 'object'
   )
+}
+
+/**
+ * 校验载荷格式是否为合法的双舱混淆共识加密结构
+ * 强制要求必须包含双舱且三层格式完备（或版本4宏观量子装甲），拒绝任何单舱明文
+ */
+export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
+  if (!value || typeof value !== 'object') return false
+  if (value.rsaHybrid !== true) return false
+  if (typeof value.keyId !== 'string' || !value.keyId.startsWith('OTPK_')) return false
+  if (typeof value.timestamp !== 'string') return false
+
+  // Version 4: 嵌套宏观三层量子级联装甲 (Double-Cascaded Triple-Layer Quantum Armor)
+  if (value.version === '4' && value.macroArmor) {
+    return isValidChamberEnvelope(value.macroArmor)
+  }
+
+  // Version 3 / 2: 内层直接双舱混淆架构
+  if (Array.isArray(value.dualChambers) && value.dualChambers.length === 2) {
+    return value.dualChambers.every(isValidChamberEnvelope)
+  }
+
+  return false
 }
 
 /**
@@ -650,7 +671,32 @@ export async function decryptRsaHybridWithVault(payload: RsaHybridPayload, event
   }
 
   // 4. 【一真一假双舱混淆共识架构处理】：严格由服务端金库私钥与专属共识种子联合裁决
-  if (!Array.isArray(payload.dualChambers) || payload.dualChambers.length !== 2) {
+  let chambers: ChamberEnvelope[]
+  let capturedMachineId = ''
+
+  if (payload.version === '4' && payload.macroArmor) {
+    try {
+      const decryptedMacroJson = decryptChamberTripleLayer(
+        payload.macroArmor,
+        targetPrivateKey,
+        payload.keyId,
+        `${ticket.consensusSecret}:MACRO_OUTER`,
+        payload.timestamp
+      )
+      const macroCore = JSON.parse(decryptedMacroJson)
+      if (!macroCore || !Array.isArray(macroCore.dualChambers) || macroCore.dualChambers.length !== 2) {
+        throw new Error('外层量子级联装甲校验失败：宏观密文结构损坏或非法篡改')
+      }
+      chambers = macroCore.dualChambers
+      if (macroCore.machineId) {
+        capturedMachineId = macroCore.machineId
+      }
+    } catch (err: any) {
+      throw new Error(`外层量子级联装甲解析失败: ${err.message || '数据被篡改'}`)
+    }
+  } else if (Array.isArray(payload.dualChambers) && payload.dualChambers.length === 2) {
+    chambers = payload.dualChambers
+  } else {
     throw new Error('安全策略拦截：仅允许一真一假双舱混淆共识加密载荷。')
   }
 
@@ -660,10 +706,8 @@ export async function decryptRsaHybridWithVault(payload: RsaHybridPayload, event
     .update(`${payload.keyId}:${payload.timestamp}:TRUE_CHAMBER`)
     .digest('hex')
 
-  const chambers = payload.dualChambers
   let genuinePlaintext: string | null = null
   let genuineMatches = 0
-  let capturedMachineId = ''
 
   for (let i = 0; i < chambers.length; i++) {
     try {

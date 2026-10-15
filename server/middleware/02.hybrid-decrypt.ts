@@ -58,18 +58,6 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // 3. 管理员特权通道：
-  // 经校验具备有效管理会话（/api/site-config、/api/projects、/api/upload 等后台明文操作）直接放行
-  const adminCookie = getCookie(event, SESSION_COOKIE)
-  if (adminCookie && validateSession(adminCookie)) {
-    return
-  }
-
-  // 4. 后台管理专有路径放行（由下游 admin-guard 与端点自行校验会话）
-  if (pathname.startsWith('/api/admin/')) {
-    return
-  }
-
   // 3. 【核心通道 B】：专属支付网关金库共识验签通道 (针对支付宝异步回调)
   // 严格杜绝作为无保护豁免，必须在此处完成官方公钥 RSA2 签名核验，伪造请求秒级拉黑
   if (pathname === '/api/order/notify' || /^\/api\/order\/.*notify/i.test(pathname)) {
@@ -89,10 +77,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 4. 【严厉拦截】：任何试图以明文、未经双舱加密的请求或伪造格式探测 API 的行为，一律拒绝并触发入侵锁定
-  await triggerIntruderLockout(event, '未通过加密传输/尝试明文探测')
+  // 4. 【严厉拦截 / 零降级全站强加密底座】：任何试图以明文、未经双舱量子装甲加密的请求或伪造格式探测 API 的行为，一律拒绝并触发入侵反制锁定
+  await triggerIntruderLockout(event, '未通过量子金库加密传输/尝试明文探测或降级')
   throw createError({
     statusCode: 400,
-    statusMessage: '安全策略拦截：全链路强制要求安全加密传输，拒绝未授权请求。'
+    statusMessage: '全站强安全策略拦截：全链路强制要求安全加密传输，严禁任何明文访问或降级行为。'
   })
 })

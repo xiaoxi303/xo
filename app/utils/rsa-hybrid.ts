@@ -34,14 +34,21 @@ export interface ChamberEnvelope {
 
 export interface RsaHybridPayload {
   rsaHybrid: true
-  version: '3'
+  version: '3' | '4'
   keyId: string
   timestamp: string
-  dualChambers: [ChamberEnvelope, ChamberEnvelope]
+  dualChambers?: [ChamberEnvelope, ChamberEnvelope]
+  macroArmor?: ChamberEnvelope
   truthNonce?: string
 }
 
 const textEncoder = new TextEncoder()
+
+function getWebCrypto(): Crypto {
+  if (typeof window !== 'undefined' && window.crypto) return window.crypto
+  if (typeof globalThis !== 'undefined' && (globalThis as any).crypto) return (globalThis as any).crypto
+  throw new Error('当前环境不支持 Web Crypto API 安全套件')
+}
 
 function toBase64Url(value: ArrayBuffer | Uint8Array): string {
   const bytes = value instanceof Uint8Array ? value : new Uint8Array(value)
@@ -138,46 +145,57 @@ function canonicalChamberPayload(payload: {
 
 async function computeConsensusProof(secret: string, message: string): Promise<string> {
   const enc = new TextEncoder()
-  const key = await window.crypto.subtle.importKey(
+  const webCrypto = getWebCrypto()
+  const key = await webCrypto.subtle.importKey(
     'raw',
     enc.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
   )
-  const signature = await window.crypto.subtle.sign('HMAC', key, enc.encode(message))
+  const signature = await webCrypto.subtle.sign('HMAC', key, enc.encode(message))
   return Array.from(new Uint8Array(signature))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('')
 }
 
-export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
+function isValidChamberEnvelope(c: any): boolean {
   return Boolean(
-    value &&
-    typeof value === 'object' &&
-    value.rsaHybrid === true &&
+    c &&
+    typeof c.chamberId === 'string' &&
+    typeof c.rsaEncryptedKey === 'string' &&
+    typeof c.rsaIv === 'string' &&
+    typeof c.rsaCiphertext === 'string' &&
+    typeof c.rsaAuthTag === 'string' &&
+    typeof c.e2eeIv === 'string' &&
+    typeof c.e2eeCiphertext === 'string' &&
+    typeof c.e2eeAuthTag === 'string' &&
+    typeof c.outerIv === 'string' &&
+    typeof c.outerCiphertext === 'string' &&
+    typeof c.outerAuthTag === 'string' &&
+    c.clientPublicKey &&
+    typeof c.signature === 'string' &&
+    typeof c.digest === 'string'
+  )
+}
+
+export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
+  if (!value || typeof value !== 'object' || value.rsaHybrid !== true) {
+    return false
+  }
+  if (typeof value.keyId !== 'string' || typeof value.timestamp !== 'string') {
+    return false
+  }
+  // Version 4: 双重复合三层量子装甲（外层宏观级联胶囊）
+  if (value.version === '4' && value.macroArmor) {
+    return isValidChamberEnvelope(value.macroArmor)
+  }
+  // Version 3 / Version 2: 内层直接双舱
+  return Boolean(
     (value.version === '3' || value.version === '2') &&
-    typeof value.keyId === 'string' &&
-    typeof value.timestamp === 'string' &&
     Array.isArray(value.dualChambers) &&
     value.dualChambers.length === 2 &&
-    value.dualChambers.every((c: any) =>
-      c &&
-      typeof c.chamberId === 'string' &&
-      typeof c.rsaEncryptedKey === 'string' &&
-      typeof c.rsaIv === 'string' &&
-      typeof c.rsaCiphertext === 'string' &&
-      typeof c.rsaAuthTag === 'string' &&
-      typeof c.e2eeIv === 'string' &&
-      typeof c.e2eeCiphertext === 'string' &&
-      typeof c.e2eeAuthTag === 'string' &&
-      typeof c.outerIv === 'string' &&
-      typeof c.outerCiphertext === 'string' &&
-      typeof c.outerAuthTag === 'string' &&
-      c.clientPublicKey &&
-      typeof c.signature === 'string' &&
-      typeof c.digest === 'string'
-    )
+    value.dualChambers.every(isValidChamberEnvelope)
   )
 }
 
@@ -208,14 +226,15 @@ async function buildTripleLayerChamber(
   consensusSeed: string,
   timestamp: string
 ): Promise<ChamberEnvelope> {
-  const chamberId = toBase64Url(window.crypto.getRandomValues(new Uint8Array(8)))
+  const webCrypto = getWebCrypto()
+  const chamberId = toBase64Url(webCrypto.getRandomValues(new Uint8Array(8)))
   const dataString = JSON.stringify(payloadData)
 
   // 1. 完全高熵动态随机切割 (Dynamic Random Split: 20% ~ 80%)
   // 绝不使用固定的对半比例，使得每次请求两段密文长度完全随机动态变化，无法通过报文长度推算明文特征
   const minSplit = Math.max(1, Math.floor(dataString.length * 0.2))
   const maxSplit = Math.min(dataString.length - 1, Math.floor(dataString.length * 0.8))
-  const splitRandomBytes = window.crypto.getRandomValues(new Uint8Array(2))
+  const splitRandomBytes = webCrypto.getRandomValues(new Uint8Array(2))
   const splitOffset = (splitRandomBytes[0] * 256 + splitRandomBytes[1]) % Math.max(1, maxSplit - minSplit + 1)
   const splitIdx = Math.min(dataString.length - 1, Math.max(1, minSplit + splitOffset))
 
@@ -234,7 +253,7 @@ async function buildTripleLayerChamber(
     serverPublicKey,
     rawAesKeyA
   )
-  const rsaIv = window.crypto.getRandomValues(new Uint8Array(12))
+  const rsaIv = webCrypto.getRandomValues(new Uint8Array(12))
   const encryptedA = new Uint8Array(await subtle.encrypt(
     { name: 'AES-GCM', iv: rsaIv, tagLength: 128 },
     aesKeyA,
@@ -263,7 +282,7 @@ async function buildTripleLayerChamber(
     false,
     ['encrypt', 'decrypt']
   )
-  const e2eeIv = window.crypto.getRandomValues(new Uint8Array(12))
+  const e2eeIv = webCrypto.getRandomValues(new Uint8Array(12))
   const encryptedB = new Uint8Array(await subtle.encrypt(
     { name: 'AES-GCM', iv: e2eeIv, tagLength: 128 },
     aesKeyB,
@@ -298,9 +317,9 @@ async function buildTripleLayerChamber(
     chamberId,
     partALen: partA.length,
     partBLen: partB.length,
-    matrixCheck: toBase64Url(window.crypto.getRandomValues(new Uint8Array(16)))
+    matrixCheck: toBase64Url(webCrypto.getRandomValues(new Uint8Array(16)))
   })
-  const outerIv = window.crypto.getRandomValues(new Uint8Array(12))
+  const outerIv = webCrypto.getRandomValues(new Uint8Array(12))
   const encryptedOuter = new Uint8Array(await subtle.encrypt(
     { name: 'AES-GCM', iv: outerIv, tagLength: 128 },
     outerKey,
@@ -365,26 +384,27 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
     return value
   }
 
-  if (!import.meta.client || !window.crypto?.subtle) {
+  const webCrypto = getWebCrypto()
+  if (!webCrypto?.subtle) {
     throw new Error('当前环境不支持 Web Crypto API 安全套件')
   }
 
   const serverKey = await getServerPublicKey()
-  const serverPublicKey = await window.crypto.subtle.importKey(
+  const serverPublicKey = await webCrypto.subtle.importKey(
     'spki',
     pemToArrayBuffer(serverKey.publicKey),
     { name: 'RSA-OAEP', hash: 'SHA-256' },
     false,
     ['encrypt']
   )
-  const clientSigningKeys = await window.crypto.subtle.generateKey(
+  const clientSigningKeys = await webCrypto.subtle.generateKey(
     { name: 'RSA-PSS', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
     true,
     ['sign', 'verify']
   )
 
   const timestamp = new Date().toISOString()
-  const truthNonce = toBase64Url(window.crypto.getRandomValues(new Uint8Array(16)))
+  const truthNonce = toBase64Url(webCrypto.getRandomValues(new Uint8Array(16)))
   const machineId = getMachineFingerprint()
 
   // 计算与服务端金库私钥达成一致的真理共识证明
@@ -403,7 +423,7 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
     data: value
   }
   const genuineChamber = await buildTripleLayerChamber(
-    window.crypto.subtle,
+    webCrypto.subtle,
     serverPublicKey,
     clientSigningKeys,
     genuinePayload,
@@ -413,8 +433,8 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
   )
 
   // 2. 蜜罐诱饵密文舱：封入高仿真随机拟态数据（格式、长度、签名、IV均一致）
-  const decoyEntropy = toBase64Url(window.crypto.getRandomValues(new Uint8Array(16)))
-  const decoyProof = toBase64Url(window.crypto.getRandomValues(new Uint8Array(32)))
+  const decoyEntropy = toBase64Url(webCrypto.getRandomValues(new Uint8Array(16)))
+  const decoyProof = toBase64Url(webCrypto.getRandomValues(new Uint8Array(32)))
   const decoyPayload = {
     __vault_auth: 'DECOY_HONEYPOT',
     consensusProof: decoyProof,
@@ -422,11 +442,11 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
     data: {
       syntheticToken: decoyEntropy,
       timestamp: Date.now(),
-      decoyVector: toBase64Url(window.crypto.getRandomValues(new Uint8Array(32)))
+      decoyVector: toBase64Url(webCrypto.getRandomValues(new Uint8Array(32)))
     }
   }
   const decoyChamber = await buildTripleLayerChamber(
-    window.crypto.subtle,
+    webCrypto.subtle,
     serverPublicKey,
     clientSigningKeys,
     decoyPayload,
@@ -436,17 +456,35 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
   )
 
   // 3. 50% 几率随机混淆密文舱槽位排序，外部完全不可预知
-  const isFirstChamberGenuine = (window.crypto.getRandomValues(new Uint8Array(1))[0] & 1) === 1
+  const isFirstChamberGenuine = (webCrypto.getRandomValues(new Uint8Array(1))[0] & 1) === 1
   const dualChambers: [ChamberEnvelope, ChamberEnvelope] = isFirstChamberGenuine
     ? [genuineChamber, decoyChamber]
     : [decoyChamber, genuineChamber]
 
+  // 4. 第二重：在内层一真一假双舱的基础上，再次封装宏观三层交错量子级联装甲 (Double-Cascaded Triple-Layer Armor)
+  // 将内层两舱核心结构再次执行 20%~80% 动态随机切分 + RSA-OAEP-256 + 宏观 E2EE + 宏观交叉量子装甲
+  const macroCorePayload = {
+    dualChambers,
+    machineId,
+    truthNonce
+  }
+
+  const macroArmor = await buildTripleLayerChamber(
+    webCrypto.subtle,
+    serverPublicKey,
+    clientSigningKeys,
+    macroCorePayload,
+    serverKey.keyId,
+    `${consensusSeed}:MACRO_OUTER`,
+    timestamp
+  )
+
   return {
     rsaHybrid: true,
-    version: '3',
+    version: '4',
     keyId: serverKey.keyId,
     timestamp,
-    dualChambers,
+    macroArmor,
     truthNonce
   }
 }

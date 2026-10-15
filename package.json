@@ -11,6 +11,7 @@
     "dev": "nuxt dev --host 0.0.0.0",
     "start": "node scripts/start-production.mjs",
     "deploy": "bash deploy/deploy-onekey.sh",
+    "deploy:fix": "bash deploy/deploy-onekey.sh",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
