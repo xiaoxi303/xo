@@ -6997,7 +6997,7 @@ const saveSiteConfig = async () => {
       setTimeout(refreshPreview, 300)
     }
   } catch (e: any) {
-    showToast(e.statusMessage || e.message || '保存失败，请检查网络或会话。', 'error')
+    showToast(e.data?.statusMessage || e.data?.message || e.statusMessage || e.message || '保存失败，请检查网络或会话。', 'error')
   } finally {
     isSaving.value = false
   }

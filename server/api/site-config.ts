@@ -35,20 +35,33 @@ export default defineEventHandler(async (event) => {
 
     try {
       const body = await readBody(event)
+      const existing = await dbGetSiteConfig(event)
 
       // Handle administrator credential updates securely with PBKDF2-HMAC-SHA512
       if (body.admin) {
         if (body.admin.newPassword && body.admin.newPassword.trim() !== '') {
           body.admin.passwordHash = hashPassword(body.admin.newPassword.trim())
+        } else if (!body.admin.passwordHash && existing?.admin?.passwordHash) {
+          body.admin.passwordHash = existing.admin.passwordHash
         }
         delete body.admin.newPassword
+      } else if (existing?.admin) {
+        body.admin = existing.admin
+      }
+
+      // Preserve sensitive server settings if omitted from client payload
+      if (!body.emailSettings && existing?.emailSettings) {
+        body.emailSettings = existing.emailSettings
+      }
+      if (!body.aiSettings && existing?.aiSettings) {
+        body.aiSettings = existing.aiSettings
       }
 
       await dbSaveSiteConfig(event, body)
       return { success: true }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save config:', error)
-      throw createError({ statusCode: 500, statusMessage: 'Failed to save config.' })
+      throw createError({ statusCode: error.statusCode || 500, statusMessage: error.statusMessage || '保存配置失败。' })
     }
   }
 })

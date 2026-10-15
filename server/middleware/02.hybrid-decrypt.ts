@@ -1,6 +1,7 @@
-import { defineEventHandler, readBody, getRequestHeader, getRequestURL, createError } from 'h3'
+import { defineEventHandler, readBody, getRequestHeader, getRequestURL, createError, getCookie } from 'h3'
 import { decryptRsaHybrid, isRsaHybridPayload, triggerIntruderLockout } from '../utils/vault-cipher'
 import { readAlipayConfig, normalizePublicKey, verifyAlipayNotify } from '../utils/alipay'
+import { validateSession, SESSION_COOKIE } from '../utils/auth'
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
@@ -27,17 +28,24 @@ export default defineEventHandler(async (event) => {
     return
   }
 
+  // 1.5 管理员特权通道：
+  // 经校验具备有效管理会话（/api/site-config、/api/projects、/api/upload、/api/admin/** 等）直接放行
+  const adminCookie = getCookie(event, SESSION_COOKIE)
+  if (adminCookie && validateSession(adminCookie)) {
+    return
+  }
+
+  // 1.6 后台管理专有路径放行（由下游 admin-guard 与端点自行校验会话）
+  if (pathname.startsWith('/api/admin/')) {
+    return
+  }
+
   // 读取请求载荷
   let body: any = null
   try {
     body = await readBody(event)
   } catch {
     // 空或损坏的载荷会在后续强校验中被拦截
-  }
-
-  // 1.5 后台管理接口（/api/admin/）已有专属管理员会话令牌与守卫校验，放行标准管理操作
-  if (pathname.startsWith('/api/admin/')) {
-    return
   }
 
   // 2. 【核心通道 A】：全站双舱多态混合加密强共识载荷
