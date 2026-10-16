@@ -157,18 +157,18 @@ export default defineNitroPlugin(() => {
       writeEncryptedJson(clientAccountsPath, [])
     }
 
-    // 3.5 自动密库全量迁移与强制零降级防护：动态扫描所有项目 Markdown 与运行时核心数据表，升级至 V4 级联数字签名
-    const enforceV4Vault = () => {
+    // 3.5 自动密库全量迁移与强制零降级防护：动态扫描所有项目 Markdown 与运行时核心数据表，升级至 V5 双舱级联数字签名
+    const enforceDualChamberVault = () => {
       try {
         if (fs.existsSync(projectsDir)) {
           const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
           for (const f of mdFiles) {
             const fullPath = path.join(projectsDir, f)
             const raw = fs.readFileSync(fullPath, 'utf8')
-            if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+            if (raw && !raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
               const plain = decryptFileContent(raw)
               writeEncryptedFile(fullPath, plain)
-              console.log(`[vault-guard] 🛡️ 自动升级作品文件至 V4 级联签名密文: ${f}`)
+              console.log(`[vault-guard] 🛡️ 自动升级作品文件至 V5 双舱级联签名密文: ${f}`)
             }
           }
         }
@@ -179,10 +179,10 @@ export default defineNitroPlugin(() => {
             const fullPath = path.join(contentDir, cf)
             if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
               const raw = fs.readFileSync(fullPath, 'utf8').trim()
-              if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+              if (raw && !raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
                 const plain = decryptFileContent(raw)
                 writeEncryptedFile(fullPath, plain)
-                console.log(`[vault-guard] 🛡️ 自动升级核心数据至 V4 级联签名密文: ${cf}`)
+                console.log(`[vault-guard] 🛡️ 自动升级核心数据至 V5 双舱级联签名密文: ${cf}`)
               }
             }
           }
@@ -193,10 +193,10 @@ export default defineNitroPlugin(() => {
     }
 
     // 立即执行一次开机全量加固
-    enforceV4Vault()
+    enforceDualChamberVault()
 
     // 激活常驻金库巡检哨兵：每 30 秒自动巡检一次，一旦发现任何新加入或外部修改的明文立即强力加固升舱，绝不降级
-    setInterval(enforceV4Vault, 30000).unref()
+    setInterval(enforceDualChamberVault, 30000).unref()
 
     // 4. 同步加载持久化黑名单至内存高速防护网，跨部署无缝封锁
     try {

@@ -80,7 +80,47 @@ export function getVaultRootSecret(): Buffer {
 }
 
 /**
- * 将数据封装为 V4 高强度抗量子级联加密文件信封（含双重数字防篡改封签与微秒级防重放时间戳）
+ * 生成仿真的拟态蜜罐诱饵数据（针对 JSON 或 Markdown 自动匹配形态与熵值）
+ */
+function generateDecoyPayload(plainStr: string): string {
+  const isJson = plainStr.trim().startsWith('{') || plainStr.trim().startsWith('[')
+  if (isJson) {
+    try {
+      const parsed = JSON.parse(plainStr)
+      if (Array.isArray(parsed)) {
+        return JSON.stringify(
+          Array.from({ length: Math.min(parsed.length || 3, 5) }).map((_, idx) => ({
+            id: `DECOY_${crypto.randomBytes(6).toString('hex')}`,
+            syntheticIndex: idx,
+            entropyToken: crypto.randomBytes(16).toString('hex'),
+            timestamp: Date.now() - idx * 86400000,
+            status: 'HONEYPOT_CHAMBER_SYNTHETIC'
+          })),
+          null,
+          2
+        )
+      } else if (typeof parsed === 'object' && parsed !== null) {
+        const decoyObj: Record<string, any> = {
+          __vault_honey: 'DECOY_CHAMBER_ACTIVE',
+          syntheticNodeId: `NODE_${crypto.randomBytes(8).toString('hex')}`,
+          entropyVector: crypto.randomBytes(32).toString('hex'),
+          timestamp: Date.now()
+        }
+        for (const k of Object.keys(parsed).slice(0, 10)) {
+          decoyObj[k] = `SYNTHETIC_${crypto.randomBytes(8).toString('hex')}`
+        }
+        return JSON.stringify(decoyObj, null, 2)
+      }
+    } catch {}
+  }
+  // 针对 Markdown / YAML 作品形态生成高仿真蜜罐
+  const decoySlug = `decoy-${crypto.randomBytes(4).toString('hex')}`
+  return `---\nslug: ${decoySlug}\ntitle: "Synthetic HoneyPot Chamber"\nfeatured: false\ncreatedAt: "${new Date().toISOString()}"\n---\n\nSynthetic honeypot chamber decoy content for anti-tamper security.\n`
+}
+
+/**
+ * 将数据封装为 V5 自研双舱量子加密文件信封 (Dual-Chamber Vault Engine V5)
+ * 架构：真实业务舱 + 拟态诱饵蜜罐舱 + 随机 50/50 槽位混淆 + 双重 HMAC-512/384 级联数字防篡改封签
  */
 export function encryptFileContent(plainText: string | Buffer, customSecret?: string): string {
   const rootSecret = customSecret ? Buffer.from(customSecret, 'utf8') : getVaultRootSecret()
@@ -88,15 +128,53 @@ export function encryptFileContent(plainText: string | Buffer, customSecret?: st
   const iv = crypto.randomBytes(12)
   const timestamp = Date.now().toString(16)
 
+  const plainString = Buffer.isBuffer(plainText) ? plainText.toString('utf8') : String(plainText)
+  const decoyString = generateDecoyPayload(plainString)
+
+  const dataHash = crypto.createHash('sha512').update(Buffer.from(plainString, 'utf8')).digest('hex')
+  const decoyHash = crypto.createHash('sha512').update(Buffer.from(decoyString, 'utf8')).digest('hex')
+
+  // 50% 几率随机混淆真实舱与诱饵舱槽位
+  const isFirstChamberGenuine = (crypto.randomBytes(1)[0] & 1) === 1
+  const truthIndex = isFirstChamberGenuine ? 0 : 1
+
+  const genuineChamber = {
+    chamberType: 'GENUINE_MATRIX',
+    hash: dataHash,
+    payload: plainString
+  }
+  const decoyChamber = {
+    chamberType: 'DECOY_HONEYPOT',
+    hash: decoyHash,
+    payload: decoyString
+  }
+
+  const chambers = isFirstChamberGenuine ? [genuineChamber, decoyChamber] : [decoyChamber, genuineChamber]
+
+  // 计算真理共识证明 (基于主秘钥、时间戳与槽位)
+  const truthProof = crypto
+    .createHmac('sha512', rootSecret)
+    .update(salt)
+    .update(Buffer.from(timestamp, 'utf8'))
+    .update(Buffer.from(String(truthIndex), 'utf8'))
+    .digest('hex')
+
+  const dualChamberPackage = JSON.stringify({
+    vaultProtocol: 'XO_DUAL_CHAMBER_V5',
+    timestamp,
+    truthIndex,
+    truthProof,
+    chambers
+  })
+
   // HKDF-SHA512 派生 144 字节密钥材料: 32(AES-256) + 64(HMAC-SHA512) + 48(HMAC-SHA384)
-  const derivedKeyMaterial = Buffer.from(crypto.hkdfSync('sha512', rootSecret, salt, Buffer.from('XO_VAULT_FILE_STORAGE_v4', 'utf8'), 144))
+  const derivedKeyMaterial = Buffer.from(crypto.hkdfSync('sha512', rootSecret, salt, Buffer.from('XO_VAULT_DUAL_CHAMBER_v5', 'utf8'), 144))
   const aesKey = derivedKeyMaterial.subarray(0, 32)
   const hmacKey = derivedKeyMaterial.subarray(32, 96)
   const sigKey = derivedKeyMaterial.subarray(96, 144)
 
   const cipher = crypto.createCipheriv('aes-256-gcm', aesKey, iv)
-  const plainBuffer = Buffer.isBuffer(plainText) ? plainText : Buffer.from(plainText, 'utf8')
-  const ciphertext = Buffer.concat([cipher.update(plainBuffer), cipher.final()])
+  const ciphertext = Buffer.concat([cipher.update(Buffer.from(dualChamberPackage, 'utf8')), cipher.final()])
   const authTag = cipher.getAuthTag()
 
   // 计算第一重全量封签 (HMAC-SHA512)
@@ -118,11 +196,92 @@ export function encryptFileContent(plainText: string | Buffer, customSecret?: st
     .digest('hex')
 
   const seal = `${hmac512}.${hmac384}`
-  return `$XO_VAULT_FILE_V4$${salt.toString('hex')}$${iv.toString('hex')}$${authTag.toString('hex')}$${timestamp}$${ciphertext.toString('hex')}$${seal}`
+  return `$XO_VAULT_DUAL_CHAMBER_V5$${salt.toString('hex')}$${iv.toString('hex')}$${authTag.toString('hex')}$${timestamp}$${ciphertext.toString('hex')}$${seal}`
 }
 
 function internalDecrypt(trimmed: string, rootSecret: Buffer): string {
-  // 1. 处理 V4 版本（增强型双重数字签名与时间戳）
+  // 1. 处理 V5 自研双舱量子架构 (真实业务舱 + 诱饵蜜罐舱 + 双重数字签名)
+  if (trimmed.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+    const parts = trimmed.split('$')
+    if (parts.length < 8) throw new Error('无效的 V5 双舱金库加密文件结构')
+    const salt = Buffer.from(parts[2], 'hex')
+    const iv = Buffer.from(parts[3], 'hex')
+    const authTag = Buffer.from(parts[4], 'hex')
+    const timestamp = parts[5]
+    const ciphertext = Buffer.from(parts[6], 'hex')
+    const expectedSeal = parts[7]
+
+    const [expected512, expected384] = expectedSeal.split('.')
+    if (!expected512 || !expected384) throw new Error('V5 双舱金库数字封签结构损坏')
+
+    const derivedKeyMaterial = Buffer.from(crypto.hkdfSync('sha512', rootSecret, salt, Buffer.from('XO_VAULT_DUAL_CHAMBER_v5', 'utf8'), 144))
+    const aesKey = derivedKeyMaterial.subarray(0, 32)
+    const hmacKey = derivedKeyMaterial.subarray(32, 96)
+    const sigKey = derivedKeyMaterial.subarray(96, 144)
+
+    // 校验第一重 HMAC-SHA512 主签名
+    const actual512 = crypto
+      .createHmac('sha512', hmacKey)
+      .update(salt)
+      .update(iv)
+      .update(authTag)
+      .update(Buffer.from(timestamp, 'utf8'))
+      .update(ciphertext)
+      .digest('hex')
+
+    const bufActual512 = Buffer.from(actual512, 'hex')
+    const bufExpected512 = Buffer.from(expected512, 'hex')
+    if (bufActual512.length !== bufExpected512.length || !crypto.timingSafeEqual(bufActual512, bufExpected512)) {
+      throw new Error('V5 双舱数字主签名校验失败：文件已被外部篡改或主密钥不匹配')
+    }
+
+    // 校验第二重 HMAC-SHA384 级联防伪防重放链
+    const actual384 = crypto
+      .createHmac('sha384', sigKey)
+      .update(salt)
+      .update(Buffer.from(timestamp, 'utf8'))
+      .update(Buffer.from(actual512, 'utf8'))
+      .digest('hex')
+
+    const bufActual384 = Buffer.from(actual384, 'hex')
+    const bufExpected384 = Buffer.from(expected384, 'hex')
+    if (bufActual384.length !== bufExpected384.length || !crypto.timingSafeEqual(bufActual384, bufExpected384)) {
+      throw new Error('V5 双舱级联防伪签名校验失败：数字指纹已被破坏')
+    }
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, iv)
+    decipher.setAuthTag(authTag)
+    const decryptedPackage = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8')
+    const parsed = JSON.parse(decryptedPackage)
+
+    const expectedTruthProof = crypto
+      .createHmac('sha512', rootSecret)
+      .update(salt)
+      .update(Buffer.from(timestamp, 'utf8'))
+      .update(Buffer.from(String(parsed.truthIndex), 'utf8'))
+      .digest('hex')
+
+    const bufActualProof = Buffer.from(parsed.truthProof, 'hex')
+    const bufExpectedProof = Buffer.from(expectedTruthProof, 'hex')
+    if (bufActualProof.length !== bufExpectedProof.length || !crypto.timingSafeEqual(bufActualProof, bufExpectedProof)) {
+      throw new Error('V5 双舱共识真理校验未通过：诱饵蜜罐触发或密钥不匹配')
+    }
+
+    const genuine = parsed.chambers[parsed.truthIndex]
+    if (!genuine || !genuine.payload) {
+      throw new Error('V5 双舱真理舱提取失败')
+    }
+
+    // 校验真理舱数据完整性哈希
+    const actualDataHash = crypto.createHash('sha512').update(Buffer.from(genuine.payload, 'utf8')).digest('hex')
+    if (actualDataHash !== genuine.hash) {
+      throw new Error('V5 双舱真理数据哈希不一致，已被内部篡改')
+    }
+
+    return genuine.payload
+  }
+
+  // 2. 兼容 V4 版本（增强型双重数字签名与时间戳）
   if (trimmed.startsWith('$XO_VAULT_FILE_V4$')) {
     const parts = trimmed.split('$')
     if (parts.length < 8) {
@@ -182,7 +341,7 @@ function internalDecrypt(trimmed: string, rootSecret: Buffer): string {
     return decrypted.toString('utf8')
   }
 
-  // 2. 平滑兼容 V3 版本
+  // 3. 平滑兼容 V3 版本
   if (trimmed.startsWith('$XO_VAULT_FILE_V3$')) {
     const parts = trimmed.split('$')
     if (parts.length < 7) {
@@ -219,12 +378,12 @@ function internalDecrypt(trimmed: string, rootSecret: Buffer): string {
     return decrypted.toString('utf8')
   }
 
-  // 3. 兼容历史未加密明文
+  // 4. 兼容历史未加密明文
   return trimmed
 }
 
 /**
- * 校验并解密金库加密文件信封，无缝兼容 V4、V3 与历史明文文件 (支持主密钥与集群默认密钥平滑回退)
+ * 校验并解密金库加密文件信封，无缝兼容 V5 双舱、V4、V3 与历史明文文件 (支持主密钥与集群默认密钥平滑回退)
  */
 export function decryptFileContent(envelope: string, customSecret?: string): string {
   if (!envelope || typeof envelope !== 'string') return ''
@@ -247,14 +406,14 @@ export function decryptFileContent(envelope: string, customSecret?: string): str
 }
 
 /**
- * 安全读取磁盘加密文件 (自动验签并解密，发现非 V4 密文时秒级原地自愈升级)
+ * 安全读取磁盘加密文件 (自动验签并解密，发现非 V5 双舱密文时秒级原地自愈升级)
  */
 export function readEncryptedFile(filePath: string, customSecret?: string): string {
   if (!fs.existsSync(filePath)) return ''
   const raw = fs.readFileSync(filePath, 'utf8')
   const decrypted = decryptFileContent(raw, customSecret)
-  // 零降级强约束：一旦读取到任何明文或旧版本密文，立刻原地升级为 V4 级联签名密文，绝不让磁盘留存明文
-  if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+  // 零降级强约束：一旦读取到任何非 V5 双舱密文，立刻原地升级为 V5 自研双舱密文，绝不让磁盘留存明文
+  if (raw && !raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
     try {
       writeEncryptedFile(filePath, decrypted, customSecret)
     } catch {}

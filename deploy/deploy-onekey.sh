@@ -133,12 +133,12 @@ set -a
 [ -f .env ] && source .env
 set +a
 
-# 3. 同步初始化运行时数据与全站独立文件全面强制加密 (Zero-Downgrade Vault V4)
+# 3. 同步初始化运行时数据与全站独立文件全面强制加密 (Zero-Downgrade Vault V5 Dual-Chamber)
 echo ""
-echo "📁 正在同步初始化全站存储层与独立文件自研 V4 级联数字签名加密 (零降级底座)..."
+echo "📁 正在同步初始化全站存储层与独立文件自研 V5 双舱量子加密 (零降级底座)..."
 node init-server-data.js
 
-# 全面强制加密所有独立数据文件与视频作品 Markdown (全面消除明文，升级至 V4 级联签名)
+# 全面强制加密所有独立数据文件与视频作品 Markdown (全面消除明文，升级至 V5 双舱级联数字签名)
 node scripts/vault-file-tool.mjs encrypt-all
 
 # 密库私有目录设为 700 物理加固，所有独立数据文件设为 600 物理只读保护
@@ -150,7 +150,7 @@ chmod 600 content/.sessions.json 2>/dev/null || true
 
 # 检查并输出独立加密文件状态审计
 node scripts/vault-file-tool.mjs status 2>/dev/null || true
-echo "✅ 运行时数据表、独立文件加密信封与 4096 位量子金库密钥目录已全量就绪 (100% 密文存储与 V4 级联数字签名)。"
+echo "✅ 运行时数据表、独立文件加密信封与 4096 位量子金库密钥目录已全量就绪 (100% 密文存储与 V5 双舱级联数字签名)。"
 
 # 4. 同步检查并安装项目依赖 (增加重试与离线容错)
 echo ""

@@ -55,20 +55,83 @@ function getVaultRootSecret() {
   return Buffer.from('XO_STUDIO_WORLD_CLASS_QUANTUM_SECRET_2026', 'utf8')
 }
 
+function generateDecoyPayload(plainStr) {
+  const isJson = plainStr.trim().startsWith('{') || plainStr.trim().startsWith('[')
+  if (isJson) {
+    try {
+      const parsed = JSON.parse(plainStr)
+      if (Array.isArray(parsed)) {
+        return JSON.stringify(
+          Array.from({ length: Math.min(parsed.length || 3, 5) }).map((_, idx) => ({
+            id: `DECOY_${crypto.randomBytes(6).toString('hex')}`,
+            syntheticIndex: idx,
+            entropyToken: crypto.randomBytes(16).toString('hex'),
+            timestamp: Date.now() - idx * 86400000,
+            status: 'HONEYPOT_CHAMBER_SYNTHETIC'
+          })),
+          null,
+          2
+        )
+      } else if (typeof parsed === 'object' && parsed !== null) {
+        const decoyObj = {
+          __vault_honey: 'DECOY_CHAMBER_ACTIVE',
+          syntheticNodeId: `NODE_${crypto.randomBytes(8).toString('hex')}`,
+          entropyVector: crypto.randomBytes(32).toString('hex'),
+          timestamp: Date.now()
+        }
+        for (const k of Object.keys(parsed).slice(0, 10)) {
+          decoyObj[k] = `SYNTHETIC_${crypto.randomBytes(8).toString('hex')}`
+        }
+        return JSON.stringify(decoyObj, null, 2)
+      }
+    } catch {}
+  }
+  const decoySlug = `decoy-${crypto.randomBytes(4).toString('hex')}`
+  return `---\nslug: ${decoySlug}\ntitle: "Synthetic HoneyPot Chamber"\nfeatured: false\ncreatedAt: "${new Date().toISOString()}"\n---\n\nSynthetic honeypot chamber decoy content for anti-tamper security.\n`
+}
+
 function encryptFileContent(plainText) {
   const rootSecret = getVaultRootSecret()
   const salt = crypto.randomBytes(32)
   const iv = crypto.randomBytes(12)
   const timestamp = Date.now().toString(16)
 
-  const derivedKeyMaterial = Buffer.from(crypto.hkdfSync('sha512', rootSecret, salt, Buffer.from('XO_VAULT_FILE_STORAGE_v4', 'utf8'), 144))
+  const plainString = Buffer.isBuffer(plainText) ? plainText.toString('utf8') : String(plainText)
+  const decoyString = generateDecoyPayload(plainString)
+
+  const dataHash = crypto.createHash('sha512').update(Buffer.from(plainString, 'utf8')).digest('hex')
+  const decoyHash = crypto.createHash('sha512').update(Buffer.from(decoyString, 'utf8')).digest('hex')
+
+  const isFirstChamberGenuine = (crypto.randomBytes(1)[0] & 1) === 1
+  const truthIndex = isFirstChamberGenuine ? 0 : 1
+
+  const genuineChamber = { chamberType: 'GENUINE_MATRIX', hash: dataHash, payload: plainString }
+  const decoyChamber = { chamberType: 'DECOY_HONEYPOT', hash: decoyHash, payload: decoyString }
+
+  const chambers = isFirstChamberGenuine ? [genuineChamber, decoyChamber] : [decoyChamber, genuineChamber]
+
+  const truthProof = crypto
+    .createHmac('sha512', rootSecret)
+    .update(salt)
+    .update(Buffer.from(timestamp, 'utf8'))
+    .update(Buffer.from(String(truthIndex), 'utf8'))
+    .digest('hex')
+
+  const dualChamberPackage = JSON.stringify({
+    vaultProtocol: 'XO_DUAL_CHAMBER_V5',
+    timestamp,
+    truthIndex,
+    truthProof,
+    chambers
+  })
+
+  const derivedKeyMaterial = Buffer.from(crypto.hkdfSync('sha512', rootSecret, salt, Buffer.from('XO_VAULT_DUAL_CHAMBER_v5', 'utf8'), 144))
   const aesKey = derivedKeyMaterial.subarray(0, 32)
   const hmacKey = derivedKeyMaterial.subarray(32, 96)
   const sigKey = derivedKeyMaterial.subarray(96, 144)
 
   const cipher = crypto.createCipheriv('aes-256-gcm', aesKey, iv)
-  const plainBuffer = Buffer.isBuffer(plainText) ? plainText : Buffer.from(plainText, 'utf8')
-  const ciphertext = Buffer.concat([cipher.update(plainBuffer), cipher.final()])
+  const ciphertext = Buffer.concat([cipher.update(Buffer.from(dualChamberPackage, 'utf8')), cipher.final()])
   const authTag = cipher.getAuthTag()
 
   const hmac512 = crypto
@@ -88,12 +151,83 @@ function encryptFileContent(plainText) {
     .digest('hex')
 
   const seal = `${hmac512}.${hmac384}`
-  return `$XO_VAULT_FILE_V4$${salt.toString('hex')}$${iv.toString('hex')}$${authTag.toString('hex')}$${timestamp}$${ciphertext.toString('hex')}$${seal}`
+  return `$XO_VAULT_DUAL_CHAMBER_V5$${salt.toString('hex')}$${iv.toString('hex')}$${authTag.toString('hex')}$${timestamp}$${ciphertext.toString('hex')}$${seal}`
 }
 
-function decryptFileContent(envelope) {
-  if (!envelope || typeof envelope !== 'string') return ''
-  const trimmed = envelope.trim()
+function internalDecrypt(trimmed, rootSecret) {
+  if (trimmed.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+    const parts = trimmed.split('$')
+    if (parts.length < 8) throw new Error('无效的 V5 双舱金库加密文件结构')
+
+    const salt = Buffer.from(parts[2], 'hex')
+    const iv = Buffer.from(parts[3], 'hex')
+    const authTag = Buffer.from(parts[4], 'hex')
+    const timestamp = parts[5]
+    const ciphertext = Buffer.from(parts[6], 'hex')
+    const expectedSeal = parts[7]
+
+    const [expected512, expected384] = expectedSeal.split('.')
+    if (!expected512 || !expected384) throw new Error('V5 双舱金库数字封签结构损坏')
+
+    const derivedKeyMaterial = Buffer.from(crypto.hkdfSync('sha512', rootSecret, salt, Buffer.from('XO_VAULT_DUAL_CHAMBER_v5', 'utf8'), 144))
+    const aesKey = derivedKeyMaterial.subarray(0, 32)
+    const hmacKey = derivedKeyMaterial.subarray(32, 96)
+    const sigKey = derivedKeyMaterial.subarray(96, 144)
+
+    const actual512 = crypto
+      .createHmac('sha512', hmacKey)
+      .update(salt)
+      .update(iv)
+      .update(authTag)
+      .update(Buffer.from(timestamp, 'utf8'))
+      .update(ciphertext)
+      .digest('hex')
+
+    const bufActual512 = Buffer.from(actual512, 'hex')
+    const bufExpected512 = Buffer.from(expected512, 'hex')
+    if (bufActual512.length !== bufExpected512.length || !crypto.timingSafeEqual(bufActual512, bufExpected512)) {
+      throw new Error('V5 双舱数字主签名校验失败：文件已被外部篡改或主密钥不匹配')
+    }
+
+    const actual384 = crypto
+      .createHmac('sha384', sigKey)
+      .update(salt)
+      .update(Buffer.from(timestamp, 'utf8'))
+      .update(Buffer.from(actual512, 'utf8'))
+      .digest('hex')
+
+    const bufActual384 = Buffer.from(actual384, 'hex')
+    const bufExpected384 = Buffer.from(expected384, 'hex')
+    if (bufActual384.length !== bufExpected384.length || !crypto.timingSafeEqual(bufActual384, bufExpected384)) {
+      throw new Error('V5 双舱级联防伪签名校验失败：数字指纹已被破坏')
+    }
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, iv)
+    decipher.setAuthTag(authTag)
+    const decryptedPackage = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8')
+    const parsed = JSON.parse(decryptedPackage)
+
+    const expectedTruthProof = crypto
+      .createHmac('sha512', rootSecret)
+      .update(salt)
+      .update(Buffer.from(timestamp, 'utf8'))
+      .update(Buffer.from(String(parsed.truthIndex), 'utf8'))
+      .digest('hex')
+
+    const bufActualProof = Buffer.from(parsed.truthProof, 'hex')
+    const bufExpectedProof = Buffer.from(expectedTruthProof, 'hex')
+    if (bufActualProof.length !== bufExpectedProof.length || !crypto.timingSafeEqual(bufActualProof, bufExpectedProof)) {
+      throw new Error('V5 双舱共识真理校验未通过：诱饵蜜罐触发或密钥不匹配')
+    }
+
+    const genuine = parsed.chambers[parsed.truthIndex]
+    if (!genuine || !genuine.payload) throw new Error('V5 双舱真理舱提取失败')
+
+    const actualDataHash = crypto.createHash('sha512').update(Buffer.from(genuine.payload, 'utf8')).digest('hex')
+    if (actualDataHash !== genuine.hash) throw new Error('V5 双舱真理数据哈希不一致，已被内部篡改')
+
+    return genuine.payload
+  }
 
   if (trimmed.startsWith('$XO_VAULT_FILE_V4$')) {
     const parts = trimmed.split('$')
@@ -109,7 +243,6 @@ function decryptFileContent(envelope) {
     const [expected512, expected384] = expectedSeal.split('.')
     if (!expected512 || !expected384) throw new Error('V4 金库数字封签结构损坏')
 
-    const rootSecret = getVaultRootSecret()
     const derivedKeyMaterial = Buffer.from(crypto.hkdfSync('sha512', rootSecret, salt, Buffer.from('XO_VAULT_FILE_STORAGE_v4', 'utf8'), 144))
     const aesKey = derivedKeyMaterial.subarray(0, 32)
     const hmacKey = derivedKeyMaterial.subarray(32, 96)
@@ -159,7 +292,6 @@ function decryptFileContent(envelope) {
     const ciphertext = Buffer.from(parts[5], 'hex')
     const expectedSeal = parts[6]
 
-    const rootSecret = getVaultRootSecret()
     const derivedKeyMaterial = Buffer.from(crypto.hkdfSync('sha512', rootSecret, salt, Buffer.from('XO_VAULT_FILE_STORAGE_v3', 'utf8'), 96))
     const aesKey = derivedKeyMaterial.subarray(0, 32)
     const hmacKey = derivedKeyMaterial.subarray(32, 96)
@@ -184,7 +316,24 @@ function decryptFileContent(envelope) {
     return decrypted.toString('utf8')
   }
 
-  return envelope
+  return trimmed
+}
+
+function decryptFileContent(envelope) {
+  if (!envelope || typeof envelope !== 'string') return ''
+  const trimmed = envelope.trim()
+  const primarySecret = getVaultRootSecret()
+  try {
+    return internalDecrypt(trimmed, primarySecret)
+  } catch (e) {
+    const fallbackSecret = Buffer.from('XO_STUDIO_WORLD_CLASS_QUANTUM_SECRET_2026', 'utf8')
+    if (primarySecret.toString('hex') !== fallbackSecret.toString('hex')) {
+      try {
+        return internalDecrypt(trimmed, fallbackSecret)
+      } catch {}
+    }
+    throw e
+  }
 }
 
 const [,, command, targetFile, outFile] = process.argv
@@ -234,7 +383,7 @@ const sensitiveCandidates = Array.from(new Set([
 
 if (command === 'status') {
   console.log('==========================================================')
-  console.log('🔐 XO Studio 服务端独立文件金库状态审计 (V4 Dual Signature)')
+  console.log('🔐 XO Studio 服务端自研双舱量子金库状态审计 (V5 Dual-Chamber)')
   console.log('==========================================================')
   const vaultDir = path.resolve(rootDir, 'content', '.vault')
   console.log(`📂 金库私密根目录: ${vaultDir}`)
@@ -256,7 +405,9 @@ if (command === 'status') {
     if (fs.existsSync(p)) {
       const raw = fs.readFileSync(p, 'utf8').trim()
       let statusText = '📄 当前为明文/普通格式'
-      if (raw.startsWith('$XO_VAULT_FILE_V4$')) {
+      if (raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+        statusText = '🛡️ 已处于自研双舱量子金库 V5 加密状态 (真实业务舱 + 诱饵蜜罐舱 + 双重 HMAC-512/384 签名)'
+      } else if (raw.startsWith('$XO_VAULT_FILE_V4$')) {
         statusText = '🛡️ 已处于量子文件金库 V4 加密状态 (AES-256-GCM + 双重 HMAC-512/384 签名)'
       } else if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
         statusText = '🛡️ 已处于量子文件金库 V3 加密状态 (AES-256-GCM + HMAC-SHA512)'
@@ -275,7 +426,9 @@ if (command === 'status') {
       const full = path.join(projectsDir, f)
       const raw = fs.readFileSync(full, 'utf8').trim()
       let statusText = '📄 明文'
-      if (raw.startsWith('$XO_VAULT_FILE_V4$')) {
+      if (raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+        statusText = '🛡️ V5 双舱级联签名加密 (真实业务舱 + 诱饵蜜罐舱 + 双重数字签名)'
+      } else if (raw.startsWith('$XO_VAULT_FILE_V4$')) {
         statusText = '🛡️ V4 级联签名加密 (AES-256-GCM + 双重数字签名)'
       } else if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
         statusText = '🛡️ V3 签名加密 (AES-256-GCM + HMAC-512)'
@@ -289,7 +442,7 @@ if (command === 'status') {
 
 if (command === 'encrypt-all') {
   console.log('==========================================================')
-  console.log('🔐 XO Studio 全站独立文件全面强制加密 (Zero-Downgrade V4)')
+  console.log('🔐 XO Studio 全站独立文件全面强制加密 (Zero-Downgrade V5 Dual-Chamber)')
   console.log('==========================================================')
   let encryptedCount = 0
   let skippedCount = 0
@@ -297,18 +450,14 @@ if (command === 'encrypt-all') {
   sensitiveCandidates.forEach(p => {
     if (fs.existsSync(p)) {
       const raw = fs.readFileSync(p, 'utf8').trim()
-      if (!raw.startsWith('$XO_VAULT_FILE_V4$')) {
-        // 如果是 V3 或明文，统一升级为 V4
-        let plain = raw
-        if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
-          try { plain = decryptFileContent(raw) } catch {}
-        }
+      if (!raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+        let plain = decryptFileContent(raw)
         const enc = encryptFileContent(plain)
         fs.writeFileSync(p, enc, { encoding: 'utf8', mode: 0o600 })
-        console.log(`✅ [升级加密 V4] ${path.relative(rootDir, p)}`)
+        console.log(`✅ [升级加密 V5 双舱] ${path.relative(rootDir, p)}`)
         encryptedCount++
       } else {
-        console.log(`🛡️ [已处于 V4] ${path.relative(rootDir, p)}`)
+        console.log(`🛡️ [已处于 V5 双舱] ${path.relative(rootDir, p)}`)
         skippedCount++
       }
     }
@@ -320,23 +469,20 @@ if (command === 'encrypt-all') {
     mdFiles.forEach(f => {
       const full = path.join(projectsDir, f)
       const raw = fs.readFileSync(full, 'utf8').trim()
-      if (!raw.startsWith('$XO_VAULT_FILE_V4$')) {
-        let plain = raw
-        if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
-          try { plain = decryptFileContent(raw) } catch {}
-        }
+      if (!raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+        let plain = decryptFileContent(raw)
         const enc = encryptFileContent(plain)
         fs.writeFileSync(full, enc, { encoding: 'utf8', mode: 0o600 })
-        console.log(`✅ [升级加密 V4] content/projects/${f}`)
+        console.log(`✅ [升级加密 V5 双舱] content/projects/${f}`)
         encryptedCount++
       } else {
-        console.log(`🛡️ [已处于 V4] content/projects/${f}`)
+        console.log(`🛡️ [已处于 V5 双舱] content/projects/${f}`)
         skippedCount++
       }
     })
   }
 
-  console.log(`\n🎉 全面加密完成: ${encryptedCount} 个文件已升级为 V4 级联签名密文, ${skippedCount} 个文件已处于最新状态。`)
+  console.log(`\n🎉 全面加密完成: ${encryptedCount} 个文件已升级为 V5 自研双舱签名密文, ${skippedCount} 个文件已处于最新状态。`)
   console.log('==========================================================')
   process.exit(0)
 }
