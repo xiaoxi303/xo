@@ -318,4 +318,21 @@ if (fs.existsSync(blacklistPath)) {
   } catch {}
 }
 
+// ── 6. Auto-Migrate All Projects to V4 (全部视频作品强制密文) ─────────────
+if (fs.existsSync(projectsDir)) {
+  const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
+  for (const f of mdFiles) {
+    const fullPath = path.join(projectsDir, f)
+    const raw = fs.readFileSync(fullPath, 'utf8')
+    if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+      try {
+        const plain = decryptEnvelope(raw)
+        const enc = encryptV4(plain)
+        fs.writeFileSync(fullPath, enc, { encoding: 'utf8', mode: 0o600 })
+        console.log(`🔒 Auto-migrated project ${f} to V4 vault`)
+      } catch {}
+    }
+  }
+}
+
 console.log('\n🎉 XO Studio 全量运行时存储结构已就绪 (100% 密文存储，零降级保证)。\n')

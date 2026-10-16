@@ -247,12 +247,19 @@ export function decryptFileContent(envelope: string, customSecret?: string): str
 }
 
 /**
- * 安全读取磁盘加密文件 (自动验签并解密)
+ * 安全读取磁盘加密文件 (自动验签并解密，发现非 V4 密文时秒级原地自愈升级)
  */
 export function readEncryptedFile(filePath: string, customSecret?: string): string {
   if (!fs.existsSync(filePath)) return ''
   const raw = fs.readFileSync(filePath, 'utf8')
-  return decryptFileContent(raw, customSecret)
+  const decrypted = decryptFileContent(raw, customSecret)
+  // 零降级强约束：一旦读取到任何明文或旧版本密文，立刻原地升级为 V4 级联签名密文，绝不让磁盘留存明文
+  if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+    try {
+      writeEncryptedFile(filePath, decrypted, customSecret)
+    } catch {}
+  }
+  return decrypted
 }
 
 /**

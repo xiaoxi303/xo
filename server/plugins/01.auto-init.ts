@@ -157,50 +157,46 @@ export default defineNitroPlugin(() => {
       writeEncryptedJson(clientAccountsPath, [])
     }
 
-    // 3.5 自动密库全量迁移：检查所有项目 Markdown 与运行时核心数据，自动升级至 V4 级联数字签名密文
-    try {
-      if (fs.existsSync(projectsDir)) {
-        const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
-        for (const f of mdFiles) {
-          const fullPath = path.join(projectsDir, f)
-          const raw = fs.readFileSync(fullPath, 'utf8')
-          if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
-            const plain = raw.startsWith('$XO_VAULT_FILE_V3$') ? decryptFileContent(raw) : raw
-            writeEncryptedFile(fullPath, plain)
+    // 3.5 自动密库全量迁移与强制零降级防护：动态扫描所有项目 Markdown 与运行时核心数据表，升级至 V4 级联数字签名
+    const enforceV4Vault = () => {
+      try {
+        if (fs.existsSync(projectsDir)) {
+          const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
+          for (const f of mdFiles) {
+            const fullPath = path.join(projectsDir, f)
+            const raw = fs.readFileSync(fullPath, 'utf8')
+            if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+              const plain = decryptFileContent(raw)
+              writeEncryptedFile(fullPath, plain)
+              console.log(`[vault-guard] 🛡️ 自动升级作品文件至 V4 级联签名密文: ${f}`)
+            }
           }
         }
-      }
 
-      const sensitiveFiles = [
-        configPath,
-        path.join(contentDir, 'users.json'),
-        path.join(contentDir, 'password-requests.json'),
-        bookingsPath,
-        ordersPath,
-        blogPostsPath,
-        blogCatsPath,
-        securityLogsPath,
-        blacklistPath,
-        path.join(contentDir, 'order-pages.json'),
-        path.join(contentDir, 'delivery-items.json'),
-        path.join(contentDir, '.sessions.json'),
-        path.join(contentDir, 'page-views.json'),
-        path.join(contentDir, 'events.json'),
-        path.join(contentDir, 'project-heat.json')
-      ]
-
-      for (const sf of sensitiveFiles) {
-        if (fs.existsSync(sf)) {
-          const raw = fs.readFileSync(sf, 'utf8').trim()
-          if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
-            const plain = raw.startsWith('$XO_VAULT_FILE_V3$') ? decryptFileContent(raw) : raw
-            writeEncryptedFile(sf, plain)
+        if (fs.existsSync(contentDir)) {
+          const contentFiles = fs.readdirSync(contentDir).filter(f => f.endsWith('.json') || f.startsWith('.'))
+          for (const cf of contentFiles) {
+            const fullPath = path.join(contentDir, cf)
+            if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+              const raw = fs.readFileSync(fullPath, 'utf8').trim()
+              if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+                const plain = decryptFileContent(raw)
+                writeEncryptedFile(fullPath, plain)
+                console.log(`[vault-guard] 🛡️ 自动升级核心数据至 V4 级联签名密文: ${cf}`)
+              }
+            }
           }
         }
+      } catch (migErr) {
+        console.warn('[auto-init] 密库加固与自动加密迁移异常:', migErr)
       }
-    } catch (migErr) {
-      console.warn('[auto-init] 密库加固与自动加密迁移异常:', migErr)
     }
+
+    // 立即执行一次开机全量加固
+    enforceV4Vault()
+
+    // 激活常驻金库巡检哨兵：每 30 秒自动巡检一次，一旦发现任何新加入或外部修改的明文立即强力加固升舱，绝不降级
+    setInterval(enforceV4Vault, 30000).unref()
 
     // 4. 同步加载持久化黑名单至内存高速防护网，跨部署无缝封锁
     try {

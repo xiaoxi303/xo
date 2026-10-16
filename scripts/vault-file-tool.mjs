@@ -206,12 +206,18 @@ if (!command || command === 'help' || command === '--help') {
   process.exit(0)
 }
 
-const sensitiveCandidates = [
+const contentDir = path.resolve(rootDir, 'content')
+const dynamicJsonFiles = fs.existsSync(contentDir)
+  ? fs.readdirSync(contentDir).filter(f => f.endsWith('.json') || f.startsWith('.')).map(f => path.join(contentDir, f)).filter(f => fs.existsSync(f) && fs.statSync(f).isFile())
+  : []
+
+const sensitiveCandidates = Array.from(new Set([
   path.resolve(rootDir, 'content', 'site-config.json'),
   path.resolve(rootDir, 'content', 'users.json'),
   path.resolve(rootDir, 'content', 'password-requests.json'),
   path.resolve(rootDir, 'content', 'bookings.json'),
   path.resolve(rootDir, 'content', 'orders.json'),
+  path.resolve(rootDir, 'content', 'client-accounts.json'),
   path.resolve(rootDir, 'content', 'blog-posts.json'),
   path.resolve(rootDir, 'content', 'blog-categories.json'),
   path.resolve(rootDir, 'content', 'blacklist.json'),
@@ -222,8 +228,9 @@ const sensitiveCandidates = [
   path.resolve(rootDir, 'content', 'events.json'),
   path.resolve(rootDir, 'content', 'page-views.json'),
   path.resolve(rootDir, 'content', 'project-heat.json'),
-  path.resolve(rootDir, 'content', 'alipay-config.enc.json')
-]
+  path.resolve(rootDir, 'content', 'alipay-config.enc.json'),
+  ...dynamicJsonFiles
+]))
 
 if (command === 'status') {
   console.log('==========================================================')
