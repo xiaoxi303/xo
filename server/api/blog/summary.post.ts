@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody } from 'h3'
 import { dbGetSiteConfig } from '../../utils/db'
 import { requireAdminSession } from '../../utils/admin-auth'
+import { fetchSafeUpstream } from '../../utils/url-security'
 
 function createCleanSummary(content: string, title?: string): string {
   if (!content) return '本文暂无正文描述，欢迎继续关注后续更新。'
@@ -78,7 +79,7 @@ export default defineEventHandler(async (event) => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 12000)
 
-    const response = await fetch(endpoint, {
+    const response = await fetchSafeUpstream(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

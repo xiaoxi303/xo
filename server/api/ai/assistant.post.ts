@@ -5,6 +5,7 @@ import { dbGetProjectsRaw, dbGetSiteConfig } from '../../utils/db'
 import { getRuntimeDataPath, readEncryptedJson } from '../../utils/storage'
 import { requireAdminSession } from '../../utils/admin-auth'
 import { getSecurityLogs } from '../../utils/security-logger'
+import { fetchSafeUpstream } from '../../utils/url-security'
 
 export default defineEventHandler(async (event) => {
   requireAdminSession(event)
@@ -119,7 +120,7 @@ export default defineEventHandler(async (event) => {
       return null
     }
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetchSafeUpstream(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
