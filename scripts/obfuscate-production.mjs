@@ -30,6 +30,11 @@ async function walk(directory, exts = ['.js', '.mjs']) {
 
 const clientFiles = await walk(clientRoot, ['.js'])
 const serverFiles = await walk(serverRoot, ['.mjs'])
+try {
+  const serverIndex = path.resolve('.output/server/index.mjs')
+  const stat = await fs.stat(serverIndex)
+  if (stat.isFile()) serverFiles.push(serverIndex)
+} catch {}
 
 if (!clientFiles.length && !serverFiles.length) {
   console.error(`[obfuscate] No client or server JavaScript bundles found to obfuscate.`)
