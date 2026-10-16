@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { getRuntimeDataPath, readEncryptedFile, writeEncryptedFile, readEncryptedJson, writeEncryptedJson } from './storage'
+import { vaultHashPassword } from './vault-cipher'
 
 let isDbInitialized = false
 const MAX_PROJECT_VIDEOS = 10
@@ -463,6 +464,7 @@ function normalizeUserRecord(row: any, includePassword = false): any {
     delete normalized.deliveryKeyHash
     // Older local records may contain a plaintext key. Never expose it from list APIs.
     delete normalized.deliveryKey
+    delete normalized.deliveryPlainKey
   }
   return normalized
 }
@@ -577,8 +579,8 @@ export async function dbEnsureUserDeliveryCredentials(event: H3Event, user: any)
       if (!currentHash) {
         users[idx].deliveryKeyHash = credentials.deliveryKeyHash
         users[idx].deliveryKeyHint = credentials.deliveryKeyHint
-        users[idx].deliveryPlainKey = String(data.deliveryKey)
         delete users[idx].deliveryKey
+        delete users[idx].deliveryPlainKey
       }
       writeEncryptedJson(usersPath, users)
     }
@@ -1355,6 +1357,11 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<DeliveryC
     }
     credentials.deliverySuffix = suffix
 
+    const rawPassword = String(data.password || '')
+    const securePassword = (rawPassword.startsWith('$vault$v2$') || rawPassword.startsWith('PBKDF2$'))
+      ? rawPassword
+      : (rawPassword ? vaultHashPassword(rawPassword) : '')
+
     await db.prepare(`
       INSERT INTO users (
         username, email, password, role, allowedProjects,
@@ -1365,7 +1372,7 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<DeliveryC
     `).bind(
       cleanUsername,
       cleanEmail,
-      data.password,
+      securePassword,
       data.role || 'client',
       credentials.deliverySuffix,
       credentials.deliveryKeyHash,
@@ -1396,18 +1403,22 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<DeliveryC
   }
   credentials.deliverySuffix = localSuffix
 
+  const rawPassword = String(data.password || '')
+  const securePassword = (rawPassword.startsWith('$vault$v2$') || rawPassword.startsWith('PBKDF2$'))
+    ? rawPassword
+    : (rawPassword ? vaultHashPassword(rawPassword) : '')
+
   const newUser = {
     id: Date.now(),
     username: cleanUsername,
     email: cleanEmail,
     wechat: data.wechat || '',
-    password: data.password,
+    password: securePassword,
     role: data.role || 'client',
     allowedProjects: '',
     deliverySuffix: credentials.deliverySuffix,
     deliveryKeyHash: credentials.deliveryKeyHash,
     deliveryKeyHint: credentials.deliveryKeyHint,
-    deliveryPlainKey: credentials.deliveryKey,
     warningCount: 0,
     isBlacklisted: false,
     blacklistReason: '',
