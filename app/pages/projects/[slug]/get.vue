@@ -206,27 +206,9 @@ const loadPasswordDirectly = async () => {
   }
 }
 
-// Handle login submission
-const handleClientLogin = async () => {
-  loginError.value = ''
-  loginLoading.value = true
-  try {
-    const res = await $fetch<any>('/api/auth/client-login', {
-      method: 'POST',
-      body: loginForm.value
-    })
-    if (res.success) {
-      isClientLoggedIn.value = true
-      clientUsername.value = res.username
-      loginForm.value = { username: '', password: '' }
-      // Trigger password fetch
-      await loadPasswordDirectly()
-    }
-  } catch (err: any) {
-    loginError.value = err.data?.statusMessage || err.statusMessage || '密码或账号不正确。'
-  } finally {
-    loginLoading.value = false
-  }
+// Handle login submission - 全面导向安全准入核验通道（含滑块安全验证与全链路混合加密）
+const handleClientLogin = () => {
+  router.push(`/login?redirect=/projects/${slug}/get`)
 }
 
 onMounted(async () => {

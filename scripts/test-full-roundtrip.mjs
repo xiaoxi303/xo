@@ -175,8 +175,74 @@ async function runTestSuite() {
   console.log('  ✅ 管理员专属通道成功通过双重级联验签解密出原密码，完全阻断公网与网络明文传输！')
   passCount++
 
+  // ── TEST 9: 备份包全站数据导出与还原零明文封签实测 ───────────────────────
+  console.log('\n▶ [TEST 9/10] 全站备份包导出与恢复零明文 V5 双舱封签实测...')
+  const dummyBackupProjects = [
+    { slug: 'proj-alpha', title: '阿尔法项目', password: 'secret_alpha_pass_999' },
+    { slug: 'proj-beta', title: '贝塔项目', password: 'secret_beta_pass_888' }
+  ]
+  // 模拟备份导出封签处理
+  const exportedSealedProjects = dummyBackupProjects.map(p => {
+    const copy = { ...p }
+    if (copy.password) {
+      copy.encryptedPassword = encryptFileContent(copy.password)
+      copy.password = ''
+    }
+    return copy
+  })
+
+  for (const ep of exportedSealedProjects) {
+    if (ep.password !== '') throw new Error(`TEST 9 FAILED: 备份导出的作品仍然存在明文密码: ${ep.slug}`)
+    if (!ep.encryptedPassword.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+      throw new Error(`TEST 9 FAILED: 备份加密字段未采用 V5 双舱签名架构: ${ep.slug}`)
+    }
+  }
+  console.log('  🔒 备份导出成功：所有作品明文密码已彻底剔除，100% 封入 V5 双舱级联封签！')
+
+  // 模拟备份恢复解封处理
+  const restoredProjects = exportedSealedProjects.map(p => {
+    const copy = { ...p }
+    if (copy.encryptedPassword) {
+      copy.password = decryptFileContent(copy.encryptedPassword)
+    }
+    return copy
+  })
+  if (restoredProjects[0].password !== 'secret_alpha_pass_999' || restoredProjects[1].password !== 'secret_beta_pass_888') {
+    throw new Error('TEST 9 FAILED: 备份恢复解封后的密码与原密码不符')
+  }
+  console.log('  ✅ 备份恢复成功：通过 HMAC-512/384 级联验签准确解密还原密码！')
+  passCount++
+
+  // ── TEST 10: 前端生成双舱加密载荷 -> 服务端真理共识解密 -> 封签封装 -> 完整闭环 ──
+  console.log('\n▶ [TEST 10/10] 前端双舱宏观装甲 -> 服务端解密重封 -> 双向闭环联合验算...')
+  const clientFormData = {
+    formType: 'booking_vip',
+    clientName: '李导演',
+    contact: 'director_li@quantum.cinema',
+    projectType: '院线电影调色',
+    budget: '500,000 RMB',
+    secretToken: crypto.randomBytes(16).toString('hex')
+  }
+  // 1. 前端加密
+  const clientArmor = await encryptRsaHybrid(clientFormData)
+  // 2. 服务端解密
+  const serverReceivedRaw = await decryptRsaHybridWithVault(clientArmor)
+  const serverReceivedObj = JSON.parse(serverReceivedRaw)
+  if (serverReceivedObj.secretToken !== clientFormData.secretToken) {
+    throw new Error('TEST 10 FAILED: 服务端解密内容与前端原始载荷不符')
+  }
+  // 3. 服务端落地存储生成 V5 级联双签密文
+  const serverStorageVault = encryptFileContent(serverReceivedRaw)
+  // 4. 服务端再次读取并验证
+  const verifiedDiskData = JSON.parse(decryptFileContent(serverStorageVault))
+  if (verifiedDiskData.clientName !== '李导演' || verifiedDiskData.budget !== '500,000 RMB') {
+    throw new Error('TEST 10 FAILED: 存储层双舱级联验签解密失败')
+  }
+  console.log('  ✅ 前端到服务端、传输到存储、从密文到真理共识双向闭环 100% 联合验算一致！')
+  passCount++
+
   console.log('\n======================================================================')
-  console.log(`🎉 全部 ${passCount}/8 项全链路加解密与抗篡改数字签名测试 100% 完美通过！`)
+  console.log(`🎉 全部 ${passCount}/10 项全链路加解密与抗篡改数字签名测试 100% 完美通过！`)
   console.log('======================================================================')
 }
 

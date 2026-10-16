@@ -120,7 +120,8 @@ export default defineEventHandler(async (event) => {
   const inputPath = resolvedPath
 
   const siteConfig = await dbGetSiteConfig(event)
-  const invisibleText = siteConfig?.watermark?.invisibleText || '© Xo Studio 2026'
+  const rawInvisibleText = siteConfig?.watermark?.invisibleText || '© Xo Studio 2026'
+  const invisibleText = String(rawInvisibleText).replace(/[^a-zA-Z0-9\u4e00-\u9fa5\s©_.-]/g, '')
 
   // Check if ffmpeg binary exists on server PATH
   try {

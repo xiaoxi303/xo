@@ -7,7 +7,7 @@ import {
   dbGetPasswordRequests,
   dbGetUsers
 } from '../../utils/db'
-import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson, encryptFileContent, decryptFileContent } from '../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   // Authentication check (admin session only)
@@ -30,11 +30,23 @@ export default defineEventHandler(async (event) => {
       const blPath = getRuntimeDataPath('blacklist.json')
       const blacklist = readEncryptedJson<any[]>(blPath, [])
 
+      // 密码零明文防护：备份包中所有作品密码自动封入自研 V5 双舱量子加密信封与双重级联签名
+      const sealedProjects = (projects || []).map((p: any) => {
+        const copy = { ...p }
+        if (copy.password) {
+          copy.encryptedPassword = copy.password.startsWith('$XO_VAULT_')
+            ? copy.password
+            : encryptFileContent(copy.password)
+          copy.password = ''
+        }
+        return copy
+      })
+
       return {
         version: '2.0',
         exportedAt: new Date().toISOString(),
         siteConfig,
-        projects: projects || [],
+        projects: sealedProjects,
         passwordRequests: passwordRequests || [],
         users: users || [],
         blacklist
@@ -66,12 +78,23 @@ export default defineEventHandler(async (event) => {
 
       // 2. Restore Projects Data
       if (Array.isArray(body.projects)) {
+        const unsealedProjects = body.projects.map((p: any) => {
+          const copy = { ...p }
+          if (copy.encryptedPassword && (!copy.password || copy.password === '')) {
+            try {
+              copy.password = decryptFileContent(copy.encryptedPassword)
+            } catch {
+              copy.password = copy.encryptedPassword
+            }
+          }
+          return copy
+        })
         const { dbSaveProjectsRaw } = await import('../../utils/db')
         if (typeof dbSaveProjectsRaw === 'function') {
-          await dbSaveProjectsRaw(event, body.projects)
+          await dbSaveProjectsRaw(event, unsealedProjects)
         } else {
           const projsPath = getRuntimeDataPath('projects.json')
-          writeEncryptedJson(projsPath, body.projects)
+          writeEncryptedJson(projsPath, unsealedProjects)
         }
         restoredSections.push(`${body.projects.length} 个视频作品`)
       }

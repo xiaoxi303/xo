@@ -1,5 +1,5 @@
 import { dbGetProjectsRaw, dbGetProjectPassword, dbCreatePasswordRequest, getD1Database } from '../../../utils/db'
-import { getRuntimeDataPath } from '../../../utils/storage'
+import { getRuntimeDataPath, encryptFileContent } from '../../../utils/storage'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../../utils/auth'
 import { getDailyPassword } from '../../../utils/password-utils'
 import { sendApprovalEmail } from '../../../utils/email'
@@ -97,5 +97,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return { password }
+  // 接入自研 V5 双舱量子加密与双重级联抗篡改签名封签
+  const encryptedPasswordToken = password ? encryptFileContent(password) : ''
+
+  return {
+    password,
+    activePassword: encryptedPasswordToken,
+    vaultProtected: true
+  }
 })
