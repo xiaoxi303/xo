@@ -3,7 +3,15 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
-import JavaScriptObfuscator from 'javascript-obfuscator'
+
+let JavaScriptObfuscator
+try {
+  const mod = await import('javascript-obfuscator')
+  JavaScriptObfuscator = mod.default || mod
+} catch (e) {
+  console.warn('[obfuscate] ⚠️ javascript-obfuscator 未安装或加载失败，跳过独立混淆阶段并正常继续。')
+  process.exit(0)
+}
 
 const clientRoot = path.resolve('.output/public/_nuxt')
 const serverRoot = path.resolve('.output/server/chunks')

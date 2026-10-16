@@ -182,9 +182,9 @@ echo "✅ 运行时数据表、独立文件加密信封与 4096 位量子金库�
 # 4. 同步检查并安装项目依赖 (增加重试与离线容错)
 echo ""
 echo "📦 正在检查与同步项目完整依赖..."
-if ! npm install --no-audit --prefer-offline 2>/dev/null; then
-  echo "⚠️ 离线安装提示网络异常，正在执行在线依赖修复安装..."
-  npm install --no-audit || npm install --legacy-peer-deps --no-audit || true
+if ! npm install --include=dev --no-audit 2>/dev/null; then
+  echo "⚠️ 离线安装提示网络异常，正在执行在线完整依赖修复安装..."
+  npm install --include=dev --no-audit || npm install --legacy-peer-deps --no-audit || true
 fi
 echo "✅ 项目依赖同步就绪。"
 
