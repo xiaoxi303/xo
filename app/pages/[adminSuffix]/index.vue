@@ -3782,8 +3782,13 @@
                     </div>
                   </div>
                   <div class="flex items-center gap-3">
-                    <div class="bg-amber-700/5 text-amber-700 text-xs px-3 py-1.5 rounded-lg border border-amber-800/10 font-mono font-bold">
-                      密码: {{ p.activePassword || '------' }}
+                    <div class="bg-amber-700/5 text-amber-700 text-xs px-3 py-1.5 rounded-lg border border-amber-800/10 font-mono font-bold flex items-center gap-2">
+                      <span>密码:</span>
+                      <span v-if="revealedPasswords[p.slug]" class="text-emerald-700 font-bold select-all">{{ revealedPasswords[p.slug] }}</span>
+                      <span v-else class="text-amber-800/70 text-[11px] font-normal">🛡️ 双舱级联加密</span>
+                      <button type="button" @click.stop="toggleRevealPassword(p)" class="text-[11px] underline ml-1 cursor-pointer hover:opacity-80">
+                        {{ revealedPasswords[p.slug] ? '隐藏' : '解密查看' }}
+                      </button>
                     </div>
                     <button @click="openEditModal(p)" class="text-xs font-semibold hover:underline" style="color: var(--color-ink-4)">
                       修改
@@ -7440,6 +7445,28 @@ const generateRandomPassword = () => {
   return result
 }
 
+// 密码双舱级联安全解密缓存
+const revealedPasswords = ref<Record<string, string>>({})
+
+const toggleRevealPassword = async (p: any) => {
+  if (revealedPasswords.value[p.slug]) {
+    delete revealedPasswords.value[p.slug]
+    return
+  }
+  try {
+    const encryptedPayload = await encryptRsaHybrid({ slug: p.slug, encryptedToken: p.activePassword })
+    const res = await $fetch<{ success: boolean; password: string }>('/api/admin/reveal-password', {
+      method: 'POST',
+      body: encryptedPayload
+    })
+    if (res?.success && res.password) {
+      revealedPasswords.value[p.slug] = res.password
+    }
+  } catch (err: any) {
+    alert(err?.statusMessage || '解密查看失败，请重试。')
+  }
+}
+
 // Generate daily password for display
 const dailyPassword = ref('------')
 watch(() => form.value?.slug, async (newSlug) => {
@@ -7448,10 +7475,22 @@ watch(() => form.value?.slug, async (newSlug) => {
   }
 }, { immediate: true })
 
-const getDailyPassword = async (slug) => {
+const getDailyPassword = async (slug: string) => {
   if (!slug) return '------'
-  const projects = await $fetch<any[]>('/api/admin/projects')
-  return projects.find((project: any) => project.slug === slug)?.activePassword || '------'
+  if (revealedPasswords.value[slug]) return revealedPasswords.value[slug]
+  try {
+    const p = (projectsList.value || []).find((x: any) => x.slug === slug)
+    const encryptedPayload = await encryptRsaHybrid({ slug, encryptedToken: p?.activePassword })
+    const res = await $fetch<{ success: boolean; password: string }>('/api/admin/reveal-password', {
+      method: 'POST',
+      body: encryptedPayload
+    })
+    if (res?.success && res.password) {
+      revealedPasswords.value[slug] = res.password
+      return res.password
+    }
+  } catch {}
+  return '🛡️ 双舱量子加密'
 }
 
 const saveProject = async () => {
@@ -7499,18 +7538,29 @@ const updateRequestStatus = async (id: number | string, status: 'approved' | 're
     alert(e.statusMessage || '审批操作失败。')
   }
 }
-const getProjectPassword = (slug: string) => {
+const getProjectPassword = async (slug: string) => {
   const p = projectsList.value?.find((x: any) => x.slug === slug)
-  if (!p) return ''
-  if (!p.isPasswordProtected) return ''
-  return p.activePassword || p.password || ''
+  if (!p || !p.isPasswordProtected) return ''
+  if (revealedPasswords.value[slug]) return revealedPasswords.value[slug]
+  try {
+    const encryptedPayload = await encryptRsaHybrid({ slug, encryptedToken: p.activePassword })
+    const res = await $fetch<{ success: boolean; password: string }>('/api/admin/reveal-password', {
+      method: 'POST',
+      body: encryptedPayload
+    })
+    if (res?.success && res.password) {
+      revealedPasswords.value[slug] = res.password
+      return res.password
+    }
+  } catch {}
+  return ''
 }
 const isProjectLocked = (slug: string) => {
   const p = projectsList.value?.find((x: any) => x.slug === slug)
   return p ? p.isPasswordProtected : false
 }
-const copyShareText = (r: any) => {
-  const pwd = getProjectPassword(r.projectSlug)
+const copyShareText = async (r: any) => {
+  const pwd = await getProjectPassword(r.projectSlug)
   const host = window.location.origin
   const shareText = `您好！您申请观摩的作品《${r.projectTitle}》已审核通过。\n访问密码：${pwd || '无'}\n直接观看链接：${host}/projects/${r.projectSlug}\n期待与您的进一步合作！`
   

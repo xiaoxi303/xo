@@ -812,10 +812,13 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
 export async function dbUpdateProject(event: H3Event, body: any): Promise<void> {
   const db = await getD1Database(event)
   if (db) {
-    const project = await db.prepare('SELECT slug FROM projects WHERE slug = ?').bind(body.slug).first()
+    const project = await db.prepare('SELECT slug, password FROM projects WHERE slug = ?').bind(body.slug).first()
     if (!project) {
       throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
     }
+
+    const existingPassword = (project as any).password || ''
+    const targetPassword = (body.password !== undefined && body.password !== '') ? body.password : existingPassword
 
     await db.prepare(`
       UPDATE projects
@@ -837,7 +840,7 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
       body.description || '',
       body.longDescription || '',
       JSON.stringify(body.workflow || []),
-      body.password || '',
+      targetPassword,
       body.releaseYear || '',
       body.postSpecs || '',
       body.director || '',
@@ -864,7 +867,10 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
   if (!fs.existsSync(filePath)) {
     throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
   }
-  const fileContent = `---\n${stringifyYaml(body)}\n---\n\n${body.body || ''}\n`
+  const existing = parseMarkdownFile(filePath) as any
+  const targetPassword = (body.password !== undefined && body.password !== '') ? body.password : (existing?.password || '')
+  const mergedBody = { ...body, password: targetPassword }
+  const fileContent = `---\n${stringifyYaml(mergedBody)}\n---\n\n${mergedBody.body || ''}\n`
   writeEncryptedFile(filePath, fileContent)
 }
 

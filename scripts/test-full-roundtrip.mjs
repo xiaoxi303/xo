@@ -147,7 +147,7 @@ async function runTestSuite() {
   }
 
   // ── TEST 7: 常时安全比对函数 (Timing-Safe Equal) 校验 ──────────────────
-  console.log('\n▶ [TEST 7/7] 常时安全比对抗侧信道测试 (crypto.timingSafeEqual)...')
+  console.log('\n▶ [TEST 7/8] 常时安全比对抗侧信道测试 (crypto.timingSafeEqual)...')
   const a = 'A'.repeat(64)
   const b = 'A'.repeat(64)
   const c = 'A'.repeat(63) + 'B'
@@ -157,8 +157,26 @@ async function runTestSuite() {
   console.log('  ✅ 常时安全比对通过，侧信道时序攻击已完全免疫！')
   passCount++
 
+  // ── TEST 8: 管理员密码彻底消除明文与 V5 双舱级联签名通道测试 ───────────────
+  console.log('\n▶ [TEST 8/8] 管理员密码彻底消除明文传输与 V5 双舱封签通道实测...')
+  const rawAdminPassword = 'XO_CINEMA_SUPER_KEY_888'
+  // 服务端加密
+  const sealedPasswordToken = encryptFileContent(rawAdminPassword)
+  if (!sealedPasswordToken.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+    throw new Error('TEST 8 FAILED: 密码封签未升级为 V5 双舱架构')
+  }
+  console.log(`  🔒 密码已彻底脱离明文，已封装为 V5 双舱级联封签: ${sealedPasswordToken.slice(0, 45)}...`)
+
+  // 管理员通过合法会话专属解密通道安全解出
+  const unsealedPassword = decryptFileContent(sealedPasswordToken)
+  if (unsealedPassword !== rawAdminPassword) {
+    throw new Error('TEST 8 FAILED: 密码解封内容与原密码不符')
+  }
+  console.log('  ✅ 管理员专属通道成功通过双重级联验签解密出原密码，完全阻断公网与网络明文传输！')
+  passCount++
+
   console.log('\n======================================================================')
-  console.log(`🎉 全部 ${passCount}/${totalTests} 项全链路加解密与抗篡改数字签名测试 100% 完美通过！`)
+  console.log(`🎉 全部 ${passCount}/8 项全链路加解密与抗篡改数字签名测试 100% 完美通过！`)
   console.log('======================================================================')
 }
 

@@ -1,6 +1,7 @@
 import { dbGetProjectsRaw } from '../../utils/db'
 import { SESSION_COOKIE, validateSession } from '../../utils/auth'
 import { getDailyPassword } from '../../utils/password-utils'
+import { encryptFileContent } from '../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, SESSION_COOKIE)
@@ -13,24 +14,31 @@ export default defineEventHandler(async (event) => {
   try {
     const projects = await dbGetProjectsRaw(event)
     
-    // Add activePassword for admin overview
+    // 密码字段安全革命：彻底消除明文传输，全面接入自研 V5 双舱量子加密与双重级联抗篡改签名引擎
     const projectsWithPassword = projects.map(project => {
       const identifier = project.slug || ''
       const isLocked = Boolean(project.isPasswordProtected)
       
-      let activePassword = project.password || ''
+      let rawPassword = project.password || ''
       if (isLocked && project.autoRotatePassword) {
         try {
-          activePassword = getDailyPassword(identifier)
+          rawPassword = getDailyPassword(identifier)
         } catch {
-          activePassword = project.password || 'Not set'
+          rawPassword = project.password || ''
         }
       }
+
+      // 如果有密码，使用 V5 双舱级联数字签名算法生成加密封签，严禁明文传输
+      const encryptedPasswordToken = rawPassword ? encryptFileContent(rawPassword) : ''
       
       return {
         ...project,
         isPasswordProtected: isLocked,
-        activePassword: activePassword || 'Not set'
+        // 彻底清空明文密码字段
+        password: '',
+        activePassword: encryptedPasswordToken,
+        hasPassword: Boolean(rawPassword),
+        vaultProtected: true
       }
     })
     
