@@ -2,6 +2,29 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
+// ── 全量同步装载 .env 生产配置 ──────────────────────────────────────────────
+const envPath = path.resolve(__dirname, '.env');
+const loadedEnv = {};
+if (fs.existsSync(envPath)) {
+  try {
+    const raw = fs.readFileSync(envPath, 'utf8');
+    const lines = raw.split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const idx = trimmed.indexOf('=');
+      if (idx !== -1) {
+        const key = trimmed.slice(0, idx).trim();
+        const val = trimmed.slice(idx + 1).trim().replace(/^['"]|['"]$/g, '');
+        if (key) {
+          loadedEnv[key] = val;
+          if (!process.env[key]) process.env[key] = val;
+        }
+      }
+    }
+  } catch (e) {}
+}
+
 /**
  * 全自动智能端口机制 (Smart Port Auto-Detection & Self-Healing)
  * 1. 优先使用环境变量 PORT 或 NITRO_PORT
@@ -20,34 +43,17 @@ function isPortAvailable(port, host = '127.0.0.1') {
 }
 
 function resolveSmartPort() {
-  // 1. 若外部环境变量已显式传入 PORT，直接采用 (例如 deploy-onekey.sh 已经排查并指定了目标端口，或 PM2 集群重载)
   if (process.env.PORT && !isNaN(Number(process.env.PORT))) {
     const p = Number(process.env.PORT);
     return p === 3000 ? 3007 : p;
   }
 
-  const envPath = path.resolve(__dirname, '.env');
-  let envPort = null;
-  if (fs.existsSync(envPath)) {
-    try {
-      const content = fs.readFileSync(envPath, 'utf8');
-      const m = content.match(/^PORT\s*=\s*(\d+)/m);
-      if (m && m[1]) envPort = Number(m[1]);
-    } catch (e) {}
-  }
-
-  // 默认项目专属基准端口: 3007 (若是 3000 则智能自动升级至 3007)
+  let envPort = loadedEnv.PORT ? Number(loadedEnv.PORT) : null;
   let targetPort = envPort || 3007;
-  if (targetPort === 3000) {
-    targetPort = 3007;
-  }
+  if (targetPort === 3000) targetPort = 3007;
 
-  // 若目标端口可用，直接使用
-  if (isPortAvailable(targetPort)) {
-    return targetPort;
-  }
+  if (isPortAvailable(targetPort)) return targetPort;
 
-  // 若被占用，启动候选端口自愈池 (优先 3007, 3008~3020, 3080)
   const candidatePool = [3007, 3008, 3009, 3010, 3011, 3012, 3015, 3020, 3080, 3001, 3002, 3003, 3004, 3005, 3006];
   for (const candidate of candidatePool) {
     if (candidate !== targetPort && isPortAvailable(candidate)) {
@@ -83,6 +89,7 @@ module.exports = {
       watch: false,
       max_memory_restart: '1G',
       env: {
+        ...loadedEnv,
         NODE_ENV: 'production',
         PORT: SMART_PORT,
         NITRO_PORT: SMART_PORT,

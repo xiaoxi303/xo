@@ -1,7 +1,7 @@
 import { defineNitroPlugin } from 'nitropack/runtime'
 import fs from 'node:fs'
 import path from 'node:path'
-import { getRuntimeDataDir, writeEncryptedJson, writeEncryptedFile, readEncryptedJson } from '../utils/storage'
+import { getRuntimeDataDir, writeEncryptedJson, writeEncryptedFile, readEncryptedJson, decryptFileContent } from '../utils/storage'
 import { issueOneTimePublicKey } from '../utils/vault-cipher'
 import { recordFailedAttempt, resetRateLimit } from '../utils/rate-limiter'
 
@@ -157,15 +157,16 @@ export default defineNitroPlugin(() => {
       writeEncryptedJson(clientAccountsPath, [])
     }
 
-    // 3.5 自动密库全量迁移：检查所有项目 Markdown 与运行时核心数据，若尚未加密则自动升级为 $XO_VAULT_FILE_V3$ 高阶加密
+    // 3.5 自动密库全量迁移：检查所有项目 Markdown 与运行时核心数据，自动升级至 V4 级联数字签名密文
     try {
       if (fs.existsSync(projectsDir)) {
         const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
         for (const f of mdFiles) {
           const fullPath = path.join(projectsDir, f)
           const raw = fs.readFileSync(fullPath, 'utf8')
-          if (raw && !raw.startsWith('$XO_VAULT_FILE_V3$')) {
-            writeEncryptedFile(fullPath, raw)
+          if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+            const plain = raw.startsWith('$XO_VAULT_FILE_V3$') ? decryptFileContent(raw) : raw
+            writeEncryptedFile(fullPath, plain)
           }
         }
       }
@@ -182,14 +183,18 @@ export default defineNitroPlugin(() => {
         blacklistPath,
         path.join(contentDir, 'order-pages.json'),
         path.join(contentDir, 'delivery-items.json'),
-        path.join(contentDir, '.sessions.json')
+        path.join(contentDir, '.sessions.json'),
+        path.join(contentDir, 'page-views.json'),
+        path.join(contentDir, 'events.json'),
+        path.join(contentDir, 'project-heat.json')
       ]
 
       for (const sf of sensitiveFiles) {
         if (fs.existsSync(sf)) {
           const raw = fs.readFileSync(sf, 'utf8').trim()
-          if (raw && !raw.startsWith('$XO_VAULT_FILE_V3$')) {
-            writeEncryptedFile(sf, raw)
+          if (raw && !raw.startsWith('$XO_VAULT_FILE_V4$')) {
+            const plain = raw.startsWith('$XO_VAULT_FILE_V3$') ? decryptFileContent(raw) : raw
+            writeEncryptedFile(sf, plain)
           }
         }
       }

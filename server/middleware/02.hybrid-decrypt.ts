@@ -37,6 +37,8 @@ export default defineEventHandler(async (event) => {
 
       // 覆盖挂载至 h3 解析存储中，供下游所有业务端点直接透明读取解密后的数据对象
       event.node.req[Symbol.for('h3ParsedBody')] = decryptedObj
+      ;(event as any)._body = decryptedObj
+      ;(event.node.req as any)._body = decryptedObj
       event.context.hybridDecrypted = true
       event.context.decryptedBody = decryptedObj
       event.context.rawHybridPayload = body

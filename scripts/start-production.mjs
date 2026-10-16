@@ -7,6 +7,29 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
+// ── 全量同步装载 .env 生产环境变量与金库密钥 ────────────────────────────────
+const envPath = path.resolve(rootDir, '.env');
+if (fs.existsSync(envPath)) {
+  try {
+    const raw = fs.readFileSync(envPath, 'utf8');
+    const lines = raw.split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const idx = trimmed.indexOf('=');
+      if (idx !== -1) {
+        const key = trimmed.slice(0, idx).trim();
+        const val = trimmed.slice(idx + 1).trim().replace(/^['"]|['"]$/g, '');
+        if (key && !process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[start-production] Warning: Failed to parse .env:', err);
+  }
+}
+
 async function isPortFree(port, host = '127.0.0.1') {
   return new Promise((resolve) => {
     const s = net.createServer();
@@ -19,16 +42,7 @@ async function isPortFree(port, host = '127.0.0.1') {
 }
 
 async function getSmartPort() {
-  const envPath = path.resolve(rootDir, '.env');
-  let envPort = null;
-  if (fs.existsSync(envPath)) {
-    try {
-      const content = fs.readFileSync(envPath, 'utf8');
-      const m = content.match(/^PORT\s*=\s*(\d+)/m);
-      if (m && m[1]) envPort = Number(m[1]);
-    } catch {}
-  }
-
+  let envPort = process.env.PORT ? Number(process.env.PORT) : null;
   let candidate = Number(process.env.PORT) || Number(process.env.NITRO_PORT) || envPort || 3007;
   if (candidate === 3000) candidate = 3007;
 
