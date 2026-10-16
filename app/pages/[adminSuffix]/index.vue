@@ -7381,7 +7381,8 @@ const updateProjectNumber = async (project: any, index: number, e: Event) => {
   }
 
   try {
-    await $fetch('/api/projects', { method: 'PUT', body: project })
+    const encryptedProject = await encryptRsaHybrid(project)
+    await $fetch('/api/projects', { method: 'PUT', body: encryptedProject })
     await fetchProjects()
   } catch (err) {
     console.error('Failed to update project number:', err)
