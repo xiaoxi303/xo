@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen font-sans relative admin-shell bg-[#faf9f6] text-[#121316]">
     <AdminToast :toasts="toasts" @close="removeToast" />
-    <AdminAiCopilot />
 
 
     <!-- AI Interactive Prompt Dialog: Notice Copy -->
@@ -2526,7 +2525,12 @@
           <!-- Actions -->
           <div class="flex justify-between items-center pt-2">
             <h2 class="font-display text-lg font-bold" style="color: var(--color-ink-1)">视频项目列表</h2>
-            <button @click="openCreateModal" class="btn-primary py-2 px-4 text-xs">录入新作品</button>
+            <div class="flex items-center gap-2">
+              <button @click="fetchProjects" class="btn-ghost py-2 px-3 text-xs flex items-center gap-1.5 border border-black/10 rounded-xl hover:bg-black/5" title="重新获取项目列表">
+                <span>🔄 刷新</span>
+              </button>
+              <button @click="openCreateModal" class="btn-primary py-2 px-4 text-xs">录入新作品</button>
+            </div>
           </div>
 
           <!-- Table -->
@@ -5110,6 +5114,9 @@ watch(activeTab, (newTab) => {
   if (newTab === 'analytics') {
     fetchSystemStatus()
   }
+  if (newTab === 'projects') {
+    fetchProjects()
+  }
   if (newTab === 'users') {
     fetchUsers()
     fetchBlacklist()
@@ -5998,7 +6005,25 @@ const sparkFillPath = computed(() => {
   return `${sparkPath.value} L${lastX},14 L${firstX},14 Z`
 })
 
-const fetchProjects = async () => { projectsList.value = await $fetch('/api/admin/projects?t=' + Date.now()) as any[] }
+const fetchProjects = async () => {
+  try {
+    const res = await $fetch('/api/admin/projects?t=' + Date.now()) as any[]
+    if (Array.isArray(res)) {
+      projectsList.value = res
+      return
+    }
+  } catch (err) {
+    console.warn('Failed to load /api/admin/projects, trying public projects fallback:', err)
+  }
+  try {
+    const fallback = await $fetch('/api/projects?t=' + Date.now()) as any[]
+    if (Array.isArray(fallback) && fallback.length > 0) {
+      projectsList.value = fallback
+    }
+  } catch (e) {
+    console.error('Failed to load fallback projects:', e)
+  }
+}
 const passwordRequests = ref<any[]>([])
 const fetchPasswordRequests = async () => {
   try {

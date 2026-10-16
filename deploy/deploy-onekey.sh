@@ -109,6 +109,11 @@ else
     echo "SESSION_SECRET=$SESSION_SEC" >> .env
     echo "🔑 已为现有 .env 自动补齐 256 位会话安全密钥。"
   fi
+  if ! grep -q "XO_PROJECT_PASSWORD_SECRET" .env; then
+    PROJ_SEC=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+    echo "XO_PROJECT_PASSWORD_SECRET=$PROJ_SEC" >> .env
+    echo "🔑 已为现有 .env 自动补齐项目密码生成高熵密钥。"
+  fi
   # 若现有 .env 仍包含旧的 3000 端口，全自动平滑升级为专属智能端口 3007
   if grep -q "^PORT=3000" .env; then
     sed -i "s/^PORT=3000/PORT=3007/" .env 2>/dev/null || true
@@ -264,11 +269,19 @@ ALL_READY=false
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
   # 探测 1: 金库一次性公钥握手 (OTPK - 4096-bit)
-  CODE_KEY=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/rsa-public-key" 2>/dev/null || echo "000")
+  CODE_KEY=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/rsa-public-key" 2>/dev/null)
+  [ -z "$CODE_KEY" ] && CODE_KEY="000"
+  CODE_KEY="${CODE_KEY:0:3}"
+
   # 探测 2: 智能光影人机安全核验引擎挑战
-  CODE_SLIDER=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/slider-challenge" 2>/dev/null || echo "000")
+  CODE_SLIDER=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/slider-challenge" 2>/dev/null)
+  [ -z "$CODE_SLIDER" ] && CODE_SLIDER="000"
+  CODE_SLIDER="${CODE_SLIDER:0:3}"
+
   # 探测 3: SSR 主站 HTML 渲染
-  CODE_INDEX=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/" 2>/dev/null || echo "000")
+  CODE_INDEX=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/" 2>/dev/null)
+  [ -z "$CODE_INDEX" ] && CODE_INDEX="000"
+  CODE_INDEX="${CODE_INDEX:0:3}"
 
   if [ "$CODE_KEY" = "200" ] && [ "$CODE_SLIDER" = "200" ] && [ "$CODE_INDEX" = "200" ]; then
     ALL_READY=true

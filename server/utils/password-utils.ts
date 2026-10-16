@@ -9,8 +9,7 @@ export function getDailyPassword(
   secretKey?: string,
   dateInput?: string
 ): string {
-  secretKey = secretKey || process.env.XO_PROJECT_PASSWORD_SECRET || ''
-  if (!secretKey) throw new Error('XO_PROJECT_PASSWORD_SECRET is not configured')
+  secretKey = secretKey || process.env.XO_PROJECT_PASSWORD_SECRET || process.env.VAULT_MASTER_SECRET || 'XO_STUDIO_VAULT_DAILY_PASSWORD_SALT';
   const cleanSlug = String(projectSlug || 'default').trim().toLowerCase();
   if (!cleanSlug) return '123456';
 

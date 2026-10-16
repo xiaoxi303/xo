@@ -20,7 +20,11 @@ export default defineEventHandler(async (event) => {
       
       let activePassword = project.password || ''
       if (isLocked && project.autoRotatePassword) {
-        activePassword = getDailyPassword(identifier)
+        try {
+          activePassword = getDailyPassword(identifier)
+        } catch {
+          activePassword = project.password || 'Not set'
+        }
       }
       
       return {
