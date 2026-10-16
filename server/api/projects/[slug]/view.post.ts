@@ -1,10 +1,20 @@
-import fs from 'node:fs'
 import { recordProjectHeat } from '../../../utils/analytics-store'
 import { getD1Database } from '../../../utils/db'
-import { getRuntimeDataPath } from '../../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../../../utils/storage'
 import { assertDeliveryAccess } from '../../../utils/delivery-access'
+import { getRealClientIP } from '../../../utils/ip-helper'
+import { checkRateLimit, recordFailedAttempt } from '../../../utils/rate-limiter'
 
 export default defineEventHandler(async (event) => {
+  const ip = getRealClientIP(event)
+  const rateLimitKey = `view-count:${ip}`
+  const { isLocked } = checkRateLimit(rateLimitKey)
+  if (isLocked) {
+    return { ok: false, message: 'Rate limited' }
+  }
+  // Allow max 30 view increment recordings per minute per IP
+  recordFailedAttempt(rateLimitKey, 30, 60)
+
   const slug = String(getRouterParam(event, 'slug') || (event.path || '').split('/')[3]?.split('?')[0] || '')
     .trim().replace(/^\/+|\/+$/g, '').split('/')[0].toLowerCase()
   if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing project slug' })
@@ -34,13 +44,10 @@ export default defineEventHandler(async (event) => {
     `).bind(projectPath, today).run().catch(() => {})
   } else {
     const statsFile = getRuntimeDataPath('page-views.json')
-    let stats: Record<string, Record<string, number>> = {}
-    if (fs.existsSync(statsFile)) {
-      try { stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8')) } catch {}
-    }
+    const stats = readEncryptedJson<Record<string, Record<string, number>>>(statsFile, {})
     if (!stats[projectPath]) stats[projectPath] = {}
     stats[projectPath][today] = (stats[projectPath][today] || 0) + 1
-    fs.writeFileSync(statsFile, JSON.stringify(stats, null, 2))
+    writeEncryptedJson(statsFile, stats)
   }
 
   return { ok: true, slug: cleanSlug }

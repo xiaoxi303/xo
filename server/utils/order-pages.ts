@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { getRuntimeDataPath } from './storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from './storage'
 
 export interface OrderPageConfig {
   suffix: string
@@ -20,27 +20,23 @@ function normalizeSuffix(value: any) {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 64)
 }
 
+const defaultPages: OrderPageConfig[] = [{
+  suffix: 'xiao',
+  enabled: true,
+  subject: '影视后期制作服务',
+  amount: '1.00',
+  description: '请在后台订单管理中编辑本订单的商品名称、金额和交付说明。',
+  clientName: '',
+  successText: '支付成功后，我们会按约定完成交付。',
+  updatedAt: new Date().toISOString()
+}]
+
 function readAll(): OrderPageConfig[] {
-  if (!fs.existsSync(filePath)) return [{
-    suffix: 'xiao',
-    enabled: true,
-    subject: '影视后期制作服务',
-    amount: '1.00',
-    description: '请在后台订单管理中编辑本订单的商品名称、金额和交付说明。',
-    clientName: '',
-    successText: '支付成功后，我们会按约定完成交付。',
-    updatedAt: new Date().toISOString()
-  }]
-  try {
-    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'))
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
+  return readEncryptedJson<OrderPageConfig[]>(filePath, defaultPages)
 }
 
 function writeAll(pages: OrderPageConfig[]) {
-  fs.writeFileSync(filePath, JSON.stringify(pages, null, 2), 'utf8')
+  writeEncryptedJson(filePath, pages)
 }
 
 export function getOrderPages() {

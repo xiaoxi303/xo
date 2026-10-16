@@ -1,7 +1,7 @@
 import { defineNitroPlugin } from 'nitropack/runtime'
 import fs from 'node:fs'
 import path from 'node:path'
-import { getRuntimeDataDir } from '../utils/storage'
+import { getRuntimeDataDir, writeEncryptedJson, writeEncryptedFile, readEncryptedJson } from '../utils/storage'
 import { issueOneTimePublicKey } from '../utils/vault-cipher'
 import { recordFailedAttempt, resetRateLimit } from '../utils/rate-limiter'
 
@@ -122,12 +122,12 @@ export default defineNitroPlugin(() => {
           senderEmail: ""
         }
       }
-      fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), 'utf-8')
+      writeEncryptedJson(configPath, defaultConfig)
     }
 
     // 3. 保证通用持久化数据表存在
     if (!fs.existsSync(pageViewsPath)) {
-      fs.writeFileSync(pageViewsPath, JSON.stringify({ total: 0, daily: {} }, null, 2), 'utf-8')
+      writeEncryptedJson(pageViewsPath, { total: 0, daily: {} })
     }
     if (!fs.existsSync(blogCatsPath)) {
       const defaultCats = [
@@ -136,52 +136,93 @@ export default defineNitroPlugin(() => {
         { id: '3', name: 'Tech', slug: 'tech', description: '前沿前端技术与架构实践', count: 0 },
         { id: '4', name: 'Life', slug: 'life', description: '灵感、读书笔记与剪辑日常', count: 0 }
       ]
-      fs.writeFileSync(blogCatsPath, JSON.stringify(defaultCats, null, 2), 'utf-8')
+      writeEncryptedJson(blogCatsPath, defaultCats)
     }
     if (!fs.existsSync(blogPostsPath)) {
-      fs.writeFileSync(blogPostsPath, JSON.stringify([], null, 2), 'utf-8')
+      writeEncryptedJson(blogPostsPath, [])
     }
     if (!fs.existsSync(blacklistPath)) {
-      fs.writeFileSync(blacklistPath, JSON.stringify([], null, 2), 'utf-8')
+      writeEncryptedJson(blacklistPath, [])
     }
     if (!fs.existsSync(securityLogsPath)) {
-      fs.writeFileSync(securityLogsPath, JSON.stringify([], null, 2), 'utf-8')
+      writeEncryptedJson(securityLogsPath, [])
     }
     if (!fs.existsSync(bookingsPath)) {
-      fs.writeFileSync(bookingsPath, JSON.stringify([], null, 2), 'utf-8')
+      writeEncryptedJson(bookingsPath, [])
     }
     if (!fs.existsSync(ordersPath)) {
-      fs.writeFileSync(ordersPath, JSON.stringify([], null, 2), 'utf-8')
+      writeEncryptedJson(ordersPath, [])
     }
     if (!fs.existsSync(clientAccountsPath)) {
-      fs.writeFileSync(clientAccountsPath, JSON.stringify([], null, 2), 'utf-8')
+      writeEncryptedJson(clientAccountsPath, [])
+    }
+
+    // 3.5 自动密库全量迁移：检查所有项目 Markdown 与运行时核心数据，若尚未加密则自动升级为 $XO_VAULT_FILE_V3$ 高阶加密
+    try {
+      if (fs.existsSync(projectsDir)) {
+        const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
+        for (const f of mdFiles) {
+          const fullPath = path.join(projectsDir, f)
+          const raw = fs.readFileSync(fullPath, 'utf8')
+          if (raw && !raw.startsWith('$XO_VAULT_FILE_V3$')) {
+            writeEncryptedFile(fullPath, raw)
+          }
+        }
+      }
+
+      const sensitiveFiles = [
+        configPath,
+        path.join(contentDir, 'users.json'),
+        path.join(contentDir, 'password-requests.json'),
+        bookingsPath,
+        ordersPath,
+        blogPostsPath,
+        blogCatsPath,
+        securityLogsPath,
+        blacklistPath,
+        path.join(contentDir, 'order-pages.json'),
+        path.join(contentDir, 'delivery-items.json'),
+        path.join(contentDir, '.sessions.json')
+      ]
+
+      for (const sf of sensitiveFiles) {
+        if (fs.existsSync(sf)) {
+          const raw = fs.readFileSync(sf, 'utf8').trim()
+          if (raw && !raw.startsWith('$XO_VAULT_FILE_V3$')) {
+            writeEncryptedFile(sf, raw)
+          }
+        }
+      }
+    } catch (migErr) {
+      console.warn('[auto-init] 密库加固与自动加密迁移异常:', migErr)
     }
 
     // 4. 同步加载持久化黑名单至内存高速防护网，跨部署无缝封锁
     try {
-      if (fs.existsSync(blacklistPath)) {
-        const blRaw = fs.readFileSync(blacklistPath, 'utf-8')
-        const blList = JSON.parse(blRaw)
-        if (Array.isArray(blList)) {
-          let count = 0
-          for (const item of blList) {
-            if (item.value) {
-              recordFailedAttempt(item.value, 1, 86400 * 365)
-              count++
-            }
-            if (item.machineId) {
-              recordFailedAttempt(`mach:${item.machineId}`, 1, 86400 * 365)
-              count++
-            }
+      const blList = readEncryptedJson<any[]>(blacklistPath, [])
+      if (Array.isArray(blList)) {
+        let count = 0
+        for (const item of blList) {
+          if (item.value) {
+            recordFailedAttempt(item.value, 1, 86400 * 365)
+            count++
           }
-          if (count > 0) {
-            console.log(`[auto-init] 🛡️ 已同步激活 ${count} 条持久化黑名单/设备指纹防护。`)
+          if (item.machineId) {
+            recordFailedAttempt(`mach:${item.machineId}`, 1, 86400 * 365)
+            count++
           }
+        }
+        if (count > 0) {
+          console.log(`[auto-init] 🛡️ 已同步激活 ${count} 条持久化黑名单/设备指纹防护。`)
         }
       }
     } catch {}
 
-    // 清除开发与内网回路的误触锁定
+    // 清除开发与内网回路的误触锁定，确保本地访问畅通无阻
+    resetRateLimit('127.0.0.1')
+    resetRateLimit('::1')
+    resetRateLimit('localhost')
+    resetRateLimit('::ffff:127.0.0.1')
     resetRateLimit('client-ip:127.0.0.1')
     resetRateLimit('client-ip:::1')
     resetRateLimit('client-user:123')

@@ -1,3 +1,5 @@
+import { encryptRsaHybrid } from './rsa-hybrid'
+
 export interface BlogPost {
   id: string
   slug: string
@@ -156,9 +158,10 @@ export const useBlogStore = () => {
     save()
 
     try {
+      const encryptedBody = await encryptRsaHybrid({ post: newPost })
       await $fetch('/api/blog/posts', {
         method: 'POST',
-        body: { post: newPost }
+        body: encryptedBody
       })
     } catch (e) {
       console.error('[createPost] Failed to sync to server disk:', e)
@@ -183,9 +186,10 @@ export const useBlogStore = () => {
       save()
 
       try {
+        const encryptedBody = await encryptRsaHybrid({ post: posts.value[idx] })
         await $fetch('/api/blog/posts', {
           method: 'POST',
-          body: { post: posts.value[idx] }
+          body: encryptedBody
         })
       } catch (e) {
         console.error('[updatePost] Failed to sync to server disk:', e)
@@ -201,9 +205,10 @@ export const useBlogStore = () => {
     save()
 
     try {
+      const encryptedBody = await encryptRsaHybrid({ id })
       await $fetch('/api/blog/posts', {
         method: 'DELETE',
-        body: { id }
+        body: encryptedBody
       })
     } catch (e) {
       console.error('[deletePost] Failed to sync deletion to server disk:', e)
@@ -223,9 +228,10 @@ export const useBlogStore = () => {
     save()
 
     try {
+      const encryptedBody = await encryptRsaHybrid({ categories: categories.value })
       await $fetch('/api/blog/categories', {
         method: 'POST',
-        body: { categories: categories.value }
+        body: encryptedBody
       })
     } catch (e) {
       console.error('[addCategory] Failed to sync categories to server disk:', e)
@@ -239,9 +245,10 @@ export const useBlogStore = () => {
     save()
 
     try {
+      const encryptedBody = await encryptRsaHybrid({ categories: categories.value })
       await $fetch('/api/blog/categories', {
         method: 'POST',
-        body: { categories: categories.value }
+        body: encryptedBody
       })
     } catch (e) {
       console.error('[deleteCategory] Failed to sync categories to server disk:', e)

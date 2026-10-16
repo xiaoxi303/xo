@@ -1,8 +1,7 @@
-import fs from 'node:fs'
 import { defineEventHandler, getCookie, readBody } from 'h3'
 import { SESSION_COOKIE, getSessionInfo } from '../../utils/auth'
 import { getSecurityLogs } from '../../utils/security-logger'
-import { getRuntimeDataPath } from '../../utils/storage'
+import { getRuntimeDataPath, writeEncryptedJson } from '../../utils/storage'
 
 const LOG_FILE = getRuntimeDataPath('security-logs.json')
 
@@ -24,7 +23,7 @@ export default defineEventHandler(async (event) => {
   try {
     if (deleteAll) {
       // Delete all logs
-      fs.writeFileSync(LOG_FILE, '[]', 'utf-8')
+      writeEncryptedJson(LOG_FILE, [])
       return { success: true, message: 'All logs deleted' }
     }
 
@@ -32,7 +31,7 @@ export default defineEventHandler(async (event) => {
       // Delete single log by ID
       const logs = getSecurityLogs()
       const filtered = logs.filter(log => log.id !== id)
-      fs.writeFileSync(LOG_FILE, JSON.stringify(filtered, null, 2), 'utf-8')
+      writeEncryptedJson(LOG_FILE, filtered)
       return { success: true, message: 'Log deleted' }
     }
 

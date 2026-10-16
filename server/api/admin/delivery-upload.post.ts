@@ -36,6 +36,23 @@ export default defineEventHandler(async event => {
   if (!['video/mp4', 'video/webm', 'video/quicktime'].includes(mime)) {
     throw createError({ statusCode: 400, statusMessage: '仅支持 MP4、WebM 或 MOV 视频' })
   }
+
+  // Validate binary magic bytes for video formats
+  const isVideoMagicValid = (buf: Buffer): boolean => {
+    if (!buf || buf.length < 12) return false
+    // MP4 / MOV / M4V (ISO Base Media container)
+    if (buf.toString('ascii', 4, 8) === 'ftyp') return true
+    // WebM / Matroska (EBML header 1A 45 DF A3)
+    if (buf[0] === 0x1A && buf[1] === 0x45 && buf[2] === 0xDF && buf[3] === 0xA3) return true
+    // QuickTime classic headers
+    const tag = buf.toString('ascii', 4, 8)
+    if (['moov', 'mdat', 'wide', 'free', 'skip'].includes(tag)) return true
+    return false
+  }
+  if (!isVideoMagicValid(fileBuffer)) {
+    throw createError({ statusCode: 400, statusMessage: '视频文件二进制特征签名校验失败，拒绝写入。' })
+  }
+
   if (fileBuffer.length > 500 * 1024 * 1024) {
     throw createError({ statusCode: 413, statusMessage: '视频不能超过 500MB' })
   }

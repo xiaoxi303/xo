@@ -33,9 +33,6 @@ function isPrivateIp(address: string) {
   return true
 }
 
-const SAFE_HOST_CACHE = new Map<string, number>()
-const SAFE_HOST_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
-
 export async function assertSafeUpstreamUrl(input: string): Promise<URL> {
   const url = new URL(input)
   if (!['http:', 'https:'].includes(url.protocol)) {
@@ -56,12 +53,7 @@ export async function assertSafeUpstreamUrl(input: string): Promise<URL> {
     throw createError({ statusCode: 403, statusMessage: 'Private upstream hosts are not allowed' })
   }
 
-  const now = Date.now()
-  const cachedTime = SAFE_HOST_CACHE.get(hostname)
-  if (cachedTime && now - cachedTime < SAFE_HOST_CACHE_TTL_MS) {
-    return url
-  }
-
+  // Always resolve and validate target IP fresh on every call to prevent DNS Rebinding attacks
   const addresses = net.isIP(hostname)
     ? [hostname]
     : (await dns.lookup(hostname, { all: true })).map(entry => entry.address)
@@ -69,7 +61,6 @@ export async function assertSafeUpstreamUrl(input: string): Promise<URL> {
     throw createError({ statusCode: 403, statusMessage: 'Private upstream hosts are not allowed' })
   }
 
-  SAFE_HOST_CACHE.set(hostname, now)
   return url
 }
 

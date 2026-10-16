@@ -1,5 +1,6 @@
 import { getSessionInfo, destroySession, CLIENT_SESSION_COOKIE, SESSION_COOKIE_OPTS } from '../../utils/auth'
 import { dbGetUsers } from '../../utils/db'
+import { getRuntimeDataPath, readEncryptedJson } from '../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
@@ -51,18 +52,16 @@ export default defineEventHandler(async (event) => {
     // Try finding latest booking for this user to get phone/company if not set on user
     try {
       const bookingsPath = getRuntimeDataPath('bookings.json')
-      if (fs.existsSync(bookingsPath)) {
-        const bookings = JSON.parse(fs.readFileSync(bookingsPath, 'utf-8'))
-        const cleanEmail = (email || '').toLowerCase()
-        const userBooking = bookings.find((b: any) => 
-          (cleanEmail && String(b.email || '').toLowerCase() === cleanEmail) ||
-          (deliverySuffix && (b.deliverySuffix === deliverySuffix || b.orderSuffix === deliverySuffix)) ||
-          (phone && b.phone === phone)
-        )
-        if (userBooking) {
-          if (!phone && userBooking.phone) phone = userBooking.phone
-          if (!company && userBooking.company) company = userBooking.company
-        }
+      const bookings = readEncryptedJson<any[]>(bookingsPath, [])
+      const cleanEmail = (email || '').toLowerCase()
+      const userBooking = bookings.find((b: any) => 
+        (cleanEmail && String(b.email || '').toLowerCase() === cleanEmail) ||
+        (deliverySuffix && (b.deliverySuffix === deliverySuffix || b.orderSuffix === deliverySuffix)) ||
+        (phone && b.phone === phone)
+      )
+      if (userBooking) {
+        if (!phone && userBooking.phone) phone = userBooking.phone
+        if (!company && userBooking.company) company = userBooking.company
       }
     } catch {}
   } catch (e) {}

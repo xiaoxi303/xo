@@ -453,23 +453,66 @@ async function drawRealQR(ctx: CanvasRenderingContext2D, x: number, y: number, s
   }
 }
 
-// Simple markdown to HTML renderer
+// Safe markdown to HTML renderer (with strict XSS sanitization)
+const escapeHtml = (str: string): string => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+const safeUrl = (rawUrl: string): string => {
+  const trimmed = rawUrl.trim()
+  if (/^(https?:\/\/|\/|mailto:)/i.test(trimmed)) {
+    return trimmed
+  }
+  return '#'
+}
+
 const renderMarkdown = (text: string): string => {
   if (!text) return ''
-  let html = text
+  // 1. Escape raw HTML tags first to neutralize script/iframe/event injection
+  let html = escapeHtml(text)
+
+  // 2. Fenced code blocks
+  html = html.replace(/```([\s\S]*?)```/gim, (_, code) => {
+    return `<pre style="background: #0f172a; color: #34d399; padding: 1rem; border-radius: 16px; font-family: monospace; font-size: 0.85rem; overflow-x: auto; margin: 1rem 0;"><code>${code}</code></pre>`
+  })
+
+  // 3. Inline code
+  html = html.replace(/`([^`]+)`/gim, (_, code) => {
+    return `<code style="background: #f1f5f9; color: #0f172a; padding: 0.15rem 0.4rem; border-radius: 6px; font-family: monospace; font-size: 0.9em;">${code}</code>`
+  })
+
+  // 4. Headings & Emphasis
+  html = html
     .replace(/^### (.*$)/gim, '<h3 style="font-size: 1.15rem; font-weight: 700; color: #007AFF; margin-top: 1.25rem; margin-bottom: 0.5rem;">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 style="font-size: 1.35rem; font-weight: 800; color: #007AFF; margin-top: 1.5rem; margin-bottom: 0.75rem;">$1</h2>')
     .replace(/^# (.*$)/gim, '<h1 style="font-size: 1.6rem; font-weight: 800; color: #007AFF; margin-top: 1.75rem; margin-bottom: 1rem;">$1</h1>')
     .replace(/^\> (.*$)/gim, '<blockquote style="border-left: 4px solid #007AFF; padding: 0.75rem 1rem; margin: 1rem 0; color: #475569; font-style: italic; background: rgba(0,122,255,0.05); border-radius: 0 12px 12px 0;">$1</blockquote>')
     .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-    .replace(/```([\s\S]*?)```/gim, '<pre style="background: #0f172a; color: #34d399; padding: 1rem; border-radius: 16px; font-family: monospace; font-size: 0.85rem; overflow-x: auto; margin: 1rem 0;"><code>$1</code></pre>')
-    .replace(/`(.*?)`/gim, '<code style="background: #f1f5f9; color: #0f172a; padding: 0.15rem 0.4rem; border-radius: 6px; font-family: monospace; font-size: 0.9em;">$1</code>')
-    .replace(/!\[(.*?)\]\((.*?)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 16px; margin: 1rem 0;" />')
-    .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" style="color: #007AFF; text-decoration: underline;">$1</a>')
+
+  // 5. Images (Strict protocol check)
+  html = html.replace(/!\[(.*?)\]\((.*?)\)/gim, (_, alt, src) => {
+    const s = safeUrl(src)
+    return s !== '#' ? `<img src="${s}" alt="${alt}" style="max-width: 100%; border-radius: 16px; margin: 1rem 0;" />` : ''
+  })
+
+  // 6. Links (Strict protocol check, prevents javascript: pseudo-protocol)
+  html = html.replace(/\[(.*?)\]\((.*?)\)/gim, (_, linkText, href) => {
+    const h = safeUrl(href)
+    return `<a href="${h}" target="_blank" rel="noopener noreferrer" style="color: #007AFF; text-decoration: underline;">${linkText}</a>`
+  })
+
+  // 7. Lists & Line breaks
+  html = html
     .replace(/^\- (.*$)/gim, '<li style="margin-left: 1.5rem; margin-bottom: 0.25rem;">$1</li>')
     .replace(/\n\n/gim, '</p><p style="margin-bottom: 1rem;">')
     .replace(/\n/gim, '<br/>')
+
   if (!html.startsWith('<h') && !html.startsWith('<blockquote') && !html.startsWith('<pre')) {
     html = '<p style="margin-bottom: 1rem;">' + html + '</p>'
   }

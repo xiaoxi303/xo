@@ -25,11 +25,12 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { getRealClientIP } from './ip-helper'
+import { getRealClientIP, isLocalOrPrivateIP } from './ip-helper'
 import { logSecurityEvent } from './security-logger'
 import { recordFailedAttempt, resetRateLimit } from './rate-limiter'
 import { dbAddBlacklist } from './db'
 import { getRequestHeader } from 'h3'
+import { readEncryptedFile, writeEncryptedFile } from './storage'
 
 // 单个密文舱封装（三层交错复合加密体系）
 export interface ChamberEnvelope {
@@ -228,7 +229,8 @@ function ensureVaultInitialized(): EpochKeyVault {
   try {
     fs.mkdirSync(vaultDir, { recursive: true })
     if (fs.existsSync(epochFile)) {
-      const raw = JSON.parse(fs.readFileSync(epochFile, 'utf8'))
+      const decrypted = readEncryptedFile(epochFile)
+      const raw = JSON.parse(decrypted)
       const privateKeyObj = crypto.createPrivateKey(raw.privateKey)
       const publicKeyObj = crypto.createPublicKey(raw.publicKey)
       const details = (publicKeyObj as any).asymmetricKeyDetails
@@ -258,7 +260,7 @@ function ensureVaultInitialized(): EpochKeyVault {
       keyFingerprint: keyPair.keyFingerprint,
       createdAt: keyPair.createdAt
     }
-    fs.writeFileSync(epochFile, JSON.stringify(data))
+    writeEncryptedFile(epochFile, JSON.stringify(data, null, 2))
   } catch {}
 
   scheduleNightlyAutoRotation()
@@ -410,6 +412,13 @@ export async function triggerIntruderLockout(
   if (!event) return
   try {
     const ip = getRealClientIP(event)
+
+    // 本地开发环境、环回地址、内网局域网终端免予锁定反制，防止正常调试和管理员操作误封
+    if (isLocalOrPrivateIP(ip) || process.env.NODE_ENV !== 'production') {
+      console.warn(`[VaultCipher] 🛡️ 本地内网/开发环境免予锁定反制: ${ip} (${reason})`)
+      return
+    }
+
     const headerMachineId = getRequestHeader(event, 'x-machine-id') || extraMachineId || ''
 
     logSecurityEvent({
@@ -504,13 +513,12 @@ function decryptChamberTripleLayer(
   consensusSecret: string,
   timestamp: string
 ): string {
-  // 1. 验证客户端临时 RSA-PSS 数字签名
+  // 1. 验证客户端临时数字签名 (自适应支持 NIST ECDSA P-384 / P-521 / P-256 与 RSA-PSS 顶级数字签名)
   const clientPublicKey = crypto.createPublicKey({
     key: chamber.clientPublicKey as crypto.JsonWebKeyInput,
     format: 'jwk'
   })
-  const verifier = crypto.createVerify('sha256')
-  verifier.update(canonicalChamberPayload({
+  const canonicalData = canonicalChamberPayload({
     keyId,
     rsaEncryptedKey: chamber.rsaEncryptedKey,
     rsaIv: chamber.rsaIv,
@@ -525,17 +533,46 @@ function decryptChamberTripleLayer(
     timestamp,
     clientPublicKey: chamber.clientPublicKey,
     digest: chamber.digest
-  }))
-  verifier.end()
+  })
 
-  const isValidSignature = verifier.verify(
-    {
-      key: clientPublicKey,
-      padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
-      saltLength: 32
-    },
-    decodeBase64Url(chamber.signature)
-  )
+  let isValidSignature = false
+  const sigBuffer = decodeBase64Url(chamber.signature)
+
+  if (clientPublicKey.asymmetricKeyType === 'ec') {
+    const crv = (chamber.clientPublicKey as any)?.crv || 'P-384'
+    const hashAlg = crv === 'P-521' ? 'sha512' : (crv === 'P-256' ? 'sha256' : 'sha384')
+    try {
+      const verifier = crypto.createVerify(hashAlg)
+      verifier.update(canonicalData)
+      verifier.end()
+      isValidSignature = verifier.verify(
+        {
+          key: clientPublicKey,
+          dsaEncoding: 'ieee-p1363'
+        },
+        sigBuffer
+      )
+    } catch {
+      try {
+        const v2 = crypto.createVerify(hashAlg)
+        v2.update(canonicalData)
+        v2.end()
+        isValidSignature = v2.verify(clientPublicKey, sigBuffer)
+      } catch {}
+    }
+  } else {
+    const verifier = crypto.createVerify('sha256')
+    verifier.update(canonicalData)
+    verifier.end()
+    isValidSignature = verifier.verify(
+      {
+        key: clientPublicKey,
+        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+        saltLength: 32
+      },
+      sigBuffer
+    )
+  }
 
   if (!isValidSignature) {
     throw new Error('密文舱数字签名无效')
@@ -1158,13 +1195,13 @@ export function verifySecurityChallenge(params: {
 
   // 签发金库顶级认证一次性令牌 (XO_VAULT_GATE_${ticketId}_${timestamp}_${signature})
   const now = Date.now()
-  const ticketId = crypto.randomBytes(16).toString('hex')
+  const ticketId = crypto.randomBytes(24).toString('hex')
   const pepper = getVaultMasterPepper()
   const signature = crypto
-    .createHmac('sha256', pepper)
+    .createHmac('sha512', pepper)
     .update(`${ticketId}:${now}`)
     .digest('hex')
-    .slice(0, 32)
+    .slice(0, 64)
 
   const token = `XO_VAULT_GATE_${ticketId}_${now}_${signature}`
 
@@ -1227,24 +1264,36 @@ export function vaultVerifyCaptchaToken(token: string, event?: any): { valid: bo
 
   let verified = false
 
-  // 标准独立签名比对 (${ticketId}:${timestamp})
-  const standardSign = crypto
+  // 512位高强度 HMAC 签名比对 (${ticketId}:${timestamp})
+  const standardSign512 = crypto
+    .createHmac('sha512', pepper)
+    .update(`${ticketId}:${timestamp}`)
+    .digest('hex')
+    .slice(0, 64)
+
+  // 256位兼容旧签名比对
+  const standardSign256 = crypto
     .createHmac('sha256', pepper)
     .update(`${ticketId}:${timestamp}`)
     .digest('hex')
     .slice(0, 32)
 
-  if (vaultTimingSafeEqual(standardSign, signature)) {
+  if (vaultTimingSafeEqual(standardSign512, signature) || vaultTimingSafeEqual(standardSign256, signature)) {
     verified = true
   } else {
     // 容错候选候选集 (处理 IP 动态切换或跨代理环境)
     for (const ipCandidate of [clientIp, '127.0.0.1', '::1', 'client', '']) {
-      const candidateSign = crypto
+      const candidateSign512 = crypto
+        .createHmac('sha512', pepper)
+        .update(`${ticketId}:${timestamp}:${ipCandidate || 'client'}`)
+        .digest('hex')
+        .slice(0, 64)
+      const candidateSign256 = crypto
         .createHmac('sha256', pepper)
         .update(`${ticketId}:${timestamp}:${ipCandidate || 'client'}`)
         .digest('hex')
         .slice(0, 32)
-      if (vaultTimingSafeEqual(candidateSign, signature)) {
+      if (vaultTimingSafeEqual(candidateSign512, signature) || vaultTimingSafeEqual(candidateSign256, signature)) {
         verified = true
         break
       }

@@ -7,8 +7,7 @@ import {
   destroyAllUserSessions,
   createSession
 } from '../../utils/auth'
-import { getRuntimeDataPath } from '../../utils/storage'
-import fs from 'node:fs'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
@@ -31,12 +30,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const usersPath = getRuntimeDataPath('users.json')
-  if (!fs.existsSync(usersPath)) {
-    throw createError({ statusCode: 404, statusMessage: '用户数据文件不存在。' })
+  const users = readEncryptedJson<any[]>(usersPath, [])
+  if (!users || users.length === 0) {
+    throw createError({ statusCode: 404, statusMessage: '用户数据文件不存在或为空。' })
   }
 
   try {
-    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
     const idx = users.findIndex((u: any) => u.username === username)
     if (idx === -1) {
       throw createError({ statusCode: 404, statusMessage: '客户账号不存在。' })
@@ -76,7 +75,7 @@ export default defineEventHandler(async (event) => {
       setCookie(event, CLIENT_SESSION_COOKIE, freshToken, SESSION_COOKIE_OPTS)
     }
 
-    fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+    writeEncryptedJson(usersPath, users)
     return { success: true }
   } catch (error: any) {
     throw createError({

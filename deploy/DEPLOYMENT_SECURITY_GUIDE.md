@@ -90,4 +90,67 @@ sudo bash deploy/scripts/setup-server-firewall.sh
 | **L10** | `apex / 残缺 vhost 仍 502` | 在 `xo.xoxox.bond.conf` 中为 Apex 根域名 (`xoxox.bond` / `www.xoxox.bond`) 增加完整的 HTTP/HTTPS 301 自动跳转至主站；并在部署时自动清理系统残留默认残缺站点 (`rm -f /etc/nginx/sites-enabled/default`)。 | **已闭环 (下线/自动重定向)** |
 | **L17** | `滑块是纯客户端行为可伪造凭证` | 彻底移除历史向后兼容的离线未签名凭据 (`XO_SLIDER_`)。所有凭据必须基于服务端签发的 PoW / 空间光影挑战 (`issueSecurityChallenge`)，通过后由服务端在内存票据池签发一次性物理自毁票据 (`XO_VAULT_GATE_`)。任何非服务端生成的公开伪造凭据一律拒绝。 | **已闭环 (全服务端Challenge)** |
 
+---
+
+## 六、自研全栈全面强制加密与零降级体系 (Zero-Downgrade Proprietary Architecture)
+
+系统全面强制执行自研高阶加密防护，杜绝任何明文回退通道：
+
+### 1. 存储层：服务端独立文件量子金库存储 (`$XO_VAULT_FILE_V3$`)
+- **加密规格**：AES-256-GCM 独立信封 + HKDF-SHA512 双向派生密钥 + HMAC-SHA512 数字防篡改封签。
+- **保护范围**：全量作品 Markdown (`content/projects/*.md`)、站点全套配置 (`content/site-config.json`)、客户与管理员账号库 (`content/users.json`)、授权申请 (`content/password-requests.json`)、在线预约与订单 (`content/bookings.json`, `content/orders.json`, `content/order-pages.json`, `content/delivery-items.json`)、博客与分类 (`content/blog-posts.json`, `content/blog-categories.json`)、黑名单、会话及分析日志等。
+- **自动迁移与实时守护**：
+  - 服务端启动插件 (`server/plugins/01.auto-init.ts`) 启动时自动扫描并平滑加密全站历史文件；
+  - 后台任何保存、编辑、添加作品或配置修改操作，均由 `server/utils/db.ts`、`server/utils/storage.ts` 强制执行 `writeEncryptedFile` / `writeEncryptedJson`，落盘 100% 保持密文封签状态，彻底杜绝明文写入。
+
+```bash
+# 检查服务端独立密库状态与关键文件加密清单
+npm run vault:status
+# 或: node scripts/vault-file-tool.mjs status
+
+# 全面强制加密所有独立文件（自动扫描全量数据并赋予 0600 权限）
+npm run vault:encrypt-all
+# 或: node scripts/vault-file-tool.mjs encrypt-all
+
+# 校验独立文件数字防篡改封签与完整性
+npm run vault:file verify content/site-config.json
+```
+
+### 2. 传输层：全链路双舱多态混合加密与反降级网关
+- **加密规格**：RSA-4096 一次性公钥池 (OTPK) + AES-256-GCM 双舱混合多态加密载荷 (`$XO_HYBRID_PAYLOAD_V2$`)。
+- **反降级网关** (`server/middleware/02.hybrid-decrypt.ts`)：
+  - 拦截所有变更类请求 (`POST` / `PUT` / `PATCH` / `DELETE`)；
+  - 严格强制校验加密载荷结构 `isRsaHybridPayload(body)`，**任何明文请求直接拒绝 (HTTP 400)，非本地探测 IP 自动触发入侵防御锁死 (Intruder Lockout)**；
+  - 前端请求拦截器 (`app/plugins/global-encryption.client.ts`) 全局拦截 `window.fetch`，后台所有操作 (`saveProject`, `saveSiteConfig`, `saveUser` 等) 均自动加密发送。
+
+### 3. 代码层：客户端与服务端生产编译混淆防护
+- **加固规格**：`javascript-obfuscator` 高级 AST 混淆、控制流平坦化、字符串数组 RC4/Base64 多重置乱。
+- **打包流水线** (`scripts/build-production.mjs`)：`npm run build` 构建完成后自动链式触发生产客户端混淆 (`obfuscate:production`)，保护前端代码资产不被逆向。
+
+---
+
+## 七、全自动一键部署与自愈启动命令 (`deploy/deploy-onekey.sh`)
+
+服务器生产环境只需执行单条一键部署命令，全自动完成依赖同步、全站独立文件强制加密审计、生产打包与混淆、智能端口自愈与高可用集群拉起：
+
+```bash
+# 标准一键同步部署与启动（推荐）
+bash deploy/deploy-onekey.sh
+
+# 或通过 npm 快捷别名执行
+npm run deploy
+
+# 如遇端口或旧进程占用，执行自愈部署
+npm run deploy:fix
+```
+
+**一键部署全自动流程**：
+1. **Node.js 环境自适应探测**：自动识别 NVM、FNM 与系统 PATH，设置 4096MB 内存限制杜绝 OOM。
+2. **生产安全环境自检 (.env)**：自动生成/补齐 512 位 `VAULT_MASTER_SECRET`、`SESSION_SECRET`、`XO_PROJECT_PASSWORD_SECRET` 与 `XO_ALIPAY_CONFIG_SECRET`。
+3. **全站独立文件强制加密 (Zero-Downgrade)**：自动运行 `node scripts/vault-file-tool.mjs encrypt-all`，全面消除明文，设置 `0700` 密库目录权限与 `0600` 数据文件物理保护。
+4. **代码编译与生产混淆**：执行 `npm run build`，完成 Nuxt SSR 静态编译并触发生产 JS 混淆保护。
+5. **智能端口分配自愈**：基准端口 `3007`，遭遇冲突自动扫描候选池并无缝重写 `.env`。
+6. **服务集群管理与自检**：优先拉起 PM2 集群，执行 OTPK 公钥握手、人机安全核验门与 SSR 主站三联健康探测，输出部署回执。
+
+
 

@@ -2,6 +2,7 @@ import { defineEventHandler, readBody, getRequestHeader, getRequestURL, createEr
 import { decryptRsaHybrid, isRsaHybridPayload, triggerIntruderLockout } from '../utils/vault-cipher'
 import { readAlipayConfig, normalizePublicKey, verifyAlipayNotify } from '../utils/alipay'
 import { validateSession, SESSION_COOKIE } from '../utils/auth'
+import { getRealClientIP, isLocalOrPrivateIP } from '../utils/ip-helper'
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
@@ -58,7 +59,30 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // 3. 【核心通道 B】：专属支付网关金库共识验签通道 (针对支付宝异步回调)
+  // 3. 【无载荷管理指令放行】：若无请求载荷（0 字节）且持有合法管理员会话凭据（如仅附带 Query 参数的 DELETE 指令），允许直接通行
+  if (contentLength === 0 && (!body || (typeof body === 'object' && Object.keys(body).length === 0))) {
+    const adminCookie = getCookie(event, SESSION_COOKIE)
+    if (adminCookie && validateSession(adminCookie)) {
+      return
+    }
+  }
+
+  // 4. 【文件上传通道】：多部分表单 (multipart/form-data) 上传直通专用处理（由上层接口自身进行权限与 MIME 审查）
+  const contentType = (getRequestHeader(event, 'content-type') || '').toLowerCase()
+  if (contentType.includes('multipart/form-data')) {
+    return
+  }
+
+  // 5. 【前端遥测与公开原子信号放行】：统计打点、咖啡互动计数、人机安全核验门放行
+  if (
+    pathname === '/api/analytics/event' ||
+    pathname === '/api/stats/coffee-increment' ||
+    pathname.startsWith('/api/security/')
+  ) {
+    return
+  }
+
+  // 6. 【核心通道 B】：专属支付网关金库共识验签通道 (针对支付宝异步回调)
   // 严格杜绝作为无保护豁免，必须在此处完成官方公钥 RSA2 签名核验，伪造请求秒级拉黑
   if (pathname === '/api/order/notify' || /^\/api\/order\/.*notify/i.test(pathname)) {
     const alipayConfig = readAlipayConfig()
@@ -69,16 +93,23 @@ export default defineEventHandler(async (event) => {
       return
     }
 
-    // 签名伪造或非官方支付回调探测：立即触发主动反制封禁
-    await triggerIntruderLockout(event, '伪造支付回调通知或RSA2验签未通过')
+    // 签名伪造或非官方支付回调探测：仅对非本地外部请求触发主动反制封禁
+    const clientIp = getRealClientIP(event)
+    if (!isLocalOrPrivateIP(clientIp) && process.env.NODE_ENV === 'production') {
+      await triggerIntruderLockout(event, '伪造支付回调通知或RSA2验签未通过')
+    }
     throw createError({
       statusCode: 400,
       statusMessage: '安全策略拦截：支付网关共识验签未通过，已记录恶意探测行为。'
     })
   }
 
-  // 4. 【严厉拦截 / 零降级全站强加密底座】：任何试图以明文、未经双舱量子装甲加密的请求或伪造格式探测 API 的行为，一律拒绝并触发入侵反制锁定
-  await triggerIntruderLockout(event, '未通过量子金库加密传输/尝试明文探测或降级')
+  // 7. 【严厉拦截 / 零降级全站强加密底座】：任何试图以明文、未经双舱量子装甲加密的请求或伪造格式探测 API 的行为，一律拒绝
+  const clientIp = getRealClientIP(event)
+  if (!isLocalOrPrivateIP(clientIp) && process.env.NODE_ENV === 'production') {
+    await triggerIntruderLockout(event, `未通过量子金库加密传输/尝试明文探测或降级: ${pathname}`)
+  }
+
   throw createError({
     statusCode: 400,
     statusMessage: '全站强安全策略拦截：全链路强制要求安全加密传输，严禁任何明文访问或降级行为。'

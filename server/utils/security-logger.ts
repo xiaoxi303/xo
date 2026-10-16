@@ -1,6 +1,5 @@
-import fs from 'node:fs'
 import path from 'node:path'
-import { getRuntimeDataPath } from './storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from './storage'
 import { broadcastAnalyticsChange } from './broadcaster'
 
 export interface SecurityLog {
@@ -19,18 +18,7 @@ function getLogFile(): string {
 export function getSecurityLogs(): SecurityLog[] {
   try {
     const logFile = getLogFile()
-    if (!fs.existsSync(logFile)) {
-      // Create empty file
-      fs.writeFileSync(logFile, '[]', 'utf-8')
-      return []
-    }
-
-    const content = fs.readFileSync(logFile, 'utf-8')
-    if (!content || content.trim() === '') {
-      return []
-    }
-    
-    const logs = JSON.parse(content)
+    const logs = readEncryptedJson<SecurityLog[]>(logFile, [])
     return Array.isArray(logs) ? logs : []
   } catch (error) {
     console.error('[SecurityLogger] Error reading logs:', error)
@@ -51,14 +39,8 @@ export function logSecurityEvent(log: Omit<SecurityLog, 'id' | 'timestamp'>): Se
 
     const updatedLogs = [newLog, ...logs].slice(0, 100) // Keep last 100 logs
     
-    // Ensure directory exists
-    const dir = path.dirname(logFile)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true })
-    }
-    
-    // Write to file
-    fs.writeFileSync(logFile, JSON.stringify(updatedLogs, null, 2), 'utf-8')
+    // Encrypted write to file
+    writeEncryptedJson(logFile, updatedLogs)
     
     // Broadcast change
     try {

@@ -105,20 +105,56 @@ export default defineNuxtPlugin((nuxtApp) => {
       const urlStr = typeof input === 'string' ? input : (input instanceof Request ? input.url : input.toString())
       const method = (finalInit.method || (input instanceof Request ? input.method : 'GET')).toUpperCase()
 
-      if (shouldEncrypt(urlStr, method, finalInit.body)) {
+      let bodyToEncrypt = finalInit.body
+      if (bodyToEncrypt === undefined && input instanceof Request) {
         try {
-          let rawBody = finalInit.body
+          const cloned = input.clone()
+          const text = await cloned.text()
+          if (text) {
+            try { bodyToEncrypt = JSON.parse(text) } catch { bodyToEncrypt = text }
+          }
+        } catch {}
+      }
+
+      if (shouldEncrypt(urlStr, method, bodyToEncrypt)) {
+        try {
+          let rawBody = bodyToEncrypt
           if (typeof rawBody === 'string') {
             try { rawBody = JSON.parse(rawBody) } catch {}
           }
           const serialized = await serializeBodyForEncryption(rawBody)
           const encrypted = await encryptRsaHybrid(serialized !== undefined && serialized !== null ? serialized : {})
-          finalInit.body = JSON.stringify(encrypted)
-          const headers = new Headers(finalInit.headers || (input instanceof Request ? input.headers : {}))
-          headers.set('Content-Type', 'application/json')
-          headers.set('x-hybrid-encrypted', '1')
-          headers.set('x-machine-id', getMachineFingerprint())
-          finalInit.headers = headers
+          const payloadStr = JSON.stringify(encrypted)
+
+          if (input instanceof Request) {
+            const nextHeaders = new Headers(input.headers)
+            if (finalInit.headers) {
+              new Headers(finalInit.headers).forEach((v, k) => nextHeaders.set(k, v))
+            }
+            nextHeaders.set('Content-Type', 'application/json')
+            nextHeaders.set('x-hybrid-encrypted', '1')
+            nextHeaders.set('x-machine-id', getMachineFingerprint())
+
+            const nextReq = new Request(input.url, {
+              method,
+              headers: nextHeaders,
+              body: payloadStr,
+              credentials: input.credentials,
+              mode: input.mode,
+              cache: input.cache,
+              redirect: input.redirect,
+              referrer: input.referrer,
+              integrity: input.integrity
+            })
+            return originalNativeFetch.call(window, nextReq)
+          } else {
+            finalInit.body = payloadStr
+            const headers = new Headers(finalInit.headers || {})
+            headers.set('Content-Type', 'application/json')
+            headers.set('x-hybrid-encrypted', '1')
+            headers.set('x-machine-id', getMachineFingerprint())
+            finalInit.headers = headers
+          }
         } catch (encryptionError) {
           console.error('[Security Guard] Native fetch encryption failed:', encryptionError)
           throw encryptionError

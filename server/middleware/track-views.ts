@@ -1,6 +1,5 @@
 import { getD1Database } from '../utils/db'
-import fs from 'node:fs'
-import { getRuntimeDataPath } from '../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../utils/storage'
 
 // Pages we want to track (skip assets, api routes, admin)
 const TRACKABLE_PATHS = ['/', '/projects', '/about']
@@ -33,18 +32,14 @@ export default defineEventHandler(async (event) => {
         }
       })
     } else {
-      // Local fallback: JSON file
+      // Local fallback: Encrypted JSON file
       const statsFile = getRuntimeDataPath('page-views.json')
-
-      let stats: Record<string, Record<string, number>> = {}
-      if (fs.existsSync(statsFile)) {
-        try { stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8')) } catch {}
-      }
+      const stats = readEncryptedJson<Record<string, Record<string, number>>>(statsFile, {})
 
       if (!stats[pathname]) stats[pathname] = {}
       stats[pathname][today] = (stats[pathname][today] || 0) + 1
 
-      fs.writeFileSync(statsFile, JSON.stringify(stats, null, 2))
+      writeEncryptedJson(statsFile, stats)
     }
 
   } catch (e) {

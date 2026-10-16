@@ -8,7 +8,7 @@
  */
 import { createHash, randomBytes } from 'node:crypto'
 import fs from 'node:fs'
-import { getRuntimeDataPath } from './storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from './storage'
 import {
   vaultTimingSafeEqual,
   vaultHashPassword,
@@ -61,10 +61,7 @@ function legacyHashToken(rawToken: string): string {
 function loadSessions(): SessionStore {
   try {
     const filePath = getSessionsFilePath()
-    if (fs.existsSync(filePath)) {
-      const raw = fs.readFileSync(filePath, 'utf-8')
-      return JSON.parse(raw) as SessionStore
-    }
+    return readEncryptedJson<SessionStore>(filePath, {})
   } catch (e) {
     console.warn('[auth] Failed to load sessions file, starting fresh.')
   }
@@ -74,7 +71,7 @@ function loadSessions(): SessionStore {
 function saveSessions(store: SessionStore): void {
   try {
     const filePath = getSessionsFilePath()
-    fs.writeFileSync(filePath, JSON.stringify(store, null, 2), { encoding: 'utf-8', mode: 0o600 })
+    writeEncryptedJson(filePath, store)
   } catch (e) {
     console.error('[auth] Failed to save sessions file:', e)
   }

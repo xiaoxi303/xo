@@ -44,6 +44,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '只允许上传图片文件（jpeg, png, gif, webp, avif）。' })
   }
 
+  // Validate binary magic bytes to prevent MIME spoofing / Polyglot uploads
+  const isMagicValid = (buf: Buffer): boolean => {
+    if (!buf || buf.length < 12) return false
+    if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return true // JPEG
+    if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return true // PNG
+    if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return true // GIF
+    if (buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return true // WebP
+    if (buf.toString('ascii', 4, 8) === 'ftyp') return true // AVIF / HEIF
+    return false
+  }
+  if (!isMagicValid(fileBuffer)) {
+    throw createError({ statusCode: 400, statusMessage: '上传的文件二进制签名与图片格式不匹配，拒绝写入。' })
+  }
+
   // File size limit (5MB)
   if (fileBuffer.length > 5 * 1024 * 1024) {
     throw createError({ statusCode: 400, statusMessage: '图片大小请限制在 5MB 以内。' })

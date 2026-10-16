@@ -1,9 +1,8 @@
-import fs from 'node:fs'
 import { defineEventHandler, getCookie, createError } from 'h3'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../utils/auth'
 import { dbGetProjectsRaw, dbGetPasswordRequests, dbGetUsers, dbGetUserRecord } from '../../utils/db'
 import { getDailyPassword } from '../../utils/password-utils'
-import { getRuntimeDataPath } from '../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson } from '../../utils/storage'
 import { getOrders } from '../../utils/order-store'
 import { getOrderPages } from '../../utils/order-pages'
 
@@ -36,15 +35,7 @@ export default defineEventHandler(async (event) => {
 
     // 2. Fetch bookings to match any converted delivery for this user
     const bookingsPath = getRuntimeDataPath('bookings.json')
-    let bookings: any[] = []
-    try {
-      if (fs.existsSync(bookingsPath)) {
-        const rawBookings = JSON.parse(fs.readFileSync(bookingsPath, 'utf-8'))
-        bookings = Array.isArray(rawBookings) ? rawBookings : []
-      }
-    } catch {
-      bookings = []
-    }
+    const bookings = readEncryptedJson<any[]>(bookingsPath, [])
 
     const clientSuffix = String(rawUserRecord?.deliverySuffix || clientProfile.deliverySuffix || '').trim().toLowerCase()
     const matchingBooking = bookings.find((b: any) => {
@@ -236,4 +227,3 @@ export default defineEventHandler(async (event) => {
     }
   }
 })
-

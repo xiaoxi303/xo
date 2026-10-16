@@ -138,9 +138,14 @@
               <div v-if="e2eePayload">
                 <p class="text-amber-300">密文: {{ e2eePayload.ciphertext?.slice(0, 36) }}...</p>
                 <p class="text-slate-400">IV 向量: {{ e2eePayload.iv }} | Nonce: {{ e2eePayload.epochNonce }}</p>
-                <p class="text-indigo-300">签名: {{ e2eePayload.signature }}</p>
+                <p class="text-indigo-300 truncate" :title="e2eePayload.signature">
+                  签名 ({{ e2eePayload.signatureType || 'ECDSA P-521/P-384' }}): {{ e2eePayload.signature?.slice(0, 36) }}...
+                </p>
                 <p class="text-sky-300" v-if="e2eePayload.zkpProof">安全凭证: {{ e2eePayload.zkpProof }}</p>
-                <p class="text-emerald-400" v-if="e2eeDecrypted">解密还原: "{{ e2eeDecrypted }}"</p>
+                <p v-if="e2eeSigStatus" :class="e2eeSigStatus.valid ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'">
+                  {{ e2eeSigStatus.valid ? '🛡️ ' + e2eeSigStatus.details : '⚠️ ' + e2eeSigStatus.details }}
+                </p>
+                <p class="text-emerald-300" v-if="e2eeDecrypted">解密还原: "{{ e2eeDecrypted }}"</p>
               </div>
               <div v-else class="text-slate-500 italic py-2 text-center">
                 点击左侧“执行高阶防御矩阵加密”开始测试
@@ -170,7 +175,7 @@ type SecurityLog = {
   status: 'blocked' | 'success' | 'warning'
 }
 
-import { encryptE2EE, decryptE2EE, getE2EEFingerprint, rotateE2EEKey } from '../utils/e2ee'
+import { encryptE2EE, decryptE2EE, verifyE2EEPayloadSignature, getE2EEFingerprint, rotateE2EEKey } from '../utils/e2ee'
 
 const totalBlocked = ref(0)
 const diskStatus = ref('读取中...')
@@ -180,6 +185,7 @@ const e2eeInputText = ref('Xo Studio - 2026 核心机密商业调色数据')
 const e2eePayload = ref<any>(null)
 const e2eeDecrypted = ref('')
 const e2eeFingerprint = ref('')
+const e2eeSigStatus = ref<{ valid: boolean; details: string; algorithm: string } | null>(null)
 
 const handleE2EERotateKey = async () => {
   try {
@@ -187,6 +193,7 @@ const handleE2EERotateKey = async () => {
     e2eeFingerprint.value = await getE2EEFingerprint()
     e2eePayload.value = null
     e2eeDecrypted.value = ''
+    e2eeSigStatus.value = null
   } catch (e: any) {
     alert('密钥轮换失败: ' + e.message)
   }
@@ -197,6 +204,7 @@ const handleE2EEEncrypt = async () => {
   try {
     e2eePayload.value = await encryptE2EE(e2eeInputText.value.trim())
     e2eeDecrypted.value = ''
+    e2eeSigStatus.value = null
   } catch (err: any) {
     alert('E2EE 加密失败: ' + err.message)
   }
@@ -205,6 +213,7 @@ const handleE2EEEncrypt = async () => {
 const handleE2EEDecrypt = async () => {
   if (!e2eePayload.value) return
   try {
+    e2eeSigStatus.value = await verifyE2EEPayloadSignature(e2eePayload.value)
     e2eeDecrypted.value = await decryptE2EE(e2eePayload.value)
   } catch (err: any) {
     alert('E2EE 解密失败: ' + err.message)

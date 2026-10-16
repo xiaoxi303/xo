@@ -301,10 +301,10 @@
     </div>
 
     <!-- 3. Config Panel (Authenticated Master Studio Control Suite) -->
-    <div v-else class="w-full min-h-screen flex flex-col bg-[#faf9f6] text-[#121316] font-sans admin-app-shell">
+    <div v-else class="w-full min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans admin-app-shell">
       
       <!-- 3.1 Master Sticky Command Bar (全局顶部中枢控制条) -->
-      <header class="sticky top-0 z-50 w-full h-16 px-4 sm:px-6 bg-white/90 backdrop-blur-2xl border-b border-black/[0.08] flex items-center justify-between gap-3 shadow-xs select-none">
+      <header class="sticky top-0 z-50 w-full h-16 px-4 sm:px-6 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between gap-3 shadow-xs select-none">
         
         <!-- Left: Brand Emblem + Current Module Breadcrumb -->
         <div class="flex items-center gap-3 min-w-0">
@@ -312,7 +312,7 @@
           <button
             type="button"
             @click="mobileNavOpen = !mobileNavOpen"
-            class="lg:hidden p-2 rounded-xl border border-black/10 hover:bg-black/5 text-slate-700 cursor-pointer"
+            class="lg:hidden p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer"
             title="切换导航菜单"
           >
             <span class="text-base">☰</span>
@@ -324,7 +324,7 @@
               <img
                 :src="siteConfig?.siteInfo?.avatar || '/logo.png'"
                 :alt="siteConfig?.siteInfo?.brandName || 'Xo'"
-                class="w-9 h-9 rounded-xl object-cover border border-amber-600/30 shadow-xs"
+                class="w-9 h-9 rounded-xl object-cover border border-amber-500/30 shadow-xs"
               />
               <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
             </div>
@@ -332,24 +332,24 @@
             <div class="hidden sm:block leading-tight">
               <div class="flex items-center gap-1.5">
                 <span class="font-display font-bold text-sm tracking-wide text-slate-900">{{ siteConfig?.siteInfo?.brandName || 'Xo' }} Studio</span>
-                <span class="px-1.5 py-0.2 rounded text-[8px] font-mono font-bold uppercase tracking-wider bg-amber-500/15 text-amber-900 border border-amber-500/25">PRO</span>
+                <span class="px-1.5 py-0.2 rounded text-[8px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-700 border border-amber-500/20">PRO</span>
               </div>
               <span class="text-[9px] font-mono text-slate-400 uppercase tracking-widest block">CONTROL SUITE 2026</span>
             </div>
           </div>
 
           <!-- Divider -->
-          <div class="hidden md:block w-px h-6 bg-black/[0.08] mx-1" />
+          <div class="hidden md:block w-px h-6 bg-slate-200 mx-1" />
 
           <!-- Current Breadcrumb -->
           <div class="hidden md:flex items-center gap-2 min-w-0">
-            <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-900 border border-amber-500/20">
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
               {{ currentCategoryName }}
             </span>
             <span class="text-slate-300 font-mono">/</span>
             <span class="text-xs font-bold font-sans text-slate-800 truncate flex items-center gap-1.5">
-              <IconSax :name="currentTabMeta.icon" :size="14" class="text-amber-800" />
-              <span>{{ currentTabMeta.label }}</span>
+              <IconSax :name="currentTabMeta?.icon || 'setting'" :size="14" class="text-amber-600" />
+              <span>{{ currentTabMeta?.label || '控制模块' }}</span>
             </span>
           </div>
         </div>
@@ -362,8 +362,8 @@
               ref="searchInputRef"
               v-model="tabSearch"
               type="text"
-              placeholder="搜索配置模块 (按 Ctrl+K 快速聚焦)..."
-              class="w-full text-xs py-2 pl-9 pr-12 rounded-xl border border-black/10 bg-slate-50/80 focus:bg-white focus:border-amber-600/50 focus:ring-2 focus:ring-amber-500/15 transition-all font-sans outline-none"
+              placeholder="搜索功能模块 (按 Ctrl+K 快速定位)..."
+              class="w-full text-xs py-2 pl-9 pr-12 rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/15 transition-all font-sans outline-none"
             />
             <div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
               <button
@@ -374,7 +374,7 @@
               >
                 ✕
               </button>
-              <kbd v-else class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/[0.05] text-slate-400 border border-black/[0.06]">
+              <kbd v-else class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-400 border border-slate-200">
                 ⌘K
               </kbd>
             </div>
@@ -391,8 +391,8 @@
             :class="[
               'px-3 sm:px-3.5 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs',
               showLivePreview
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-800 ring-2 ring-amber-500/20'
-                : 'border-black/10 bg-white hover:bg-slate-50 text-slate-700'
+                ? 'bg-amber-500 text-white border-amber-600 ring-2 ring-amber-500/20'
+                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
             ]"
             title="快捷切换 50/50 双屏实时画布"
           >
@@ -404,11 +404,11 @@
           <NuxtLink
             to="/"
             target="_blank"
-            class="px-3 py-2 rounded-xl text-xs font-mono font-bold text-slate-600 hover:text-slate-900 border border-black/10 bg-white hover:bg-slate-50 transition-colors hidden sm:flex items-center gap-1.5 shadow-xs"
+            class="px-3 py-2 rounded-xl text-xs font-mono font-bold text-slate-600 hover:text-slate-900 border border-slate-200 bg-white hover:bg-slate-50 transition-colors hidden sm:flex items-center gap-1.5 shadow-xs"
             title="新标签页打开前台主页"
           >
             <span>🌐</span>
-            <span class="hidden md:inline">前台主页 ↗</span>
+            <span class="hidden md:inline">浏览前台 ↗</span>
           </NuxtLink>
 
           <!-- Save Button (Master Global Save) -->
@@ -419,14 +419,14 @@
             :class="[
               'py-2 px-3.5 sm:px-5 text-xs font-bold font-mono tracking-wider flex items-center gap-2 rounded-xl shadow-md active:scale-95 cursor-pointer transition-all',
               isDirty
-                ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:brightness-105 ring-2 ring-amber-500/25'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:brightness-105 ring-2 ring-amber-500/25'
                 : 'bg-slate-900 text-white hover:bg-black'
             ]"
           >
             <span v-if="isSaving" class="animate-spin text-sm">⏳</span>
             <span v-else>💾</span>
             <span>{{ isSaving ? '保存中...' : '保存配置' }}</span>
-            <span v-if="isDirty" class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping ml-0.5" title="有尚未保存的配置更改" />
+            <span v-if="isDirty" class="w-1.5 h-1.5 rounded-full bg-amber-300 animate-ping ml-0.5" title="有尚未保存的配置更改" />
           </button>
 
           <!-- Admin Avatar & Quick Logout -->
@@ -446,12 +446,12 @@
       <!-- 3.2 Main Workspace Container (Sidebar + Content + Live Preview) -->
       <div class="flex-1 flex w-full relative">
         
-        <!-- Desktop Sidebar (左侧沉浸中控菜单) -->
+        <!-- Desktop Sidebar (左侧中控台) -->
         <aside
-          class="hidden lg:flex flex-col flex-shrink-0 w-64 xl:w-72 sticky top-16 h-[calc(100vh-4rem)] bg-white/75 backdrop-blur-xl border-r border-black/[0.08] p-4 space-y-4 select-none z-30 overflow-hidden"
+          class="hidden lg:flex flex-col flex-shrink-0 w-64 xl:w-72 sticky top-16 h-[calc(100vh-4rem)] bg-white/90 backdrop-blur-xl border-r border-slate-200/80 p-3.5 space-y-3 select-none z-30 overflow-hidden"
         >
-          <!-- Category Filter Bar (5 Segmented Pills) -->
-          <div class="grid grid-cols-5 p-1 rounded-xl bg-black/[0.04] border border-black/[0.06] select-none text-[10px] font-sans w-full gap-0.5 shrink-0">
+          <!-- Category Filter Capsule Bar -->
+          <div class="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5 shrink-0 select-none text-[11px]">
             <button
               v-for="cat in tabCategories"
               :key="cat.id"
@@ -459,92 +459,106 @@
               @click="selectedCategory = cat.id"
               :title="cat.fullName"
               :class="[
-                'py-1 rounded-lg transition-all duration-200 font-bold flex items-center justify-center cursor-pointer text-center whitespace-nowrap',
+                'px-2.5 py-1 rounded-lg transition-all duration-150 font-bold shrink-0 cursor-pointer text-center',
                 selectedCategory === cat.id
-                  ? 'bg-white text-amber-900 shadow-sm ring-1 ring-black/5 font-extrabold'
-                  : 'text-slate-500 hover:text-slate-900 hover:bg-black/[0.02]'
+                  ? 'bg-amber-500 text-white shadow-xs font-extrabold'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
               ]"
             >
               <span>{{ cat.name }}</span>
             </button>
           </div>
 
-          <!-- Tabs Navigation Scroll Area -->
-          <div class="flex-1 min-h-0 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
-            <button
-              v-for="t in filteredTabs"
-              :key="t.value"
-              type="button"
-              @click="activeTab = t.value"
-              :class="[
-                'w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-sans font-medium transition-all duration-200 flex items-center justify-between group cursor-pointer border',
-                activeTab === t.value
-                  ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/8 to-transparent text-amber-950 font-bold border-amber-500/30 shadow-xs'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-black/[0.03]'
-              ]"
-            >
-              <div class="flex items-center gap-2.5 truncate">
-                <span
-                  class="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors shrink-0"
-                  :class="activeTab === t.value ? 'bg-amber-500/20 text-amber-900' : 'bg-black/[0.04] text-slate-500 group-hover:text-slate-800'"
-                >
-                  <IconSax :name="t.icon" :size="15" />
+          <!-- Tabs Navigation Scroll Area (Hierarchical Grouped Sections) -->
+          <div class="flex-1 min-h-0 overflow-y-auto space-y-3.5 pr-1 scrollbar-thin">
+            <div v-for="sec in groupedTabs" :key="sec.id" class="space-y-1">
+              <!-- Section Header -->
+              <div class="flex items-center justify-between px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 select-none">
+                <span class="flex items-center gap-1.5">
+                  <IconSax :name="sec.icon" :size="12" class="text-amber-600" />
+                  <span>{{ sec.title }}</span>
                 </span>
-                <span class="truncate">{{ t.label }}</span>
+                <span class="text-[9px] text-slate-400 font-mono">{{ sec.items.length }}</span>
               </div>
 
-              <!-- Counter / Status Badge -->
-              <div class="flex items-center gap-1 shrink-0 ml-1">
-                <!-- Bookings Pending Badge -->
-                <span
-                  v-if="t.value === 'bookings' && pendingBookingsCount > 0"
-                  class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-500 text-white shadow-xs"
+              <!-- Section Items -->
+              <div class="space-y-0.5">
+                <button
+                  v-for="t in sec.items"
+                  :key="t.value"
+                  type="button"
+                  @click="activeTab = t.value"
+                  :class="[
+                    'w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all duration-150 flex items-center justify-between group cursor-pointer border relative',
+                    activeTab === t.value
+                      ? 'bg-amber-500/10 text-amber-950 font-bold border-amber-500/30 shadow-xs before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r before:bg-amber-500'
+                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                  ]"
                 >
-                  {{ pendingBookingsCount }}
-                </span>
-                <!-- Requests Pending Badge -->
-                <span
-                  v-if="t.value === 'requests' && pendingRequestsCount > 0"
-                  class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-600 text-white shadow-xs"
-                >
-                  {{ pendingRequestsCount }}
-                </span>
-                <!-- Orders Pending Badge -->
-                <span
-                  v-if="t.value === 'orders' && pendingOrdersCount > 0"
-                  class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-rose-500 text-white shadow-xs"
-                >
-                  {{ pendingOrdersCount }}
-                </span>
-                <!-- Announcement Active Green Dot -->
-                <span
-                  v-if="t.value === 'announcement' && siteConfig.announcement?.enabled"
-                  class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200 animate-pulse"
-                  title="公告已开启广播"
-                />
-              </div>
-            </button>
+                  <div class="flex items-center gap-2.5 truncate">
+                    <span
+                      class="w-6 h-6 rounded-lg flex items-center justify-center text-xs transition-colors shrink-0"
+                      :class="activeTab === t.value ? 'bg-amber-500/20 text-amber-900' : 'bg-slate-100 text-slate-500 group-hover:text-slate-800'"
+                    >
+                      <IconSax :name="t.icon" :size="14" />
+                    </span>
+                    <span class="truncate">{{ t.label }}</span>
+                  </div>
 
-            <div v-if="filteredTabs.length === 0" class="py-8 text-center text-xs text-slate-400 font-mono">
-              无匹配的功能模块
+                  <!-- Counter / Status Badge -->
+                  <div class="flex items-center gap-1 shrink-0 ml-1">
+                    <!-- Bookings Pending Badge -->
+                    <span
+                      v-if="t.value === 'bookings' && pendingBookingsCount > 0"
+                      class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-500 text-white shadow-xs"
+                    >
+                      {{ pendingBookingsCount }}
+                    </span>
+                    <!-- Requests Pending Badge -->
+                    <span
+                      v-if="t.value === 'requests' && pendingRequestsCount > 0"
+                      class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-600 text-white shadow-xs"
+                    >
+                      {{ pendingRequestsCount }}
+                    </span>
+                    <!-- Orders Pending Badge -->
+                    <span
+                      v-if="t.value === 'orders' && pendingOrdersCount > 0"
+                      class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-rose-500 text-white shadow-xs"
+                    >
+                      {{ pendingOrdersCount }}
+                    </span>
+                    <!-- Announcement Active Green Dot -->
+                    <span
+                      v-if="t.value === 'announcement' && siteConfig.announcement?.enabled"
+                      class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200 animate-pulse"
+                      title="公告已开启广播"
+                    />
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div v-if="groupedTabs.length === 0" class="py-10 text-center text-xs text-slate-400 font-mono">
+              🔍 无匹配的功能模块
             </div>
           </div>
 
           <!-- Sidebar Footer Status & Links -->
-          <div class="pt-3 border-t border-black/[0.06] space-y-2 shrink-0">
-            <div class="p-2.5 rounded-xl bg-black/[0.02] border border-black/[0.04] flex items-center justify-between text-[10px] font-mono text-slate-500">
+          <div class="pt-3 border-t border-slate-200/80 space-y-2 shrink-0">
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-[10px] font-mono text-slate-500">
               <span class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span>节点安全握手</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>持久化节点连接</span>
               </span>
-              <span class="text-amber-800 font-bold uppercase">D1 / SQLite</span>
+              <span class="text-amber-700 font-bold uppercase">D1 / SQLite</span>
             </div>
 
             <div class="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
-              <NuxtLink to="/booking" target="_blank" class="p-1.5 rounded-lg text-center bg-black/[0.03] hover:bg-black/[0.06] text-slate-700 transition-colors">
+              <NuxtLink to="/booking" target="_blank" class="p-1.5 rounded-lg text-center bg-slate-100 hover:bg-slate-200/70 text-slate-700 transition-colors">
                 /booking ↗
               </NuxtLink>
-              <NuxtLink to="/client" target="_blank" class="p-1.5 rounded-lg text-center bg-black/[0.03] hover:bg-black/[0.06] text-slate-700 transition-colors">
+              <NuxtLink to="/client" target="_blank" class="p-1.5 rounded-lg text-center bg-slate-100 hover:bg-slate-200/70 text-slate-700 transition-colors">
                 /client ↗
               </NuxtLink>
             </div>
@@ -555,12 +569,12 @@
         <Transition name="drawer">
           <div v-if="mobileNavOpen" class="fixed inset-0 z-50 lg:hidden flex">
             <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="mobileNavOpen = false" />
-            <div class="relative w-72 max-w-[85vw] h-full bg-white shadow-2xl p-4 flex flex-col space-y-4 z-10">
-              <div class="flex items-center justify-between pb-3 border-b border-black/[0.08]">
+            <div class="relative w-72 max-w-[85vw] h-full bg-white shadow-2xl p-4 flex flex-col space-y-3.5 z-10">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-200">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold text-sm">中枢导航菜单</span>
+                  <span class="font-bold text-sm text-slate-900">控制台导航</span>
                 </div>
-                <button type="button" @click="mobileNavOpen = false" class="text-slate-400 hover:text-black font-bold p-1">✕</button>
+                <button type="button" @click="mobileNavOpen = false" class="text-slate-400 hover:text-black font-bold p-1 cursor-pointer">✕</button>
               </div>
 
               <!-- Search in Drawer -->
@@ -568,40 +582,57 @@
                 v-model="tabSearch"
                 type="text"
                 placeholder="搜索模块..."
-                class="w-full text-xs py-2 px-3 rounded-xl border border-black/10 bg-slate-50"
+                class="w-full text-xs py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 outline-none"
               />
 
-              <!-- Categories -->
-              <div class="grid grid-cols-5 p-1 rounded-xl bg-black/[0.04] text-[10px]">
+              <!-- Categories Capsule Bar -->
+              <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
                 <button
                   v-for="cat in tabCategories"
                   :key="cat.id"
                   @click="selectedCategory = cat.id"
-                  :class="['py-1 rounded-lg font-bold text-center', selectedCategory === cat.id ? 'bg-white text-amber-900 shadow-sm' : 'text-slate-500']"
+                  :class="[
+                    'px-3 py-1 rounded-lg font-bold text-center shrink-0 cursor-pointer transition-colors',
+                    selectedCategory === cat.id ? 'bg-amber-500 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+                  ]"
                 >
                   {{ cat.name }}
                 </button>
               </div>
 
-              <!-- Tabs in Drawer -->
-              <div class="flex-1 overflow-y-auto space-y-1">
-                <button
-                  v-for="t in filteredTabs"
-                  :key="t.value"
-                  @click="activeTab = t.value; mobileNavOpen = false"
-                  :class="[
-                    'w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between',
-                    activeTab === t.value ? 'bg-amber-500/15 text-amber-950 font-bold' : 'text-slate-700 hover:bg-black/5'
-                  ]"
-                >
-                  <div class="flex items-center gap-2">
-                    <IconSax :name="t.icon" :size="15" />
-                    <span>{{ t.label }}</span>
+              <!-- Tabs in Drawer (Grouped Sections) -->
+              <div class="flex-1 overflow-y-auto space-y-3 pr-1">
+                <div v-for="sec in groupedTabs" :key="sec.id" class="space-y-1">
+                  <div class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase text-slate-400 flex items-center justify-between">
+                    <span>{{ sec.title }}</span>
+                    <span>{{ sec.items.length }}</span>
                   </div>
-                  <span v-if="t.value === 'bookings' && pendingBookingsCount > 0" class="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-500 text-white font-mono font-bold">
-                    {{ pendingBookingsCount }}
-                  </span>
-                </button>
+                  <div class="space-y-0.5">
+                    <button
+                      v-for="t in sec.items"
+                      :key="t.value"
+                      @click="activeTab = t.value; mobileNavOpen = false"
+                      :class="[
+                        'w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer',
+                        activeTab === t.value ? 'bg-amber-500/15 text-amber-950 font-bold border border-amber-500/25' : 'text-slate-700 hover:bg-slate-100'
+                      ]"
+                    >
+                      <div class="flex items-center gap-2">
+                        <IconSax :name="t.icon" :size="15" />
+                        <span>{{ t.label }}</span>
+                      </div>
+                      <span v-if="t.value === 'bookings' && pendingBookingsCount > 0" class="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-500 text-white font-mono font-bold">
+                        {{ pendingBookingsCount }}
+                      </span>
+                      <span v-if="t.value === 'requests' && pendingRequestsCount > 0" class="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-600 text-white font-mono font-bold">
+                        {{ pendingRequestsCount }}
+                      </span>
+                      <span v-if="t.value === 'orders' && pendingOrdersCount > 0" class="px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-mono font-bold">
+                        {{ pendingOrdersCount }}
+                      </span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -613,38 +644,105 @@
           <!-- Content Stage (Left or Full-Width) -->
           <div :class="['flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6', showLivePreview ? 'lg:max-w-[50%]' : 'max-w-7xl mx-auto w-full']">
             
-            <!-- Executive Tab Title Banner -->
-            <div class="glass-card p-5 sm:p-6 rounded-2xl border border-black/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden shadow-xs">
-              <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700" />
-              <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/15 to-amber-600/25 border border-amber-500/30 flex items-center justify-center text-amber-800 shrink-0 shadow-xs">
-                  <IconSax :name="currentTabMeta?.icon || 'setting'" :size="24" />
+            <!-- Modern Clean Page Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
+                  <IconSax :name="currentTabMeta?.icon || 'setting'" :size="20" />
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
+                    <h1 class="text-lg font-bold font-sans text-slate-900 tracking-tight">
+                      {{ currentTabMeta?.label || '控制模块' }}
+                    </h1>
                     <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-800 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                       {{ currentCategoryName }}
                     </span>
-                    <span class="text-xs text-slate-400 font-mono">#{{ activeTab }}</span>
                   </div>
-                  <h2 class="text-xl sm:text-2xl font-bold font-display text-slate-900 mt-0.5">
-                    {{ currentTabMeta?.label || '控制模块' }}
-                  </h2>
+                  <p class="text-xs text-slate-500 font-sans mt-0.5 max-w-2xl line-clamp-1">
+                    {{ currentTabDescription }}
+                  </p>
                 </div>
               </div>
 
-              <!-- Action helpers on the right of banner -->
-              <div class="flex items-center gap-2 self-start sm:self-auto">
-                <button
-                  type="button"
-                  @click="saveSiteConfig"
-                  :disabled="isSaving"
-                  class="btn-primary text-xs py-2 px-4 shadow-sm flex items-center gap-1.5"
-                >
-                  <span v-if="isSaving" class="animate-spin text-xs">⏳</span>
-                  <span v-else>💾</span>
-                  <span>保存修改</span>
-                </button>
+              <!-- Contextual Action Slot based on activeTab -->
+              <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                <!-- Tab: Projects Context Actions -->
+                <template v-if="activeTab === 'projects'">
+                  <button type="button" @click="fetchProjects" class="btn-ghost py-1.5 px-3 text-xs flex items-center gap-1.5 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 font-mono cursor-pointer" title="重新获取项目列表">
+                    <span>🔄 刷新</span>
+                  </button>
+                  <button type="button" @click="openCreateModal" class="btn-primary py-1.5 px-3.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs">
+                    <span>＋ 录入新作品</span>
+                  </button>
+                </template>
+
+                <!-- Tab: Blog Context Actions -->
+                <template v-else-if="activeTab === 'blog'">
+                  <NuxtLink :to="`/${currentSuffix}/posts/edit/new`" class="btn-primary py-1.5 px-3.5 text-xs font-bold bg-[#007AFF] hover:bg-[#0062cc] flex items-center gap-1.5 shadow-xs">
+                    <span>＋ 发布新文章</span>
+                  </NuxtLink>
+                </template>
+
+                <!-- Tab: Orders Context Actions -->
+                <template v-else-if="activeTab === 'orders'">
+                  <button type="button" @click="resetOrderPage" class="btn-primary py-1.5 px-3.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs">
+                    <span>＋ 新建订单项目</span>
+                  </button>
+                </template>
+
+                <!-- Tab: Delivery Library Context Actions -->
+                <template v-else-if="activeTab === 'delivery-library'">
+                  <button type="button" @click="resetDeliveryItem" class="btn-primary py-1.5 px-3.5 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs">
+                    <span>＋ 新增交付母带</span>
+                  </button>
+                </template>
+
+                <!-- Tab: Bookings Context Actions -->
+                <template v-else-if="activeTab === 'bookings'">
+                  <button type="button" @click="fetchBookings" class="btn-ghost py-1.5 px-3 text-xs flex items-center gap-1.5 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 font-mono cursor-pointer">
+                    <span>🔄 刷新</span>
+                  </button>
+                  <button type="button" @click="createSampleBooking" class="btn-ghost py-1.5 px-3 text-xs border border-amber-600/30 text-amber-800 rounded-xl hover:bg-amber-50 font-mono cursor-pointer">
+                    <span>＋ 示例预约</span>
+                  </button>
+                </template>
+
+                <!-- Tab: Requests Context Actions -->
+                <template v-else-if="activeTab === 'requests'">
+                  <button type="button" @click="fetchPasswordRequests" class="btn-ghost py-1.5 px-3 text-xs flex items-center gap-1.5 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 font-mono cursor-pointer">
+                    <span>🔄 刷新申请</span>
+                  </button>
+                </template>
+
+                <!-- Tab: Users Context Actions -->
+                <template v-else-if="activeTab === 'users'">
+                  <button type="button" @click="fetchUsers" class="btn-ghost py-1.5 px-3 text-xs flex items-center gap-1.5 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 font-mono cursor-pointer">
+                    <span>🔄 刷新客户</span>
+                  </button>
+                </template>
+
+                <!-- Tab: Analytics Context Actions -->
+                <template v-else-if="activeTab === 'analytics'">
+                  <button type="button" @click="fetchSystemStatus" class="btn-ghost py-1.5 px-3 text-xs flex items-center gap-1.5 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 font-mono cursor-pointer">
+                    <span>🔄 刷新数据</span>
+                  </button>
+                  <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold font-mono tracking-wider bg-emerald-50 border border-emerald-200 text-emerald-700 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                    <span>LIVE 遥测</span>
+                  </div>
+                </template>
+
+                <!-- For Form / Setting Tabs, clean quick status indicator -->
+                <template v-else>
+                  <div class="text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                    <span v-if="isDirty" class="inline-flex items-center gap-1 text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg font-bold">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                      待保存更改
+                    </span>
+                    <span v-else class="text-slate-400">已就绪</span>
+                  </div>
+                </template>
               </div>
             </div>
 
@@ -654,22 +752,6 @@
         <Transition name="tab-fade-slide" mode="out-in">
           <div v-if="activeTab === 'analytics'" key="analytics" class="space-y-6">
             <!-- TAB 0: ANALYTICS DASHBOARD -->
-          <!-- Header -->
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-lg font-bold font-display" style="color: var(--color-ink-1)">系统监控与流量看板</h2>
-              <p class="text-xs font-mono mt-0.5" style="color: var(--color-ink-5)">实时追踪个人主页的访客行为、点击路径与服务器性能。</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <button @click="fetchSystemStatus" class="text-xs font-mono px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5" style="color: var(--color-ink-4); border: 1px solid var(--color-border)">
-                <IconSax name="refresh-2" :size="14" /> 刷新数据
-              </button>
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold font-mono tracking-wider bg-emerald-50 border border-emerald-100 text-emerald-700">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                LIVE
-              </div>
-            </div>
-          </div>
 
           <!-- Stats Grid -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -998,46 +1080,39 @@
         </div>
 
           <!-- Bookings Tab (商业合作预约与展示配置) -->
-          <div v-else-if="activeTab === 'bookings'" key="bookings" class="space-y-8">
-            
-            <!-- Top Master Header Card -->
-            <div class="glass-card p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-amber-600/15">
-              <div class="space-y-1">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 text-[10px] font-mono font-bold border border-amber-500/20">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
-                  <span>COMMERCIAL BOOKING & DELIVERY HUB</span>
-                </div>
-                <h2 class="text-xl sm:text-2xl font-bold font-display text-slate-900 tracking-tight">合作预约与客户交付中心</h2>
-                <p class="text-xs text-slate-500 font-sans">集中管理客户预约需求、无缝一键打通专属交付放映室，并配置前端展示视觉。</p>
-              </div>
-
-              <!-- Sub-tab switch bar -->
-              <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-black/[0.04] border border-black/[0.05]">
+          <div v-else-if="activeTab === 'bookings'" key="bookings" class="space-y-6">
+            <!-- Sleek Sub-Tab Switcher Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 rounded-2xl bg-white/80 border border-black/[0.06] shadow-xs">
+              <div class="flex items-center gap-1.5 p-1 rounded-xl bg-black/[0.04]">
                 <button
                   type="button"
                   @click="bookingSubTab = 'records'"
                   :class="[
-                    'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
+                    'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
                     bookingSubTab === 'records'
-                      ? 'bg-amber-700 text-white shadow-md'
-                      : 'text-slate-600 hover:bg-black/5'
+                      ? 'bg-white text-amber-950 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   ]"
                 >
                   <span>📋 预约意向受理</span>
-                  <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono" :class="bookingSubTab === 'records' ? 'bg-black/20 text-white' : 'bg-black/[0.06] text-slate-700'">{{ bookings.length }}</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[9px] font-mono" :class="bookingSubTab === 'records' ? 'bg-amber-500 text-white font-bold' : 'bg-black/[0.06] text-slate-600'">{{ bookings.length }}</span>
                 </button>
                 <button
                   type="button"
                   @click="bookingSubTab = 'settings'"
                   :class="[
-                    'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
+                    'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2',
                     bookingSubTab === 'settings'
-                      ? 'bg-amber-700 text-white shadow-md'
-                      : 'text-slate-600 hover:bg-black/5'
+                      ? 'bg-white text-amber-950 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   ]"
                 >
                   <span>⚙️ 预约展示页面配置</span>
                 </button>
+              </div>
+              <div class="hidden sm:flex items-center gap-2 pr-3 text-xs text-slate-400 font-mono">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>公开预约通道: /booking</span>
               </div>
             </div>
 
@@ -1303,7 +1378,7 @@
                   <!-- Reference Links if any -->
                   <div v-if="b.referenceLinks" class="flex items-center gap-2 text-xs p-2.5 rounded-xl bg-black/[0.02] border border-black/[0.05]">
                     <span class="text-slate-500 shrink-0">🔗 参考样片/网盘:</span>
-                    <a :href="b.referenceLinks" target="_blank" rel="noopener noreferrer" class="text-amber-700 hover:text-amber-900 underline truncate font-mono">
+                    <a :href="safeExternalUrl(b.referenceLinks)" target="_blank" rel="noopener noreferrer" class="text-amber-700 hover:text-amber-900 underline truncate font-mono">
                       {{ b.referenceLinks }}
                     </a>
                     <button type="button" @click="copyBookingText(b.referenceLinks, '参考链接')" class="text-[10px] px-2 py-0.5 rounded bg-black/5 hover:bg-black/10 shrink-0">复制</button>
@@ -2640,17 +2715,18 @@
           </div>
         </div>
 
-          <div v-else-if="activeTab === 'home'" key="home" class="glass-card p-8 space-y-8">
+          <div v-else-if="activeTab === 'home'" key="home" class="space-y-6">
             <!-- TAB 2: HOME HERO CONFIG -->
-          <div class="flex items-center justify-between pb-5" style="border-bottom: 1px solid var(--color-border)">
-            <div>
-              <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">首页 Hero 与数据看板配置</h2>
-              <p class="text-xs font-mono mt-0.5" style="color: var(--color-ink-5)">编辑首页大标题、副文案、统计指标和个人磁贴卡片。</p>
-            </div>
-            <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5">保存首页配置</button>
-          </div>
-          <div class="grid md:grid-cols-2 gap-8 items-start">
-            <div class="space-y-6">
+            <div class="grid lg:grid-cols-2 gap-6 items-start">
+              <!-- Left: Hero Titles & Showreel Card -->
+              <div class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-6">
+                <div class="border-b border-black/[0.06] pb-3">
+                  <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                    <span>🎬</span>
+                    <span>首屏大标题与视觉样片</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">配置主页首屏 3 行大标题、副文案及高清视频背景</p>
+                </div>
               <!-- Hero Titles -->
               <div class="space-y-2">
                 <label class="form-label">Hero 大标题（3 行）</label>
@@ -2666,23 +2742,6 @@
                 <textarea v-model="siteConfig.home.heroSub" rows="3" class="form-input resize-none" />
               </div>
 
-              <!-- Blog Hero Banner Settings -->
-              <!-- Blog Hero Banner Settings -->
-              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">✍️ 博客前台 Hero Banner 配置</h3>
-                <div class="space-y-1.5">
-                  <label class="form-label">博客 Badge 顶部标识 (Badge)</label>
-                  <input v-model="blogHeroConfig.heroBadge" class="form-input font-mono" placeholder="MODERN SERENITY BLOG" />
-                </div>
-                <div class="space-y-1.5">
-                  <label class="form-label">博客前台主标题 (Hero Title)</label>
-                  <input v-model="blogHeroConfig.heroTitle" class="form-input font-[#007AFF] font-bold" placeholder="灵感、技术与设计探索" />
-                </div>
-                <div class="space-y-1.5">
-                  <label class="form-label">博客前台描述段落 (Hero Subtitle)</label>
-                  <textarea v-model="blogHeroConfig.heroSub" rows="2" class="form-input resize-none" placeholder="采用次世代胶囊美学设计系统..." />
-                </div>
-              </div>
               <!-- Booking Status & Video Showreel -->
               <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
                 <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">业务状态与首屏主样片</h3>
@@ -2910,9 +2969,21 @@
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Right: Profile Card, Tags, Brands & Live Preview -->
+            <div class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-6">
+              <div class="border-b border-black/[0.06] pb-3">
+                <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                  <span>🏷️</span>
+                  <span>个人磁贴与视觉组件</span>
+                </h3>
+                <p class="text-[11px] text-slate-400 font-mono mt-0.5">定制首页个人 Bento 磁贴名片、专业技能与合作品牌</p>
+              </div>
+
               <!-- Profile Card -->
-              <div class="space-y-4 pt-4" style="border-top: 1px solid var(--color-border)">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">个人磁贴卡片 (Profile Card)</h3>
+              <div class="space-y-4">
+                <h4 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">个人磁贴名片 (Profile Bento)</h4>
                 <div class="grid sm:grid-cols-2 gap-4">
                   <div class="space-y-1.5">
                     <label class="form-label">卡片姓名</label>
@@ -2928,113 +2999,99 @@
                   <textarea v-model="siteConfig.home.profileCardDesc" rows="3" class="form-input resize-none" />
                 </div>
                 
-                <div class="space-y-1.5 pt-2">
-                  <label class="form-label flex justify-between">
-                    <span>个人头像图片 (Avatar Image)</span>
-                    <span class="text-[9px] text-amber-700 font-bold">支持链接地址或本地设备上传</span>
-                  </label>
-                  <div class="flex gap-2">
-                    <input v-model="siteConfig.siteInfo.avatar" class="form-input font-mono flex-1 text-xs" placeholder="https://... 或上传本地文件" />
-                    <label class="btn-ghost text-xs py-2 px-4 cursor-pointer flex items-center justify-center border border-dashed rounded-xl flex-shrink-0" style="border-color: var(--color-border-2); background: transparent;">
-                      <span>📤 上传</span>
-                      <input type="file" accept="image/*" class="hidden" @change="uploadAvatarFile" />
-                    </label>
-                  </div>
-                  <!-- Avatar Preview -->
-                  <div v-if="siteConfig.siteInfo.avatar" class="flex items-center gap-3 pt-2">
-                    <div class="w-10 h-10 rounded-full overflow-hidden border border-black/10 flex-shrink-0">
-                      <img :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" />
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-white flex items-center justify-center">
+                      <img v-if="siteConfig.siteInfo.avatar" :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" />
+                      <span v-else class="text-xs font-bold text-amber-700">{{ (siteConfig.home.profileCardTitle || 'Z').charAt(0) }}</span>
                     </div>
-                    <span class="text-[10px] font-mono text-slate-400">预览当前头像</span>
-                    <button type="button" @click="siteConfig.siteInfo.avatar = ''" class="text-[10px] font-bold text-rose-500 hover:underline ml-auto">清除头像</button>
+                    <div>
+                      <div class="font-bold text-slate-800">主理人头像徽标</div>
+                      <div class="text-[10px] text-slate-400">已在「站点信息」统一配置，前台自动同步</div>
+                    </div>
                   </div>
+                  <button type="button" @click="activeTab = 'siteinfo'" class="text-[11px] font-bold text-amber-700 hover:text-amber-800">前往设置 &rarr;</button>
                 </div>
               </div>
+
               <!-- Skills Tags -->
-              <div class="space-y-2 pt-4" style="border-top: 1px solid var(--color-border)">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">工具技能标签</h3>
-                <div class="flex flex-wrap gap-1.5 p-2 rounded-xl min-h-[42px] items-center"
-                     style="background: rgba(255,255,255,0.8); border: 1px solid var(--color-border-2)">
-                  <span v-for="tag in siteConfig.home.skillsTags" :key="tag" class="badge inline-flex items-center gap-1">
+              <div class="space-y-2 pt-4 border-t border-slate-200/80">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">工具技能标签 (Skills Tags)</h3>
+                <div class="flex flex-wrap gap-1.5 p-2 rounded-xl min-h-[42px] items-center bg-white border border-slate-200/80">
+                  <span v-for="tag in siteConfig.home.skillsTags" :key="tag" class="badge inline-flex items-center gap-1 bg-amber-500/10 text-amber-900 border border-amber-500/20 px-2 py-0.5 rounded-lg text-xs font-bold">
                     {{ tag }}
                     <button type="button" @click="removeSkillsTag(tag)" class="ml-1 opacity-60 hover:opacity-100 font-bold text-xs">×</button>
                   </span>
                   <input v-model="tempSkillsTagInput" @keydown.enter.prevent="addSkillsTag" @keydown.comma.prevent="addSkillsTag"
                          placeholder="输入后回车添加"
-                         class="flex-1 bg-transparent border-none text-xs focus:outline-none min-w-[120px]"
-                         style="color: var(--color-ink-1)" />
+                         class="flex-1 bg-transparent border-none text-xs focus:outline-none min-w-[120px] text-slate-800 placeholder-slate-400" />
                 </div>
               </div>
+
               <!-- Hero Tech Stack Tags -->
-              <div class="space-y-2 pt-4" style="border-top: 1px solid var(--color-border)">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">首屏主图底部技术栈标签</h3>
-                <div class="flex flex-wrap gap-1.5 p-2 rounded-xl min-h-[42px] items-center"
-                     style="background: rgba(255,255,255,0.8); border: 1px solid var(--color-border-2)">
-                  <span v-for="tag in siteConfig.home.heroTechStack" :key="tag" class="badge inline-flex items-center gap-1">
+              <div class="space-y-2 pt-4 border-t border-slate-200/80">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">首屏主图底部技术栈标签</h3>
+                <div class="flex flex-wrap gap-1.5 p-2 rounded-xl min-h-[42px] items-center bg-white border border-slate-200/80">
+                  <span v-for="tag in siteConfig.home.heroTechStack" :key="tag" class="badge inline-flex items-center gap-1 bg-slate-100 text-slate-800 border border-slate-200 px-2 py-0.5 rounded-lg text-xs font-mono">
                     {{ tag }}
                     <button type="button" @click="removeHeroTechTag(tag)" class="ml-1 opacity-60 hover:opacity-100 font-bold text-xs">×</button>
                   </span>
                   <input v-model="tempHeroTechInput" @keydown.enter.prevent="addHeroTechTag" @keydown.comma.prevent="addHeroTechTag"
                          placeholder="输入后回车添加"
-                         class="flex-1 bg-transparent border-none text-xs focus:outline-none min-w-[120px]"
-                         style="color: var(--color-ink-1)" />
+                         class="flex-1 bg-transparent border-none text-xs focus:outline-none min-w-[120px] text-slate-800 placeholder-slate-400" />
                 </div>
               </div>
 
               <!-- Collaborative Brands Tags -->
-              <div class="space-y-2 pt-4" style="border-top: 1px solid var(--color-border)">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">合作与联合制作品牌 (Collaborative Brands)</h3>
-                <div class="flex flex-wrap gap-1.5 p-2 rounded-xl min-h-[42px] items-center"
-                     style="background: rgba(255,255,255,0.8); border: 1px solid var(--color-border-2)">
-                  <span v-for="tag in siteConfig.home.collaborativeBrands" :key="tag" class="badge inline-flex items-center gap-1">
+              <div class="space-y-2 pt-4 border-t border-slate-200/80">
+                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-700">合作与联合制作品牌 (Collaborative Brands)</h3>
+                <div class="flex flex-wrap gap-1.5 p-2 rounded-xl min-h-[42px] items-center bg-white border border-slate-200/80">
+                  <span v-for="tag in siteConfig.home.collaborativeBrands" :key="tag" class="badge inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200 px-2 py-0.5 rounded-lg text-xs font-medium">
                     {{ tag }}
                     <button type="button" @click="removeBrandTag(tag)" class="ml-1 opacity-60 hover:opacity-100 font-bold text-xs">×</button>
                   </span>
                   <input v-model="tempBrandInput" @keydown.enter.prevent="addBrandTag" @keydown.comma.prevent="addBrandTag"
                          placeholder="输入后回车添加品牌名称"
-                         class="flex-1 bg-transparent border-none text-xs focus:outline-none min-w-[120px]"
-                         style="color: var(--color-ink-1)" />
+                         class="flex-1 bg-transparent border-none text-xs focus:outline-none min-w-[120px] text-slate-800 placeholder-slate-400" />
                 </div>
-                <p class="text-[9px] text-slate-400 font-mono">输入公司、客户或制作品牌名称（例如：DJI、腾讯视频、比亚迪）并按下回车或逗号键添加，它们将在前台首页滚动跑马灯展示。</p>
+                <p class="text-[9px] text-slate-400 font-mono">输入公司或制作品牌名称（如 DJI、腾讯视频、比亚迪）并回车添加，前台将以跑马灯展映。</p>
               </div>
-            </div>
-            <!-- Preview -->
-            <div class="p-6 rounded-2xl space-y-5" style="background: rgba(0,0,0,0.02); border: 1px dashed var(--color-border-2)">
-              <span class="text-[9px] uppercase font-mono tracking-wider" style="color: var(--color-ink-5)">首页磁贴实时预览</span>
-              <div class="glass-card p-6 space-y-3">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm"
-                     style="background: linear-gradient(135deg, rgba(217,119,6,0.15), rgba(180,83,9,0.25)); color: var(--color-ink-1)">
-                  {{ (siteConfig.home.profileCardTitle || 'Z').charAt(0) }}
-                </div>
-                <div class="space-y-0.5">
-                  <h4 class="font-display font-bold text-base" style="color: var(--color-ink-1)">{{ siteConfig.home.profileCardTitle || 'Xo' }}</h4>
-                  <p class="text-[9px] font-mono font-semibold uppercase tracking-wider" style="color: var(--color-bronze)">{{ siteConfig.home.profileCardSub || 'DI / Film Editor' }}</p>
-                </div>
-                <p class="text-xs leading-relaxed line-clamp-3" style="color: var(--color-ink-4)">{{ siteConfig.home.profileCardDesc || '描述待输入...' }}</p>
-              </div>
-              <div class="glass-card p-5 space-y-2">
-                <div class="text-[9px] font-mono" style="color: var(--color-ink-5)">SKILLS PREVIEW</div>
-                <div class="flex flex-wrap gap-1.5">
-                  <span v-for="tag in siteConfig.home.skillsTags" :key="tag" class="badge">{{ tag }}</span>
+
+              <!-- Integrated Live Bento Preview -->
+              <div class="p-5 rounded-2xl space-y-4 bg-slate-50/70 border border-dashed border-slate-200">
+                <span class="text-[9px] uppercase font-mono tracking-wider text-slate-400 font-bold">首页 Bento 磁贴实时效果预览</span>
+                <div class="glass-card p-5 space-y-3 bg-white rounded-xl border border-slate-200/80 shadow-xs">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm bg-amber-500/15 text-amber-900 border border-amber-500/30 overflow-hidden">
+                      <img v-if="siteConfig.siteInfo.avatar" :src="siteConfig.siteInfo.avatar" class="w-full h-full object-cover" />
+                      <span v-else>{{ (siteConfig.home.profileCardTitle || 'Z').charAt(0) }}</span>
+                    </div>
+                    <div class="space-y-0.5">
+                      <h4 class="font-display font-bold text-sm text-slate-900">{{ siteConfig.home.profileCardTitle || 'Xo' }}</h4>
+                      <p class="text-[10px] font-mono font-semibold uppercase tracking-wider text-amber-700">{{ siteConfig.home.profileCardSub || 'DI / Film Editor' }}</p>
+                    </div>
+                  </div>
+                  <p class="text-xs leading-relaxed line-clamp-3 text-slate-600">{{ siteConfig.home.profileCardDesc || '描述待输入...' }}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-          <div v-else-if="activeTab === 'about'" key="about" class="glass-card p-8 space-y-8">
+          <div v-else-if="activeTab === 'about'" key="about" class="space-y-6">
             <!-- TAB 3: ABOUT / PROFILE -->
-          <div class="flex items-center justify-between pb-5" style="border-bottom: 1px solid var(--color-border)">
-            <div>
-              <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">个人履历与经历年谱</h2>
-              <p class="text-xs font-mono mt-0.5" style="color: var(--color-ink-5)">编辑关于我页面的简介、技能条、工作履历和理念格言。</p>
-            </div>
-            <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5">保存个人配置</button>
-          </div>
-          <div class="grid lg:grid-cols-2 gap-8 items-start">
-            <div class="space-y-6">
-              <!-- Bio -->
-              <div class="space-y-4">
+            <div class="grid lg:grid-cols-2 gap-6 items-start">
+              <!-- Left: Bio & Skills Card -->
+              <div class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-6">
+                <div class="border-b border-black/[0.06] pb-3">
+                  <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                    <span>👤</span>
+                    <span>主理人履历与专业档案</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">编辑主理人职业角色、简介、技能推子与硬件监看设备</p>
+                </div>
+                <!-- Bio -->
+                <div class="space-y-4">
                 <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">基本简历文案</h3>
                 <div class="space-y-1.5">
                   <label class="form-label">职业身份 (Role)</label>
@@ -3167,11 +3224,17 @@
                 </div>
               </div>
             </div>
-            <!-- Experiences Timeline -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">工作履历年谱</h3>
-                <button type="button" @click="addExperience" class="text-xs font-bold font-mono hover:text-amber-700 transition-colors" style="color: var(--color-ink-1)">+ 添加经历</button>
+            <!-- Right: Experiences Timeline Card -->
+            <div class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-5">
+              <div class="border-b border-black/[0.06] pb-3 flex items-center justify-between">
+                <div>
+                  <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                    <span>⏳</span>
+                    <span>工作履历与经历年谱</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">支持按住 ⠿ 手柄自由拖拽调整位序</p>
+                </div>
+                <button type="button" @click="addExperience" class="btn-ghost text-xs py-1.5 px-3 border border-amber-600/30 text-amber-900 rounded-xl hover:bg-amber-50 font-mono font-bold">+ 添加经历</button>
               </div>
               <div class="space-y-4">
                 <div v-for="(exp, idx) in siteConfig.about.experiences" :key="idx"
@@ -3248,21 +3311,21 @@
           </div>
         </div>
 
-          <div v-else-if="activeTab === 'siteinfo'" key="siteinfo" class="glass-card p-8 space-y-8">
+          <div v-else-if="activeTab === 'siteinfo'" key="siteinfo" class="space-y-6">
             <!-- TAB 4: SITE INFO -->
-          <div class="flex items-center justify-between pb-5" style="border-bottom: 1px solid var(--color-border)">
-            <div>
-              <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">站点信息 & 社交媒体</h2>
-              <p class="text-xs font-mono mt-0.5" style="color: var(--color-ink-5)">编辑品牌名、姓名、联系邮箱、社交链接和 SEO 元信息。</p>
-            </div>
-            <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5">保存站点信息</button>
-          </div>
-
-          <div class="grid lg:grid-cols-2 gap-10">
-            <!-- Left: Brand & Contact -->
-            <div class="space-y-6">
-              <div class="space-y-4">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">品牌与个人信息</h3>
+            <div class="grid lg:grid-cols-2 gap-6 items-start">
+              <!-- Left: Brand & Contact Card -->
+              <div class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-6">
+                <div class="space-y-4">
+                  <div class="border-b border-black/[0.06] pb-3 flex items-center justify-between">
+                    <div>
+                      <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                        <span>🏢</span>
+                        <span>品牌与主理人信息</span>
+                      </h3>
+                      <p class="text-[11px] text-slate-400 font-mono mt-0.5">配置工作室品牌、持有者姓名与公开联系方式</p>
+                    </div>
+                  </div>
                 <div class="grid sm:grid-cols-2 gap-4">
                   <div class="space-y-1.5">
                     <label class="form-label">品牌名称</label>
@@ -3385,190 +3448,51 @@
               </div>
             </div>
 
-            <!-- Right: SEO -->
+            <!-- Right: SEO, Notifications & AI Integrations -->
             <div class="space-y-6">
-              <div class="space-y-4">
-                <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">SEO 元信息</h3>
-                <div class="space-y-1.5">
-                  <label class="form-label">网站标题 (Title Tag)</label>
-                  <input v-model="siteConfig.siteInfo.seoTitle" class="form-input" placeholder="Xo Studio · 影视后期剪辑与调色" />
-                  <p class="text-[9px] font-mono mt-1" style="color: var(--color-ink-5)">建议 50–60 字符以内</p>
+              <!-- SEO Meta Card -->
+              <div class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-5">
+                <div class="border-b border-black/[0.06] pb-3">
+                  <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                    <span>🌐</span>
+                    <span>SEO 元信息与搜索引擎优化</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">设置搜索引擎标题、元描述与页脚标语</p>
                 </div>
-                <div class="space-y-1.5">
-                  <label class="form-label">网站描述 (Meta Description)</label>
-                  <textarea v-model="siteConfig.siteInfo.seoDescription" rows="3" class="form-input resize-none" />
-                  <p class="text-[9px] font-mono mt-1" style="color: var(--color-ink-5)">建议 120–160 字符以内</p>
-                </div>
-                <div class="space-y-1.5">
-                  <label class="form-label">页脚标语</label>
-                  <input v-model="siteConfig.siteInfo.footerTagline" class="form-input" placeholder="基于达芬奇色彩科学规范开发" />
-                </div>
-                <div class="grid sm:grid-cols-2 gap-3 pt-1">
+                <div class="space-y-4">
                   <div class="space-y-1.5">
-                    <label class="form-label">顶部导航预约胶囊徽标</label>
-                    <input v-model="siteConfig.siteInfo.navbarBookingBadge" class="form-input text-xs font-mono" placeholder="OPEN FOR BOOKING" />
+                    <label class="form-label">网站标题 (Title Tag)</label>
+                    <input v-model="siteConfig.siteInfo.seoTitle" class="form-input" placeholder="Xo Studio · 影视后期剪辑与调色" />
+                    <p class="text-[9px] font-mono mt-1" style="color: var(--color-ink-5)">建议 50–60 字符以内</p>
                   </div>
                   <div class="space-y-1.5">
-                    <label class="form-label">页脚色彩科学徽标</label>
-                    <input v-model="siteConfig.siteInfo.footerColorScienceBadge" class="form-input text-xs font-mono" placeholder="ACEScct / Rec.709" />
+                    <label class="form-label">网站描述 (Meta Description)</label>
+                    <textarea v-model="siteConfig.siteInfo.seoDescription" rows="3" class="form-input resize-none" />
+                    <p class="text-[9px] font-mono mt-1" style="color: var(--color-ink-5)">建议 120–160 字符以内</p>
                   </div>
-                </div>
-              </div>
-
-              <!-- Preview card -->
-              <div class="p-5 rounded-2xl space-y-3 mt-4" style="background: rgba(0,0,0,0.02); border: 1px dashed var(--color-border-2)">
-                <span class="text-[9px] uppercase font-mono tracking-wider" style="color: var(--color-ink-5)">搜索结果预览</span>
-                <div class="space-y-1.5">
-                  <p class="text-sm font-semibold" style="color: #1a0dab">{{ siteConfig.siteInfo.seoTitle || '网站标题' }}</p>
-                  <p class="text-[11px]" style="color: #006621">{{ siteConfig.siteInfo.contactEmail || 'Xo' }}</p>
-                  <p class="text-xs leading-relaxed" style="color: var(--color-ink-4)">{{ siteConfig.siteInfo.seoDescription || '网站描述...' }}</p>
-                </div>
-              </div>
-
-              <!-- Email Notification Settings -->
-              <div class="glass-card p-6 space-y-4 mt-6">
-                <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border)">
-                  <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">✉️ 邮件通知设置 (SMTP)</h3>
-                  <!-- Bulletproof Dropdown Selector -->
-                  <select 
-                    v-model="siteConfig.emailSettings.enabled" 
-                    class="text-xs font-mono py-1 px-2.5 rounded-lg border border-black/10 bg-white"
-                    style="color: var(--color-ink-1); outline: none;"
-                  >
-                    <option :value="false">❌ 已关闭</option>
-                    <option :value="true">🟢 已开启</option>
-                  </select>
-                </div>
-
-                <div v-if="siteConfig.emailSettings?.enabled" class="space-y-3.5 text-xs">
-                  <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1.5">
-                      <label class="form-label">SMTP 服务器主机</label>
-                      <input v-model="siteConfig.emailSettings.smtpHost" class="form-input font-mono" placeholder="smtp.qq.com" />
-                    </div>
-                    <div class="space-y-1.5">
-                      <label class="form-label">SMTP 端口</label>
-                      <input v-model="siteConfig.emailSettings.smtpPort" type="number" class="form-input font-mono" placeholder="465" />
-                    </div>
-                  </div>
-
                   <div class="space-y-1.5">
-                    <label class="form-label">发件人昵称 (Sender Name)</label>
-                    <input v-model="siteConfig.emailSettings.senderName" class="form-input" placeholder="Xo Studio" />
+                    <label class="form-label">页脚标语</label>
+                    <input v-model="siteConfig.siteInfo.footerTagline" class="form-input" placeholder="基于达芬奇色彩科学规范开发" />
                   </div>
-
-                  <div class="space-y-1.5">
-                    <label class="form-label">发件邮箱账户 (SMTP User)</label>
-                    <input v-model="siteConfig.emailSettings.smtpUser" class="form-input font-mono" placeholder="your-email@qq.com" />
-                  </div>
-
-                  <div class="space-y-1.5">
-                    <label class="form-label">展示发件邮箱 (Sender Email)</label>
-                    <input v-model="siteConfig.emailSettings.senderEmail" class="form-input font-mono" placeholder="例如: noreply@xoxox.bond (留空则默认使用账户)" />
-                    <p class="text-[9px] text-slate-400">如果是 QQ/163 邮箱请留空；如果是 Resend 自建域名邮箱，请务必填写您的域名邮箱地址（如 noreply@xoxox.bond）。</p>
-                  </div>
-
-                  <div class="space-y-1.5">
-                    <label class="form-label">SMTP 授权码/密码 (SMTP Pass)</label>
-                    <input v-model="siteConfig.emailSettings.smtpPass" type="password" class="form-input font-mono" placeholder="密码/授权码" />
-                    <p class="text-[9px] text-slate-400">请使用网易或QQ邮箱的“客户端授权密码/授权码”，非邮箱登录密码。</p>
-                  </div>
-
-                  <div class="flex items-center gap-2 pt-1.5">
-                    <input type="checkbox" id="smtp-secure-check" v-model="siteConfig.emailSettings.smtpSecure" class="rounded border-gray-300 text-amber-700 focus:ring-amber-500" />
-                    <label for="smtp-secure-check" class="text-[10px] font-bold select-none cursor-pointer" style="color: var(--color-ink-3)">启用 SSL 安全链接 (默认启用)</label>
-                  </div>
-                </div>
-                <p v-else class="text-[10px] text-slate-400 leading-relaxed">启用后，当管理员在后台审批通过申请，系统会自动向申请者的邮箱发送包含密码和观看链接的通知邮件。客户走直接自动通道获取密码时，也会收到密码备份通知。</p>
-              </div>
-
-              <!-- Alipay Order Settings -->
-              <div class="glass-card p-6 space-y-4">
-                <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border)">
-                  <div>
-                    <h3 class="text-xs font-mono font-semibold uppercase tracking-wider" style="color: var(--color-ink-3)">支付宝专属下单</h3>
-                    <p class="text-[10px] mt-1" style="color: var(--color-ink-5)">私钥仅加密保存在服务端，不会返回浏览器。</p>
-                  </div>
-                  <select v-model="alipayConfig.enabled" class="text-xs font-mono py-1 px-2.5 rounded-lg border border-black/10 bg-white">
-                    <option :value="false">已关闭</option>
-                    <option :value="true">已启用</option>
-                  </select>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div class="space-y-1.5"><label class="form-label">App ID</label><input v-model="alipayConfig.appId" class="form-input font-mono" placeholder="2026..." /></div>
-                  <div class="space-y-1.5"><label class="form-label">网关地址</label><input v-model="alipayConfig.gateway" class="form-input font-mono" placeholder="https://openapi.alipay.com/gateway.do" /></div>
-                  <div class="space-y-1.5"><label class="form-label">异步通知地址</label><input v-model="alipayConfig.notifyUrl" class="form-input font-mono" placeholder="https://你的域名/api/order/xxx/notify" /></div>
-                  <div class="space-y-1.5"><label class="form-label">同步返回地址</label><input v-model="alipayConfig.returnUrl" class="form-input font-mono" placeholder="https://你的域名/order/xxx?paid=1" /></div>
-                </div>
-                <div class="space-y-1.5"><label class="form-label">支付宝公钥</label><textarea v-model="alipayConfig.alipayPublicKey" rows="3" class="form-input font-mono text-[10px]" placeholder="仅用于验签，可选填"></textarea></div>
-                <div class="space-y-1.5"><label class="form-label">应用私钥</label><textarea v-model="alipayPrivateKeyInput" rows="4" class="form-input font-mono text-[10px]" placeholder="填写后加密保存；留空表示保持原私钥"></textarea></div>
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-[10px] font-mono" :class="alipayConfig.hasPrivateKey ? 'text-emerald-700' : 'text-amber-700'">{{ alipayConfig.hasPrivateKey ? '私钥已配置（服务端加密保存）' : '尚未配置私钥' }}</span>
-                  <button type="button" class="btn-primary text-xs px-4 py-2" @click="saveAlipayConfig">保存支付宝配置</button>
-                </div>
-              </div>
-
-              <!-- AI Model API Settings Card (支持对接真实大模型) -->
-              <div class="glass-card p-6 space-y-4">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <span class="text-lg">🤖</span>
-                    <div>
-                      <h3 class="font-display font-bold text-sm" style="color: var(--color-ink-1)">AI 大模型 API 对接</h3>
-                      <p class="text-[11px]" style="color: var(--color-ink-5)">支持接入 DeepSeek、OpenAI、Gemini 或自定义中转 API，为【✨ AI 智能生成】提供真实 LLM 大模型推理</p>
-                    </div>
-                  </div>
-                  <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-700/10 text-amber-800 border border-amber-700/20">内置/Key双引擎</span>
-                </div>
-
-                <div class="space-y-4 pt-2">
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="grid sm:grid-cols-2 gap-3 pt-1">
                     <div class="space-y-1.5">
-                      <label class="form-label">模型服务商 (AI Provider)</label>
-                      <select v-model="siteConfig.aiSettings.provider" class="form-input text-xs">
-                        <option value="builtin">内置高奢解说引擎 (无需 API Key 秒级生成)</option>
-                        <option value="deepseek">DeepSeek 官方 API (推荐)</option>
-                        <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
-                        <option value="gemini">Google Gemini API</option>
-                        <option value="custom">自定义 OpenAI 兼容中转 API</option>
-                      </select>
+                      <label class="form-label">顶部导航预约胶囊徽标</label>
+                      <input v-model="siteConfig.siteInfo.navbarBookingBadge" class="form-input text-xs font-mono" placeholder="OPEN FOR BOOKING" />
                     </div>
-
                     <div class="space-y-1.5">
-                      <label class="form-label">模型名称 (Model ID)</label>
-                      <input
-                        v-model="siteConfig.aiSettings.modelName"
-                        class="form-input font-mono text-xs"
-                        placeholder="deepseek-chat 或 gpt-4o-mini"
-                      />
+                      <label class="form-label">页脚色彩科学徽标</label>
+                      <input v-model="siteConfig.siteInfo.footerColorScienceBadge" class="form-input text-xs font-mono" placeholder="ACEScct / Rec.709" />
                     </div>
                   </div>
+                </div>
 
-                  <div v-if="siteConfig.aiSettings?.provider !== 'builtin'" class="space-y-4 pt-1">
-                    <div class="space-y-1.5">
-                      <label class="form-label flex items-center justify-between">
-                        <span>API Base Endpoint (接口地址)</span>
-                        <span class="text-[9px] font-mono text-amber-700">默认: https://api.deepseek.com/v1</span>
-                      </label>
-                      <input
-                        v-model="siteConfig.aiSettings.apiEndpoint"
-                        class="form-input font-mono text-xs"
-                        placeholder="https://api.deepseek.com/v1"
-                      />
-                    </div>
-
-                    <div class="space-y-1.5">
-                      <label class="form-label flex items-center justify-between">
-                        <span>API Key (密钥)</span>
-                        <span class="text-[9px] font-mono opacity-60">格式: sk-xxxxxxxxxxxx</span>
-                      </label>
-                      <input
-                        v-model="siteConfig.aiSettings.apiKey"
-                        type="password"
-                        class="form-input font-mono text-xs"
-                        placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-                      />
-                    </div>
+                <!-- Preview card -->
+                <div class="p-4 rounded-xl space-y-2 mt-2 bg-black/[0.02] border border-dashed border-black/10">
+                  <span class="text-[9px] uppercase font-mono tracking-wider text-slate-400">搜索引擎卡片实时模拟</span>
+                  <div class="space-y-1">
+                    <p class="text-sm font-semibold text-blue-700 hover:underline cursor-pointer">{{ siteConfig.siteInfo.seoTitle || '网站标题' }}</p>
+                    <p class="text-[11px] text-emerald-700 font-mono">{{ siteConfig.siteInfo.contactEmail || 'Xo' }}</p>
+                    <p class="text-xs leading-relaxed text-slate-600 line-clamp-2">{{ siteConfig.siteInfo.seoDescription || '网站描述...' }}</p>
                   </div>
                 </div>
               </div>
@@ -3576,13 +3500,28 @@
           </div>
         </div>
 
-          <div v-else-if="activeTab === 'alipay'" key="alipay-clean" class="space-y-8">
-            <div class="p-6 glass-card flex items-center justify-between">
-              <div><h2 class="text-base font-semibold font-display">支付宝电脑网站支付配置</h2><p class="text-xs mt-1" style="color: var(--color-ink-5)">配置 App ID、网关、公钥、私钥和回调地址；私钥只加密保存在服务端。</p></div>
-              <select v-model="alipayConfig.enabled" class="text-xs py-2 px-3 rounded-lg border border-black/10 bg-white"><option :value="false">关闭支付</option><option :value="true">启用支付</option></select>
-            </div>
-            <div class="glass-card p-6 space-y-4">
-              <div class="grid sm:grid-cols-2 gap-3">
+          <div v-else-if="activeTab === 'alipay'" key="alipay-clean" class="space-y-6">
+            <div class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-5">
+              <div class="border-b border-black/[0.06] pb-3 flex items-center justify-between">
+                <div>
+                  <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                    <span>💳</span>
+                    <span>支付宝开放平台支付网关参数</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">配置 App ID、网关、公钥、私钥和回调地址；私钥仅加密保存在服务端</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-mono font-bold" :class="alipayConfig.enabled ? 'text-emerald-700' : 'text-slate-400'">
+                    {{ alipayConfig.enabled ? '🟢 支付已启用' : '⚪ 支付已关闭' }}
+                  </span>
+                  <select v-model="alipayConfig.enabled" class="text-xs py-1 px-2.5 rounded-lg border border-black/10 bg-white font-mono">
+                    <option :value="false">关闭支付</option>
+                    <option :value="true">启用支付</option>
+                  </select>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div class="grid sm:grid-cols-2 gap-3">
                 <label class="form-label">App ID<input v-model="alipayConfig.appId" class="form-input font-mono" placeholder="2026..." /></label>
                 <label class="form-label">支付宝网关<input v-model="alipayConfig.gateway" class="form-input font-mono" placeholder="https://openapi.alipay.com/gateway.do" /></label>
                 <label class="form-label">异步通知地址<input v-model="alipayConfig.notifyUrl" class="form-input font-mono" placeholder="https://你的域名/api/order/xiao/notify" /></label>
@@ -3590,79 +3529,17 @@
               </div>
               <label class="form-label">支付宝公钥<textarea v-model="alipayConfig.alipayPublicKey" rows="4" class="form-input font-mono text-[10px]" /></label>
               <label class="form-label">应用私钥<textarea v-model="alipayPrivateKeyInput" rows="5" class="form-input font-mono text-[10px]" placeholder="留空表示保持原私钥" /></label>
-              <div class="flex items-center justify-between"><span class="text-xs" :class="alipayConfig.hasPrivateKey ? 'text-emerald-700' : 'text-amber-700'">{{ alipayConfig.hasPrivateKey ? '私钥已加密保存' : '尚未配置私钥' }}</span><button type="button" class="btn-primary text-xs py-2 px-5" @click="saveAlipayConfig">保存支付宝配置</button></div>
-            </div>
-          </div>
-
-          <div v-else-if="activeTab === 'alipay-legacy'" key="alipay" class="space-y-8">
-            <div class="p-6 glass-card flex items-center justify-between">
-              <div><h2 class="text-base font-semibold font-display">支付宝支付配置</h2><p class="text-xs mt-1" style="color: var(--color-ink-5)">私钥只会加密保存在服务器，不会返回浏览器。</p></div>
-              <select v-model="alipayConfig.enabled" class="text-xs py-2 px-3 rounded-lg border border-black/10 bg-white"><option :value="false">关闭支付</option><option :value="true">启用支付</option></select>
-            </div>
-            <div class="glass-card p-6 space-y-4">
-              <h3 class="text-sm font-semibold">客户交付入口与查看密钥</h3>
-              <div class="grid lg:grid-cols-[1fr_auto_auto] gap-3 items-end">
-                <label class="form-label">客户账号
-                  <select v-model="deliveryEditorId" class="form-input">
-                    <option value="">选择客户</option>
-                    <option v-for="u in registeredUsers.filter((x:any) => x.role !== 'admin')" :key="u.id" :value="String(u.id)">{{ u.username }}{{ u.deliverySuffix ? ` · /delivery/${u.deliverySuffix}` : '' }}</option>
-                  </select>
-                </label>
-                <button type="button" class="btn-primary text-xs py-2.5 px-4" :disabled="!deliveryEditorId || deliveryKeyGenerating" @click="generateDeliveryFromWorkspace">{{ deliveryKeyGenerating ? '生成中…' : '生成/更换密钥' }}</button>
-                <button type="button" class="text-xs py-2.5 px-4 rounded-lg border" :disabled="!deliveryEditorUser?.deliverySuffix" @click="copyWorkspaceDeliveryLink">复制交付地址</button>
-              </div>
-              <p v-if="deliveryEditorUser" class="text-xs text-slate-500">当前入口：/delivery/{{ deliveryEditorUser.deliverySuffix || '未生成' }}。密钥只在生成后显示一次，客户只能访问绑定的独立交付素材。</p>
-            </div>
-            <div class="glass-card p-6 space-y-4">
-              <div class="grid sm:grid-cols-2 gap-3">
-                <label class="form-label">App ID<input v-model="alipayConfig.appId" class="form-input font-mono" placeholder="2026..." /></label>
-                <label class="form-label">支付宝网关<input v-model="alipayConfig.gateway" class="form-input font-mono" placeholder="https://openapi.alipay.com/gateway.do" /></label>
-                <label class="form-label">异步通知地址<input v-model="alipayConfig.notifyUrl" class="form-input font-mono" placeholder="https://你的域名/api/order/xiao/notify" /></label>
-                <label class="form-label">同步返回地址<input v-model="alipayConfig.returnUrl" class="form-input font-mono" placeholder="https://你的域名/order/xiao?paid=1" /></label>
-              </div>
-              <label class="form-label">支付宝公钥<textarea v-model="alipayConfig.alipayPublicKey" rows="4" class="form-input font-mono text-[10px]" /></label>
-              <label class="form-label">应用私钥<textarea v-model="alipayPrivateKeyInput" rows="5" class="form-input font-mono text-[10px]" placeholder="留空表示保持原私钥" /></label>
-              <div class="flex items-center justify-between"><span class="text-xs" :class="alipayConfig.hasPrivateKey ? 'text-emerald-700' : 'text-amber-700'">{{ alipayConfig.hasPrivateKey ? '私钥已加密保存' : '尚未配置私钥' }}</span><button type="button" class="btn-primary text-xs py-2 px-5" @click="saveAlipayConfig">保存支付宝配置</button></div>
-            </div>
-          </div>
-
-          <div v-else-if="activeTab === 'delivery'" key="delivery" class="space-y-8">
-            <div class="p-6 glass-card"><h2 class="text-base font-semibold font-display">专属交付工作区</h2><p class="text-xs mt-1" style="color: var(--color-ink-5)">为指定客户选择作品、生成专属后缀和查看密钥。交付页沿用全站视频播放器水印与隐形 Canvas 水印配置。</p></div>
-            <div class="glass-card p-6 space-y-4">
-              <h3 class="text-sm font-semibold">选择客户并配置作品</h3>
-              <div class="grid lg:grid-cols-[1fr_auto] gap-3 items-end">
-                <label class="form-label">客户账号
-                  <select v-model="deliveryEditorId" class="form-input">
-                    <option value="">选择客户</option>
-                    <option v-for="u in registeredUsers.filter((x:any) => x.role !== 'admin')" :key="u.id" :value="String(u.id)">{{ u.username }}{{ u.deliverySuffix ? ` · /delivery/${u.deliverySuffix}` : '' }}</option>
-                  </select>
-                </label>
-                <button type="button" class="btn-primary text-xs py-2.5 px-5" :disabled="!deliveryEditorId" @click="openDeliveryEditor">编辑作品权限</button>
-              </div>
-              <div v-if="deliveryEditorUser" class="grid sm:grid-cols-2 gap-3 border-t border-black/10 pt-4">
-                <div class="rounded-xl border border-black/10 p-4 text-xs">
-                  <p class="font-bold">{{ deliveryEditorUser.username }} 的交付配置</p>
-                  <p class="mt-2 text-slate-500">后缀：/delivery/{{ deliveryEditorUser.deliverySuffix || '未生成' }}</p>
-                  <div class="flex gap-2 mt-3">
-                    <button type="button" class="px-3 py-1.5 rounded-lg border text-xs" @click="openEditUserModal(deliveryEditorUser)">编辑作品</button>
-                    <button type="button" class="px-3 py-1.5 rounded-lg border text-xs" @click="generateDeliveryFromWorkspace">生成/更换密钥</button>
-                    <button type="button" class="px-3 py-1.5 rounded-lg border text-xs" @click="copyWorkspaceDeliveryLink">复制交付地址</button>
-                  </div>
-                </div>
-                <div class="rounded-xl border border-emerald-700/20 bg-emerald-500/5 p-4 text-xs text-emerald-800">
-                  <strong>已授权作品</strong>
-                  <p class="mt-2">{{ deliveryEditorUser.allowedProjects || '暂未选择作品，请点击“编辑作品”' }}</p>
+                <div class="flex items-center justify-between pt-2">
+                  <span class="text-xs" :class="alipayConfig.hasPrivateKey ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'">
+                    {{ alipayConfig.hasPrivateKey ? '🔒 私钥已加密保存于服务端' : '⚠️ 尚未配置应用私钥' }}
+                  </span>
+                  <button type="button" class="btn-primary text-xs py-2 px-5" @click="saveAlipayConfig">保存支付宝配置</button>
                 </div>
               </div>
-              <div class="border-t border-black/10 pt-4 text-xs text-slate-500">视频交付页面继续使用后台的可见 Logo 水印、隐形 Canvas 水印和项目访问控制。</div>
             </div>
           </div>
 
-          <div v-else-if="activeTab === 'delivery-library'" key="delivery-library" class="space-y-8">
-            <div class="p-6 glass-card flex items-center justify-between">
-              <div><h2 class="text-base font-semibold font-display">专属交付素材库</h2><p class="text-xs mt-1" style="color: var(--color-ink-5)">独立于首页作品库，仅用于客户视频交付。</p></div>
-              <button type="button" class="btn-primary text-xs py-2 px-4" @click="resetDeliveryItem">新增交付视频</button>
-            </div>
+          <div v-else-if="activeTab === 'delivery-library'" key="delivery-library" class="space-y-6">
             <div class="glass-card p-6 space-y-4">
               <h3 class="text-sm font-semibold">客户交付入口与查看密钥</h3>
               <div class="grid lg:grid-cols-[1fr_auto_auto] gap-3 items-end">
@@ -3702,15 +3579,8 @@
             </div>
           </div>
 
-          <div v-else-if="activeTab === 'orders'" key="orders" class="space-y-8">
-            <div class="flex items-center justify-between p-6 glass-card">
-              <div>
-                <h2 class="text-base font-semibold font-display">订单页面与商品配置</h2>
-                <p class="text-xs mt-1" style="color: var(--color-ink-5)">客户只能查看这里保存的商品与固定金额，不能自行改价。绑定了注册客户的订单页面为专属私密通道，会自动在 /order 公开商品目录中隐藏，仅该客户在其后台专属可见。</p>
-              </div>
-              <button type="button" class="btn-primary text-xs py-2 px-4" @click="resetOrderPage">新建订单页面</button>
-            </div>
-            <div class="grid lg:grid-cols-[1fr_1.2fr] gap-6">
+          <div v-else-if="activeTab === 'orders'" key="orders" class="space-y-6">
+            <div class="grid lg:grid-cols-[1fr_1.2fr] gap-6 items-start">
               <div class="glass-card p-6 space-y-4">
                 <h3 class="font-semibold text-sm">编辑订单页面</h3>
                 <div class="grid grid-cols-2 gap-3">
@@ -3827,15 +3697,8 @@
             </div>
           </div>
 
-          <div v-else-if="activeTab === 'watermark'" key="watermark" class="space-y-8">
-            <div class="flex items-center justify-between p-6 glass-card">
-              <div>
-                <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">视频水印设置</h2>
-                <p class="text-xs font-mono mt-0.5" style="color: var(--color-ink-5)">配置视频播放器上的可见Logo水印与隐形Canvas水印，以及水印提取页面的密码设置。</p>
-              </div>
-              <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5">保存水印配置</button>
-            </div>
-            <div class="grid md:grid-cols-2 gap-8">
+          <div v-else-if="activeTab === 'watermark'" key="watermark" class="space-y-6">
+            <div class="grid md:grid-cols-2 gap-6 items-start">
               <div class="glass-card p-6 space-y-5">
                 <div class="flex items-center justify-between border-b pb-4" style="border-color: var(--color-border)">
                   <div>
@@ -3897,16 +3760,8 @@
             </div>
           </div>
 
-          <div v-else-if="activeTab === 'advanced'" key="advanced" class="space-y-8">
+          <div v-else-if="activeTab === 'advanced'" key="advanced" class="space-y-6">
             <!-- TAB 5: ADVANCED & PLAYGROUND -->
-          <!-- Save Top Bar -->
-          <div class="flex items-center justify-between p-6 glass-card">
-            <div>
-              <h2 class="text-base font-semibold font-display" style="color: var(--color-ink-1)">高级设置 & 主题玩法</h2>
-              <p class="text-xs font-mono mt-0.5" style="color: var(--color-ink-5)">调节品牌视觉主题、开启顶栏通知广播、备份导出全站 JSON 数据以及一键应用预设身份。</p>
-            </div>
-            <button @click="saveSiteConfig" class="btn-primary text-xs py-2 px-5">保存高级配置</button>
-          </div>
 
           <!-- 1. Project Password Manager -->
           <div class="glass-card p-8 space-y-6">
@@ -4013,13 +3868,132 @@
             </div>
           </div>
 
-          <!-- 2. Broadcast Announcement Banner Sandbox (整合全新沙盒系统) -->
-          <AdminAnnouncementSandbox
-            :site-config="siteConfig"
-            @save="saveSiteConfig"
-            @open-ai="openNoticeAiModal"
-            @toast="showToast"
-          />
+          <!-- 2. Email Notification Settings (SMTP) & AI Model API Settings -->
+          <div class="grid lg:grid-cols-2 gap-6 items-start">
+            <!-- Email Notification Settings (SMTP) -->
+            <div v-if="siteConfig?.emailSettings" class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-5">
+              <div class="flex items-center justify-between border-b border-black/[0.06] pb-3">
+                <div>
+                  <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                    <span>✉️</span>
+                    <span>邮件通知服务 (SMTP)</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">申请审批、自动看片密码派发及订单回执通知</p>
+                </div>
+                <select 
+                  v-model="siteConfig.emailSettings.enabled" 
+                  class="text-xs font-mono py-1 px-2.5 rounded-lg border border-black/10 bg-white"
+                >
+                  <option :value="false">❌ 已关闭</option>
+                  <option :value="true">🟢 已开启</option>
+                </select>
+              </div>
+
+              <div v-if="siteConfig.emailSettings?.enabled" class="space-y-3.5 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="form-label">SMTP 服务器主机</label>
+                    <input v-model="siteConfig.emailSettings.smtpHost" class="form-input font-mono" placeholder="smtp.qq.com" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="form-label">SMTP 端口</label>
+                    <input v-model="siteConfig.emailSettings.smtpPort" type="number" class="form-input font-mono" placeholder="465" />
+                  </div>
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="form-label">发件人昵称 (Sender Name)</label>
+                  <input v-model="siteConfig.emailSettings.senderName" class="form-input" placeholder="Xo Studio" />
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="form-label">发件邮箱账户 (SMTP User)</label>
+                  <input v-model="siteConfig.emailSettings.smtpUser" class="form-input font-mono" placeholder="your-email@qq.com" />
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="form-label">展示发件邮箱 (Sender Email)</label>
+                  <input v-model="siteConfig.emailSettings.senderEmail" class="form-input font-mono" placeholder="例如: noreply@xoxox.bond (留空则默认使用账户)" />
+                  <p class="text-[9px] text-slate-400">如果是 QQ/163 邮箱请留空；如果是自建域名邮箱，请填域名邮箱地址。</p>
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="form-label">SMTP 授权码/密码 (SMTP Pass)</label>
+                  <input v-model="siteConfig.emailSettings.smtpPass" type="password" class="form-input font-mono" placeholder="密码/客户端授权码" />
+                  <p class="text-[9px] text-slate-400">请使用网易或QQ邮箱的“客户端授权密码/授权码”，非邮箱登录密码。</p>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1.5">
+                  <input type="checkbox" id="smtp-secure-check-adv" v-model="siteConfig.emailSettings.smtpSecure" class="rounded border-gray-300 text-amber-700 focus:ring-amber-500" />
+                  <label for="smtp-secure-check-adv" class="text-[11px] font-bold select-none cursor-pointer text-slate-700">启用 SSL 安全链接 (默认开启)</label>
+                </div>
+              </div>
+              <p v-else class="text-[11px] text-slate-400 leading-relaxed">启用后，当管理员在后台审批通过申请，系统会自动向申请者邮箱发送包含密码和观看链接的通知邮件。</p>
+            </div>
+
+            <!-- AI Model API Settings Card -->
+            <div v-if="siteConfig?.aiSettings" class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-5">
+              <div class="flex items-center justify-between border-b border-black/[0.06] pb-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">🤖</span>
+                  <div>
+                    <h3 class="font-display font-bold text-sm text-slate-900">AI 大模型推理引擎对接</h3>
+                    <p class="text-[11px] text-slate-400 font-mono mt-0.5">接入 DeepSeek / OpenAI / Gemini 为智能创作注入真实算力</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-700/10 text-amber-800 border border-amber-700/20 font-bold">双引擎</span>
+              </div>
+
+              <div class="space-y-4 pt-1">
+                <div class="space-y-1.5">
+                  <label class="form-label">模型服务商 (AI Provider)</label>
+                  <select v-model="siteConfig.aiSettings.provider" class="form-input text-xs">
+                    <option value="builtin">内置高奢解说引擎 (无需 API Key 秒级生成)</option>
+                    <option value="deepseek">DeepSeek 官方 API (推荐)</option>
+                    <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+                    <option value="gemini">Google Gemini API</option>
+                    <option value="custom">自定义 OpenAI 兼容中转 API</option>
+                  </select>
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="form-label">模型名称 (Model ID)</label>
+                  <input
+                    v-model="siteConfig.aiSettings.modelName"
+                    class="form-input font-mono text-xs"
+                    placeholder="deepseek-chat 或 gpt-4o-mini"
+                  />
+                </div>
+
+                <div v-if="siteConfig.aiSettings?.provider !== 'builtin'" class="space-y-4 pt-1">
+                  <div class="space-y-1.5">
+                    <label class="form-label flex items-center justify-between">
+                      <span>API Base Endpoint (接口基址)</span>
+                      <span class="text-[9px] font-mono text-amber-700">默认: https://api.deepseek.com/v1</span>
+                    </label>
+                    <input
+                      v-model="siteConfig.aiSettings.apiEndpoint"
+                      class="form-input font-mono text-xs"
+                      placeholder="https://api.deepseek.com/v1"
+                    />
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label class="form-label flex items-center justify-between">
+                      <span>API Key (密钥)</span>
+                      <span class="text-[9px] font-mono opacity-60">格式: sk-xxxxxxxxxxxx</span>
+                    </label>
+                    <input
+                      v-model="siteConfig.aiSettings.apiKey"
+                      type="password"
+                      class="form-input font-mono text-xs"
+                      placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
 
           <!-- 3. Ambient Music Player Configuration -->
@@ -5270,10 +5244,37 @@ const alert = (msg: string) => {
 
 const tabCategories = [
   { id: 'all', name: '全部', fullName: '全部功能模块 (15)' },
-  { id: 'core', name: '核心', fullName: '经营核心 (数据/公告/订单/交付)' },
-  { id: 'content', name: '内容', fullName: '内容展示 (作品/博客/首页/履历)' },
-  { id: 'business', name: '协同', fullName: '客户协同 (预约/申请/用户/支付)' },
+  { id: 'core', name: '经营', fullName: '经营中枢 (数据/公告/订单/交付)' },
+  { id: 'content', name: '内容', fullName: '内容创作 (作品/博客/首页/履历)' },
+  { id: 'business', name: '协同', fullName: '商务协同 (预约/申请/用户/支付)' },
   { id: 'system', name: '系统', fullName: '系统安全 (站点/水印/高级设置)' }
+]
+
+const tabSections = [
+  {
+    id: 'core',
+    title: '经营中枢',
+    sub: 'CORE SUITE',
+    icon: 'chart-2'
+  },
+  {
+    id: 'content',
+    title: '内容创作',
+    sub: 'CREATIVE STUDIO',
+    icon: 'video-play'
+  },
+  {
+    id: 'business',
+    title: '商务协同',
+    sub: 'COLLABORATION',
+    icon: 'profile-2user'
+  },
+  {
+    id: 'system',
+    title: '系统安全',
+    sub: 'SYSTEM & SECURITY',
+    icon: 'setting'
+  }
 ]
 
 const selectedCategory = ref('all')
@@ -5309,6 +5310,28 @@ const currentCategoryName = computed(() => {
   return cat ? cat.name : '中枢'
 })
 
+const tabDescriptions: Record<string, string> = {
+  analytics: '全站综合指标大盘、实时在线访客、各页面转化率与地理分布安全遥测',
+  announcement: '全站置顶公告栏、广播通知、跑马灯与动态胶囊消息编排',
+  orders: '客户专属成片交付订单、交易明细、支付宝收款与付款状态流水',
+  'delivery-library': '专属客户交付素材库、独立后缀通道与查看密钥分发',
+  projects: '影视作品展映库、DaVinci 调色对比图、4K母带视频源与密码保护',
+  blog: '行业灵感文章撰写、分类管理、AI摘要生成与前台专栏展示',
+  home: '主页 Hero 标语、视频背景、好莱坞工作流管线与行动号召',
+  about: '个人简历与头衔、调色台硬件规格、技能指标与电影后期理念',
+  bookings: '商业项目合作咨询、预约排期处理与意向客户联络',
+  requests: '商业项目看片专属密码申请审核、一键审批与专属观摩链接',
+  users: '注册客户账号管理、私密交付权限分配与角色控制',
+  alipay: '支付宝开放平台支付网关参数、公私钥密钥对与异步回调配置',
+  siteinfo: '全局品牌标识、公开联系方式、SEO 搜索引擎参数与社交平台矩阵',
+  watermark: '达芬奇色彩防伪明水印与隐形数字版权 Canvas 防盗印章',
+  advanced: '管理员账号凭证、SMTP邮件发信服务、全站备份与黑名单访问控制'
+}
+
+const currentTabDescription = computed(() => {
+  return tabDescriptions[activeTab.value] || '工作室管理中枢配置模块'
+})
+
 const filteredTabs = computed(() => {
   let list = tabs
   if (selectedCategory.value !== 'all') {
@@ -5323,6 +5346,16 @@ const filteredTabs = computed(() => {
     )
   }
   return list
+})
+
+const groupedTabs = computed(() => {
+  return tabSections.map(sec => {
+    const items = filteredTabs.value.filter(t => t.category === sec.id)
+    return {
+      ...sec,
+      items
+    }
+  }).filter(sec => sec.items.length > 0)
 })
 
 const scrollToTop = () => {
@@ -5615,7 +5648,7 @@ const projectRanking = computed(() => {
 })
 const siteConfig = useState<any>('site-config', () => ({
   siteInfo: {
-    brandName: 'Xo', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
+    brandName: 'Xo', title: 'Xo Studio', ownerName: 'Xo', ownerInitial: 'Z', avatar: '',
     contactEmail: 'hello@Xo', vimeoUrl: '', githubUrl: '', twitterUrl: '', linkedinUrl: '',
     bilibiliUrl: '', youtubeUrl: '', instagramUrl: '', whatsappNumber: '', wechatId: '',
     seoTitle: '', seoDescription: '', footerTagline: '基于达芬奇色彩科学规范开发',
@@ -5628,7 +5661,7 @@ const siteConfig = useState<any>('site-config', () => ({
     enabled: true, text: '', link: '', badge: 'NOTICE'
   },
   music: {
-    enabled: true, label: 'AMBIENT AUDIO', url: ''
+    enabled: true, label: 'AMBIENT AUDIO', url: '', volume: 70
   },
   blog: {
     heroBadge: 'MODERN SERENITY BLOG', heroTitle: '灵感、技术与设计探索', heroSub: '采用次世代胶囊美学设计系统 (Pill-shaped Design System)，记录极致前沿的切片与思考。'
@@ -5636,6 +5669,8 @@ const siteConfig = useState<any>('site-config', () => ({
   home: {
     heroTitle1: '', heroTitle2: '', heroTitle3: '', heroSub: '',
     statValue1: '', statLabel1: '', statValue2: '', statLabel2: '',
+    statValue3: '', statLabel3: '', colorSpecText: '', heroVideoCodec: '', heroVideoFps: '',
+    tvcProjectNodes: '', tvcProjectBadge: '',
     profileCardTitle: '', profileCardSub: '', profileCardDesc: '',
     skillsTags: [], bookingStatus: '', heroVideoUrl: '', heroVideoPoster: '', heroTechStack: [],
     featuredProject1: '', featuredProject2: '', collaborativeBrands: [],
@@ -5645,6 +5680,7 @@ const siteConfig = useState<any>('site-config', () => ({
   },
   about: { role: '', bio: '', bioSub: '', skills: [], experiences: [], philosophies: [], hardwareBadge: '100% DCI-P3 CALIBRATED', hardwareTitle: '电影工业级监看与调色台配置', hardwareSpecs: [] },
   booking: {
+    bookingOpen: true,
     heroBadge: 'PRODUCTION & GRADING BOOKING (2026)', heroTitle: '商业合作与后期排期', heroSub: '',
     services: [], processSteps: [], faqs: []
   },
@@ -5659,6 +5695,12 @@ const siteConfig = useState<any>('site-config', () => ({
     smtpPass: '',
     senderName: 'Xo Studio',
     senderEmail: ''
+  },
+  aiSettings: {
+    provider: 'builtin',
+    modelName: 'deepseek-chat',
+    apiEndpoint: 'https://api.deepseek.com/v1',
+    apiKey: ''
   }
 }))
 
@@ -5730,7 +5772,8 @@ const editDeliveryItem = (item: any) => { deliveryItemForm.value = { ...item } }
 const saveDeliveryItem = async () => {
   deliveryItemSaving.value = true
   try {
-    const result = await $fetch<any>('/api/admin/delivery-items', { method: 'PUT', body: deliveryItemForm.value })
+    const encryptedBody = await encryptRsaHybrid(deliveryItemForm.value)
+    const result = await $fetch<any>('/api/admin/delivery-items', { method: 'PUT', body: encryptedBody })
     const index = deliveryItems.value.findIndex(item => item.id === result.item.id)
     if (index >= 0) deliveryItems.value[index] = result.item
     else deliveryItems.value.unshift(result.item)
@@ -5751,7 +5794,8 @@ const generateDeliveryFromWorkspace = async () => {
   if (!deliveryEditorUser.value || deliveryKeyGenerating.value) return
   deliveryKeyGenerating.value = true
   try {
-    const response = await $fetch<any>('/api/admin/users/delivery-credentials', { method: 'POST', body: { id: deliveryEditorUser.value.id, rotate: true } })
+    const encryptedBody = await encryptRsaHybrid({ id: deliveryEditorUser.value.id, rotate: true })
+    const response = await $fetch<any>('/api/admin/users/delivery-credentials', { method: 'POST', body: encryptedBody })
     const index = registeredUsers.value.findIndex((u: any) => String(u.id) === String(deliveryEditorUser.value.id))
     if (index >= 0) registeredUsers.value[index] = { ...registeredUsers.value[index], deliverySuffix: response.deliverySuffix, deliveryKeyHint: response.keyHint }
     alert(`密钥已生成：${response.deliveryKey || ''}`)
@@ -5785,7 +5829,8 @@ const onOrderPageClientChange = () => {
 const saveOrderPage = async () => {
   orderPageSaving.value = true
   try {
-    const result = await $fetch<any>('/api/admin/order-pages', { method: 'PUT', body: orderPageForm.value })
+    const encryptedBody = await encryptRsaHybrid(orderPageForm.value)
+    const result = await $fetch<any>('/api/admin/order-pages', { method: 'PUT', body: encryptedBody })
     const index = orderPages.value.findIndex(item => item.suffix === result.page.suffix)
     if (index >= 0) orderPages.value[index] = result.page
     else orderPages.value.unshift(result.page)
@@ -5893,9 +5938,10 @@ const copyAdminDeliveryLink = async () => {
 const saveUser = async () => {
   try {
     userForm.value.allowedProjects = selectedUserProjects.value.join(',')
+    const encryptedUser = await encryptRsaHybrid(userForm.value)
     await $fetch('/api/admin/users', {
       method: 'PUT',
-      body: userForm.value
+      body: encryptedUser
     })
     await fetchUsers()
     closeUserModal()
@@ -6091,6 +6137,15 @@ const filteredBookings = computed(() => {
   }
   return list
 })
+
+const safeExternalUrl = (url: unknown): string => {
+  if (!url || typeof url !== 'string') return '#'
+  const trimmed = url.trim()
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed
+  }
+  return '#'
+}
 
 const getServiceLabel = (type: string) => {
   const map: Record<string, string> = {
@@ -6993,7 +7048,8 @@ const saveSiteConfig = async () => {
     }
 
     const oldPath = unref(currentSuffix)
-    await $fetch('/api/site-config', { method: 'PUT', body: siteConfig.value })
+    const encryptedConfig = await encryptRsaHybrid(siteConfig.value)
+    await $fetch('/api/site-config', { method: 'PUT', body: encryptedConfig })
 
     // Clear local inputs and clean up payload key
     adminNewPassword.value = ''
@@ -7299,9 +7355,10 @@ const saveReorderedProjects = async () => {
   isReordering.value = true
   try {
     const slugs = projectsList.value.map((p: any) => p.slug)
+    const encryptedSlugs = await encryptRsaHybrid({ slugs })
     await $fetch('/api/admin/reorder-projects', {
       method: 'POST',
-      body: { slugs }
+      body: encryptedSlugs
     })
   } catch (err) {
     console.error('Failed to save project reorder:', err)
@@ -7403,8 +7460,9 @@ const saveProject = async () => {
       alert('请至少填入【封面图片 URL】或【视频 MP4 URL】中的一个。')
       return
     }
-    if (isEditing.value) await $fetch('/api/projects', { method: 'PUT', body: form.value })
-    else await $fetch('/api/projects', { method: 'POST', body: form.value })
+    const encryptedPayload = await encryptRsaHybrid(form.value)
+    if (isEditing.value) await $fetch('/api/projects', { method: 'PUT', body: encryptedPayload })
+    else await $fetch('/api/projects', { method: 'POST', body: encryptedPayload })
     await fetchProjects()
     closeModal()
   } catch (e: any) { alert(e.statusMessage || '保存失败。') }
@@ -7467,38 +7525,36 @@ const copyShareText = (r: any) => {
 
 <style scoped>
 .admin-shell {
-  color: var(--color-ink-2);
-  background:
-    radial-gradient(circle at 86% 5%, rgba(245, 158, 11, 0.12), transparent 30rem),
-    linear-gradient(135deg, rgba(255,255,255,0.72), rgba(247, 243, 236, 0.7));
+  color: #0f172a;
+  background-color: #f8fafc;
 }
 
 .admin-shell :deep(.glass-card) {
-  border: 1px solid rgba(160, 130, 90, 0.16);
-  border-radius: 1.1rem;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 10px 28px rgba(51, 39, 24, 0.055);
-  backdrop-filter: blur(14px);
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .admin-shell :deep(.glass-card:hover) {
-  border-color: rgba(180, 83, 9, 0.24);
-  box-shadow: 0 14px 34px rgba(51, 39, 24, 0.08);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
 }
 
 .admin-stat-icon {
   display: inline-grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.65rem;
-  color: var(--color-bronze-dark);
-  background: rgba(180, 83, 9, 0.08);
-  border: 1px solid rgba(180, 83, 9, 0.12);
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  color: #d97706;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.16);
 }
 
 .admin-nav-icon {
-  color: var(--color-bronze-dark);
+  color: #b45309;
 }
 
 .admin-page-header {
@@ -7511,21 +7567,23 @@ const copyShareText = (r: any) => {
   position: absolute;
   left: 0;
   bottom: -1px;
-  width: 5rem;
+  width: 4rem;
   height: 2px;
   border-radius: 999px;
-  background: var(--color-bronze);
+  background: #f59e0b;
 }
 
 .admin-page-header h1 {
-  font-size: clamp(1.85rem, 2.35vw, 2.65rem);
-  line-height: 1.08;
-  letter-spacing: -0.018em;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .admin-tab-content > .tab-fade-slide-enter-active,
 .admin-tab-content > .tab-fade-slide-leave-active {
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .admin-tab-content :deep(.font-display) {
@@ -7533,34 +7591,47 @@ const copyShareText = (r: any) => {
 }
 
 .admin-tab-content :deep(table thead th) {
-  color: var(--color-ink-5);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  color: #64748b;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
   font-weight: 700;
+  text-transform: uppercase;
 }
 
 .admin-tab-content :deep(table tbody tr) {
-  transition: background 0.18s ease, transform 0.18s ease;
+  transition: background-color 0.15s ease;
 }
 
 .admin-tab-content :deep(table tbody tr:hover) {
-  background: rgba(180, 83, 9, 0.045);
+  background-color: rgba(248, 250, 252, 0.9);
 }
 
 .admin-tab-content :deep(input:not([type="checkbox"]):not([type="range"])),
 .admin-tab-content :deep(select),
 .admin-tab-content :deep(textarea) {
-  border-radius: 0.7rem;
-  border-color: rgba(160, 130, 90, 0.22);
-  background: rgba(255, 255, 255, 0.72);
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-size: 0.8125rem;
+  transition: all 0.15s ease;
+}
+
+.admin-tab-content :deep(input:not([type="checkbox"]):not([type="range"]):focus),
+.admin-tab-content :deep(select:focus),
+.admin-tab-content :deep(textarea:focus) {
+  background-color: #ffffff;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+  outline: none;
 }
 
 .admin-tab-content :deep(button) {
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .admin-tab-content :deep(button:hover) {
-  transform: translateY(-1px);
+  transform: translateY(-0.5px);
 }
 
 .scrollbar-none::-webkit-scrollbar {

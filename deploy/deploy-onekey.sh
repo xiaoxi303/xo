@@ -114,6 +114,11 @@ else
     echo "XO_PROJECT_PASSWORD_SECRET=$PROJ_SEC" >> .env
     echo "🔑 已为现有 .env 自动补齐项目密码生成高熵密钥。"
   fi
+  if ! grep -q "XO_ALIPAY_CONFIG_SECRET" .env; then
+    ALIPAY_SEC=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+    echo "XO_ALIPAY_CONFIG_SECRET=$ALIPAY_SEC" >> .env
+    echo "🔑 已为现有 .env 自动补齐独立文件加密专属密钥。"
+  fi
   # 若现有 .env 仍包含旧的 3000 端口，全自动平滑升级为专属智能端口 3007
   if grep -q "^PORT=3000" .env; then
     sed -i "s/^PORT=3000/PORT=3007/" .env 2>/dev/null || true
@@ -123,14 +128,24 @@ else
   echo "✅ 生产配置文件已就绪 (.env 权限 600 保护)。"
 fi
 
-# 3. 同步初始化运行时数据与金库存储结构
+# 3. 同步初始化运行时数据与全站独立文件全面强制加密 (Zero-Downgrade Vault)
 echo ""
-echo "📁 正在同步初始化全站存储层与安全表单..."
-node init-server-data.js
+echo "📁 正在同步初始化全站存储层与独立文件量子金库加密 (零降级底座)..."
+node init-server-data.js 2>/dev/null || true
+
+# 全面强制加密所有独立数据文件与视频作品 Markdown (全面消除明文)
+node scripts/vault-file-tool.mjs encrypt-all
+
+# 密库私有目录设为 700 物理加固，所有独立数据文件设为 600 物理只读保护
 chmod -R 755 content 2>/dev/null || true
-# 密库私有目录设为 700 物理加固
 chmod -R 700 content/.vault 2>/dev/null || true
-echo "✅ 运行时数据表与 4096 位量子金库密钥目录已全量就绪。"
+chmod 600 content/*.json 2>/dev/null || true
+chmod 600 content/projects/*.md 2>/dev/null || true
+chmod 600 content/.sessions.json 2>/dev/null || true
+
+# 检查并输出独立加密文件状态审计
+node scripts/vault-file-tool.mjs status 2>/dev/null || true
+echo "✅ 运行时数据表、独立文件加密信封与 4096 位量子金库密钥目录已全量就绪 (100% 密文存储)。"
 
 # 4. 同步检查并安装项目依赖 (增加重试与离线容错)
 echo ""
@@ -313,8 +328,8 @@ if [ "$ALL_READY" = "true" ]; then
           ln -sf /etc/letsencrypt/live/xoxox.bond/privkey.pem /etc/ssl/xo/origin.key 2>/dev/null || true
           echo "🔒 已自动挂接现有 Let's Encrypt 证书作为 Cloudflare 回源凭证。"
         else
-          echo "🔒 正在为 Cloudflare 回源自动生成 10 年期自签高强度 Origin SSL 证书..."
-          openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+          echo "🔒 正在为 Cloudflare 回源自动生成 10 年期自签量子级高强度 4096 位 Origin SSL 证书..."
+          openssl req -x509 -nodes -days 3650 -newkey rsa:4096 \
             -keyout /etc/ssl/xo/origin.key \
             -out /etc/ssl/xo/origin.crt \
             -subj "/C=CN/ST=XO/L=Cloudflare/O=XOStudio/CN=*.xoxox.bond" >/dev/null 2>&1 || true

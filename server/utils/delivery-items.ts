@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { getRuntimeDataPath } from './storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from './storage'
 
 export interface DeliveryItem {
   id: string
@@ -15,10 +15,9 @@ export interface DeliveryItem {
 const filePath = getRuntimeDataPath('delivery-items.json')
 const normalize = (v: any) => String(v || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 64)
 function readAll(): DeliveryItem[] {
-  if (!fs.existsSync(filePath)) return []
-  try { const value = JSON.parse(fs.readFileSync(filePath, 'utf8')); return Array.isArray(value) ? value : [] } catch { return [] }
+  return readEncryptedJson<DeliveryItem[]>(filePath, [])
 }
-function writeAll(items: DeliveryItem[]) { fs.writeFileSync(filePath, JSON.stringify(items, null, 2), 'utf8') }
+function writeAll(items: DeliveryItem[]) { writeEncryptedJson(filePath, items) }
 export const getDeliveryItems = () => readAll()
 export const getDeliveryItemsBySuffix = (suffix: string) => readAll().filter(item => item.enabled && item.deliverySuffix === normalize(suffix))
 export function saveDeliveryItem(input: Partial<DeliveryItem>) {

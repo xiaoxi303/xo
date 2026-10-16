@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { defineEventHandler, readBody, getCookie } from 'h3'
-import { getRuntimeDataPath } from '../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../utils/storage'
 import { logSecurityEvent } from '../utils/security-logger'
 import { decryptRsaHybrid, isRsaHybridPayload } from '../utils/vault-cipher'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../utils/auth'
@@ -41,12 +41,41 @@ export default defineEventHandler(async (event) => {
 
   const { name, phone, email, company, serviceType, budget, timeline, description, referenceLinks } = body || {}
 
-  // Validation
+  // 1. Basic presence check
   if (!name || !phone || !email || !serviceType || !description) {
-    throw createError({ statusCode: 400, statusMessage: '请填写必填项目' })
+    throw createError({ statusCode: 400, statusMessage: '请填写必填项目。' })
   }
 
-  // Client IP is already verified above via getRealClientIP
+  // 2. Strict Input Sanitization & Length Bounds (Prevent Buffer Exhaustion & Stored XSS)
+  const cleanName = String(name).trim().slice(0, 60)
+  const cleanPhone = String(phone).trim().slice(0, 30)
+  const cleanEmail = String(email).trim().toLowerCase().slice(0, 120)
+  const cleanCompany = String(company || '').trim().slice(0, 100)
+  const cleanServiceType = String(serviceType).trim().slice(0, 80)
+  const cleanBudget = String(budget || '').trim().slice(0, 60)
+  const cleanTimeline = String(timeline || '').trim().slice(0, 60)
+  const cleanDescription = String(description).trim().slice(0, 3000)
+
+  // Validate email format
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/
+  if (!emailRegex.test(cleanEmail)) {
+    throw createError({ statusCode: 400, statusMessage: '请输入格式有效的联系邮箱。' })
+  }
+
+  // Strictly enforce safe URL scheme for reference links (Block javascript:, data:, vbscript:)
+  let cleanReferenceLinks = ''
+  if (referenceLinks && String(referenceLinks).trim()) {
+    const rawLink = String(referenceLinks).trim().slice(0, 500)
+    try {
+      const parsedUrl = new URL(rawLink)
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        throw new Error('Invalid protocol')
+      }
+      cleanReferenceLinks = parsedUrl.toString()
+    } catch {
+      throw createError({ statusCode: 400, statusMessage: '参考样片链接格式不安全，必须以 http:// 或 https:// 开头。' })
+    }
+  }
 
   const clientToken = getCookie(event, CLIENT_SESSION_COOKIE)
   let loggedInClientUsername = ''
@@ -59,41 +88,33 @@ export default defineEventHandler(async (event) => {
 
   const booking = {
     id: `BK-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    name,
-    phone,
-    email,
-    company: company || '',
-    serviceType,
-    budget: budget || '',
-    timeline: timeline || '',
-    description,
-    referenceLinks: referenceLinks || '',
+    name: cleanName,
+    phone: cleanPhone,
+    email: cleanEmail,
+    company: cleanCompany,
+    serviceType: cleanServiceType,
+    budget: cleanBudget,
+    timeline: cleanTimeline,
+    description: cleanDescription,
+    referenceLinks: cleanReferenceLinks,
     status: 'pending',
     clientUsername: loggedInClientUsername || '',
     ip,
     createdAt: new Date().toISOString()
   }
 
-  // Save to file
+  // Save to encrypted file
   const bookingsPath = getRuntimeDataPath('bookings.json')
-  let bookings: any[] = []
-  
-  try {
-    if (fs.existsSync(bookingsPath)) {
-      bookings = JSON.parse(fs.readFileSync(bookingsPath, 'utf-8'))
-    }
-  } catch {
-    bookings = []
-  }
+  let bookings: any[] = readEncryptedJson<any[]>(bookingsPath, [])
 
   bookings.unshift(booking)
-  
+
   // Keep only last 100 bookings
   if (bookings.length > 100) {
     bookings = bookings.slice(0, 100)
   }
 
-  fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+  writeEncryptedJson(bookingsPath, bookings)
 
   // Throttle booking frequency: max 3 submissions per 10 minutes per IP
   recordFailedAttempt(`booking-ip:${ip}`, 3, 10 * 60)

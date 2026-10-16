@@ -1,10 +1,10 @@
 import { getD1Database } from '../../utils/db'
-import fs from 'node:fs'
-import { getRuntimeDataPath } from '../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../../utils/storage'
 import { readBody, readRawBody, getQuery, defineEventHandler } from 'h3'
 import { broadcastAnalyticsChange } from '../../utils/broadcaster'
 import { getRealClientIP } from '../../utils/ip-helper'
 import { checkRateLimit, recordFailedAttempt } from '../../utils/rate-limiter'
+import { recordProjectHeat } from '../../utils/analytics-store'
 
 export default defineEventHandler(async (event) => {
   const ip = getRealClientIP(event)
@@ -78,15 +78,12 @@ export default defineEventHandler(async (event) => {
   if (db) {
     await db.prepare('INSERT INTO analytics_events (event, meta) VALUES (?, ?)').bind(eventName, metaStr).run().catch(() => {})
   } else {
-    // Local fallback: append to content/events.json
+    // Local fallback: append to content/events.json encrypted
     const eventsFile = getRuntimeDataPath('events.json')
-    let events: any[] = []
-    if (fs.existsSync(eventsFile)) {
-      try { events = JSON.parse(fs.readFileSync(eventsFile, 'utf-8')) } catch {}
-    }
+    let events = readEncryptedJson<any[]>(eventsFile, [])
     events.push({ event: eventName, meta: metaStr, ts: new Date().toISOString() })
     if (events.length > 1000) events = events.slice(-1000)
-    fs.writeFileSync(eventsFile, JSON.stringify(events, null, 2))
+    writeEncryptedJson(eventsFile, events)
   }
 
   // Broadcast real-time SSE push to all active admin dashboards

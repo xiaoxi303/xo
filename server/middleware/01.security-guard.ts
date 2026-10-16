@@ -1,5 +1,5 @@
 import { getRequestHeader, setResponseHeader, removeResponseHeader, getRequestURL, getHeader, sendRedirect, createError, getCookie } from 'h3'
-import { getRealClientIP } from '../utils/ip-helper'
+import { getRealClientIP, isLocalOrPrivateIP } from '../utils/ip-helper'
 import { logSecurityEvent } from '../utils/security-logger'
 import { checkRateLimit } from '../utils/rate-limiter'
 import { triggerIntruderLockout } from '../utils/vault-cipher'
@@ -12,7 +12,9 @@ export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Server', 'cloudflare-nginx')
   const rawHost = getRequestHeader(event, 'host') || ''
   const isLocalHost = rawHost.includes('localhost') || rawHost.includes('127.0.0.1') || rawHost.includes('::1')
-  if (!isLocalHost && process.env.NODE_ENV === 'production') {
+  const isDev = process.env.NODE_ENV !== 'production'
+
+  if (!isLocalHost && !isDev) {
     setResponseHeader(event, 'Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
   }
   setResponseHeader(event, 'Cross-Origin-Resource-Policy', 'same-origin')
@@ -24,6 +26,7 @@ export default defineEventHandler(async (event) => {
   setResponseHeader(event, 'Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
 
   const clientIp = getRealClientIP(event)
+  const isLocalClient = isLocalOrPrivateIP(clientIp) || isLocalHost
   const machineId = getRequestHeader(event, 'x-machine-id') || ''
 
   // 2. Active Defense: IP and Machine Lockout Enforcement
@@ -37,7 +40,8 @@ export default defineEventHandler(async (event) => {
   const adminCookie = getCookie(event, SESSION_COOKIE)
   const isAdminAuthenticated = !!(adminCookie && validateSession(adminCookie))
 
-  if (!isAdminAuthenticated && !isSecurityChallengeRoute) {
+  // 管理员已登录、本地/内网终端、开发环境免受全站封锁
+  if (!isAdminAuthenticated && !isSecurityChallengeRoute && !isLocalClient && !isDev) {
     const ipLock = checkRateLimit(clientIp)
     if (ipLock.isLocked) {
       throw createError({
@@ -84,6 +88,39 @@ export default defineEventHandler(async (event) => {
   }
 
   // 4. Automated Vulnerability Scanner & Sensitive Resource Probing Filter
+  // 本地开发、管理员身份、内网客户端直接放行探测过滤器
+  if (isDev || isAdminAuthenticated || isLocalClient) {
+    return
+  }
+
+  // 内部资源与静态资产直接豁免探测过滤，防止 DevTools source-map 与 Nuxt 模块被拦截
+  const isInternalOrStatic =
+    pathname.startsWith('/_nuxt/') ||
+    pathname.startsWith('/@') ||
+    pathname.startsWith('/__') ||
+    pathname.startsWith('/_tailwind') ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/uploads/') ||
+    pathname.startsWith('/media/') ||
+    pathname === '/favicon.ico' ||
+    pathname.endsWith('.map') ||
+    pathname.endsWith('.mjs') ||
+    pathname.endsWith('.cjs') ||
+    pathname.endsWith('.js') ||
+    pathname.endsWith('.css') ||
+    pathname.endsWith('.woff') ||
+    pathname.endsWith('.woff2') ||
+    pathname.endsWith('.png') ||
+    pathname.endsWith('.jpg') ||
+    pathname.endsWith('.jpeg') ||
+    pathname.endsWith('.webp') ||
+    pathname.endsWith('.svg') ||
+    pathname.endsWith('.mp4')
+
+  if (isInternalOrStatic) {
+    return
+  }
+
   // Probing sensitive paths immediately locks out the attacker's IP and machine code
   const BLOCKED_PROBE_PATTERNS = [
     /\/\.env/i,
@@ -118,7 +155,7 @@ export default defineEventHandler(async (event) => {
     /\/node_modules/i,
     /\/scripts\//i,
     /\/deploy\//i,
-    /\.(ts|vue|mjs|cjs|jsx|tsx|map)$/i,
+    /\.(ts|vue|jsx|tsx)$/i,
     /\.(key|pem|crt|cer|pfx|p12|csr)$/i,
     /\.(sh|bash|ps1|bat|cmd|py|rb|pl)$/i,
     /\.(conf|config|ini|yaml|yml)$/i,

@@ -1,7 +1,6 @@
-import fs from 'node:fs'
 import { defineEventHandler, getCookie, readBody } from 'h3'
 import { SESSION_COOKIE, getSessionInfo, destroySession } from '../../utils/auth'
-import { getRuntimeDataPath } from '../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson } from '../../utils/storage'
 import { logSecurityEvent } from '../../utils/security-logger'
 
 export default defineEventHandler(async (event) => {
@@ -32,20 +31,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const sessionsPath = getRuntimeDataPath('.sessions.json')
-  let allSessions: Record<string, any> = {}
-  
-  try {
-    if (fs.existsSync(sessionsPath)) {
-      allSessions = JSON.parse(fs.readFileSync(sessionsPath, 'utf-8'))
-    }
-  } catch {
-    allSessions = {}
-  }
+  const allSessions = readEncryptedJson<Record<string, any>>(sessionsPath, {})
 
   const now = Date.now()
   
   const activeSessions = Object.entries(allSessions)
-    .filter(([_, sess]: [string, any]) => sess.expiresAt > now && sess.username !== 'admin')
+    .filter(([_, sess]: [string, any]) => sess && sess.expiresAt > now && sess.username !== 'admin')
     .map(([sessToken, sess]: [string, any]) => ({
       token: sessToken.slice(0, 8) + '...',
       fullToken: sessToken,

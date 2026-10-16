@@ -349,11 +349,18 @@ async function buildTripleLayerChamber(
     digest
   }
 
-  const signature = await subtle.sign(
-    { name: 'RSA-PSS', saltLength: 32 },
-    clientSigningKeys.privateKey,
-    textEncoder.encode(canonicalChamberPayload(chamberUnsigned))
-  )
+  const isEc = (clientSigningKeys.publicKey.algorithm as any)?.name === 'ECDSA'
+  const signature = isEc
+    ? await subtle.sign(
+        { name: 'ECDSA', hash: { name: 'SHA-384' } },
+        clientSigningKeys.privateKey,
+        textEncoder.encode(canonicalChamberPayload(chamberUnsigned))
+      )
+    : await subtle.sign(
+        { name: 'RSA-PSS', saltLength: 32 },
+        clientSigningKeys.privateKey,
+        textEncoder.encode(canonicalChamberPayload(chamberUnsigned))
+      )
 
   return {
     chamberId,
@@ -397,11 +404,20 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
     false,
     ['encrypt']
   )
-  const clientSigningKeys = await webCrypto.subtle.generateKey(
-    { name: 'RSA-PSS', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
-    true,
-    ['sign', 'verify']
-  )
+  let clientSigningKeys: CryptoKeyPair
+  try {
+    clientSigningKeys = await webCrypto.subtle.generateKey(
+      { name: 'ECDSA', namedCurve: 'P-384' },
+      true,
+      ['sign', 'verify']
+    )
+  } catch {
+    clientSigningKeys = await webCrypto.subtle.generateKey(
+      { name: 'RSA-PSS', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+      true,
+      ['sign', 'verify']
+    )
+  }
 
   const timestamp = new Date().toISOString()
   const truthNonce = toBase64Url(webCrypto.getRandomValues(new Uint8Array(16)))

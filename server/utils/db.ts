@@ -2,7 +2,7 @@ import { H3Event } from 'h3'
 import fs from 'node:fs'
 import path from 'node:path'
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
-import { getRuntimeDataPath } from './storage'
+import { getRuntimeDataPath, readEncryptedFile, writeEncryptedFile, readEncryptedJson, writeEncryptedJson } from './storage'
 
 let isDbInitialized = false
 const MAX_PROJECT_VIDEOS = 10
@@ -292,7 +292,7 @@ function parseYaml(yamlStr: string): any {
 }
 
 function parseMarkdownFile(filePath: string) {
-  const content = fs.readFileSync(filePath, 'utf-8')
+  const content = readEncryptedFile(filePath)
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/)
   if (match) {
     const yamlStr = match[1]
@@ -496,14 +496,9 @@ export async function dbGetUserRecord(event: H3Event, username: string): Promise
   }
 
   const usersPath = getRuntimeDataPath('users.json')
-  if (!fs.existsSync(usersPath)) return null
-  try {
-    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-    const row = users.find((u: any) => String(u.username || '').trim() === cleanUsername)
-    return row ? normalizeUserRecord(row, true) : null
-  } catch (e) {
-    return null
-  }
+  const users = readEncryptedJson<any[]>(usersPath, [])
+  const row = users.find((u: any) => String(u.username || '').trim() === cleanUsername)
+  return row ? normalizeUserRecord(row, true) : null
 }
 
 /** Retrieve one raw user by their delivery URL suffix. */
@@ -517,14 +512,9 @@ export async function dbGetUserByDeliverySuffix(event: H3Event, suffix: string):
   }
 
   const usersPath = getRuntimeDataPath('users.json')
-  if (!fs.existsSync(usersPath)) return null
-  try {
-    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-    const row = users.find((u: any) => String(u.deliverySuffix || '').trim().toLowerCase() === cleanSuffix)
-    return row ? normalizeUserRecord(row, true) : null
-  } catch (e) {
-    return null
-  }
+  const users = readEncryptedJson<any[]>(usersPath, [])
+  const row = users.find((u: any) => String(u.deliverySuffix || '').trim().toLowerCase() === cleanSuffix)
+  return row ? normalizeUserRecord(row, true) : null
 }
 
 function safeTimingMatch(a: string, b: string): boolean {
@@ -580,21 +570,17 @@ export async function dbEnsureUserDeliveryCredentials(event: H3Event, user: any)
     }
   } else {
     const usersPath = getRuntimeDataPath('users.json')
-    if (fs.existsSync(usersPath)) {
-      try {
-        const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-        const idx = users.findIndex((u: any) => (user.id && String(u.id) === String(user.id)) || (!user.id && u.username === user.username))
-        if (idx !== -1) {
-          if (!currentSuffix) users[idx].deliverySuffix = credentials.deliverySuffix
-          if (!currentHash) {
-            users[idx].deliveryKeyHash = credentials.deliveryKeyHash
-            users[idx].deliveryKeyHint = credentials.deliveryKeyHint
-            users[idx].deliveryPlainKey = String(data.deliveryKey)
+    const users = readEncryptedJson<any[]>(usersPath, [])
+    const idx = users.findIndex((u: any) => (user.id && String(u.id) === String(user.id)) || (!user.id && u.username === user.username))
+    if (idx !== -1) {
+      if (!currentSuffix) users[idx].deliverySuffix = credentials.deliverySuffix
+      if (!currentHash) {
+        users[idx].deliveryKeyHash = credentials.deliveryKeyHash
+        users[idx].deliveryKeyHint = credentials.deliveryKeyHint
+        users[idx].deliveryPlainKey = String(data.deliveryKey)
         delete users[idx].deliveryKey
-          }
-          fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
-        }
-      } catch (e) {}
+      }
+      writeEncryptedJson(usersPath, users)
     }
   }
 
@@ -630,32 +616,27 @@ export async function dbRecordDeliveryWarning(
   }
 
   const usersPath = getRuntimeDataPath('users.json')
-  if (!fs.existsSync(usersPath)) return { warningCount: 0, isBlacklisted: false, blacklistReason: '' }
-  try {
-    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-    const byId = typeof userIdOrUsername === 'number'
-    let idx = users.findIndex((u: any) => byId
-      ? String(u.id) === String(userIdOrUsername)
-      : String(u.username || '') === String(userIdOrUsername))
-    if (idx === -1 && !byId && /^\d+$/.test(String(userIdOrUsername))) {
-      idx = users.findIndex((u: any) => String(u.id) === String(userIdOrUsername))
-    }
-    if (idx === -1) return { warningCount: 0, isBlacklisted: false, blacklistReason: '' }
-    const user = users[idx]
-    user.warningCount = Math.max(0, Number(user.warningCount) || 0) + 1
-    if (userHasBlacklistFlag(user) || user.warningCount >= Math.max(1, blacklistAfter)) {
-      user.isBlacklisted = true
-      user.blacklistReason = user.blacklistReason || reason
-      user.blacklistedAt = user.blacklistedAt || new Date().toISOString()
-    }
-    fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
-    return {
-      warningCount: user.warningCount,
-      isBlacklisted: userHasBlacklistFlag(user),
-      blacklistReason: user.blacklistReason || ''
-    }
-  } catch (e) {
-    return { warningCount: 0, isBlacklisted: false, blacklistReason: '' }
+  const users = readEncryptedJson<any[]>(usersPath, [])
+  const byId = typeof userIdOrUsername === 'number'
+  let idx = users.findIndex((u: any) => byId
+    ? String(u.id) === String(userIdOrUsername)
+    : String(u.username || '') === String(userIdOrUsername))
+  if (idx === -1 && !byId && /^\d+$/.test(String(userIdOrUsername))) {
+    idx = users.findIndex((u: any) => String(u.id) === String(userIdOrUsername))
+  }
+  if (idx === -1) return { warningCount: 0, isBlacklisted: false, blacklistReason: '' }
+  const user = users[idx]
+  user.warningCount = Math.max(0, Number(user.warningCount) || 0) + 1
+  if (userHasBlacklistFlag(user) || user.warningCount >= Math.max(1, blacklistAfter)) {
+    user.isBlacklisted = true
+    user.blacklistReason = user.blacklistReason || reason
+    user.blacklistedAt = user.blacklistedAt || new Date().toISOString()
+  }
+  writeEncryptedJson(usersPath, users)
+  return {
+    warningCount: user.warningCount,
+    isBlacklisted: userHasBlacklistFlag(user),
+    blacklistReason: user.blacklistReason || ''
   }
 }
 
@@ -744,7 +725,7 @@ export async function dbReorderProjects(event: H3Event, slugs: string[]): Promis
           parsed.sortOrder = sortOrder
           parsed.displayNumber = parsed.displayNumber || (sortOrder < 10 ? `0${sortOrder}` : `${sortOrder}`)
           const fileContent = `---\n${stringifyYaml(parsed)}\n---\n\n${parsed.body || ''}\n`
-          fs.writeFileSync(filePath, fileContent, 'utf-8')
+          writeEncryptedFile(filePath, fileContent)
         } catch (e) {}
       }
     }
@@ -821,7 +802,7 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
     throw createError({ statusCode: 409, statusMessage: 'A project with this slug already exists.' })
   }
   const fileContent = `---\n${stringifyYaml(body)}\n---\n\n${body.body || ''}\n`
-  fs.writeFileSync(filePath, fileContent, 'utf-8')
+  writeEncryptedFile(filePath, fileContent)
 }
 
 export async function dbUpdateProject(event: H3Event, body: any): Promise<void> {
@@ -876,7 +857,7 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
     throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
   }
   const fileContent = `---\n${stringifyYaml(body)}\n---\n\n${body.body || ''}\n`
-  fs.writeFileSync(filePath, fileContent, 'utf-8')
+  writeEncryptedFile(filePath, fileContent)
 }
 
 export async function dbDeleteProject(event: H3Event, slug: string): Promise<void> {
@@ -1172,15 +1153,11 @@ export async function dbGetSiteConfig(event: H3Event): Promise<any> {
   const configPath = getRuntimeDataPath('site-config.json')
   try {
     if (fs.existsSync(configPath)) {
-      const data = fs.readFileSync(configPath, 'utf-8')
-      const parsed = JSON.parse(data)
-      return mergeSiteConfigWithDefaults(parsed)
-    } else {
-      const dir = path.dirname(configPath)
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-      fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), 'utf-8')
-      return defaultConfig
+      const parsed = readEncryptedJson(configPath, null)
+      if (parsed) return mergeSiteConfigWithDefaults(parsed)
     }
+    writeEncryptedJson(configPath, defaultConfig)
+    return defaultConfig
   } catch (error) {
     console.error('Failed to read config file:', error)
     return defaultConfig
@@ -1196,9 +1173,7 @@ export async function dbSaveSiteConfig(event: H3Event, config: any): Promise<voi
 
   // Fallback
   const configPath = getRuntimeDataPath('site-config.json')
-  const dir = path.dirname(configPath)
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8')
+  writeEncryptedJson(configPath, config)
 }
 
 export async function dbGetPasswordRequests(event: H3Event): Promise<any[]> {
@@ -1210,13 +1185,7 @@ export async function dbGetPasswordRequests(event: H3Event): Promise<any[]> {
   
   // Local fallback JSON file
   const requestsPath = getRuntimeDataPath('password-requests.json')
-  if (!fs.existsSync(requestsPath)) return []
-  try {
-    const raw = fs.readFileSync(requestsPath, 'utf-8')
-    return JSON.parse(raw)
-  } catch (e) {
-    return []
-  }
+  return readEncryptedJson<any[]>(requestsPath, [])
 }
 
 export async function dbCreatePasswordRequest(event: H3Event, data: any): Promise<void> {
@@ -1231,12 +1200,7 @@ export async function dbCreatePasswordRequest(event: H3Event, data: any): Promis
 
   // Local fallback JSON file
   const requestsPath = getRuntimeDataPath('password-requests.json')
-  let requests = []
-  if (fs.existsSync(requestsPath)) {
-    try {
-      requests = JSON.parse(fs.readFileSync(requestsPath, 'utf-8'))
-    } catch (e) {}
-  }
+  const requests = readEncryptedJson<any[]>(requestsPath, [])
   const newRequest = {
     id: Date.now(),
     clientName: data.clientName,
@@ -1250,7 +1214,7 @@ export async function dbCreatePasswordRequest(event: H3Event, data: any): Promis
     createdAt: new Date().toISOString()
   }
   requests.unshift(newRequest)
-  fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2), 'utf-8')
+  writeEncryptedJson(requestsPath, requests)
 }
 
 export async function dbUpdatePasswordRequestStatus(event: H3Event, id: number | string, status: string): Promise<void> {
@@ -1262,15 +1226,12 @@ export async function dbUpdatePasswordRequestStatus(event: H3Event, id: number |
 
   // Local fallback JSON file
   const requestsPath = getRuntimeDataPath('password-requests.json')
-  if (!fs.existsSync(requestsPath)) return
-  try {
-    const requests = JSON.parse(fs.readFileSync(requestsPath, 'utf-8'))
-    const idx = requests.findIndex((r: any) => String(r.id) === String(id))
-    if (idx !== -1) {
-      requests[idx].status = status
-      fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2), 'utf-8')
-    }
-  } catch (e) {}
+  const requests = readEncryptedJson<any[]>(requestsPath, [])
+  const idx = requests.findIndex((r: any) => String(r.id) === String(id))
+  if (idx !== -1) {
+    requests[idx].status = status
+    writeEncryptedJson(requestsPath, requests)
+  }
 }
 
 export async function dbDeletePasswordRequest(event: H3Event, id: number | string): Promise<void> {
@@ -1282,12 +1243,9 @@ export async function dbDeletePasswordRequest(event: H3Event, id: number | strin
 
   // Local fallback JSON file
   const requestsPath = getRuntimeDataPath('password-requests.json')
-  if (!fs.existsSync(requestsPath)) return
-  try {
-    let requests = JSON.parse(fs.readFileSync(requestsPath, 'utf-8'))
-    requests = requests.filter((r: any) => String(r.id) !== String(id))
-    fs.writeFileSync(requestsPath, JSON.stringify(requests, null, 2), 'utf-8')
-  } catch (e) {}
+  let requests = readEncryptedJson<any[]>(requestsPath, [])
+  requests = requests.filter((r: any) => String(r.id) !== String(id))
+  writeEncryptedJson(requestsPath, requests)
 }
 
 export async function dbGetUsers(event: H3Event): Promise<any[]> {
@@ -1327,33 +1285,27 @@ export async function dbGetUsers(event: H3Event): Promise<any[]> {
 
   // Local fallback JSON file
   const usersPath = getRuntimeDataPath('users.json')
-  if (!fs.existsSync(usersPath)) return []
-  try {
-    const raw = fs.readFileSync(usersPath, 'utf-8')
-    const users = JSON.parse(raw)
-    let changed = false
-    // Backfill credentials for local users lazily, preserving the JSON fallback format.
-    for (const user of users) {
-      if (!user.deliverySuffix || !user.deliveryKeyHash) {
-        const credentials = createDeliveryCredentials(user.username, user.deliverySuffix, user.deliveryKey)
-        if (!user.deliverySuffix) {
-          user.deliverySuffix = credentials.deliverySuffix
-          changed = true
-        }
-        if (!user.deliveryKeyHash) {
-          user.deliveryKeyHash = credentials.deliveryKeyHash
-          user.deliveryKeyHint = credentials.deliveryKeyHint
-          delete user.deliveryKey
-          changed = true
-        }
+  const users = readEncryptedJson<any[]>(usersPath, [])
+  let changed = false
+  // Backfill credentials for local users lazily, preserving the JSON fallback format.
+  for (const user of users) {
+    if (!user.deliverySuffix || !user.deliveryKeyHash) {
+      const credentials = createDeliveryCredentials(user.username, user.deliverySuffix, user.deliveryKey)
+      if (!user.deliverySuffix) {
+        user.deliverySuffix = credentials.deliverySuffix
+        changed = true
+      }
+      if (!user.deliveryKeyHash) {
+        user.deliveryKeyHash = credentials.deliveryKeyHash
+        user.deliveryKeyHint = credentials.deliveryKeyHint
+        delete user.deliveryKey
+        changed = true
       }
     }
-    if (changed) fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
-    // Strip passwords and secrets for safety in query list.
-    return users.map((user: any) => normalizeUserRecord(user))
-  } catch (e) {
-    return []
   }
+  if (changed) writeEncryptedJson(usersPath, users)
+  // Strip passwords and secrets for safety in query list.
+  return users.map((user: any) => normalizeUserRecord(user))
 }
 
 export async function dbCreateUser(event: H3Event, data: any): Promise<DeliveryCredentials> {
@@ -1406,12 +1358,7 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<DeliveryC
 
   // Local fallback JSON file
   const usersPath = getRuntimeDataPath('users.json')
-  let users = []
-  if (fs.existsSync(usersPath)) {
-    try {
-      users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-    } catch (e) {}
-  }
+  let users = readEncryptedJson<any[]>(usersPath, [])
   const duplicateUser = users.find((u: any) => (u.username || '').trim().toLowerCase() === cleanUsername.toLowerCase())
   if (duplicateUser) {
     throw createError({ statusCode: 409, statusMessage: '用户名已被注册，请更换用户名。' })
@@ -1450,7 +1397,7 @@ export async function dbCreateUser(event: H3Event, data: any): Promise<DeliveryC
     createdAt: new Date().toISOString()
   }
   users.unshift(newUser)
-  fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+  writeEncryptedJson(usersPath, users)
   return credentials
 }
 
@@ -1463,12 +1410,9 @@ export async function dbDeleteUser(event: H3Event, id: number | string): Promise
 
   // Local fallback JSON file
   const usersPath = getRuntimeDataPath('users.json')
-  if (!fs.existsSync(usersPath)) return
-  try {
-    let users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-    users = users.filter((u: any) => String(u.id) !== String(id))
-    fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
-  } catch (e) {}
+  let users = readEncryptedJson<any[]>(usersPath, [])
+  users = users.filter((u: any) => String(u.id) !== String(id))
+  writeEncryptedJson(usersPath, users)
 }
 
 export async function dbUpdateUser(event: H3Event, id: number | string, data: any): Promise<void> {
@@ -1512,49 +1456,41 @@ export async function dbUpdateUser(event: H3Event, id: number | string, data: an
 
   // Local fallback JSON file
   const usersPath = getRuntimeDataPath('users.json')
-  if (!fs.existsSync(usersPath)) return
-  try {
-    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-    const idx = users.findIndex((u: any) => String(u.id) === String(id))
-    if (idx !== -1) {
-      if (data.email !== undefined) users[idx].email = data.email || ''
-      if (data.wechat !== undefined) users[idx].wechat = data.wechat || ''
-      if (data.role !== undefined) users[idx].role = data.role || 'client'
-      if (data.allowedProjects !== undefined) users[idx].allowedProjects = data.allowedProjects || ''
-      if (data.deliverySuffix !== undefined) users[idx].deliverySuffix = sanitizeDeliverySuffix(data.deliverySuffix, users[idx].username || 'client')
-      if (data.deliveryKeyHash !== undefined) users[idx].deliveryKeyHash = data.deliveryKeyHash || ''
-      if (data.deliveryKeyHint !== undefined) users[idx].deliveryKeyHint = data.deliveryKeyHint || ''
-      if (data.deliveryKey) {
-        users[idx].deliveryKeyHash = hashDeliveryKey(data.deliveryKey)
-        users[idx].deliveryKeyHint = String(data.deliveryKey).slice(-4)
-        delete users[idx].deliveryKey
-      }
-      if (data.warningCount !== undefined) users[idx].warningCount = Math.max(0, Number(data.warningCount) || 0)
-      if (data.isWhitelisted !== undefined) users[idx].isWhitelisted = !!data.isWhitelisted
-      if (data.isBlacklisted !== undefined) {
-        users[idx].isBlacklisted = !!data.isBlacklisted
-        users[idx].blacklistReason = data.isBlacklisted ? (data.blacklistReason || 'Blocked by administrator') : ''
-        users[idx].blacklistedAt = data.isBlacklisted ? (users[idx].blacklistedAt || new Date().toISOString()) : null
-      }
-      if (data.blacklistReason !== undefined && data.isBlacklisted === undefined) users[idx].blacklistReason = data.blacklistReason || ''
-      if (data.blacklistedAt !== undefined) users[idx].blacklistedAt = data.blacklistedAt || null
-      if (data.password) {
-        users[idx].password = data.password
-      }
-      fs.writeFileSync(usersPath, JSON.stringify(users, null, 2), 'utf-8')
+  const users = readEncryptedJson<any[]>(usersPath, [])
+  const idx = users.findIndex((u: any) => String(u.id) === String(id))
+  if (idx !== -1) {
+    if (data.email !== undefined) users[idx].email = data.email || ''
+    if (data.wechat !== undefined) users[idx].wechat = data.wechat || ''
+    if (data.role !== undefined) users[idx].role = data.role || 'client'
+    if (data.allowedProjects !== undefined) users[idx].allowedProjects = data.allowedProjects || ''
+    if (data.deliverySuffix !== undefined) users[idx].deliverySuffix = sanitizeDeliverySuffix(data.deliverySuffix, users[idx].username || 'client')
+    if (data.deliveryKeyHash !== undefined) users[idx].deliveryKeyHash = data.deliveryKeyHash || ''
+    if (data.deliveryKeyHint !== undefined) users[idx].deliveryKeyHint = data.deliveryKeyHint || ''
+    if (data.deliveryKey) {
+      users[idx].deliveryKeyHash = hashDeliveryKey(data.deliveryKey)
+      users[idx].deliveryKeyHint = String(data.deliveryKey).slice(-4)
+      delete users[idx].deliveryKey
     }
-  } catch (e) {}
+    if (data.warningCount !== undefined) users[idx].warningCount = Math.max(0, Number(data.warningCount) || 0)
+    if (data.isWhitelisted !== undefined) users[idx].isWhitelisted = !!data.isWhitelisted
+    if (data.isBlacklisted !== undefined) {
+      users[idx].isBlacklisted = !!data.isBlacklisted
+      users[idx].blacklistReason = data.isBlacklisted ? (data.blacklistReason || 'Blocked by administrator') : ''
+      users[idx].blacklistedAt = data.isBlacklisted ? (users[idx].blacklistedAt || new Date().toISOString()) : null
+    }
+    if (data.blacklistReason !== undefined && data.isBlacklisted === undefined) users[idx].blacklistReason = data.blacklistReason || ''
+    if (data.blacklistedAt !== undefined) users[idx].blacklistedAt = data.blacklistedAt || null
+    if (data.password) {
+      users[idx].password = data.password
+    }
+    writeEncryptedJson(usersPath, users)
+  }
 }
 
 // Blacklist & Whitelist Management Helpers
 export async function dbGetBlacklist(event: H3Event): Promise<any[]> {
   const blacklistPath = getRuntimeDataPath('blacklist.json')
-  if (!fs.existsSync(blacklistPath)) return []
-  try {
-    return JSON.parse(fs.readFileSync(blacklistPath, 'utf-8'))
-  } catch (e) {
-    return []
-  }
+  return readEncryptedJson<any[]>(blacklistPath, [])
 }
 
 export async function dbAddBlacklist(event: H3Event, item: { type?: string; value: string; reason?: string }): Promise<void> {
@@ -1571,9 +1507,7 @@ export async function dbAddBlacklist(event: H3Event, item: { type?: string; valu
       reason: item.reason || '管理员手动拉黑',
       createdAt: new Date().toISOString()
     })
-    const dir = path.dirname(blacklistPath)
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(blacklistPath, JSON.stringify(list, null, 2), 'utf-8')
+    writeEncryptedJson(blacklistPath, list)
   }
 }
 
@@ -1582,9 +1516,7 @@ export async function dbRemoveBlacklist(event: H3Event, value: string): Promise<
   let list = await dbGetBlacklist(event)
   const val = value.trim().toLowerCase()
   list = list.filter((b: any) => (b.value || '').toLowerCase() !== val)
-  const dir = path.dirname(blacklistPath)
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(blacklistPath, JSON.stringify(list, null, 2), 'utf-8')
+  writeEncryptedJson(blacklistPath, list)
 }
 
 export async function dbCheckRateLimitAndBlacklist(event: H3Event, params: { username?: string; contact?: string; ip?: string }): Promise<{ isWhitelisted: boolean; isBlacklisted: boolean; isAutoBlacklisted?: boolean; reason: string }> {
@@ -1656,15 +1588,7 @@ export async function dbGetBlogPosts(event?: H3Event): Promise<any[]> {
   }
 
   const postsPath = getRuntimeDataPath('blog-posts.json')
-  try {
-    if (fs.existsSync(postsPath)) {
-      const data = fs.readFileSync(postsPath, 'utf-8')
-      return JSON.parse(data) || []
-    }
-  } catch (err) {
-    console.error('[dbGetBlogPosts] Failed to read blog posts:', err)
-  }
-  return []
+  return readEncryptedJson<any[]>(postsPath, [])
 }
 
 export async function dbSaveBlogPost(event: H3Event, post: any): Promise<any> {
@@ -1690,9 +1614,7 @@ export async function dbSaveBlogPost(event: H3Event, post: any): Promise<any> {
   }
 
   const postsPath = getRuntimeDataPath('blog-posts.json')
-  const dir = path.dirname(postsPath)
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2), 'utf-8')
+  writeEncryptedJson(postsPath, posts)
 
   return updatedPost
 }
@@ -1709,9 +1631,7 @@ export async function dbDeleteBlogPost(event: H3Event, id: string): Promise<bool
   }
 
   const postsPath = getRuntimeDataPath('blog-posts.json')
-  const dir = path.dirname(postsPath)
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(postsPath, JSON.stringify(filtered, null, 2), 'utf-8')
+  writeEncryptedJson(postsPath, filtered)
 
   return true
 }
@@ -1732,16 +1652,7 @@ export async function dbGetBlogCategories(event?: H3Event): Promise<any[]> {
   }
 
   const catsPath = getRuntimeDataPath('blog-categories.json')
-  try {
-    if (fs.existsSync(catsPath)) {
-      const data = fs.readFileSync(catsPath, 'utf-8')
-      return JSON.parse(data) || defaultCats
-    }
-  } catch (err) {
-    console.error('[dbGetBlogCategories] Failed to read blog categories:', err)
-  }
-
-  return defaultCats
+  return readEncryptedJson<any[]>(catsPath, defaultCats)
 }
 
 export async function dbSaveBlogCategories(event: H3Event, categories: any[]): Promise<any[]> {
@@ -1753,9 +1664,7 @@ export async function dbSaveBlogCategories(event: H3Event, categories: any[]): P
   }
 
   const catsPath = getRuntimeDataPath('blog-categories.json')
-  const dir = path.dirname(catsPath)
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(catsPath, JSON.stringify(categories, null, 2), 'utf-8')
+  writeEncryptedJson(catsPath, categories)
 
   return categories
 }

@@ -2,8 +2,9 @@ import { defineEventHandler, readBody } from 'h3'
 import fs from 'node:fs'
 import path from 'node:path'
 import { dbGetProjectsRaw, dbGetSiteConfig } from '../../utils/db'
-import { getRuntimeDataPath } from '../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson } from '../../utils/storage'
 import { requireAdminSession } from '../../utils/admin-auth'
+import { getSecurityLogs } from '../../utils/security-logger'
 
 export default defineEventHandler(async (event) => {
   requireAdminSession(event)
@@ -52,14 +53,8 @@ export default defineEventHandler(async (event) => {
   } catch (e) {}
 
   try {
-    const logsPath = getRuntimeDataPath('security-logs.json')
-    if (fs.existsSync(logsPath)) {
-      const raw = fs.readFileSync(logsPath, 'utf-8')
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) {
-        totalBlockedCount = parsed.filter((l: any) => l.status === 'blocked').length
-      }
-    }
+    const logs = getSecurityLogs()
+    totalBlockedCount = logs.filter((l: any) => l.status === 'blocked').length
   } catch (e) {}
 
   try {
@@ -100,36 +95,14 @@ export default defineEventHandler(async (event) => {
     if (siteConfig && siteConfig.aiSettings) {
       aiSettings = siteConfig.aiSettings
     } else {
-    }
-    // Fallback: read directly from config file
-    try {
-      const fs = require('fs')
-      const path = require('path')
-      const configPath = path.join(process.cwd(), 'content', 'site-config.json')
-      if (fs.existsSync(configPath)) {
-        const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
-        if (configData.aiSettings) {
-          aiSettings = configData.aiSettings
-        }
-      }
-    } catch (e) {
-      console.error('[AI Copilot] Error reading config file:', e)
-    }
-  } catch (e) {}
-
-  // Ensure aiSettings is loaded from config file
-  try {
-    const fs = require('fs')
-    const path = require('path')
-    const configPath = path.join(process.cwd(), 'content', 'site-config.json')
-    if (fs.existsSync(configPath)) {
-      const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+      const configPath = getRuntimeDataPath('site-config.json')
+      const configData = readEncryptedJson<any>(configPath, {})
       if (configData.aiSettings) {
         aiSettings = configData.aiSettings
       }
     }
   } catch (e) {
-    console.error('[AI Copilot] Error reading config file:', e)
+    console.error('[AI Copilot] Error reading config:', e)
   }
 
   const apiKey = (aiSettings.apiKey || process.env.OPENAI_API_KEY || '').trim()

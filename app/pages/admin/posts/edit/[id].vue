@@ -439,19 +439,49 @@ const goBack = () => {
   router.push('/admin')
 }
 
+const escapeHtml = (str: string): string => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+const safeUrl = (rawUrl: string): string => {
+  const trimmed = rawUrl.trim()
+  if (/^(https?:\/\/|\/|mailto:)/i.test(trimmed)) {
+    return trimmed
+  }
+  return '#'
+}
+
 const renderedMarkdown = computed(() => {
   if (!post.content) return '<p style="color: #94a3b8;">暂无内容预览...</p>'
   
-  // Basic markdown to html renderer
-  let html = post.content
+  let html = escapeHtml(post.content)
+  html = html.replace(/```([\s\S]*?)```/gim, (_, code) => {
+    return `<pre style="background: #0f172a; color: #34d399; padding: 1rem; border-radius: 16px; font-family: monospace; font-size: 0.85rem; overflow-x: auto;"><code>${code}</code></pre>`
+  })
+  html = html.replace(/`([^`]+)`/gim, (_, code) => {
+    return `<code style="background: #f1f5f9; color: #0f172a; padding: 0.15rem 0.4rem; border-radius: 6px; font-family: monospace; font-size: 0.9em;">${code}</code>`
+  })
+  html = html
     .replace(/^### (.*$)/gim, '<h3 style="font-size: 1.15rem; font-weight: 700; color: #007AFF; margin-top: 1rem;">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 style="font-size: 1.35rem; font-weight: 800; color: #007AFF; margin-top: 1.25rem;">$1</h2>')
     .replace(/^# (.*$)/gim, '<h1 style="font-size: 1.6rem; font-weight: 800; color: #007AFF; margin-top: 1.5rem;">$1</h1>')
     .replace(/^\> (.*$)/gim, '<blockquote style="border-left: 4px solid #007AFF; padding-left: 1rem; color: #475569; font-style: italic; background: rgba(0,122,255,0.05); padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 12px 12px 0;">$1</blockquote>')
-    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-    .replace(/\*(.*)\*/gim, '<em>$1</em>')
-    .replace(/```([\s\S]*?)```/gim, '<pre style="background: #0f172a; color: #34d399; padding: 1rem; border-radius: 16px; font-family: monospace; font-size: 0.85rem; overflow-x: auto;"><code>$1</code></pre>')
-    .replace(/\n\n/g, '<br/><br/>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+  html = html.replace(/!\[(.*?)\]\((.*?)\)/gim, (_, alt, src) => {
+    const s = safeUrl(src)
+    return s !== '#' ? `<img src="${s}" alt="${alt}" style="max-width: 100%; border-radius: 16px; margin: 1rem 0;" />` : ''
+  })
+  html = html.replace(/\[(.*?)\]\((.*?)\)/gim, (_, linkText, href) => {
+    const h = safeUrl(href)
+    return `<a href="${h}" target="_blank" rel="noopener noreferrer" style="color: #007AFF; text-decoration: underline;">${linkText}</a>`
+  })
+  html = html.replace(/\n\n/g, '<br/><br/>')
   return html
 })
 

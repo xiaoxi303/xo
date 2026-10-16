@@ -1,6 +1,4 @@
 import { defineEventHandler, getCookie, createError, readBody } from 'h3'
-import fs from 'node:fs'
-import path from 'node:path'
 import { validateSession, SESSION_COOKIE } from '../../utils/auth'
 import { 
   dbGetSiteConfig, 
@@ -9,7 +7,7 @@ import {
   dbGetPasswordRequests,
   dbGetUsers
 } from '../../utils/db'
-import { getRuntimeDataPath } from '../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../../utils/storage'
 
 export default defineEventHandler(async (event) => {
   // Authentication check (admin session only)
@@ -29,13 +27,8 @@ export default defineEventHandler(async (event) => {
       const users = await dbGetUsers(event)
       
       // Blacklist fallback safely without throwing 404
-      let blacklist: any[] = []
       const blPath = getRuntimeDataPath('blacklist.json')
-      if (fs.existsSync(blPath)) {
-        try {
-          blacklist = JSON.parse(fs.readFileSync(blPath, 'utf-8'))
-        } catch (e) {}
-      }
+      const blacklist = readEncryptedJson<any[]>(blPath, [])
 
       return {
         version: '2.0',
@@ -78,7 +71,7 @@ export default defineEventHandler(async (event) => {
           await dbSaveProjectsRaw(event, body.projects)
         } else {
           const projsPath = getRuntimeDataPath('projects.json')
-          fs.writeFileSync(projsPath, JSON.stringify(body.projects, null, 2), 'utf-8')
+          writeEncryptedJson(projsPath, body.projects)
         }
         restoredSections.push(`${body.projects.length} 个视频作品`)
       }
@@ -86,10 +79,7 @@ export default defineEventHandler(async (event) => {
       // 3. Restore Users Data (safely preserving existing credentials if not in backup)
       if (Array.isArray(body.users)) {
         const usersPath = getRuntimeDataPath('users.json')
-        let currentUsers: any[] = []
-        try {
-          if (fs.existsSync(usersPath)) currentUsers = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-        } catch (e) {}
+        const currentUsers = readEncryptedJson<any[]>(usersPath, [])
         const mergedUsers = body.users.map((importedUser: any) => {
           const current = currentUsers.find((u: any) => u.username === importedUser.username || u.id === importedUser.id)
           return {
@@ -98,21 +88,21 @@ export default defineEventHandler(async (event) => {
             deliveryKeyHash: importedUser.deliveryKeyHash || current?.deliveryKeyHash || ''
           }
         })
-        fs.writeFileSync(usersPath, JSON.stringify(mergedUsers, null, 2), 'utf-8')
+        writeEncryptedJson(usersPath, mergedUsers)
         restoredSections.push(`${body.users.length} 个客户账号`)
       }
 
       // 4. Restore Password Requests Data
       if (Array.isArray(body.passwordRequests)) {
         const reqsPath = getRuntimeDataPath('password-requests.json')
-        fs.writeFileSync(reqsPath, JSON.stringify(body.passwordRequests, null, 2), 'utf-8')
+        writeEncryptedJson(reqsPath, body.passwordRequests)
         restoredSections.push(`${body.passwordRequests.length} 条申请记录`)
       }
 
       // 5. Restore Blacklist Data
       if (Array.isArray(body.blacklist)) {
         const blPath = getRuntimeDataPath('blacklist.json')
-        fs.writeFileSync(blPath, JSON.stringify(body.blacklist, null, 2), 'utf-8')
+        writeEncryptedJson(blPath, body.blacklist)
       }
 
       return {

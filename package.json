@@ -15,7 +15,10 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "bind-d1": "node scripts/bind-d1.js"
+    "bind-d1": "node scripts/bind-d1.js",
+    "vault:file": "node scripts/vault-file-tool.mjs",
+    "vault:encrypt-all": "node scripts/vault-file-tool.mjs encrypt-all",
+    "vault:status": "node scripts/vault-file-tool.mjs status"
   },
   "dependencies": {
     "@nuxt/content": "^3.5.1",

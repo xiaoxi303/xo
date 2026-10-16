@@ -2,7 +2,7 @@ import { dbGetProjectsRaw, getD1Database } from '../utils/db'
 import fs from 'node:fs'
 import os from 'node:os'
 import { execSync } from 'node:child_process'
-import { getRuntimeDataPath } from '../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson } from '../utils/storage'
 import { setResponseHeader } from 'h3'
 import { getProjectHeatMap } from '../utils/analytics-store'
 import { requireAdminSession } from '../utils/admin-auth'
@@ -84,19 +84,15 @@ export default defineEventHandler(async (event) => {
       if (idx !== -1) days[idx].views = Number(row.total || 0)
     }
   } else {
-    // Local fallback: read content/page-views.json
+    // Local fallback: read content/page-views.json encrypted
     const statsFile = getRuntimeDataPath('page-views.json')
-    if (fs.existsSync(statsFile)) {
-      try {
-        const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
-        for (const day of days) {
-          let total = 0
-          for (const pathKey of Object.keys(stats)) {
-            total += stats[pathKey][day.date] || 0
-          }
-          day.views = total
-        }
-      } catch {}
+    const stats = readEncryptedJson<Record<string, Record<string, number>>>(statsFile, {})
+    for (const day of days) {
+      let total = 0
+      for (const pathKey of Object.keys(stats)) {
+        total += stats[pathKey]?.[day.date] || 0
+      }
+      day.views = total
     }
   }
 
@@ -108,11 +104,7 @@ export default defineEventHandler(async (event) => {
   let localEvents: any[] = []
   if (!db) {
     const eventsFile = getRuntimeDataPath('events.json')
-    if (fs.existsSync(eventsFile)) {
-      try {
-        localEvents = JSON.parse(fs.readFileSync(eventsFile, 'utf-8'))
-      } catch {}
-    }
+    localEvents = readEncryptedJson<any[]>(eventsFile, [])
   }
 
   // ── Referral breakdown (real: read Referer header stats from events) ──
@@ -173,17 +165,13 @@ export default defineEventHandler(async (event) => {
     })
   } else {
     const statsFile = getRuntimeDataPath('page-views.json')
-    if (fs.existsSync(statsFile)) {
-      try {
-        const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
-        for (const pathKey of Object.keys(stats)) {
-          if (!pathKey.startsWith('/projects/')) continue
-          const rawSlug = pathKey.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
-          if (!rawSlug || rawSlug === 'get') continue
-          const views = Object.values(stats[pathKey] || {}).reduce((sum: number, n: any) => sum + Number(n || 0), 0)
-          viewCounts[rawSlug] = (viewCounts[rawSlug] || 0) + views
-        }
-      } catch {}
+    const stats = readEncryptedJson<Record<string, Record<string, number>>>(statsFile, {})
+    for (const pathKey of Object.keys(stats)) {
+      if (!pathKey.startsWith('/projects/')) continue
+      const rawSlug = pathKey.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+      if (!rawSlug || rawSlug === 'get') continue
+      const views = Object.values(stats[pathKey] || {}).reduce((sum: number, n: any) => sum + Number(n || 0), 0)
+      viewCounts[rawSlug] = (viewCounts[rawSlug] || 0) + views
     }
   }
 
@@ -216,16 +204,12 @@ export default defineEventHandler(async (event) => {
   // Also collect slugs from page-views.json that start with /projects/
   const pageViewSlugs = new Set<string>()
   const statsFile = getRuntimeDataPath('page-views.json')
-  if (fs.existsSync(statsFile)) {
-    try {
-      const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
-      for (const pathKey of Object.keys(stats)) {
-        if (pathKey.startsWith('/projects/')) {
-          const slug = pathKey.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
-          if (slug && slug !== 'get') pageViewSlugs.add(slug)
-        }
-      }
-    } catch {}
+  const stats = readEncryptedJson<Record<string, Record<string, number>>>(statsFile, {})
+  for (const pathKey of Object.keys(stats)) {
+    if (pathKey.startsWith('/projects/')) {
+      const slug = pathKey.replace(/^\/projects\//, '').split('/')[0].split('?')[0]
+      if (slug && slug !== 'get') pageViewSlugs.add(slug)
+    }
   }
 
   // Include both projects and blog posts in the heat calculation
@@ -238,38 +222,26 @@ export default defineEventHandler(async (event) => {
   ])
 
   for (const slug of Array.from(allKnownSlugs)) {
-    if (!slug || slug === 'get') continue
-    // Ignore stale analytics for projects that were deleted or renamed.
-    // The ranking must only contain projects that currently exist.
-    if (!projectTitles.has(slug)) continue
-    const v = viewCounts[slug] || 0
-    const c = clickCounts[slug] || 0
-    const h = Number(unifiedHeat[slug] || 0)
-    projectCounts[slug] = Math.max(h, v, c)
-  }
-
-  // Ensure all existing projects appear in ranking, even with 0 clicks
-  for (const [slug, title] of projectTitles) {
-    if (!projectCounts[slug]) {
-      projectCounts[slug] = 0
+    const clicks = clickCounts[slug] || 0
+    const views = viewCounts[slug] || 0
+    const heat = unifiedHeat[slug] || 0
+    const total = Math.max(clicks + views, heat)
+    if (total > 0) {
+      projectCounts[slug] = total
     }
   }
 
-  let projectClicks: { slug: string; title: string; clicks: number }[] = []
-  projectClicks = Object.entries(projectCounts)
-    .map(([slug, clicks]) => {
-      const title = projectTitles.get(slug)
-      return { 
-        slug, 
-        title: title && title !== slug ? title : slug,  // Use real title if available, otherwise slug
-        clicks 
-      }
-    })
-    .filter(p => p.slug)
-    .sort((a, b) => b.clicks - a.clicks)
-    .slice(0, 6)
+  // Sort by count descending, top 8
+  const projectClicks = Object.entries(projectCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([slug, count]) => ({
+      title: projectTitles.get(slug) || slug,
+      slug,
+      count
+    }))
 
-  // ── Contact clicks ────────────────────────────────────────────────
+  // ── Contact button clicks (past 7 days) ───────────────────────────
   let contactClicks = 0
   if (db) {
     const cc = await db.prepare(
@@ -294,19 +266,14 @@ export default defineEventHandler(async (event) => {
     allTimeViews = Number(atv?.total || 0)
   } else {
     // local: sum page-views.json
-    const statsFile = getRuntimeDataPath('page-views.json')
-    if (fs.existsSync(statsFile)) {
-      try {
-        const stats = JSON.parse(fs.readFileSync(statsFile, 'utf-8'))
-        for (const pathKey of Object.keys(stats)) {
-          for (const dv of Object.values(stats[pathKey]) as number[]) allTimeViews += dv
-        }
-      } catch {}
+    const stats = readEncryptedJson<Record<string, Record<string, number>>>(statsFile, {})
+    for (const pathKey of Object.keys(stats)) {
+      for (const dv of Object.values(stats[pathKey] || {}) as number[]) allTimeViews += dv
     }
   }
 
   return {
-    engine: isD1 ? 'SQLite D1' : 'Server Disk (JSON/File System)',
+    engine: isD1 ? 'SQLite D1' : 'Server Disk (Encrypted Vault)',
     status: 'Operational',
     latency: `${latency}ms`,
     ssl: 'Active (TLS 1.3)',

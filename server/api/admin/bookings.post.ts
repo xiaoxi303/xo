@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { randomBytes } from 'node:crypto'
 import { defineEventHandler, getCookie, readBody, createError } from 'h3'
 import { SESSION_COOKIE, validateSession } from '../../utils/auth'
-import { getRuntimeDataPath } from '../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../../utils/storage'
 import { sendDeliveryCredentialsEmail, sendBookingOrderPaymentEmail } from '../../utils/email'
 import { saveOrderPage, getOrderPage } from '../../utils/order-pages'
 import {
@@ -25,15 +25,7 @@ export default defineEventHandler(async (event) => {
   const id = String(body?.id || '').trim()
 
   const bookingsPath = getRuntimeDataPath('bookings.json')
-  let bookings: any[] = []
-
-  try {
-    if (fs.existsSync(bookingsPath)) {
-      bookings = JSON.parse(fs.readFileSync(bookingsPath, 'utf-8'))
-    }
-  } catch {
-    bookings = []
-  }
+  let bookings: any[] = readEncryptedJson<any[]>(bookingsPath, [])
 
   if (action === 'create-sample') {
     const sampleBooking = {
@@ -53,7 +45,7 @@ export default defineEventHandler(async (event) => {
       createdAt: new Date().toISOString()
     }
     bookings.unshift(sampleBooking)
-    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+    writeEncryptedJson(bookingsPath, bookings)
     return { success: true, booking: sampleBooking }
   }
 
@@ -76,7 +68,7 @@ export default defineEventHandler(async (event) => {
     }
     booking.status = nextStatus
     booking.updatedAt = new Date().toISOString()
-    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+    writeEncryptedJson(bookingsPath, bookings)
     return { success: true, booking }
   }
 
@@ -84,14 +76,14 @@ export default defineEventHandler(async (event) => {
   if (action === 'update-notes') {
     booking.adminNotes = String(body?.adminNotes || '').trim()
     booking.updatedAt = new Date().toISOString()
-    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+    writeEncryptedJson(bookingsPath, bookings)
     return { success: true, booking }
   }
 
   // ACTION: Delete
   if (action === 'delete') {
     bookings.splice(bookingIndex, 1)
-    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+    writeEncryptedJson(bookingsPath, bookings)
     return { success: true, message: '已成功删除该条预约记录' }
   }
 
@@ -188,7 +180,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+    writeEncryptedJson(bookingsPath, bookings)
 
     return {
       success: true,
@@ -227,7 +219,7 @@ export default defineEventHandler(async (event) => {
     booking.emailSent = true
     booking.emailSentAt = new Date().toISOString()
     booking.updatedAt = new Date().toISOString()
-    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+    writeEncryptedJson(bookingsPath, bookings)
 
     return {
       success: true,
@@ -309,7 +301,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+    writeEncryptedJson(bookingsPath, bookings)
 
     return {
       success: true,
@@ -347,7 +339,7 @@ export default defineEventHandler(async (event) => {
     booking.orderEmailSent = true
     booking.orderEmailSentAt = new Date().toISOString()
     booking.updatedAt = new Date().toISOString()
-    fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2), 'utf-8')
+    writeEncryptedJson(bookingsPath, bookings)
 
     return {
       success: true,

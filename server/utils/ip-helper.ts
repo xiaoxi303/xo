@@ -28,3 +28,33 @@ export function getRealClientIP(event: any): string {
   // Last resort: socket remote address
   return event.node?.req?.socket?.remoteAddress || 'unknown'
 }
+
+/**
+ * Check if an IP is a local loopback, intranet private, or internal development address
+ */
+export function isLocalOrPrivateIP(ip: string): boolean {
+  if (!ip) return true
+  const clean = ip.trim().toLowerCase()
+  if (
+    clean === '127.0.0.1' ||
+    clean === '::1' ||
+    clean === 'localhost' ||
+    clean === '::ffff:127.0.0.1' ||
+    clean === 'unknown'
+  ) {
+    return true
+  }
+  // Local network ranges: 10.x.x.x, 192.168.x.x, 169.254.x.x
+  if (clean.startsWith('10.') || clean.startsWith('192.168.') || clean.startsWith('169.254.')) {
+    return true
+  }
+  // 172.16.x.x - 172.31.x.x
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(clean)) {
+    return true
+  }
+  // IPv6 local / link-local / ULA
+  if (clean.startsWith('fe80:') || clean.startsWith('fc00:') || clean.startsWith('fd00:')) {
+    return true
+  }
+  return false
+}

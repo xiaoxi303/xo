@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import crypto from 'node:crypto'
 import { createError } from 'h3'
-import { getRuntimeDataPath } from './storage'
+import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from './storage'
 
 export interface AlipayConfig {
   enabled: boolean
@@ -16,7 +16,7 @@ export interface AlipayConfig {
 }
 
 const CONFIG_PATH = getRuntimeDataPath('alipay-config.enc.json')
-const SECRET = process.env.XO_ALIPAY_CONFIG_SECRET || process.env.E2EE_SECRET || 'XO_STUDIO_ALIPAY_CONFIG_2026'
+const SECRET = process.env.XO_ALIPAY_CONFIG_SECRET || process.env.VAULT_MASTER_SECRET || process.env.E2EE_SECRET || 'XO_STUDIO_ALIPAY_CONFIG_2026'
 const keyMaterial = () => crypto.createHash('sha256').update(SECRET).digest()
 export function normalizePrivateKey(value: string) {
   let key = String(value || '').trim().replace(/\\n/g, '\n').replace(/\r/g, '')
@@ -55,12 +55,20 @@ export function defaultAlipayConfig(): AlipayConfig {
 export function readAlipayConfig(): AlipayConfig {
   const fallback = defaultAlipayConfig()
   if (!fs.existsSync(CONFIG_PATH)) return fallback
-  try { return { ...fallback, ...JSON.parse(decrypt(JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')))) } } catch { return fallback }
+  try {
+    const raw = fs.readFileSync(CONFIG_PATH, 'utf8').trim()
+    if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
+      return { ...fallback, ...readEncryptedJson<AlipayConfig>(CONFIG_PATH, fallback) }
+    }
+    return { ...fallback, ...JSON.parse(decrypt(JSON.parse(raw))) }
+  } catch {
+    return fallback
+  }
 }
 export function saveAlipayConfig(input: Partial<AlipayConfig>) {
   const current = readAlipayConfig()
   const next = { ...current, ...input, privateKey: input.privateKey === undefined ? current.privateKey : normalizePrivateKey(String(input.privateKey || '')), alipayPublicKey: input.alipayPublicKey === undefined ? current.alipayPublicKey : String(input.alipayPublicKey || '').trim(), productCode: 'FAST_INSTANT_TRADE_PAY' }
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(encrypt(JSON.stringify(next)), null, 2), 'utf8')
+  writeEncryptedJson(CONFIG_PATH, next)
   return next
 }
 export function publicAlipayConfig(config = readAlipayConfig()) {

@@ -1,41 +1,68 @@
 import { dbCreatePasswordRequest, dbCheckRateLimitAndBlacklist, getD1Database } from '../utils/db'
-import fs from 'node:fs'
-import { getRuntimeDataPath } from '../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson } from '../utils/storage'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../utils/auth'
 import { sendApprovalEmail } from '../utils/email'
+import { getRealClientIP } from '../utils/ip-helper'
+import { checkRateLimit, recordFailedAttempt } from '../utils/rate-limiter'
+
+function escapeHtml(str: string): string {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .trim()
+}
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  const ip = getRealClientIP(event)
 
-  if (!body.projectSlug || !body.projectTitle) {
+  // Enforce IP-based rate limiting (max 10 requests per 10 minutes)
+  const rateLimitKey = `pwd_req:${ip}`
+  const ipLock = checkRateLimit(rateLimitKey)
+  if (ipLock.isLocked) {
+    setResponseHeader(event, 'Retry-After', String(ipLock.remainingLockSeconds))
     throw createError({
-      statusCode: 400,
-      statusMessage: '项目信息为必填项。'
+      statusCode: 429,
+      statusMessage: `密码申请请求过于频繁，已被临时限流，请等待 ${ipLock.remainingLockSeconds} 秒后再试。`
     })
   }
 
-  // 1. Get current logged-in user from session
+  const body = await readBody(event)
+
+  // Validate mandatory fields
+  const projectSlug = escapeHtml(body.projectSlug || '').slice(0, 100)
+  const projectTitle = escapeHtml(body.projectTitle || '').slice(0, 200)
+
+  if (!projectSlug || !projectTitle) {
+    recordFailedAttempt(rateLimitKey, 10, 10 * 60)
+    throw createError({
+      statusCode: 400,
+      statusMessage: '缺少必要参数（项目标识或标题）'
+    })
+  }
+
+  // 1. Identify logged-in client if present
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
   let clientUsername = ''
   let clientEmail = ''
-  
+
   if (token) {
     const session = validateSession(token)
     if (session) {
-      clientUsername = session.username || ''
+      clientUsername = escapeHtml(session.username || '').slice(0, 50)
       // Look up user email from database
       try {
         const db = await getD1Database(event)
         if (db) {
           const user = await db.prepare('SELECT email FROM users WHERE username = ?').bind(clientUsername).first() as any
-          clientEmail = user?.email || ''
+          clientEmail = escapeHtml(user?.email || '').slice(0, 150)
         } else {
           const usersPath = getRuntimeDataPath('users.json')
-          if (fs.existsSync(usersPath)) {
-            const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'))
-            const user = users.find((u: any) => u.username === clientUsername)
-            clientEmail = user?.email || ''
-          }
+          const users = readEncryptedJson<any[]>(usersPath, [])
+          const user = users.find((u: any) => u.username === clientUsername)
+          clientEmail = escapeHtml(user?.email || '').slice(0, 150)
         }
       } catch (e) {
         console.error('[password-requests] Failed to look up user email:', e)
@@ -43,59 +70,40 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 2. Extract real client IP (EXACT same logic as booking.post.ts)
-  let ip = ''
-  const cfConnectingIp = getHeader(event, 'cf-connecting-ip')
-  const xRealIp = getHeader(event, 'x-real-ip')
-  const xForwardedFor = getHeader(event, 'x-forwarded-for')
-  
-  if (cfConnectingIp) ip = cfConnectingIp.trim()
-  else if (xRealIp) ip = xRealIp.trim()
-  else if (xForwardedFor) ip = xForwardedFor.split(',')[0]?.trim() || ''
-  if (!ip) ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
-  if (ip === '::1' || ip === '::ffff:127.0.0.1') ip = '127.0.0.1'
-
-  // Debug log
-  console.log('[password-requests] clientUsername:', clientUsername)
-  console.log('[password-requests] clientEmail:', clientEmail)
-  console.log('[password-requests] body.contact:', body.contact)
-  console.log('[password-requests] Real IP:', ip)
-
-  // 3. Detect device type
+  // 2. Detect device type
   const userAgent = getHeader(event, 'user-agent') || ''
   const isMobile = /mobile|android|iphone|ipad/i.test(userAgent)
   const deviceType = isMobile ? 'Mobile' : 'PC'
 
-  // 4. Build final contact string
-  // Priority: body.contact (from frontend) -> clientEmail (from DB) -> username
-  const emailPart = body.contact || clientEmail || clientUsername || 'unknown'
+  // 3. Build sanitized contact string
+  const rawContact = escapeHtml(body.contact || '').slice(0, 200)
+  const emailPart = rawContact || clientEmail || clientUsername || 'unknown'
   const finalContact = `${emailPart} | IP: ${ip} (${deviceType})`
 
-  console.log('[password-requests] finalContact:', finalContact)
-
-  // 5. Rate-limit and blacklist check
+  // 4. Rate-limit and blacklist check
   const check = await dbCheckRateLimitAndBlacklist(event, {
     username: clientUsername,
-    contact: body.contact,
+    contact: rawContact,
     ip
   })
 
-  // 6. Determine status
+  // 5. Determine status
   let status = 'approved'
   let reason = check.isWhitelisted ? '白名单客户自动通过' : '防刷校验通过，系统自动授权'
 
   if (check.isBlacklisted) {
     status = 'pending'
     reason = check.reason || '已被系统防刷保护或黑名单拦截，需管理员手动审核'
+    recordFailedAttempt(rateLimitKey, 10, 10 * 60)
   }
 
-  // 7. Build request data with formatted contact
+  // 6. Build request data with sanitized fields
   const requestData = {
-    clientName: body.clientName || clientUsername || 'Direct Access',
+    clientName: escapeHtml(body.clientName || clientUsername || 'Direct Access').slice(0, 100),
     contact: finalContact,
-    projectSlug: body.projectSlug,
-    projectTitle: body.projectTitle,
-    reason: body.reason || '',
+    projectSlug,
+    projectTitle,
+    reason: escapeHtml(body.reason || '').slice(0, 500),
     clientUsername,
     clientEmail,
     ip,

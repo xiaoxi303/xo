@@ -148,6 +148,7 @@ async function main() {
   } catch {}
 
   await runNuxtBuild()
+  runSync(['run', 'obfuscate:production'], 'obfuscate client production bundles')
   runSync(['run', 'verify:production'], 'verify production artifacts')
 
   // Scrub internal schema dumps and nuxt-content metadata from public distribution
