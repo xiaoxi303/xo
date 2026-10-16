@@ -85,7 +85,16 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 if [ ! -f ".env" ]; then
   echo ""
   echo "🔐 正在自动初始化生产安全配置文件 (.env)..."
-  VAULT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+  EXISTING_VAULT_SEC=""
+  if [ -f "content/.vault/master.secret" ]; then
+    EXISTING_VAULT_SEC=$(cat content/.vault/master.secret 2>/dev/null | tr -d '\r\n ')
+  fi
+  if [ -n "$EXISTING_VAULT_SEC" ] && [ ${#EXISTING_VAULT_SEC} -ge 32 ]; then
+    VAULT_SECRET="$EXISTING_VAULT_SEC"
+    echo "🔑 已自动同步复用 content/.vault/master.secret 现有 512 位主密钥。"
+  else
+    VAULT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+  fi
   SESSION_SEC=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
   cat <<EOF > .env
 # XO STUDIO 生产环境安全配置文件 (自动生成)
@@ -100,7 +109,16 @@ EOF
 else
   # 校验已有 .env 中是否缺少金库主秘钥
   if ! grep -q "VAULT_MASTER_SECRET" .env; then
-    VAULT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+    EXISTING_VAULT_SEC=""
+    if [ -f "content/.vault/master.secret" ]; then
+      EXISTING_VAULT_SEC=$(cat content/.vault/master.secret 2>/dev/null | tr -d '\r\n ')
+    fi
+    if [ -n "$EXISTING_VAULT_SEC" ] && [ ${#EXISTING_VAULT_SEC} -ge 32 ]; then
+      VAULT_SECRET="$EXISTING_VAULT_SEC"
+      echo "🔑 已从 content/.vault/master.secret 自动为 .env 补齐现有 512 位主密钥。"
+    else
+      VAULT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+    fi
     echo "VAULT_MASTER_SECRET=$VAULT_SECRET" >> .env
     echo "🔑 已为现有 .env 自动补齐 512 位金库高熵主秘钥。"
   fi
@@ -132,6 +150,15 @@ fi
 set -a
 [ -f .env ] && source .env
 set +a
+
+# 确保 content/.vault/master.secret 物理密钥与当前环境变量保持同步互通
+mkdir -p content/.vault 2>/dev/null || true
+if [ ! -f "content/.vault/master.secret" ] || [ ! -s "content/.vault/master.secret" ]; then
+  if [ -n "$VAULT_MASTER_SECRET" ]; then
+    echo "$VAULT_MASTER_SECRET" > content/.vault/master.secret 2>/dev/null || true
+    chmod 600 content/.vault/master.secret 2>/dev/null || true
+  fi
+fi
 
 # 3. 同步初始化运行时数据与全站独立文件全面强制加密 (Zero-Downgrade Vault V5 Dual-Chamber)
 echo ""

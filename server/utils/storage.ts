@@ -383,26 +383,132 @@ function internalDecrypt(trimmed: string, rootSecret: Buffer): string {
 }
 
 /**
- * 校验并解密金库加密文件信封，无缝兼容 V5 双舱、V4、V3 与历史明文文件 (支持主密钥与集群默认密钥平滑回退)
+ * 获取金库候选密钥环 (Candidate Secrets Ring)
+ * 自动聚合主密钥、现有磁盘 master.secret、历史各轮密库凭证及 Pepper，保障跨环境平滑自愈解密
+ */
+export function getCandidateSecretsRing(customSecret?: string): Buffer[] {
+  const ring: Buffer[] = []
+  const seenHex = new Set<string>()
+
+  function addSecret(raw: any) {
+    if (!raw) return
+    let buf: Buffer | null = null
+    if (Buffer.isBuffer(raw)) {
+      buf = raw
+    } else if (typeof raw === 'string') {
+      const trimmed = raw.trim()
+      if (trimmed.length > 0) {
+        buf = Buffer.from(trimmed, 'utf8')
+        // 若为 32 字符以上的 Hex 编码，同时作为原始字节 Buffer 候选
+        if (/^[0-9a-fA-F]{32,}$/.test(trimmed)) {
+          try {
+            const hexBuf = Buffer.from(trimmed, 'hex')
+            const hexId = hexBuf.toString('hex')
+            if (!seenHex.has(hexId)) {
+              seenHex.add(hexId)
+              ring.push(hexBuf)
+            }
+          } catch {}
+        }
+      }
+    }
+    if (buf && buf.length > 0) {
+      const hexId = buf.toString('hex')
+      if (!seenHex.has(hexId)) {
+        seenHex.add(hexId)
+        ring.push(buf)
+      }
+    }
+  }
+
+  // 1. 用户显式指定密钥优先
+  if (customSecret) addSecret(customSecret)
+
+  // 2. 当前运行环境主密钥
+  addSecret(getVaultRootSecret())
+  addSecret(process.env.VAULT_MASTER_SECRET)
+  addSecret(process.env.XO_VAULT_MASTER_SECRET)
+  addSecret(process.env.XO_PROJECT_PASSWORD_SECRET)
+  addSecret(process.env.SESSION_SECRET)
+  addSecret(process.env.XO_ALIPAY_CONFIG_SECRET)
+
+  // 3. .env 文件直接探测
+  const cwd = process.cwd()
+  const candidateEnvPaths = [
+    path.resolve(cwd, '.env'),
+    path.resolve(cwd, '..', '.env')
+  ]
+  for (const envPath of candidateEnvPaths) {
+    if (fs.existsSync(envPath)) {
+      try {
+        const raw = fs.readFileSync(envPath, 'utf8')
+        const matches = raw.matchAll(/^([A-Z0-9_]+)\s*=\s*(["']?)(.+?)\2$/gm)
+        for (const m of matches) {
+          if (m[1].includes('SECRET') || m[1].includes('KEY')) {
+            addSecret(m[3])
+          }
+        }
+      } catch {}
+    }
+  }
+
+  // 4. content/.vault/master.secret 磁盘物理密钥
+  const secretPath = path.resolve(cwd, 'content', '.vault', 'master.secret')
+  if (fs.existsSync(secretPath)) {
+    try {
+      addSecret(fs.readFileSync(secretPath, 'utf8'))
+    } catch {}
+  }
+
+  // 5. content/.vault/ 下的轮转公钥/历史凭据
+  const vaultDir = path.resolve(cwd, 'content', '.vault')
+  if (fs.existsSync(vaultDir)) {
+    try {
+      const files = fs.readdirSync(vaultDir)
+      for (const f of files) {
+        const fp = path.join(vaultDir, f)
+        if (f.endsWith('.json')) {
+          try {
+            const parsed = JSON.parse(fs.readFileSync(fp, 'utf8'))
+            if (parsed.secret) addSecret(parsed.secret)
+            if (parsed.masterKey) addSecret(parsed.masterKey)
+            if (parsed.consensusSeed) addSecret(parsed.consensusSeed)
+          } catch {}
+        } else if (f.endsWith('.secret') || f.endsWith('.key')) {
+          try {
+            addSecret(fs.readFileSync(fp, 'utf8'))
+          } catch {}
+        }
+      }
+    } catch {}
+  }
+
+  // 6. 内置量子 Pepper 与历史保底密钥
+  addSecret('XO-STUDIO-QUANTUM-MASTER-PEPPER-2026-OBSIDIAN-VAULT')
+  addSecret('XO_STUDIO_WORLD_CLASS_QUANTUM_SECRET_2026')
+
+  return ring
+}
+
+/**
+ * 校验并解密金库加密文件信封，无缝兼容 V5 双舱、V4、V3 与历史明文文件 (全候选密钥环智能自愈遍历)
  */
 export function decryptFileContent(envelope: string, customSecret?: string): string {
   if (!envelope || typeof envelope !== 'string') return ''
   const trimmed = envelope.trim()
 
-  const primarySecret = customSecret ? Buffer.from(customSecret, 'utf8') : getVaultRootSecret()
-  try {
-    return internalDecrypt(trimmed, primarySecret)
-  } catch (primaryErr: any) {
-    if (!customSecret) {
-      const fallbackSecret = Buffer.from('XO_STUDIO_WORLD_CLASS_QUANTUM_SECRET_2026', 'utf8')
-      if (primarySecret.toString('hex') !== fallbackSecret.toString('hex')) {
-        try {
-          return internalDecrypt(trimmed, fallbackSecret)
-        } catch {}
-      }
+  const ring = getCandidateSecretsRing(customSecret)
+  let lastErr: any = null
+
+  for (const candidateSecret of ring) {
+    try {
+      return internalDecrypt(trimmed, candidateSecret)
+    } catch (err: any) {
+      lastErr = err
     }
-    throw primaryErr
   }
+
+  throw lastErr || new Error('无法通过密钥环解密该信封')
 }
 
 /**

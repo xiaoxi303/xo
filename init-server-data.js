@@ -274,21 +274,111 @@ function internalDecryptEnvelope(trimmed, rootSecret) {
   return trimmed
 }
 
+function getCandidateSecretsRing() {
+  const ring = []
+  const seenHex = new Set()
+
+  function addSecret(raw) {
+    if (!raw) return
+    let buf = null
+    if (Buffer.isBuffer(raw)) {
+      buf = raw
+    } else if (typeof raw === 'string') {
+      const trimmed = raw.trim()
+      if (trimmed.length > 0) {
+        buf = Buffer.from(trimmed, 'utf8')
+        if (/^[0-9a-fA-F]{32,}$/.test(trimmed)) {
+          try {
+            const hexBuf = Buffer.from(trimmed, 'hex')
+            const hexId = hexBuf.toString('hex')
+            if (!seenHex.has(hexId)) {
+              seenHex.add(hexId)
+              ring.push(hexBuf)
+            }
+          } catch {}
+        }
+      }
+    }
+    if (buf && buf.length > 0) {
+      const hexId = buf.toString('hex')
+      if (!seenHex.has(hexId)) {
+        seenHex.add(hexId)
+        ring.push(buf)
+      }
+    }
+  }
+
+  addSecret(getVaultMasterSecret())
+  addSecret(process.env.VAULT_MASTER_SECRET)
+  addSecret(process.env.XO_VAULT_MASTER_SECRET)
+  addSecret(process.env.XO_PROJECT_PASSWORD_SECRET)
+  addSecret(process.env.SESSION_SECRET)
+  addSecret(process.env.XO_ALIPAY_CONFIG_SECRET)
+
+  const envPaths = [path.resolve(rootDir, '.env'), path.resolve(rootDir, '..', '.env')]
+  for (const ep of envPaths) {
+    if (fs.existsSync(ep)) {
+      try {
+        const raw = fs.readFileSync(ep, 'utf8')
+        const matches = raw.matchAll(/^([A-Z0-9_]+)\s*=\s*(["']?)(.+?)\2$/gm)
+        for (const m of matches) {
+          if (m[1].includes('SECRET') || m[1].includes('KEY')) {
+            addSecret(m[3])
+          }
+        }
+      } catch {}
+    }
+  }
+
+  const secretPath = path.join(vaultDir, 'master.secret')
+  if (fs.existsSync(secretPath)) {
+    try {
+      addSecret(fs.readFileSync(secretPath, 'utf8'))
+    } catch {}
+  }
+
+  if (fs.existsSync(vaultDir)) {
+    try {
+      const files = fs.readdirSync(vaultDir)
+      for (const f of files) {
+        const fp = path.join(vaultDir, f)
+        if (f.endsWith('.json')) {
+          try {
+            const parsed = JSON.parse(fs.readFileSync(fp, 'utf8'))
+            if (parsed.secret) addSecret(parsed.secret)
+            if (parsed.masterKey) addSecret(parsed.masterKey)
+            if (parsed.consensusSeed) addSecret(parsed.consensusSeed)
+          } catch {}
+        } else if (f.endsWith('.secret') || f.endsWith('.key')) {
+          try {
+            addSecret(fs.readFileSync(fp, 'utf8'))
+          } catch {}
+        }
+      }
+    } catch {}
+  }
+
+  addSecret('XO-STUDIO-QUANTUM-MASTER-PEPPER-2026-OBSIDIAN-VAULT')
+  addSecret('XO_STUDIO_WORLD_CLASS_QUANTUM_SECRET_2026')
+
+  return ring
+}
+
 function decryptEnvelope(envelope) {
   if (!envelope || typeof envelope !== 'string') return ''
   const trimmed = envelope.trim()
-  const primarySecret = getVaultMasterSecret()
-  try {
-    return internalDecryptEnvelope(trimmed, primarySecret)
-  } catch (e) {
-    const fallbackSecret = Buffer.from('XO_STUDIO_WORLD_CLASS_QUANTUM_SECRET_2026', 'utf8')
-    if (primarySecret.toString('hex') !== fallbackSecret.toString('hex')) {
-      try {
-        return internalDecryptEnvelope(trimmed, fallbackSecret)
-      } catch {}
+  const ring = getCandidateSecretsRing()
+  let lastErr = null
+
+  for (const candidateSecret of ring) {
+    try {
+      return internalDecryptEnvelope(trimmed, candidateSecret)
+    } catch (e) {
+      lastErr = e
     }
-    throw e
   }
+
+  throw lastErr || new Error('无法通过密钥环解密该信封')
 }
 
 function writeSecureJson(targetPath, data) {
