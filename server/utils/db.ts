@@ -796,7 +796,11 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
   if (!fs.existsSync(projectsDir)) {
     fs.mkdirSync(projectsDir, { recursive: true })
   }
-  const fileName = `${body.slug.toLowerCase().replace(/[^a-z0-9-_]/g, '')}.md`
+  const cleanSlug = String(body.slug || '').toLowerCase().replace(/[^a-z0-9-_]/g, '')
+  if (!cleanSlug) {
+    throw createError({ statusCode: 400, statusMessage: '无效的 Slug 标识符。' })
+  }
+  const fileName = `${cleanSlug}.md`
   const filePath = path.join(projectsDir, fileName)
   if (fs.existsSync(filePath)) {
     throw createError({ statusCode: 409, statusMessage: 'A project with this slug already exists.' })
@@ -851,7 +855,11 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
 
   // Fallback
   const projectsDir = getRuntimeDataPath('projects')
-  const fileName = `${body.slug.toLowerCase().replace(/[^a-z0-9-_]/g, '')}.md`
+  const cleanSlug = String(body.slug || '').toLowerCase().replace(/[^a-z0-9-_]/g, '')
+  if (!cleanSlug) {
+    throw createError({ statusCode: 400, statusMessage: '无效的 Slug 标识符。' })
+  }
+  const fileName = `${cleanSlug}.md`
   const filePath = path.join(projectsDir, fileName)
   if (!fs.existsSync(filePath)) {
     throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
@@ -869,7 +877,11 @@ export async function dbDeleteProject(event: H3Event, slug: string): Promise<voi
 
   // Fallback
   const projectsDir = getRuntimeDataPath('projects')
-  const fileName = `${slug.toLowerCase().replace(/[^a-z0-9-_]/g, '')}.md`
+  const cleanSlug = String(slug || '').toLowerCase().replace(/[^a-z0-9-_]/g, '')
+  if (!cleanSlug) {
+    throw createError({ statusCode: 400, statusMessage: '无效的 Slug 标识符。' })
+  }
+  const fileName = `${cleanSlug}.md`
   const filePath = path.join(projectsDir, fileName)
   if (!fs.existsSync(filePath)) {
     throw createError({ statusCode: 404, statusMessage: 'Project not found.' })
