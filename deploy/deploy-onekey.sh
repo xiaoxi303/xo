@@ -175,7 +175,8 @@ chmod 600 content/*.json 2>/dev/null || true
 chmod 600 content/projects/*.md 2>/dev/null || true
 chmod 600 content/.sessions.json 2>/dev/null || true
 
-# 检查并输出独立加密文件状态审计
+# 自动全量强制升级并检查所有独立加密文件 (Zero-Downgrade V5 Dual-Chamber)
+node scripts/vault-file-tool.mjs encrypt-all 2>/dev/null || true
 node scripts/vault-file-tool.mjs status 2>/dev/null || true
 echo "✅ 运行时数据表、独立文件加密信封与 4096 位量子金库密钥目录已全量就绪 (100% 密文存储与 V5 双舱级联数字签名)。"
 

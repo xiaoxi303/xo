@@ -47,13 +47,22 @@ export function getBeijingDateString(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
 }
 
+import { decryptFileContent } from './storage'
+
 /**
  * Timing-safe project password verification against side-channel analysis
+ * Supports zero-downgrade proprietary V5 dual-chamber encrypted passwords
  */
 export function verifyProjectPassword(inputPassword: string, validPassword: string): boolean {
   if (!inputPassword || !validPassword) return false;
+  let target = String(validPassword).trim();
+  if (target.startsWith('$XO_VAULT_')) {
+    try {
+      target = decryptFileContent(target).trim();
+    } catch {}
+  }
   const normalizedInput = inputPassword.toString().trim().toUpperCase();
-  const normalizedValid = validPassword.toString().trim().toUpperCase();
+  const normalizedValid = target.toString().trim().toUpperCase();
   const hA = crypto.createHash('sha256').update(normalizedInput).digest();
   const hB = crypto.createHash('sha256').update(normalizedValid).digest();
   return crypto.timingSafeEqual(hA, hB);

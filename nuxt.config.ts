@@ -24,6 +24,11 @@ export default defineNuxtConfig({
         { rel: 'preload', href: '/fonts/xo-display.woff2', as: 'font', type: 'font/woff2', crossorigin: '' },
         // Preload Xo Sans font
         { rel: 'preload', href: '/fonts/xo-sans.woff2', as: 'font', type: 'font/woff2', crossorigin: '' }
+      ],
+      script: [
+        {
+          children: `(function(){var t=setTimeout(function(){var e=document.getElementById("xo-global-preloader");if(e){e.style.transition="opacity .4s ease,visibility .4s";e.style.opacity="0";e.style.pointerEvents="none";setTimeout(function(){if(e&&e.parentNode)e.parentNode.removeChild(e)},420)}document.body.style.overflow=""},2800);function d(){clearTimeout(t);var e=document.getElementById("xo-global-preloader");if(e){e.style.transition="opacity .3s ease";e.style.opacity="0";e.style.pointerEvents="none";setTimeout(function(){if(e&&e.parentNode)e.parentNode.removeChild(e)},350)}document.body.style.overflow=""}document.addEventListener("keydown",function(e){if(e.key==="Escape"||e.keyCode===27||e.key===" ")d()});document.addEventListener("click",function(e){var p=document.getElementById("xo-global-preloader");if(p&&p.contains(e.target))d()})})();`
+        }
       ]
     }
   },

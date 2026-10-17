@@ -1,5 +1,6 @@
 import { dbCreateProject, getD1Database } from '../utils/db'
 import { validateSession, SESSION_COOKIE } from '../utils/auth'
+import { decryptRsaHybrid, isRsaHybridPayload } from '../utils/vault-cipher'
 
 export default defineEventHandler(async (event) => {
   // Authentication check (admin session only)
@@ -8,7 +9,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: '未经授权的请求，请先登录管理员。' })
   }
 
-  const body = await readBody(event)
+  let body = event.context.decryptedBody || await readBody(event)
+  if (!event.context.hybridDecrypted && isRsaHybridPayload(body)) {
+    try {
+      body = JSON.parse(await decryptRsaHybrid(body, event))
+    } catch {}
+  }
 
   if (!body.slug || !body.title) {
     throw createError({

@@ -2,7 +2,7 @@ import { H3Event } from 'h3'
 import fs from 'node:fs'
 import path from 'node:path'
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
-import { getRuntimeDataPath, readEncryptedFile, writeEncryptedFile, readEncryptedJson, writeEncryptedJson } from './storage'
+import { getRuntimeDataPath, readEncryptedFile, writeEncryptedFile, readEncryptedJson, writeEncryptedJson, encryptFileContent, decryptFileContent } from './storage'
 import { vaultHashPassword } from './vault-cipher'
 
 let isDbInitialized = false
@@ -739,12 +739,20 @@ export async function dbGetProjectPassword(event: H3Event, slug: string): Promis
   const db = await getD1Database(event)
   if (db) {
     const row = await db.prepare('SELECT password FROM projects WHERE slug = ?').bind(slug).first() as any
-    return row?.password || null
+    const pwd = row?.password || null
+    if (pwd && typeof pwd === 'string' && pwd.startsWith('$XO_VAULT_')) {
+      try { return decryptFileContent(pwd) } catch {}
+    }
+    return pwd
   }
   const filePath = getRuntimeDataPath('projects', `${slug}.md`)
   if (!fs.existsSync(filePath)) return null
   const parsed = parseMarkdownFile(filePath)
-  return (parsed as any).password || null
+  const pwd = (parsed as any).password || null
+  if (pwd && typeof pwd === 'string' && pwd.startsWith('$XO_VAULT_')) {
+    try { return decryptFileContent(pwd) } catch {}
+  }
+  return pwd
 }
 
 export async function dbCreateProject(event: H3Event, body: any): Promise<void> {
@@ -754,6 +762,11 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
     const duplicate = await db.prepare('SELECT slug FROM projects WHERE slug = ?').bind(body.slug).first()
     if (duplicate) {
       throw createError({ statusCode: 409, statusMessage: 'A project with this slug already exists.' })
+    }
+
+    let safeDbPassword = body.password || ''
+    if (safeDbPassword && typeof safeDbPassword === 'string' && !safeDbPassword.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+      safeDbPassword = encryptFileContent(safeDbPassword)
     }
 
     await db.prepare(`
@@ -778,7 +791,7 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
       body.description || '',
       body.longDescription || '',
       JSON.stringify(body.workflow || []),
-      body.password || '',
+      safeDbPassword,
       body.releaseYear || '',
       body.postSpecs || '',
       body.director || '',
@@ -807,7 +820,12 @@ export async function dbCreateProject(event: H3Event, body: any): Promise<void> 
   if (fs.existsSync(filePath)) {
     throw createError({ statusCode: 409, statusMessage: 'A project with this slug already exists.' })
   }
-  const fileContent = `---\n${stringifyYaml(body)}\n---\n\n${body.body || ''}\n`
+  let safePassword = body.password || ''
+  if (safePassword && typeof safePassword === 'string' && !safePassword.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+    safePassword = encryptFileContent(safePassword)
+  }
+  const safeBody = { ...body, password: safePassword }
+  const fileContent = `---\n${stringifyYaml(safeBody)}\n---\n\n${body.body || ''}\n`
   writeEncryptedFile(filePath, fileContent)
 }
 
@@ -821,6 +839,10 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
 
     const existingPassword = (project as any).password || ''
     const targetPassword = (body.password !== undefined && body.password !== '') ? body.password : existingPassword
+    let safeDbPassword = targetPassword || ''
+    if (safeDbPassword && typeof safeDbPassword === 'string' && !safeDbPassword.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+      safeDbPassword = encryptFileContent(safeDbPassword)
+    }
 
     await db.prepare(`
       UPDATE projects
@@ -842,7 +864,7 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
       body.description || '',
       body.longDescription || '',
       JSON.stringify(body.workflow || []),
-      targetPassword,
+      safeDbPassword,
       body.releaseYear || '',
       body.postSpecs || '',
       body.director || '',
@@ -871,7 +893,11 @@ export async function dbUpdateProject(event: H3Event, body: any): Promise<void> 
   }
   const existing = parseMarkdownFile(filePath) as any
   const targetPassword = (body.password !== undefined && body.password !== '') ? body.password : (existing?.password || '')
-  const mergedBody = { ...body, password: targetPassword }
+  let safePassword = targetPassword || ''
+  if (safePassword && typeof safePassword === 'string' && !safePassword.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+    safePassword = encryptFileContent(safePassword)
+  }
+  const mergedBody = { ...body, password: safePassword }
   const fileContent = `---\n${stringifyYaml(mergedBody)}\n---\n\n${mergedBody.body || ''}\n`
   writeEncryptedFile(filePath, fileContent)
 }

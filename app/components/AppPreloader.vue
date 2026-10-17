@@ -1,6 +1,7 @@
 <template>
   <div
     v-if="visible"
+    id="xo-global-preloader"
     :class="['xo-preloader', { 'xo-preloader--exit': isExiting }]"
     role="dialog"
     aria-label="XO STUDIO 加载中"
@@ -238,8 +239,8 @@ onMounted(() => {
 
   startedAt = performance.now()
 
-  // 1. DOM Milestone
-  if (document.readyState === 'complete') {
+  // 1. DOM Milestone (支持 interactive 与 complete)
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
     milestones.dom = true
   } else {
     window.addEventListener('DOMContentLoaded', () => { milestones.dom = true }, { once: true })
@@ -291,24 +292,23 @@ onMounted(() => {
 
   void Promise.allSettled([probeNet(), probeApi(), probeFonts(), probeAssets()])
 
-  // Max 6s safety ceiling to never trap visitor
+  // 绝对自愈保底：2.4 秒后若仍在开场阶段，强制解封并退出，杜绝任何意外卡死
   const safetyTimeout = window.setTimeout(() => {
     milestones.dom = true
     milestones.network = true
     milestones.api = true
     milestones.fonts = true
     milestones.assets = true
-  }, 6000)
+    triggerExit()
+  }, 2400)
 
   // Adaptive Ceremony Duration (based on real network condition)
-  // Even on Gigabit local/fiber network, gives a dignified 2.4s ~ 2.8s cinema opening
-  // On slower mobile networks, smoothly stretches to 3.5s ~ 4.5s
+  // Even on Gigabit local/fiber network, gives a dignified 1.8s ~ 2.4s cinema opening
   const getTargetDuration = () => {
     const rtt = networkLatencyMs.value ?? 30
-    if (rtt > 220) return 4600
-    if (rtt > 100) return 3600
-    if (rtt > 50) return 2900
-    return 2400
+    if (rtt > 220) return 2600
+    if (rtt > 100) return 2200
+    return 1800
   }
 
   const updateLoop = (now: number) => {
@@ -322,28 +322,35 @@ onMounted(() => {
     const smoothTime = timeRatio * timeRatio * (3 - 2 * timeRatio)
     const timeProgress = smoothTime * 100
 
-    // Gated milestones: authentic progress cannot skip ahead of unresolved milestones
+    // Gated milestones: 动态阶梯递增
     let gatedCeiling = 100
-    if (!milestones.dom) gatedCeiling = Math.min(gatedCeiling, 26)
-    else if (!milestones.network) gatedCeiling = Math.min(gatedCeiling, 54)
-    else if (!milestones.api) gatedCeiling = Math.min(gatedCeiling, 78)
+    if (!milestones.dom) gatedCeiling = Math.min(gatedCeiling, 35)
+    else if (!milestones.network) gatedCeiling = Math.min(gatedCeiling, 65)
+    else if (!milestones.api) gatedCeiling = Math.min(gatedCeiling, 82)
     else if (!milestones.fonts || !milestones.assets) gatedCeiling = Math.min(gatedCeiling, 92)
+
+    // 超过 1.5 秒自动解除所有里程碑闸门
+    if (elapsed > 1500) {
+      gatedCeiling = 100
+    }
 
     const targetProgress = Math.min(gatedCeiling, timeProgress)
 
-    // Precision instrument lerp
+    // 确保数字平滑且必然前移（最小步长 0.8%，杜绝停滞在 0）
     const diff = targetProgress - displayProgress.value
-    displayProgress.value += diff * 0.12
+    if (diff > 0) {
+      displayProgress.value = Math.min(targetProgress, displayProgress.value + Math.max(0.8, diff * 0.16))
+    }
 
     const allReady = completedMilestones.value >= 5
 
-    // Completion condition: all 5 milestones ready AND ceremony duration satisfied
-    if (displayProgress.value >= 99 && allReady && elapsed >= totalDuration) {
+    // Completion condition: 满足进度或达到规定时长即刻完成
+    if ((displayProgress.value >= 98 || elapsed >= totalDuration) && (allReady || elapsed >= 1600)) {
       displayProgress.value = 100
       clearTimeout(safetyTimeout)
       window.setTimeout(() => {
         triggerExit()
-      }, 260)
+      }, 180)
       return
     }
 

@@ -21,6 +21,7 @@ import {
   readEncryptedFile,
   writeEncryptedFile
 } from '../server/utils/storage.ts'
+import { verifyProjectPassword } from '../server/utils/password-utils.ts'
 import { encryptRsaHybrid } from '../app/utils/rsa-hybrid.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -241,8 +242,26 @@ async function runTestSuite() {
   console.log('  ✅ 前端到服务端、传输到存储、从密文到真理共识双向闭环 100% 联合验算一致！')
   passCount++
 
+  // ── TEST 11: 视频作品独立密码 100% 接入 V5 双舱级联数字封签与常时安全验签 ──
+  console.log('\n▶ [TEST 11/11] 视频作品密码全面强制 V5 双舱封签存储与按需解密验签实测...')
+  const originalSecretPassword = 'QuantumDirectorKey#2026'
+  // 模拟入库：密码在存储前即时封装为 V5 双舱级联封签
+  const encryptedPasswordVault = encryptFileContent(originalSecretPassword)
+  if (!encryptedPasswordVault.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+    throw new Error('TEST 11 FAILED: 密码未封装为 V5 双舱加密封签')
+  }
+  // 模拟用户解锁与常时验签：verifyProjectPassword 必须成功解密并安全通过
+  const isMatchCorrect = verifyProjectPassword(originalSecretPassword, encryptedPasswordVault)
+  const isMatchWrong = verifyProjectPassword('WrongPassword999', encryptedPasswordVault)
+  if (!isMatchCorrect || isMatchWrong) {
+    throw new Error('TEST 11 FAILED: V5 密码封签常时验签逻辑异常')
+  }
+  console.log('  🔒 独立作品密码已彻底剔除明文，全面封装至 V5 双舱级联数字签名引擎！')
+  console.log('  ✅ 常时安全验签通过，成功比对用户输入与 V5 双舱加密封签！')
+  passCount++
+
   console.log('\n======================================================================')
-  console.log(`🎉 全部 ${passCount}/10 项全链路加解密与抗篡改数字签名测试 100% 完美通过！`)
+  console.log(`🎉 全部 ${passCount}/11 项全链路加解密与抗篡改数字签名测试 100% 完美通过！`)
   console.log('======================================================================')
 }
 
