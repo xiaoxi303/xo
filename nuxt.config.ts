@@ -28,7 +28,7 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          children: `(function(){try{var r=localStorage.getItem('xo_vault_theme_e2ee');var d=false;if(r&&r.indexOf('film-dark')!==-1){d=true;}else{var p=localStorage.getItem('xo_theme_preset');if(p==='film-dark'||p==='dark')d=true;else if(!p&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;}if(d){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','film-dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.setAttribute('data-theme','warm-linen');document.documentElement.style.colorScheme='light';}}catch(e){}})();`,
+          children: `(function(){try{var m=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;var locked=localStorage.getItem('xo_theme_user_locked')==='true';var d=m;if(locked){var p=localStorage.getItem('xo_theme_preset');if(p==='film-dark'||p==='dark')d=true;else if(p==='warm-linen'||p==='light')d=false;}var root=document.documentElement;if(d){root.classList.add('dark');root.setAttribute('data-theme','film-dark');root.style.colorScheme='dark';}else{root.classList.remove('dark');root.setAttribute('data-theme','warm-linen');root.style.colorScheme='light';}}catch(e){}})();`,
           type: 'text/javascript'
         }
       ]

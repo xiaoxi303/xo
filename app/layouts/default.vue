@@ -295,6 +295,7 @@
     <!-- Main Layout Content Slot -->
     <div :class="{'pt-10': isAnnouncementActive && announcement?.position === 'top-bar'}">
       <AppNavbar v-if="!isPanelPage" :style="isAnnouncementActive && announcement?.position === 'top-bar' ? { top: '38px' } : {}" />
+      <AppThemeToggle v-if="!isPanelPage" />
       <main>
         <slot />
       </main>

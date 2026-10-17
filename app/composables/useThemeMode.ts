@@ -3,6 +3,8 @@ import { encryptE2EE, decryptE2EE, getE2EEFingerprint, isE2EESupported, verifyE2
 import { getMachineFingerprint } from '~/utils/rsa-hybrid'
 
 const isDark = ref(false)
+const isAutoDevice = ref(true)
+const systemPrefersDark = ref(false)
 const isInitialized = ref(false)
 const isEncrypting = ref(false)
 const encryptionFingerprint = ref('QUANTUM-VAULT-INITIALIZING')
@@ -28,7 +30,8 @@ function applyDomTheme(dark: boolean) {
 }
 
 /**
- * Initialize theme from encrypted vault storage
+ * Initialize theme with automatic device color-scheme detection
+ * and self-developed quantum encrypted vault synchronization
  */
 async function initTheme() {
   if (typeof window === 'undefined' || isInitialized.value) return
@@ -38,44 +41,65 @@ async function initTheme() {
       encryptionFingerprint.value = await getE2EEFingerprint()
     }
 
-    const encryptedData = localStorage.getItem('xo_vault_theme_e2ee')
-    if (encryptedData) {
-      try {
-        const envelope = JSON.parse(encryptedData)
-        // Verify digital signature & cryptographic tamper-proof integrity
-        const check = await verifyE2EEPayloadSignature(envelope)
-        if (check.valid) {
-          const decryptedJson = await decryptE2EE(envelope)
-          const parsed = JSON.parse(decryptedJson)
-          if (parsed && (parsed.mode === 'dark' || parsed.preset === 'film-dark')) {
-            isDark.value = true
-          } else {
-            isDark.value = false
-          }
-          applyDomTheme(isDark.value)
-          isInitialized.value = true
-          return
-        }
-      } catch (err) {
-        console.warn('[Vault Theme] Encrypted payload decode error:', err)
-      }
-    }
+    // 1. Detect visitor's device OS color-scheme preference
+    const mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null
+    const deviceDark = !!mediaQuery?.matches
+    systemPrefersDark.value = deviceDark
 
-    // Fallback: check legacy localStorage preset or system preference
-    const legacyPreset = localStorage.getItem('xo_theme_preset')
-    if (legacyPreset) {
-      isDark.value = legacyPreset === 'film-dark' || legacyPreset === 'dark'
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      isDark.value = true
+    // 2. Check if user explicitly clicked a manual override previously
+    const isLocked = localStorage.getItem('xo_theme_user_locked') === 'true'
+
+    if (isLocked) {
+      isAutoDevice.value = false
+      // Attempt reading decrypted choice from E2EE vault
+      const encryptedData = localStorage.getItem('xo_vault_theme_e2ee')
+      let resolvedDark: boolean | null = null
+
+      if (encryptedData) {
+        try {
+          const envelope = JSON.parse(encryptedData)
+          const check = await verifyE2EEPayloadSignature(envelope)
+          if (check.valid) {
+            const decryptedJson = await decryptE2EE(envelope)
+            const parsed = JSON.parse(decryptedJson)
+            if (parsed && typeof parsed.mode === 'string') {
+              resolvedDark = parsed.mode === 'dark' || parsed.preset === 'film-dark'
+            }
+          }
+        } catch (err) {
+          console.warn('[Vault Theme] Encrypted payload decode error:', err)
+        }
+      }
+
+      if (resolvedDark === null) {
+        const legacyPreset = localStorage.getItem('xo_theme_preset')
+        resolvedDark = legacyPreset === 'film-dark' || legacyPreset === 'dark'
+      }
+
+      isDark.value = resolvedDark
     } else {
-      isDark.value = false
+      // Default: Automatically adapt according to visitor's device!
+      isAutoDevice.value = true
+      isDark.value = deviceDark
+      // Persist device-adaptive state into encrypted vault
+      persistEncryptedTheme(isDark.value, true).catch(() => {})
     }
 
     applyDomTheme(isDark.value)
     isInitialized.value = true
 
-    // Upgrade initial plain state to self-developed encrypted vault
-    persistEncryptedTheme(isDark.value).catch(() => {})
+    // 3. Register real-time device color-scheme listener
+    if (mediaQuery && typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', (e) => {
+        systemPrefersDark.value = e.matches
+        // If current mode is following device, automatically adapt in real-time
+        if (isAutoDevice.value) {
+          isDark.value = e.matches
+          applyDomTheme(isDark.value)
+          persistEncryptedTheme(isDark.value, true).catch(() => {})
+        }
+      })
+    }
   } catch (e) {
     console.warn('[Vault Theme] Init error:', e)
   }
@@ -84,7 +108,7 @@ async function initTheme() {
 /**
  * Persist theme preference into self-developed encrypted vault
  */
-async function persistEncryptedTheme(dark: boolean) {
+async function persistEncryptedTheme(dark: boolean, isAuto: boolean = false) {
   if (typeof window === 'undefined') return
   isEncrypting.value = true
 
@@ -92,6 +116,8 @@ async function persistEncryptedTheme(dark: boolean) {
     const rawData = JSON.stringify({
       mode: dark ? 'dark' : 'light',
       preset: dark ? 'film-dark' : 'warm-linen',
+      isAuto,
+      deviceDark: systemPrefersDark.value,
       timestamp: Date.now(),
       deviceFingerprint: getMachineFingerprint(),
       cipherEngine: 'AES-256-GCM+ECDSA-P521+ZKP'
@@ -101,6 +127,11 @@ async function persistEncryptedTheme(dark: boolean) {
     const encryptedEnvelope = await encryptE2EE(rawData)
     localStorage.setItem('xo_vault_theme_e2ee', JSON.stringify(encryptedEnvelope))
     localStorage.setItem('xo_theme_preset', dark ? 'film-dark' : 'warm-linen')
+    if (isAuto) {
+      localStorage.removeItem('xo_theme_user_locked')
+    } else {
+      localStorage.setItem('xo_theme_user_locked', 'true')
+    }
 
     if (isE2EESupported()) {
       encryptionFingerprint.value = encryptedEnvelope.keyFingerprint
@@ -112,6 +143,7 @@ async function persistEncryptedTheme(dark: boolean) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         mode: dark ? 'dark' : 'light',
+        isAuto,
         envelope: encryptedEnvelope.signature
       })
     }).catch(() => {})
@@ -124,26 +156,47 @@ async function persistEncryptedTheme(dark: boolean) {
 }
 
 /**
- * Toggle theme between dark and light with instant visual feedback and encrypted persistence
+ * Reset back to automatic device detection
  */
-async function toggleTheme() {
-  isDark.value = !isDark.value
+async function resetToAutoDevice() {
+  isAutoDevice.value = true
+  const mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null
+  const deviceDark = !!mediaQuery?.matches
+  systemPrefersDark.value = deviceDark
+  isDark.value = deviceDark
   applyDomTheme(isDark.value)
-  await persistEncryptedTheme(isDark.value)
+  await persistEncryptedTheme(isDark.value, true)
 }
 
 /**
- * Explicitly set theme mode
+ * Explicitly set theme mode or toggle back to auto
  */
-async function setTheme(mode: 'dark' | 'light') {
+async function setTheme(mode: 'dark' | 'light' | 'auto') {
+  if (mode === 'auto') {
+    await resetToAutoDevice()
+    return
+  }
+  isAutoDevice.value = false
   isDark.value = mode === 'dark'
   applyDomTheme(isDark.value)
-  await persistEncryptedTheme(isDark.value)
+  await persistEncryptedTheme(isDark.value, false)
+}
+
+/**
+ * Toggle theme between dark, light or reset to device auto
+ */
+async function toggleTheme() {
+  isAutoDevice.value = false
+  isDark.value = !isDark.value
+  applyDomTheme(isDark.value)
+  await persistEncryptedTheme(isDark.value, false)
 }
 
 export function useThemeMode() {
   return {
     isDark,
+    isAutoDevice,
+    systemPrefersDark,
     currentTheme,
     isInitialized,
     isEncrypting,
@@ -151,6 +204,7 @@ export function useThemeMode() {
     securityLevel,
     initTheme,
     toggleTheme,
-    setTheme
+    setTheme,
+    resetToAutoDevice
   }
 }

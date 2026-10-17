@@ -22,16 +22,16 @@
         }"
       />
 
-      <!-- Toggle Button (Sun: Light Mode) -->
+      <!-- Toggle Button (Sun: Light Mode / Auto Device) -->
       <button
         type="button"
-        @click="setTheme('light')"
+        @click="handleSunClick"
         :aria-pressed="!isDark"
         class="relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 z-10 cursor-pointer"
         :class="!isDark
           ? 'text-amber-800 font-bold'
           : 'text-slate-400 hover:text-amber-200'"
-        title="切换为浅色暖亚麻模式"
+        :title="isAutoDevice && !isDark ? '当前已根据设备自动设为浅色（点击手动锁定）' : '切换为浅色暖亚麻模式（再次点击恢复跟随设备）'"
       >
         <!-- Sun Icon -->
         <svg
@@ -57,16 +57,16 @@
         </svg>
       </button>
 
-      <!-- Toggle Button (Moon: Dark Mode) -->
+      <!-- Toggle Button (Moon: Dark Mode / Auto Device) -->
       <button
         type="button"
-        @click="setTheme('dark')"
+        @click="handleMoonClick"
         :aria-pressed="isDark"
         class="relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 z-10 cursor-pointer mt-1"
         :class="isDark
           ? 'text-amber-300 font-bold'
           : 'text-slate-400 hover:text-slate-800'"
-        title="切换为深色胶片模式"
+        :title="isAutoDevice && isDark ? '当前已根据设备自动设为深色（点击手动锁定）' : '切换为深色胶片模式（再次点击恢复跟随设备）'"
       >
         <!-- Moon Icon -->
         <svg
@@ -97,7 +97,14 @@
             ? '0 0 14px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.15)'
             : '0 4px 12px rgba(180,83,9,0.18), inset 0 1px 0 #ffffff'
         }"
-      />
+      >
+        <!-- Device Auto mode indicator beacon -->
+        <span
+          v-if="isAutoDevice"
+          class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-1 ring-white/60 animate-pulse"
+          title="自动跟随设备中"
+        />
+      </div>
     </div>
 
     <!-- Luxurious Floating Tooltip on Hover (Expanding to the right) -->
@@ -105,14 +112,23 @@
       class="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] whitespace-nowrap z-50"
     >
       <div
-        class="px-3 py-1.5 rounded-xl backdrop-blur-2xl border shadow-xl flex items-center gap-1.5"
+        class="px-3.5 py-2 rounded-xl backdrop-blur-2xl border shadow-xl flex items-center gap-2"
         :class="isDark
           ? 'bg-[#161822]/95 border-amber-500/30 text-white shadow-[0_12px_32px_rgba(0,0,0,0.5)]'
           : 'bg-white/95 border-amber-800/15 text-slate-900 shadow-[0_12px_32px_rgba(180,83,9,0.15)]'"
       >
-        <span class="text-xs font-bold font-sans">
-          {{ isDark ? '深色胶片调色模式' : '暖亚麻大刊模式' }}
-        </span>
+        <span
+          class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+          :class="isAutoDevice ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"
+        />
+        <div class="flex flex-col text-left">
+          <span class="text-xs font-bold font-sans">
+            {{ isAutoDevice ? `自动跟随设备模式 (${isDark ? '深色' : '浅色'})` : `手动固定: ${isDark ? '深色' : '浅色'}` }}
+          </span>
+          <span class="text-[9px] font-mono text-slate-400 mt-0.5">
+            {{ isAutoDevice ? '已实时对齐对方系统/手机设置' : '点击当前高亮项可恢复自动跟随' }}
+          </span>
+        </div>
       </div>
     </div>
   </aside>
@@ -124,9 +140,29 @@ import { useThemeMode } from '~/composables/useThemeMode'
 
 const {
   isDark,
+  isAutoDevice,
   initTheme,
-  setTheme
+  setTheme,
+  resetToAutoDevice
 } = useThemeMode()
+
+function handleSunClick() {
+  if (!isDark.value && !isAutoDevice.value) {
+    // Already in manual light mode -> revert to auto device!
+    resetToAutoDevice()
+  } else {
+    setTheme('light')
+  }
+}
+
+function handleMoonClick() {
+  if (isDark.value && !isAutoDevice.value) {
+    // Already in manual dark mode -> revert to auto device!
+    resetToAutoDevice()
+  } else {
+    setTheme('dark')
+  }
+}
 
 onMounted(() => {
   initTheme()

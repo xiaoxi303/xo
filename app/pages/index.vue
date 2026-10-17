@@ -1,8 +1,5 @@
 <template>
   <div class="min-h-screen relative overflow-hidden" style="background: var(--color-bg);">
-    <!-- Floating Left-Center Dark / Light Theme Mode Switch (Quantum E2EE Vault Encrypted) -->
-    <AppThemeToggle />
-
     <!-- ===== Ambient Studio Luxury Backdrop Glows (High Visibility) ===== -->
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
