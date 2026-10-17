@@ -58,13 +58,13 @@
 
               <AppContactBtn
                 :siteInfo="siteConfig?.siteInfo"
-                customClass="px-6 py-3 text-xs font-bold text-[var(--color-ink-1)] bg-white/90 border border-amber-600/20 shadow-md xo-kinetic-btn"
+                customClass="px-6 py-3 text-xs font-bold text-slate-900 dark:text-amber-200 bg-white/95 dark:bg-amber-500/15 border border-amber-600/30 dark:border-amber-500/30 shadow-md xo-kinetic-btn hover:bg-white dark:hover:bg-amber-500/25"
                 @click="trackEvent('contact_click', 'homepage')"
               >
                 <span>联系我</span>
               </AppContactBtn>
 
-              <NuxtLink to="/booking" class="btn-ghost shadow-sm hover:bg-black/5 active:scale-95 transition-all xo-kinetic-btn">
+              <NuxtLink to="/booking" class="btn-ghost shadow-sm hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all xo-kinetic-btn">
                 <IconSax name="calendar-1" :size="15" aria-hidden="true" />
                 <span>合作预约</span>
               </NuxtLink>
@@ -77,7 +77,7 @@
 
             <!-- Tech stack tag line -->
             <div class="flex flex-wrap gap-2 pt-2">
-              <span v-for="tech in (siteConfig?.home?.heroTechStack && siteConfig.home.heroTechStack.length > 0 ? siteConfig.home.heroTechStack : techStack)" :key="tech" class="tag font-bold" style="border: 1px solid rgba(217,119,6,0.3); background: rgba(255,255,255,0.8);">
+              <span v-for="tech in (siteConfig?.home?.heroTechStack && siteConfig.home.heroTechStack.length > 0 ? siteConfig.home.heroTechStack : techStack)" :key="tech" class="tag font-bold border border-amber-600/30 bg-white/90 dark:bg-white/10 text-slate-800 dark:text-slate-100 shadow-xs">
                 {{ tech }}
               </span>
             </div>
@@ -205,15 +205,15 @@
 
             <!-- Middle: Monospaced Coordinates & Label -->
             <div class="flex items-center gap-2.5 text-xs select-none">
-              <span class="text-[10px] font-mono font-extrabold tracking-widest text-[#b45309]">01</span>
-              <span class="w-3 h-px bg-amber-800/25 group-hover:w-5 group-hover:bg-amber-600 transition-all duration-300" />
-              <span class="font-sans font-bold tracking-widest text-[#0a0b0e] group-hover:text-[#b45309] transition-colors">
+              <span class="text-[10px] font-mono font-extrabold tracking-widest text-[#b45309] dark:text-amber-400">01</span>
+              <span class="w-3 h-px bg-amber-800/25 dark:bg-amber-400/40 group-hover:w-5 group-hover:bg-amber-600 transition-all duration-300" />
+              <span class="font-sans font-bold tracking-widest text-[#0a0b0e] dark:text-slate-100 group-hover:text-[#b45309] dark:group-hover:text-amber-300 transition-colors">
                 向下探索
               </span>
             </div>
 
             <!-- Right: Animated Bouncing Down Arrow Pill -->
-            <div class="w-6 h-6 rounded-full bg-amber-500/10 group-hover:bg-amber-600 group-hover:text-white flex items-center justify-center text-[#b45309] transition-all duration-300 flex-shrink-0 shadow-inner">
+            <div class="w-6 h-6 rounded-full bg-amber-500/10 dark:bg-amber-500/20 group-hover:bg-amber-600 group-hover:text-white flex items-center justify-center text-[#b45309] dark:text-amber-300 transition-all duration-300 flex-shrink-0 shadow-inner">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -393,7 +393,7 @@
                   <p class="text-[var(--color-bronze-dark)] text-[10px] uppercase font-mono font-bold">达芬奇调色 & 专业后期系统</p>
                 </div>
                 <div class="flex flex-wrap gap-1.5">
-                  <span v-for="t in (siteConfig?.home?.skillsTags && siteConfig.home.skillsTags.length > 0 ? siteConfig.home.skillsTags : ['Resolve', 'Premiere', 'After Effects', 'Cinema 4D', 'ACES 工作流', 'Logic Pro', 'Foley 音效'])" :key="t" class="tag font-semibold" style="border: 1px solid rgba(217,119,6,0.3); background: rgba(255,255,255,0.9);">
+                  <span v-for="t in (siteConfig?.home?.skillsTags && siteConfig.home.skillsTags.length > 0 ? siteConfig.home.skillsTags : ['Resolve', 'Premiere', 'After Effects', 'Cinema 4D', 'ACES 工作流', 'Logic Pro', 'Foley 音效'])" :key="t" class="tag font-semibold border border-amber-600/30 bg-white/90 dark:bg-white/10 text-slate-800 dark:text-slate-100 shadow-xs">
                     {{ t }}
                   </span>
                 </div>
@@ -406,7 +406,7 @@
                     <span class="text-[var(--color-ink-2)] font-sans font-bold">{{ skill.name }}</span>
                     <span class="text-[var(--color-bronze-dark)] font-bold">{{ skill.level }}%</span>
                   </div>
-                  <div class="w-full h-2.5 rounded-full overflow-hidden p-0.5 shadow-inner" style="background: rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.08);">
+                  <div class="w-full h-2.5 rounded-full overflow-hidden p-0.5 shadow-inner bg-black/10 dark:bg-white/10 border border-black/10 dark:border-white/10">
                     <div
                       class="h-full rounded-full shadow-md transition-all duration-1000"
                       :style="{ width: skill.level + '%', background: 'linear-gradient(90deg, #d97706 0%, #b45309 60%, #f59e0b 100%)' }"
@@ -500,10 +500,10 @@
     </section>
 
     <!-- ===== CAPSULE BLOG SECTION (Modern Serenity Preview) ===== -->
-    <section class="home-blog-section py-20 px-6 relative z-10 bg-gradient-to-b from-transparent via-slate-100/50 to-transparent">
+    <section class="home-blog-section py-20 px-6 relative z-10 bg-gradient-to-b from-transparent via-slate-100/50 dark:via-white/[0.03] to-transparent">
       <div class="max-w-6xl mx-auto space-y-10">
         <!-- Section Header -->
-        <div class="flex flex-wrap items-end justify-between gap-6 border-b border-black/10 pb-6">
+        <div class="flex flex-wrap items-end justify-between gap-6 border-b border-black/10 dark:border-white/10 pb-6">
           <div class="space-y-2">
             <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-bold font-sans">
               <span class="w-2 h-2 rounded-full bg-[#007AFF] animate-ping" />
@@ -615,11 +615,11 @@
             </div>
 
             <!-- Tags -->
-            <div class="flex flex-wrap gap-1.5 pt-6 border-t border-black/[0.06] mt-6">
+            <div class="flex flex-wrap gap-1.5 pt-6 border-t border-black/[0.06] dark:border-white/10 mt-6">
               <span
                 v-for="tag in getStepTags(step)"
                 :key="tag"
-                class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-900 border border-amber-600/15"
+                class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-600/15 dark:border-amber-400/30"
               >
                 {{ tag }}
               </span>

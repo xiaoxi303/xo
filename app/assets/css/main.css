@@ -390,8 +390,8 @@ html[data-theme="dark"] {
 
   /* Text — 电影级高反差文字梯度 */
   --color-ink-1:        #f8fafc;   /* 极高亮主标题白 */
-  --color-ink-2:        #e2e8f0;   /* 次级标题银白 */
-  --color-ink-3:        #cbd5e1;   /* 正文月光灰 */
+  --color-ink-2:        #f1f5f9;   /* 次级标题银白 */
+  --color-ink-3:        #e2e8f0;   /* 正文月光灰 */
   --color-ink-4:        #94a3b8;   /* 辅文石板灰 */
   --color-ink-5:        #64748b;   /* 注脚中灰 */
   --color-ink-6:        #475569;   /* 弱化暗灰 */
@@ -400,41 +400,165 @@ html[data-theme="dark"] {
   /* Accent — 琥珀流光金 (电影光圈质感) */
   --color-bronze:       var(--color-brand-accent, #f59e0b);
   --color-bronze-light: var(--color-brand-accent, #fbbf24);
-  --color-bronze-dark:  var(--color-brand-accent-hover, #d97706);
-  --color-bronze-bg:    rgba(245, 158, 11, 0.14);
-  --color-bronze-glow:  rgba(245, 158, 11, 0.28);
+  --color-bronze-dark:  var(--color-brand-accent-hover, #fbbf24);
+  --color-bronze-bg:    rgba(245, 158, 11, 0.16);
+  --color-bronze-glow:  rgba(245, 158, 11, 0.32);
 
   /* Semantic Colors */
   --color-success:      #10b981;
-  --color-success-bg:   rgba(16, 185, 129, 0.14);
+  --color-success-bg:   rgba(16, 185, 129, 0.18);
   --color-warning:      #f59e0b;
-  --color-warning-bg:   rgba(245, 158, 11, 0.14);
+  --color-warning-bg:   rgba(245, 158, 11, 0.18);
   --color-error:        #ef4444;
-  --color-error-bg:     rgba(239, 68, 68, 0.14);
-  --color-info:         #3b82f6;
-  --color-info-bg:      rgba(59, 130, 246, 0.14);
+  --color-error-bg:     rgba(239, 68, 68, 0.18);
+  --color-info:         #38bdf8;
+  --color-info-bg:      rgba(56, 189, 248, 0.18);
 
   /* Borders — 极细微高光暗线 */
-  --color-border:       rgba(255, 255, 255, 0.08);
-  --color-border-2:     rgba(255, 255, 255, 0.14);
-  --color-border-3:     rgba(255, 255, 255, 0.22);
+  --color-border:       rgba(255, 255, 255, 0.10);
+  --color-border-2:     rgba(255, 255, 255, 0.16);
+  --color-border-3:     rgba(255, 255, 255, 0.25);
   --color-border-focus: var(--color-bronze);
 
   /* Glass Mica — 暗黑液态玻璃微晶态 */
-  --glass-bg:           rgba(18, 20, 28, 0.88);
-  --glass-bg-hover:     rgba(25, 28, 38, 0.95);
-  --glass-border:       rgba(255, 255, 255, 0.12);
-  --glass-border-inner: rgba(255, 255, 255, 0.05);
+  --glass-bg:           rgba(18, 20, 28, 0.90);
+  --glass-bg-hover:     rgba(25, 28, 38, 0.96);
+  --glass-border:       rgba(255, 255, 255, 0.14);
+  --glass-border-inner: rgba(255, 255, 255, 0.08);
   --glass-shadow:       0 1px 3px rgba(0, 0, 0, 0.5),
                         0 8px 32px -6px rgba(0, 0, 0, 0.6),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                        inset 0 1px 0 rgba(255, 255, 255, 0.10);
   --glass-shadow-hover: 0 2px 5px rgba(0, 0, 0, 0.55),
                         0 20px 48px -10px rgba(0, 0, 0, 0.7),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
   --glass-shadow-lg:    0 4px 10px rgba(0, 0, 0, 0.6),
                         0 32px 64px -16px rgba(0, 0, 0, 0.8),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+                        inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
+
+/* ===== High Contrast Dark Mode Component Overrides ===== */
+html.dark,
+:root.dark,
+html[data-theme="film-dark"],
+html[data-theme="dark"] {
+  /* Logo filter for dark mode: crisp white with luminous glow */
+  img[src*="logo.png"] {
+    filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(255, 255, 255, 0.35));
+  }
+
+  /* Primary Button - luminous high-contrast white button with deep carbon text */
+  .btn-primary:not([style*="background"]) {
+    background: #ffffff !important;
+    color: #090a0f !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 18px rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
+  }
+  .btn-primary:not([style*="background"]):hover {
+    background: #f1f5f9 !important;
+    color: #000000 !important;
+    box-shadow: 0 8px 26px rgba(255, 255, 255, 0.32) !important;
+  }
+  .btn-primary:not([style*="background"]) span,
+  .btn-primary:not([style*="background"]) svg {
+    color: #090a0f !important;
+  }
+
+  /* Ghost Button */
+  .btn-ghost {
+    background: rgba(255, 255, 255, 0.06);
+    color: #f1f5f9;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+  }
+
+  /* Bronze Button */
+  .btn-bronze {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.38);
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
+  }
+  .btn-bronze:hover {
+    background: rgba(245, 158, 11, 0.28);
+    border-color: rgba(245, 158, 11, 0.6);
+    color: #fef3c7;
+  }
+
+  /* Tags */
+  .tag {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    color: #f1f5f9 !important;
+  }
+
+  /* Badges */
+  .badge {
+    background: rgba(245, 158, 11, 0.18);
+    border-color: rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+  }
+
+  /* Pipeline step cards */
+  .pipeline-step-card {
+    background: rgba(20, 23, 31, 0.92) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  }
+  .pipeline-step-card:hover {
+    border-color: rgba(245, 158, 11, 0.45) !important;
+    box-shadow: 0 20px 48px -12px rgba(245, 158, 11, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  }
+
+  /* Glass Card */
+  .glass-card {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .glass-card:hover {
+    border-color: rgba(245, 158, 11, 0.35);
+  }
+
+  /* Global Dark Utility Overrides for Hardcoded Text */
+  .text-\[\#0a0b0e\],
+  .text-\[\#121316\],
+  .text-\[\#181a1f\] {
+    color: #f8fafc !important;
+  }
+  .text-\[\#82848c\] {
+    color: #94a3b8 !important;
+  }
+
+  /* Form Input & Fields */
+  .form-input,
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    background-color: #161922;
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #f8fafc;
+  }
+  .form-input:focus,
+  input[type="text"]:focus,
+  input[type="search"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  textarea:focus {
+    border-color: var(--color-bronze);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: #64748b;
+  }
+}
+
 
 /* Shared Liquid Glass pointer refraction layer. */
 .glass-surface {

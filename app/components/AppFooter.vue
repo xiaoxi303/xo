@@ -14,13 +14,13 @@
           <img
             src="/logo.png?v=312k_v4"
             alt="Xo Logo"
-            class="h-6 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            class="h-6 w-auto object-contain transition-transform duration-300 group-hover:scale-105 dark:brightness-0 dark:invert"
           />
           <div class="flex items-center gap-2">
-            <span class="text-[10px] font-mono font-bold tracking-[0.1em] uppercase text-slate-700">
+            <span class="text-[10px] font-mono font-bold tracking-[0.1em] uppercase text-slate-700 dark:text-slate-200">
               {{ siteConfig?.siteInfo?.title || 'Xo' }} · 电影剪辑与调色工作室
             </span>
-            <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-500/10 text-amber-900 border border-amber-600/20">
+            <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-500/10 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-600/20 dark:border-amber-400/30">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
               <span>{{ siteConfig?.siteInfo?.footerColorScienceBadge || 'ACEScct / Rec.709' }}</span>
             </span>
@@ -54,8 +54,7 @@
       </div>
 
       <!-- Bottom metadata footer -->
-      <div class="mt-4 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2"
-           style="border-top: 1px solid rgba(0,0,0,0.04);">
+      <div class="mt-4 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-[var(--color-border)]">
         <p class="text-[9px] font-mono tracking-[0.1em]" style="color: var(--color-ink-5);">
           © {{ new Date().getFullYear() }} {{ siteConfig?.siteInfo?.brandName || 'Xo' }} · 保留所有权利
         </p>

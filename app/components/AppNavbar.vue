@@ -38,14 +38,14 @@
           <img
             src="/logo.png?v=312k_v4"
             alt="Xo Logo"
-            class="w-auto h-7 md:h-8 object-contain"
+            class="w-auto h-7 md:h-8 object-contain dark:brightness-0 dark:invert transition-all"
           />
         </NuxtLink>
 
         <!-- Studio status chip (Visible in full-width mode, smoothly collapses in capsule) -->
         <div
           :class="[
-            'hidden xl:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-[10px] font-mono font-bold text-emerald-800 select-none transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] origin-left',
+            'hidden xl:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-600/20 dark:border-emerald-500/30 text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-300 select-none transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] origin-left',
             isScrolled
               ? 'opacity-0 scale-90 max-w-0 px-0 py-0 overflow-hidden pointer-events-none border-transparent'
               : 'opacity-100 scale-100 max-w-xs px-2.5 py-0.5'

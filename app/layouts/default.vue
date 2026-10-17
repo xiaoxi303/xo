@@ -81,8 +81,8 @@
     <Transition name="banner-capsule">
       <div
         v-if="isAnnouncementActive && (announcement?.position === 'capsule' || !announcement?.position)"
-        class="fixed bottom-6 left-6 z-[60] max-w-[calc(100vw-3rem)] sm:max-w-sm rounded-2xl p-4 shadow-[0_16px_48px_rgba(80,60,30,0.16)] border flex items-start gap-3.5 transition-all duration-500 backdrop-blur-2xl group hover:shadow-[0_20px_56px_rgba(80,60,30,0.22)] hover:-translate-y-0.5"
-        style="background: rgba(254, 252, 248, 0.95); border-color: rgba(200, 185, 160, 0.45);"
+        class="fixed bottom-6 left-6 z-[60] max-w-[calc(100vw-3rem)] sm:max-w-sm rounded-2xl p-4 shadow-[0_16px_48px_rgba(80,60,30,0.16)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.6)] border flex items-start gap-3.5 transition-all duration-500 backdrop-blur-2xl group hover:shadow-[0_20px_56px_rgba(80,60,30,0.22)] hover:-translate-y-0.5"
+        style="background: var(--glass-bg); border-color: var(--color-border-2);"
       >
         <!-- Indicator Ping Dot -->
         <span class="flex h-2.5 w-2.5 mt-1 relative flex-shrink-0">
@@ -132,7 +132,7 @@
         <button
           type="button"
           @click="dismissBanner"
-          class="text-black/30 hover:text-black/70 hover:bg-black/5 p-1 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
+          class="text-black/30 hover:text-black/70 hover:bg-black/5 dark:text-white/40 dark:hover:text-white/80 dark:hover:bg-white/10 p-1 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
           title="关闭"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
@@ -226,52 +226,52 @@
     >
       <NuxtLink
         :to="clientLoggedIn ? '/client' : '/login'"
-        class="group relative inline-flex items-center gap-3 pl-3 pr-3.5 py-2 rounded-full backdrop-blur-2xl bg-white/92 hover:bg-white shadow-[0_10px_32px_rgba(180,120,40,0.16)] hover:shadow-[0_16px_42px_rgba(217,119,6,0.3)] border border-amber-700/25 hover:border-amber-600/55 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 active:translate-y-0 cursor-pointer overflow-hidden"
+        class="group relative inline-flex items-center gap-3 pl-3 pr-3.5 py-2 rounded-full backdrop-blur-2xl bg-white/92 hover:bg-white dark:bg-[#151722]/95 dark:hover:bg-[#1c2030] shadow-[0_10px_32px_rgba(180,120,40,0.16)] dark:shadow-[0_10px_32px_rgba(0,0,0,0.5)] border border-amber-700/25 dark:border-amber-500/30 hover:border-amber-600/55 dark:hover:border-amber-400/50 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 active:translate-y-0 cursor-pointer overflow-hidden"
         :title="clientLoggedIn ? `客户控制中心 (${clientName})` : '点击进入客户专区与审片登录'"
       >
         <!-- Ambient Warm Gold Breathing Glow on Hover -->
         <div class="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/12 to-amber-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         <!-- Left: Luxurious Icon Chamber with Indicator Beacon -->
-        <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr from-amber-600/15 via-amber-500/20 to-amber-600/10 border border-amber-600/30 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs">
+        <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr from-amber-600/15 via-amber-500/20 to-amber-600/10 dark:from-amber-500/20 dark:via-amber-400/20 dark:to-amber-500/10 border border-amber-600/30 dark:border-amber-400/40 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs">
           <!-- Active Status Ping Beacon -->
-          <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
+          <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 animate-pulse" />
 
           <!-- Dynamic Icon with Micro-motion -->
           <IconSax
             v-if="clientLoggedIn"
             name="crown"
             :size="16"
-            class="text-amber-800 transition-transform duration-300 group-hover:scale-110"
+            class="text-amber-800 dark:text-amber-300 transition-transform duration-300 group-hover:scale-110"
           />
           <IconSax
             v-else
             name="key"
             :size="16"
-            class="text-amber-800 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12"
+            class="text-amber-800 dark:text-amber-300 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12"
           />
         </div>
 
         <!-- Middle: Editorial Typography Block -->
         <div class="flex flex-col text-left">
           <div class="flex items-center gap-1.5 leading-none">
-            <span class="text-xs font-bold text-[#121316] group-hover:text-amber-900 transition-colors font-sans tracking-tight">
+            <span class="text-xs font-bold text-[#121316] dark:text-slate-100 group-hover:text-amber-900 dark:group-hover:text-amber-300 transition-colors font-sans tracking-tight">
               {{ clientLoggedIn ? '客户控制中心' : '客户专区' }}
             </span>
             <span
               v-if="clientLoggedIn"
-              class="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-amber-500/15 text-amber-800 border border-amber-500/25 leading-none"
+              class="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-amber-500/15 dark:bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-500/25 dark:border-amber-400/30 leading-none"
             >
               VIP
             </span>
           </div>
-          <span class="text-[10px] font-mono text-slate-500 font-medium tracking-wide mt-1 leading-none">
+          <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-medium tracking-wide mt-1 leading-none">
             {{ clientLoggedIn ? (clientName || '已认证') : '审片 · 交付通道' }}
           </span>
         </div>
 
         <!-- Right: Subtle Directional Arrow Pill -->
-        <div class="w-5 h-5 rounded-full bg-amber-500/10 group-hover:bg-amber-600 group-hover:text-white text-amber-800 flex items-center justify-center transition-all duration-300 flex-shrink-0 -mr-0.5">
+        <div class="w-5 h-5 rounded-full bg-amber-500/10 dark:bg-amber-500/20 group-hover:bg-amber-600 group-hover:text-white text-amber-800 dark:text-amber-300 flex items-center justify-center transition-all duration-300 flex-shrink-0 -mr-0.5">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
