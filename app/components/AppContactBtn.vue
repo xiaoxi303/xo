@@ -1,7 +1,7 @@
 <template>
-  <a
+  <button
     ref="btnRef"
-    :href="effectiveHref"
+    type="button"
     :class="[
       'relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full font-bold tracking-wide transition-all duration-300 select-none group shadow-md cursor-pointer text-xs',
       customClass || 'px-6 py-2.5 text-white bg-slate-900 border border-white/10'
@@ -53,12 +53,10 @@
         <span class="tracking-[0.08em] font-sans">联系我</span>
       </slot>
     </span>
-  </a>
+  </button>
 </template>
 
 <script setup lang="ts">
-import { resolveSafeEmail } from '../utils/email-armor'
-
 const props = withDefaults(defineProps<{
   href?: string
   siteInfo?: any
@@ -69,23 +67,17 @@ const props = withDefaults(defineProps<{
   customClass: ''
 })
 
-const siteConfigGlobal = useNuxtData('site-config-global')
+const emit = defineEmits<{
+  (e: 'click', ev: MouseEvent): void
+}>()
 
-const effectiveHref = computed(() => {
-  if (props.href && !props.href.includes('protected') && !props.href.startsWith('mailto:protected')) {
-    return props.href
-  }
-  const email = resolveSafeEmail(props.siteInfo || siteConfigGlobal.data.value?.siteInfo)
-  return email ? `mailto:${email}` : '#'
-})
+const { open: openContactModal } = useContactModal()
 
 const handleClick = (e: MouseEvent) => {
-  const email = resolveSafeEmail(props.siteInfo || siteConfigGlobal.data.value?.siteInfo)
-  if (email && import.meta.client) {
-    try {
-      navigator.clipboard.writeText(email)
-    } catch {}
-  }
+  e.preventDefault()
+  e.stopPropagation()
+  emit('click', e)
+  openContactModal()
 }
 
 const btnRef = ref<HTMLElement | null>(null)

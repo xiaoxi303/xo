@@ -37,14 +37,14 @@
             </blockquote>
 
             <div class="pt-2 flex flex-wrap items-center gap-3">
-              <a 
-                :href="safeMailto" 
+              <button 
+                type="button"
                 @click="handleContactClick"
                 class="xo-kinetic-btn group inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-lg hover:from-amber-600 hover:via-amber-500 hover:to-amber-700 hover:border-amber-400/40 hover:shadow-[0_12px_32px_rgba(217,119,6,0.45)] hover:-translate-y-0.5 cursor-pointer"
               >
                 <span>发起邮件合作咨询</span>
                 <IconSax name="arrow-right" :size="16" class="ml-1 opacity-90 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:scale-110" />
-              </a>
+              </button>
 
               <NuxtLink
                 to="/booking"
@@ -176,16 +176,10 @@ const { data: siteConfig } = useFetch<any>('/api/site-config', {
   key: 'site-config-about'
 })
 
-const safeMailto = computed(() => {
-  const email = resolveSafeEmail(siteConfig.value?.siteInfo)
-  return email ? `mailto:${email}` : '#'
-})
+const { open: openContactModal } = useContactModal()
 
 const handleContactClick = () => {
-  const email = resolveSafeEmail(siteConfig.value?.siteInfo)
-  if (email && import.meta.client) {
-    try { navigator.clipboard.writeText(email) } catch {}
-  }
+  openContactModal()
 }
 
 const experiences = computed(() => {

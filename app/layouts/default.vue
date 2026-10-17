@@ -341,6 +341,9 @@
     </div>
   </Transition>
 
+  <!-- Universal Contact Modal Card (商务合作与邮箱弹窗) -->
+  <AppContactModal />
+
 </template>
 
 <script setup lang="ts">
