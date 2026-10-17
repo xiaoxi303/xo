@@ -4,7 +4,7 @@
     class="fixed left-3 sm:left-5 top-1/2 -translate-y-1/2 z-50 select-none group"
     aria-label="深浅色模式切换器"
   >
-    <!-- Main Floating Capsule Container -->
+    <!-- Main Floating Capsule Container (Only Sun & Moon Switch Buttons) -->
     <div
       class="relative flex flex-col items-center p-1.5 rounded-full backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] shadow-[0_12px_36px_rgba(0,0,0,0.12)] hover:shadow-[0_16px_44px_rgba(217,119,6,0.24)] hover:scale-105 active:scale-95"
       :class="isDark
@@ -98,22 +98,6 @@
             : '0 4px 12px rgba(180,83,9,0.18), inset 0 1px 0 #ffffff'
         }"
       />
-
-      <!-- Encryption Shield Security Indicator at the bottom -->
-      <div
-        class="mt-1 pt-1 border-t flex flex-col items-center justify-center cursor-pointer transition-colors"
-        :class="isDark ? 'border-white/10 text-amber-400/80' : 'border-black/5 text-amber-700/80'"
-        @click="toggleTheme"
-        :title="`自研量子加密保护 (${encryptionFingerprint.slice(0, 10)}...)`"
-      >
-        <span
-          class="w-2 h-2 rounded-full transition-all duration-300 flex items-center justify-center"
-          :class="isEncrypting ? 'bg-amber-400 animate-ping' : (isDark ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]')"
-        />
-        <span class="text-[7px] font-mono font-bold tracking-tighter mt-0.5 opacity-70">
-          E2EE
-        </span>
-      </div>
     </div>
 
     <!-- Luxurious Floating Tooltip on Hover (Expanding to the right) -->
@@ -121,31 +105,14 @@
       class="absolute left-full ml-3.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] whitespace-nowrap z-50"
     >
       <div
-        class="px-3.5 py-2 rounded-2xl backdrop-blur-2xl border shadow-xl flex items-center gap-2.5"
+        class="px-3 py-1.5 rounded-xl backdrop-blur-2xl border shadow-xl flex items-center gap-1.5"
         :class="isDark
           ? 'bg-[#161822]/95 border-amber-500/30 text-white shadow-[0_12px_32px_rgba(0,0,0,0.5)]'
           : 'bg-white/95 border-amber-800/15 text-slate-900 shadow-[0_12px_32px_rgba(180,83,9,0.15)]'"
       >
-        <!-- Security Shield Icon -->
-        <div class="w-6 h-6 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-amber-500">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
-            <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
-          </svg>
-        </div>
-
-        <div class="flex flex-col text-left">
-          <div class="flex items-center gap-1.5 leading-none">
-            <span class="text-xs font-bold font-sans">
-              {{ isDark ? '深色胶片调色模式' : '暖亚麻大刊模式' }}
-            </span>
-            <span class="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-amber-500/15 text-amber-500 border border-amber-500/25 leading-none">
-              自研加密
-            </span>
-          </div>
-          <span class="text-[9px] font-mono text-slate-400 mt-1 leading-none">
-            {{ isEncrypting ? '密文计算与零知识证明重验算中...' : '点击快速切换 · 偏好已接入量子级端到端加密保护' }}
-          </span>
-        </div>
+        <span class="text-xs font-bold font-sans">
+          {{ isDark ? '深色胶片调色模式' : '暖亚麻大刊模式' }}
+        </span>
       </div>
     </div>
   </aside>
@@ -157,10 +124,7 @@ import { useThemeMode } from '~/composables/useThemeMode'
 
 const {
   isDark,
-  isEncrypting,
-  encryptionFingerprint,
   initTheme,
-  toggleTheme,
   setTheme
 } = useThemeMode()
 
