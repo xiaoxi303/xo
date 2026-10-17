@@ -912,6 +912,11 @@ const setupRevealObserver = () => {
     }
     revealObserver?.observe(el)
   })
+
+  // Absolute safety guarantee: after 1.2s, force reveal all observed elements
+  setTimeout(() => {
+    document.querySelectorAll('.reveal:not(.in-view)').forEach(el => el.classList.add('in-view'))
+  }, 1200)
 }
 
 onMounted(async () => {
@@ -938,10 +943,10 @@ onMounted(async () => {
           stopWatch()
         }
       })
-      // Generous fallback (e.g. 3.5s) in case preloader is disabled or finishes late
+      // Generous fallback in case preloader finishes or is bypassed
       setTimeout(() => {
         if (!heroAnimated) playHeroEntrance()
-      }, 3500)
+      }, 2000)
     }
   }
 

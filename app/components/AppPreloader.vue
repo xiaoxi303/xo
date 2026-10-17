@@ -196,6 +196,9 @@ const triggerExit = () => {
   displayProgress.value = 100
 
   emit('reveal-start')
+  if (import.meta.client) {
+    document.body.style.overflow = ''
+  }
 
   // Snappy, silky 420ms theatrical reveal duration
   exitTimer = window.setTimeout(() => {
@@ -320,7 +323,7 @@ onMounted(() => {
 
     // Smooth organic S-curve progression (cubic Hermite)
     const smoothTime = timeRatio * timeRatio * (3 - 2 * timeRatio)
-    const timeProgress = smoothTime * 100
+    const timeProgress = Math.max(3, smoothTime * 100)
 
     // Gated milestones: 动态阶梯递增
     let gatedCeiling = 100
@@ -336,10 +339,10 @@ onMounted(() => {
 
     const targetProgress = Math.min(gatedCeiling, timeProgress)
 
-    // 确保数字平滑且必然前移（最小步长 0.8%，杜绝停滞在 0）
+    // 确保数字平滑且必然前移（最小步长 1.2%，杜绝停滞在 0）
     const diff = targetProgress - displayProgress.value
     if (diff > 0) {
-      displayProgress.value = Math.min(targetProgress, displayProgress.value + Math.max(0.8, diff * 0.16))
+      displayProgress.value = Math.min(targetProgress, displayProgress.value + Math.max(1.2, diff * 0.18))
     }
 
     const allReady = completedMilestones.value >= 5

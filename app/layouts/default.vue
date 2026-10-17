@@ -362,12 +362,14 @@ const onPreloaderComplete = () => {
 }
 
 // Load full site configuration with guaranteed SSR hydration
-const { data: siteConfigData } = await useAsyncData('site-config-global', () => $fetch('/api/site-config'))
+const { data: siteConfigData } = useAsyncData('site-config-global', () => $fetch('/api/site-config'))
 const siteConfig = useState<any>('site-config', () => siteConfigData.value || {})
 
-if (siteConfigData.value && typeof siteConfigData.value === 'object') {
-  siteConfig.value = { ...siteConfig.value, ...siteConfigData.value }
-}
+watch(siteConfigData, (newData) => {
+  if (newData && typeof newData === 'object') {
+    siteConfig.value = { ...siteConfig.value, ...newData }
+  }
+}, { immediate: true })
 
 const isAdminPage = computed(() => {
   const path = (route.path || '').replace(/^\/|\/$/, '').toLowerCase()
