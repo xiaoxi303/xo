@@ -211,9 +211,9 @@ fi
 
 # 确保在重新拉起前彻底清除旧构建的残留进程，杜绝 ESM 动态分块哈希错位与端口幽灵锁定
 if command -v pm2 >/dev/null 2>&1; then
-  pm2 delete xo-studio 2>/dev/null || true
+  pm2 delete xo xo-studio 2>/dev/null || true
 elif command -v npx >/dev/null 2>&1; then
-  npx pm2 delete xo-studio 2>/dev/null || true
+  npx pm2 delete xo xo-studio 2>/dev/null || true
 fi
 
 pkill -9 -f ".output/server/index.mjs" 2>/dev/null || true
@@ -295,7 +295,7 @@ if command -v pm2 >/dev/null 2>&1; then
 else
   echo "⚠️ 未检测到全局 PM2，尝试使用 npx pm2 或直接拉起 node 守护进程..."
   if command -v npx >/dev/null 2>&1 && npx --no-install pm2 -v >/dev/null 2>&1; then
-    npx pm2 delete xo-studio 2>/dev/null || true
+    npx pm2 delete xo xo-studio 2>/dev/null || true
     PORT=$APP_PORT NITRO_PORT=$APP_PORT npx pm2 start ecosystem.config.cjs --update-env
     echo "✅ npx pm2 集群服务已在端口 $APP_PORT 全新启动。"
   else
@@ -316,17 +316,17 @@ ALL_READY=false
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
   # 探测 1: 金库一次性公钥握手 (OTPK - 4096-bit)
-  CODE_KEY=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/rsa-public-key" 2>/dev/null)
+  CODE_KEY=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/rsa-public-key" 2>/dev/null || echo "000")
   [ -z "$CODE_KEY" ] && CODE_KEY="000"
   CODE_KEY="${CODE_KEY:0:3}"
 
   # 探测 2: 智能光影人机安全核验引擎挑战
-  CODE_SLIDER=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/slider-challenge" 2>/dev/null)
+  CODE_SLIDER=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/api/security/slider-challenge" 2>/dev/null || echo "000")
   [ -z "$CODE_SLIDER" ] && CODE_SLIDER="000"
   CODE_SLIDER="${CODE_SLIDER:0:3}"
 
   # 探测 3: SSR 主站 HTML 渲染
-  CODE_INDEX=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/" 2>/dev/null)
+  CODE_INDEX=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$APP_PORT/" 2>/dev/null || echo "000")
   [ -z "$CODE_INDEX" ] && CODE_INDEX="000"
   CODE_INDEX="${CODE_INDEX:0:3}"
 
