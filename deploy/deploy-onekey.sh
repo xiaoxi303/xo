@@ -191,6 +191,9 @@ echo "✅ 项目依赖同步就绪。"
 
 # 5. 生产环境编译构建与安全脱敏自检
 echo ""
+echo "🧹 彻底清理旧构建残留与 CDN 编译缓存 (.output, .nuxt, cache)..."
+rm -rf .output .nuxt node_modules/.cache 2>/dev/null || true
+
 echo "🔨 正在执行生产环境编译打包 (含安全加固与校验)..."
 npm run build
 

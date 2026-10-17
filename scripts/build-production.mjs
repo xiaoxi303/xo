@@ -142,9 +142,10 @@ const runNuxtBuild = () => {
 async function main() {
   runSync(['run', 'init-data'], 'prepare runtime data')
 
-  // Clean old server bundle before building to ensure freshness
+  // Clean old output & build cache before building to ensure absolute freshness
   try {
-    fs.rmSync(path.resolve(process.cwd(), '.output', 'server'), { recursive: true, force: true })
+    fs.rmSync(path.resolve(process.cwd(), '.output'), { recursive: true, force: true })
+    fs.rmSync(path.resolve(process.cwd(), '.nuxt'), { recursive: true, force: true })
   } catch {}
 
   await runNuxtBuild()

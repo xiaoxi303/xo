@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   sourcemap: false,
 
   app: {
+    buildAssetsDir: '/_xo_assets/',
     pageTransition: false,
     head: {
       htmlAttrs: {
