@@ -14,9 +14,9 @@
       ]"
       :style="isScrolled
         ? {
-            background: 'rgba(253, 250, 246, 0.94)',
-            borderColor: 'rgba(190, 160, 120, 0.32)',
-            boxShadow: '0 12px 36px -6px rgba(80,60,30,0.12), 0 24px 48px -12px rgba(80,60,30,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+            background: 'var(--glass-bg)',
+            borderColor: 'var(--color-border-2)',
+            boxShadow: 'var(--glass-shadow-lg)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)'
           }
@@ -66,8 +66,8 @@
             :class="[
               'relative px-3.5 py-1.5 text-xs font-semibold tracking-wide rounded-full flex items-center justify-center transition-all duration-300 select-none xo-kinetic-btn',
               isActive(link.to)
-                ? 'text-slate-900 font-bold bg-white/95 shadow-xs border border-amber-600/30'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
+                ? 'text-slate-900 dark:text-white font-bold bg-white/95 dark:bg-white/10 shadow-xs border border-amber-600/30'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.08]'
             ]"
           >
             {{ link.label }}
@@ -83,14 +83,14 @@
           :customClass="[
             'hidden md:inline-flex text-xs font-bold tracking-wide transition-all duration-300 rounded-full shadow-xs group cursor-pointer border',
             isScrolled 
-              ? 'px-4 py-1.5 text-slate-900 bg-amber-500/15 border-amber-600/30 hover:bg-amber-500/25'
-              : 'px-5 py-2 text-white bg-slate-900 border-white/10 hover:bg-slate-800'
+              ? 'px-4 py-1.5 text-slate-900 dark:text-amber-200 bg-amber-500/15 border-amber-600/30 hover:bg-amber-500/25'
+              : 'px-5 py-2 text-white bg-slate-900 dark:bg-amber-500/20 border-white/10 dark:border-amber-500/30 hover:bg-slate-800'
           ].join(' ')"
         />
 
         <!-- Mobile hamburger -->
         <button
-          class="md:hidden w-9 h-9 flex flex-col items-center justify-center gap-[5px] rounded-full hover:bg-black/[0.04] transition-colors"
+          class="md:hidden w-9 h-9 flex flex-col items-center justify-center gap-[5px] rounded-full hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
           @click="toggleMobile"
           aria-label="Toggle menu"
         >
@@ -107,9 +107,9 @@
         v-if="mobileOpen"
         class="pointer-events-auto md:hidden absolute top-full left-4 right-4 mt-2 rounded-3xl p-3 flex flex-col gap-1 backdrop-blur-2xl"
         :style="{
-          background: 'rgba(253, 250, 246, 0.96)',
-          border: '1px solid rgba(190, 160, 120, 0.3)',
-          boxShadow: '0 20px 48px -10px rgba(80,60,30,0.18)'
+          background: 'var(--glass-bg)',
+          border: '1px solid var(--color-border-2)',
+          boxShadow: 'var(--glass-shadow-lg)'
         }"
       >
         <NuxtLink

@@ -1,5 +1,8 @@
 <template>
   <div class="min-h-screen relative overflow-hidden" style="background: var(--color-bg);">
+    <!-- Floating Left-Center Dark / Light Theme Mode Switch (Quantum E2EE Vault Encrypted) -->
+    <AppThemeToggle />
+
     <!-- ===== Ambient Studio Luxury Backdrop Glows (High Visibility) ===== -->
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none z-0 animate-pulse"
@@ -158,17 +161,17 @@
               </div>
 
               <!-- Clean Stats footer -->
-              <div class="px-6 py-4 backdrop-blur-md flex items-center justify-between z-20 bg-white/95 border-t border-black/10">
+              <div class="px-6 py-4 backdrop-blur-md flex items-center justify-between z-20 bg-[var(--glass-bg)] border-t border-[var(--color-border-2)]">
                 <div class="space-y-0.5">
                   <div class="text-2xl font-display font-bold text-[var(--color-ink-1)] leading-none">{{ siteConfig?.home?.statValue1 || '120+' }}</div>
                   <div class="text-[var(--color-ink-4)] text-[9px] uppercase font-mono tracking-wider font-bold">{{ siteConfig?.home?.statLabel1 || '剪辑交付量' }}</div>
                 </div>
-                <div class="h-7 w-px bg-black/15" />
+                <div class="h-7 w-px bg-[var(--color-border-2)]" />
                 <div class="space-y-0.5">
                   <div class="text-2xl font-display font-bold text-[var(--color-ink-1)] leading-none">{{ siteConfig?.home?.statValue2 || '4K HDR' }}</div>
                   <div class="text-[var(--color-ink-4)] text-[9px] uppercase font-mono tracking-wider font-bold">{{ siteConfig?.home?.statLabel2 || '高规格支持' }}</div>
                 </div>
-                <div class="h-7 w-px bg-black/15" />
+                <div class="h-7 w-px bg-[var(--color-border-2)]" />
                 <div class="space-y-0.5">
                   <div class="text-2xl font-display font-bold text-[var(--color-bronze-dark)] leading-none">{{ statValue3 }}</div>
                   <div class="text-[var(--color-ink-4)] text-[9px] uppercase font-mono tracking-wider font-bold">{{ statLabel3 }}</div>
@@ -184,7 +187,7 @@
           <button
             type="button"
             @click="scrollToBento"
-            class="group relative inline-flex items-center gap-4 px-6 py-3 rounded-full backdrop-blur-2xl bg-white/85 shadow-[0_8px_32px_rgba(180,120,50,0.1)] border border-amber-800/15 hover:border-amber-600/40 hover:shadow-[0_12px_40px_rgba(217,119,6,0.22)] hover:-translate-y-1 active:translate-y-0 transition-all duration-500 cursor-pointer overflow-hidden"
+            class="group relative inline-flex items-center gap-4 px-6 py-3 rounded-full backdrop-blur-2xl bg-[var(--glass-bg)] shadow-[0_8px_32px_rgba(180,120,50,0.1)] border border-[var(--color-border-2)] hover:border-amber-600/40 hover:shadow-[0_12px_40px_rgba(217,119,6,0.22)] hover:-translate-y-1 active:translate-y-0 transition-all duration-500 cursor-pointer overflow-hidden"
             aria-label="Scroll to Bento Section"
           >
             <!-- Background Radial Glow on Hover -->
@@ -339,7 +342,7 @@
               </div>
 
               <!-- Details info -->
-              <div class="p-8 space-y-3 bg-white/90">
+              <div class="p-8 space-y-3 bg-[var(--glass-bg)]">
                 <div class="flex items-center gap-2">
                   <span class="w-2.5 h-2.5 rounded-full bg-[var(--color-bronze)]" />
                   <span v-if="tvcProject.tags?.[0]" class="text-[var(--color-bronze-dark)] text-[11px] font-mono uppercase tracking-wider font-bold">{{ tvcProject.tags[0] }}</span>
@@ -475,7 +478,7 @@
               </div>
 
               <!-- Description -->
-              <div class="p-8 flex flex-col justify-between flex-1 bg-white/90">
+              <div class="p-8 flex flex-col justify-between flex-1 bg-[var(--glass-bg)]">
                 <div class="space-y-2">
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-[var(--color-bronze)]" />
@@ -528,9 +531,9 @@
             v-for="post in homeBlogPosts"
             :key="post.id"
             :to="`/blog/${post.slug}`"
-            class="group bg-white/95 rounded-[24px] border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl hover:border-[#007AFF]/40 transition-all duration-300 flex flex-col justify-between"
+            class="group bg-[var(--glass-bg)] rounded-[24px] border border-[var(--color-border-2)] overflow-hidden shadow-sm hover:shadow-xl hover:border-amber-600/40 transition-all duration-300 flex flex-col justify-between"
           >
-            <div class="relative aspect-[16/9] overflow-hidden bg-slate-100">
+            <div class="relative aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-800">
               <img :src="post.coverImage" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               <div class="absolute top-3 right-3 flex items-center gap-1.5">
                 <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-[#007AFF] text-white shadow-xs">
@@ -541,15 +544,15 @@
 
             <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
               <div>
-                <h3 class="text-base font-bold text-slate-900 group-hover:text-[#007AFF] transition-colors leading-snug line-clamp-2">
+                <h3 class="text-base font-bold text-[var(--color-ink-1)] group-hover:text-[var(--color-bronze-dark)] transition-colors leading-snug line-clamp-2">
                   {{ post.title }}
                 </h3>
-                <p class="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+                <p class="text-xs text-[var(--color-ink-4)] mt-2 line-clamp-2 leading-relaxed">
                   {{ post.excerpt }}
                 </p>
               </div>
 
-              <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div class="pt-4 border-t border-[var(--color-border)] flex items-center justify-between">
                 <span class="text-xs font-semibold text-slate-400">{{ post.createdAt }}</span>
                 <span class="text-xs font-bold text-[#007AFF] flex items-center gap-1">
                   <span>阅读全文</span>

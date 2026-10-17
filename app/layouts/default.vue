@@ -631,7 +631,10 @@ watch(() => route.path, () => {
   }
 })
 
+const { initTheme } = useThemeMode()
+
 onMounted(() => {
+  initTheme()
   checkClientSession()
   checkBannerDismissal()
   if (import.meta.client) {

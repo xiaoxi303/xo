@@ -78,6 +78,13 @@ const applyTheme = (tp: any, isUserClick = false) => {
     localStorage.setItem('xo_theme_preset', tp.id)
     const root = document.documentElement
     root.setAttribute('data-theme', tp.id)
+    if (tp.id === 'film-dark' || tp.id === 'teal-orange') {
+      root.classList.add('dark')
+      root.style.colorScheme = 'dark'
+    } else {
+      root.classList.remove('dark')
+      root.style.colorScheme = 'light'
+    }
     root.style.setProperty('--bg-primary', tp.bg)
     root.style.setProperty('--accent-color', tp.accent)
     root.style.setProperty('--text-main', tp.ink)

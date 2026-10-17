@@ -25,6 +25,12 @@ export default defineNuxtConfig({
         { rel: 'preload', href: '/fonts/xo-display.woff2', as: 'font', type: 'font/woff2', crossorigin: '' },
         // Preload Xo Sans font
         { rel: 'preload', href: '/fonts/xo-sans.woff2', as: 'font', type: 'font/woff2', crossorigin: '' }
+      ],
+      script: [
+        {
+          children: `(function(){try{var r=localStorage.getItem('xo_vault_theme_e2ee');var d=false;if(r&&r.indexOf('film-dark')!==-1){d=true;}else{var p=localStorage.getItem('xo_theme_preset');if(p==='film-dark'||p==='dark')d=true;else if(!p&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;}if(d){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','film-dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.setAttribute('data-theme','warm-linen');document.documentElement.style.colorScheme='light';}}catch(e){}})();`,
+          type: 'text/javascript'
+        }
       ]
     }
   },

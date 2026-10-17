@@ -5,6 +5,7 @@ export default {
   
   // 指定 Tailwind 扫描类名的文件范围
   content: [
+    "./app/**/*.{js,vue,ts}",
     "./components/**/*.{js,vue,ts}",
     "./layouts/**/*.vue",
     "./pages/**/*.vue",
