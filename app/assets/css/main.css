@@ -3463,4 +3463,84 @@ html[data-theme="film-dark"] .secure-session-chip small {
   color: #94a3b8 !important;
 }
 
+/* ==========================================================================
+   12. COMPREHENSIVE MOBILE UI & TOUCH INTERACTION ENGINE
+   Optimizes mobile viewport spacing, touch targets, video player scrubbing,
+   horizontal pill rails, and card ergonomics across all pages and /xxxx routes.
+   ========================================================================== */
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .progress-bar-container {
+    height: 6px !important;
+  }
+  .progress-bar-container::before {
+    content: '';
+    position: absolute;
+    inset: -12px 0;
+  }
+  .progress-thumb {
+    transform: translateY(-50%) scale(1) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  html,
+  body {
+    overflow-x: clip;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .player-page {
+    padding-top: 5.25rem !important;
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    padding-left: 0.875rem !important;
+    padding-right: 0.875rem !important;
+  }
+
+  .player-title-block,
+  .player-lock-screen {
+    padding: 1.25rem !important;
+    border-radius: 1.5rem !important;
+  }
+
+  .cinema-player-shell {
+    border-radius: 1.25rem !important;
+  }
+
+  .play-btn-main {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  /* Responsive mobile card ergonomics across Home, Projects, Booking, Blog, Delivery & Order */
+  .glass-card.p-8,
+  .glass-card.p-9,
+  .glass-card.p-10,
+  .glass-card.p-12 {
+    padding: 1.25rem !important;
+    border-radius: 1.35rem !important;
+  }
+
+  .pipeline-step-card {
+    padding: 1.25rem !important;
+    border-radius: 1.25rem !important;
+  }
+
+  /* Ensure mobile filter bars scroll horizontally without clipping */
+  .portfolio-filter {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+
 

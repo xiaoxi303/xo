@@ -446,6 +446,7 @@
 
 <script setup lang="ts">
 import { copyToClipboard, getNormalizedOrigin } from '~/utils/clipboard'
+import { encryptRsaHybrid } from '~/utils/rsa-hybrid'
 
 interface DeliveryProject {
   slug: string
@@ -569,9 +570,14 @@ const unlockDelivery = async () => {
   authRequired.value = false
   warningText.value = '该交付后缀不属于当前账号。请停止继续尝试，并联系项目负责人。'
   try {
+    const encryptedPayload = await encryptRsaHybrid({
+      key,
+      viewKey: key,
+      suffix: suffix.value
+    })
     const response = await $fetch<any>(`/api/delivery/${encodeURIComponent(suffix.value)}/access`, {
       method: 'POST',
-      body: { key, viewKey: key }
+      body: encryptedPayload
     })
     const payload = unwrap(response)
     const grantedProjects = normalizeProjects(payload.projects || payload.authorizedProjects || payload.allowedProjects)

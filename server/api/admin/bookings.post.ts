@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { randomBytes } from 'node:crypto'
 import { defineEventHandler, getCookie, readBody, createError } from 'h3'
-import { SESSION_COOKIE, validateSession } from '../../utils/auth'
+import { SESSION_COOKIE, validateSession, hashPassword } from '../../utils/auth'
 import { getRuntimeDataPath, readEncryptedJson, writeEncryptedJson } from '../../utils/storage'
 import { sendDeliveryCredentialsEmail, sendBookingOrderPaymentEmail } from '../../utils/email'
 import { saveOrderPage, getOrderPage } from '../../utils/order-pages'
@@ -138,7 +138,7 @@ export default defineEventHandler(async (event) => {
         finalUsername = `${baseUsername}_${count++}`
       }
 
-      const tempPassword = randomBytes(8).toString('hex')
+      const tempPassword = hashPassword(randomBytes(8).toString('hex'))
       const credentials = await dbCreateUser(event, {
         username: finalUsername,
         email: cleanEmail || `${finalUsername}@autoclient.local`,

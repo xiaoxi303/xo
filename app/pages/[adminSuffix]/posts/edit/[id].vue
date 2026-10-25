@@ -475,8 +475,8 @@ const escapeHtml = (str: string): string => {
 }
 
 const safeUrl = (rawUrl: string): string => {
-  const trimmed = rawUrl.trim()
-  if (/^(https?:\/\/|\/|mailto:)/i.test(trimmed)) {
+  const trimmed = rawUrl.trim().replace(/[\u0000-\u001F"<>\\]/g, '')
+  if (/^(https?:\/\/|\/(?!\/)|mailto:)/i.test(trimmed)) {
     return trimmed
   }
   return '#'

@@ -736,16 +736,18 @@ export async function dbReorderProjects(event: H3Event, slugs: string[]): Promis
 
 /** Server-side only: retrieve raw password for unlock verification */
 export async function dbGetProjectPassword(event: H3Event, slug: string): Promise<string | null> {
+  const cleanSlug = String(slug || '').toLowerCase().replace(/[^a-z0-9-_]/g, '')
+  if (!cleanSlug) return null
   const db = await getD1Database(event)
   if (db) {
-    const row = await db.prepare('SELECT password FROM projects WHERE slug = ?').bind(slug).first() as any
+    const row = await db.prepare('SELECT password FROM projects WHERE slug = ?').bind(cleanSlug).first() as any
     const pwd = row?.password || null
     if (pwd && typeof pwd === 'string' && pwd.startsWith('$XO_VAULT_')) {
       try { return decryptFileContent(pwd) } catch {}
     }
     return pwd
   }
-  const filePath = getRuntimeDataPath('projects', `${slug}.md`)
+  const filePath = getRuntimeDataPath('projects', `${cleanSlug}.md`)
   if (!fs.existsSync(filePath)) return null
   const parsed = parseMarkdownFile(filePath)
   const pwd = (parsed as any).password || null

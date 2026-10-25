@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const username = session.username
-  const body = await readBody(event)
+  const body = event.context.decryptedBody || (await readBody(event))
   const { email, password, currentPassword, avatar, nickname, wechat } = body || {}
 
   // Validate at least one contact method is provided
@@ -52,9 +52,19 @@ export default defineEventHandler(async (event) => {
       }
       users[idx].email = email.trim()
     }
-    if (wechat !== undefined) users[idx].wechat = wechat
-    if (avatar !== undefined) users[idx].avatar = avatar
-    if (nickname !== undefined) users[idx].nickname = nickname
+    if (wechat !== undefined) users[idx].wechat = String(wechat || '').trim().slice(0, 60)
+    if (avatar !== undefined) {
+      const cleanAvatar = String(avatar || '').trim()
+      if (
+        cleanAvatar &&
+        (cleanAvatar.length > 2_000_000 ||
+          !/^(https?:\/\/|\/(?!\/)|data:image\/(png|jpeg|jpg|webp|gif);base64,)/i.test(cleanAvatar))
+      ) {
+        throw createError({ statusCode: 400, statusMessage: '头像地址格式不合法。' })
+      }
+      users[idx].avatar = cleanAvatar
+    }
+    if (nickname !== undefined) users[idx].nickname = String(nickname || '').trim().slice(0, 60)
     
     if (password) {
       if (password.trim().length < 6) {

@@ -9,9 +9,13 @@ function verifyNotify(body: Record<string, any>, publicKey: string) {
   const content = Object.keys(body)
     .filter(key => key !== 'sign' && key !== 'sign_type' && body[key] !== '' && body[key] !== undefined && body[key] !== null)
     .sort().map(key => `${key}=${body[key]}`).join('&')
-  const verifier = crypto.createVerify('RSA-SHA256')
-  verifier.update(content, 'utf8')
-  return verifier.verify(publicKey, sign, 'base64')
+  try {
+    const verifier = crypto.createVerify('RSA-SHA256')
+    verifier.update(content, 'utf8')
+    return verifier.verify(publicKey, sign, 'base64')
+  } catch {
+    return false
+  }
 }
 
 export default defineEventHandler(async (event) => {

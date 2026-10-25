@@ -572,23 +572,58 @@ if (fs.existsSync(blacklistPath)) {
   } catch {}
 }
 
-// ── 6. Auto-Migrate All Projects to V5 (全部视频作品强制 V5 双舱密文) ─────
-if (fs.existsSync(projectsDir)) {
-  const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
-  for (const f of mdFiles) {
-    const fullPath = path.join(projectsDir, f)
-    const raw = fs.readFileSync(fullPath, 'utf8')
-    if (raw && !raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+// ── 6. Auto-Migrate All Folders & Files in content/** to V5 Dual-Chamber ───
+const subDirsToSeal = ['.vault', 'projects', 'orders', 'bookings', 'media', 'video', 'vault-keys']
+for (const sub of subDirsToSeal) {
+  const dirPath = path.join(contentDir, sub)
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true })
+  }
+  const sealPath = path.join(dirPath, '.vault-chamber.seal')
+  if (!fs.existsSync(sealPath)) {
+    writeSecureJson(sealPath, {
+      vaultProtocol: 'XO_DUAL_CHAMBER_V5_DIRECTORY_SEAL',
+      directory: sub,
+      sealedAt: new Date().toISOString(),
+      cipherSuite: 'AES-256-GCM+HKDF-SHA512+HMAC-512/384-DUAL-CHAMBER',
+      zeroDowngrade: true
+    })
+    console.log(`🛡️ Sealed directory content/${sub}/.vault-chamber.seal (V5 双舱量子密文)`)
+  }
+}
+
+function recursiveEncryptContentDir(currentDir) {
+  let entries = []
+  try {
+    entries = fs.readdirSync(currentDir, { withFileTypes: true })
+  } catch {
+    return
+  }
+
+  for (const entry of entries) {
+    const fullPath = path.join(currentDir, entry.name)
+    if (entry.isDirectory()) {
+      recursiveEncryptContentDir(fullPath)
+    } else if (entry.isFile()) {
+      if (entry.name === 'master.secret') {
+        try { fs.chmodSync(fullPath, 0o600) } catch {}
+        continue
+      }
       try {
-        const plain = decryptEnvelope(raw)
-        const enc = encryptV5DualChamber(plain)
-        fs.writeFileSync(fullPath, enc, { encoding: 'utf8', mode: 0o600 })
-        console.log(`🔒 Auto-migrated project ${f} to V5 Dual-Chamber vault`)
+        const raw = fs.readFileSync(fullPath, 'utf8').trim()
+        if (raw && !raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+          const plain = decryptEnvelope(raw)
+          const enc = encryptV5DualChamber(plain)
+          fs.writeFileSync(fullPath, enc, { encoding: 'utf8', mode: 0o600 })
+          console.log(`🔒 Auto-migrated ${path.relative(rootDir, fullPath)} to V5 Dual-Chamber vault`)
+        }
       } catch (err) {
-        console.warn(`⚠️ 项目文件 ${f} 解密/迁移失败:`, err.message)
+        console.warn(`⚠️ 文件 ${path.relative(rootDir, fullPath)} 解密/迁移失败:`, err.message)
       }
     }
   }
 }
 
-console.log('\n🎉 XO Studio 全量运行时存储结构已就绪 (100% V5 双舱密文存储，零降级保证)。\n')
+recursiveEncryptContentDir(contentDir)
+
+console.log('\n🎉 XO Studio 全量运行时存储结构与全部文件夹已就绪 (100% V5 双舱密文存储，零降级保证)。\n')

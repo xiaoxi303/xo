@@ -30,10 +30,10 @@ export default defineEventHandler(async (event) => {
   if (!suffix || !page || !page.enabled) {
     throw createError({ statusCode: 404, statusMessage: '订单页面不存在或已关闭' })
   }
-  let body = await readBody(event).catch(() => ({})) as any
-  if (isRsaHybridPayload(body)) {
+  let body = event.context.decryptedBody || (await readBody(event).catch(() => ({})) as any)
+  if (!event.context.hybridDecrypted && isRsaHybridPayload(body)) {
     try {
-      body = JSON.parse(decryptRsaHybrid(body))
+      body = JSON.parse(await decryptRsaHybrid(body, event))
       body.security = {
         algorithm: 'SECURE-QUANTUM-HYBRID',
         md5: md5Fingerprint(JSON.stringify(body))

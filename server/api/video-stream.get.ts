@@ -86,7 +86,13 @@ export default defineEventHandler(async (event) => {
     }
 
     setResponseStatus(event, upstream.status)
-    for (const name of ['content-type', 'content-length', 'content-range']) {
+    const upstreamType = (upstream.headers.get('content-type') || '').split(';')[0].trim().toLowerCase()
+    const safeVideoType = upstreamType.startsWith('video/') || upstreamType === 'application/octet-stream'
+      ? upstreamType
+      : 'video/mp4'
+    setResponseHeader(event, 'Content-Type', safeVideoType)
+    setResponseHeader(event, 'X-Content-Type-Options', 'nosniff')
+    for (const name of ['content-length', 'content-range']) {
       const value = upstream.headers.get(name)
       if (value) setResponseHeader(event, name, value)
     }
@@ -97,6 +103,11 @@ export default defineEventHandler(async (event) => {
   // Local file on server: strictly enforce path containment inside public directory
   if (!targetUrl.startsWith('/')) {
     throw createError({ statusCode: 400, message: 'Invalid video URL' })
+  }
+
+  const requestedSlug = normalizeDeliverySlug(query.slug)
+  if (requestedSlug) {
+    await assertDeliveryAccess(event, requestedSlug)
   }
 
   const publicDir = path.resolve(process.cwd(), 'public')
@@ -118,34 +129,15 @@ export default defineEventHandler(async (event) => {
   }
 
   const inputPath = resolvedPath
-
-  const siteConfig = await dbGetSiteConfig(event)
-  const rawInvisibleText = siteConfig?.watermark?.invisibleText || '© Xo Studio 2026'
-  const invisibleText = String(rawInvisibleText).replace(/[^a-zA-Z0-9\u4e00-\u9fa5\s©_.-]/g, '')
-
-  // Check if ffmpeg binary exists on server PATH
-  try {
-    const ffmpegArgs = [
-      '-i', inputPath,
-      '-vf', `drawtext=text='${invisibleText}':x=(w-tw)/2:y=(h-th)/2:fontsize=24:fontcolor=white@0.04:shadowcolor=black@0.02:shadowx=1:shadowy=1`,
-      '-c:a', 'copy',
-      '-f', 'mp4',
-      '-movflags', 'frag_keyframe+empty_moov',
-      'pipe:1'
-    ]
-
-    const ffmpegProc = spawn('ffmpeg', ffmpegArgs)
-
-    ffmpegProc.stderr.on('data', () => {
-      // Ignore ffmpeg stderr logs
-    })
-
-    return sendStream(event, ffmpegProc.stdout as any)
-  } catch (err) {
-    // Fallback if ffmpeg is not available on host
-    if (fs.existsSync(inputPath)) {
-      return sendStream(event, fs.createReadStream(inputPath) as any)
-    }
-    throw createError({ statusCode: 404, message: 'Video file not found' })
+  const mimeMap: Record<string, string> = {
+    '.mp4': 'video/mp4',
+    '.m4v': 'video/mp4',
+    '.webm': 'video/webm',
+    '.mov': 'video/quicktime'
   }
+  setResponseHeader(event, 'Content-Type', mimeMap[ext] || 'video/mp4')
+  setResponseHeader(event, 'X-Content-Type-Options', 'nosniff')
+
+  // Stream local video file directly with proper stream cleanup (avoids unhandled spawn ENOENT crashes)
+  return sendStream(event, fs.createReadStream(inputPath) as any)
 })

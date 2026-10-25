@@ -57,10 +57,13 @@ export function readAlipayConfig(): AlipayConfig {
   if (!fs.existsSync(CONFIG_PATH)) return fallback
   try {
     const raw = fs.readFileSync(CONFIG_PATH, 'utf8').trim()
-    if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
+    if (raw.startsWith('$XO_VAULT_')) {
       return { ...fallback, ...readEncryptedJson<AlipayConfig>(CONFIG_PATH, fallback) }
     }
-    return { ...fallback, ...JSON.parse(decrypt(JSON.parse(raw))) }
+    const parsedLegacy = JSON.parse(decrypt(JSON.parse(raw)))
+    const merged = { ...fallback, ...parsedLegacy }
+    writeEncryptedJson(CONFIG_PATH, merged)
+    return merged
   } catch {
     return fallback
   }

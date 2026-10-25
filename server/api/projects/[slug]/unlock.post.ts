@@ -105,19 +105,26 @@ export default defineEventHandler(async (event) => {
   // Reset rate limit on success
   resetRateLimit(rateLimitKey)
 
-  // Password matches - generate unlock token
+  // Password matches - generate unlock token aligned to Beijing day boundary
+  if (unlockTokens.size > 2000) {
+    const nowTs = Date.now()
+    for (const [k, v] of unlockTokens.entries()) {
+      if (!v || v.expiresAt < nowTs) unlockTokens.delete(k)
+    }
+  }
   const token = randomBytes(24).toString('hex')
-  const tomorrow = new Date()
-  tomorrow.setHours(0, 0, 0, 0)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const expiresAt = tomorrow.getTime()
+  const beijingToday = getBeijingDateString()
+  const beijingEndOfDay = new Date(`${beijingToday}T23:59:59.999+08:00`).getTime()
+  const expiresAt = Number.isFinite(beijingEndOfDay) && beijingEndOfDay > Date.now()
+    ? beijingEndOfDay
+    : Date.now() + UNLOCK_TTL_MS
 
   // Bind authenticated unlock tokens to the client that earned them. Public
   // anonymous unlocks retain the legacy slug-only behavior.
   unlockTokens.set(token, {
     slug,
     expiresAt,
-    date: getBeijingDateString(),
+    date: beijingToday,
     username: deliveryAccess.username || ''
   })
 

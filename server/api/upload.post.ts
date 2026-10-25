@@ -1,8 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { randomBytes } from 'crypto'
+import crypto, { randomBytes } from 'node:crypto'
 import { getCookie, readBody, readMultipartFormData, createError } from 'h3'
 import { validateSession, SESSION_COOKIE } from '../utils/auth'
+import { getRuntimeDataPath, writeEncryptedJson } from '../utils/storage'
 
 export default defineEventHandler(async (event) => {
   // Authentication check (admin session only)
@@ -85,6 +86,20 @@ export default defineEventHandler(async (event) => {
     }
     const filePath = path.join(uploadsDir, uniqueName)
     fs.writeFileSync(filePath, fileBuffer)
+
+    // 同步写入 V5 双舱加密媒体资产数字封签至 content/media 目录
+    try {
+      const sha512 = crypto.createHash('sha512').update(fileBuffer).digest('hex')
+      writeEncryptedJson(getRuntimeDataPath('media', `${uniqueName}.vault.json`), {
+        vaultProtocol: 'XO_DUAL_CHAMBER_V5_MEDIA_SEAL',
+        filename: uniqueName,
+        originalName: filename,
+        mimeType: fileType,
+        size: fileBuffer.length,
+        sha512,
+        uploadedAt: new Date().toISOString()
+      })
+    } catch {}
 
     return { url: `/uploads/${uniqueName}` }
   } catch (err) {

@@ -1,8 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { randomBytes } from 'node:crypto'
+import crypto, { randomBytes } from 'node:crypto'
 import { getCookie, readBody, readMultipartFormData, createError } from 'h3'
 import { SESSION_COOKIE, validateSession } from '../../utils/auth'
+import { getRuntimeDataPath, writeEncryptedJson } from '../../utils/storage'
 
 export default defineEventHandler(async event => {
   const token = getCookie(event, SESSION_COOKIE)
@@ -64,6 +65,20 @@ export default defineEventHandler(async event => {
   fs.mkdirSync(dir, { recursive: true })
   const name = `${Date.now()}-${randomBytes(5).toString('hex')}${ext}`
   fs.writeFileSync(path.join(dir, name), fileBuffer)
+
+  // 同步写入 V5 双舱加密交付视频资产数字封签至 content/video 目录
+  try {
+    const sha512 = crypto.createHash('sha512').update(fileBuffer).digest('hex')
+    writeEncryptedJson(getRuntimeDataPath('video', `${name}.vault.json`), {
+      vaultProtocol: 'XO_DUAL_CHAMBER_V5_VIDEO_SEAL',
+      filename: name,
+      originalName: filename,
+      mimeType: mime,
+      size: fileBuffer.length,
+      sha512,
+      uploadedAt: new Date().toISOString()
+    })
+  } catch {}
 
   return { success: true, url: `/uploads/delivery/${name}` }
 })

@@ -2,9 +2,17 @@ import { defineEventHandler, getCookie, createError } from 'h3'
 import { validateSession, CLIENT_SESSION_COOKIE } from '../../utils/auth'
 import { dbGetProjectsRaw, dbGetPasswordRequests, dbGetUsers, dbGetUserRecord } from '../../utils/db'
 import { getDailyPassword } from '../../utils/password-utils'
-import { getRuntimeDataPath, readEncryptedJson } from '../../utils/storage'
+import { getRuntimeDataPath, readEncryptedJson, decryptFileContent } from '../../utils/storage'
 import { getOrders } from '../../utils/order-store'
 import { getOrderPages } from '../../utils/order-pages'
+
+function unsealStaticPassword(rawPwd: any): string {
+  const str = String(rawPwd || '').trim()
+  if (str.startsWith('$XO_VAULT_')) {
+    try { return decryptFileContent(str) } catch {}
+  }
+  return str
+}
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, CLIENT_SESSION_COOKIE)
@@ -88,7 +96,7 @@ export default defineEventHandler(async (event) => {
         if (project.autoRotatePassword !== false) {
           projectPwd = getDailyPassword(project.slug, undefined, r.createdAt)
         } else {
-          projectPwd = project.password || ''
+          projectPwd = unsealStaticPassword(project.password)
         }
       }
 
@@ -117,7 +125,7 @@ export default defineEventHandler(async (event) => {
         if (p.autoRotatePassword !== false) {
           pwd = getDailyPassword(p.slug)
         } else {
-          pwd = p.password || ''
+          pwd = unsealStaticPassword(p.password)
         }
         return {
           slug: p.slug,

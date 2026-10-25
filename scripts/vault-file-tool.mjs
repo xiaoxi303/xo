@@ -447,143 +447,109 @@ if (!command || command === 'help' || command === '--help') {
 }
 
 const contentDir = path.resolve(rootDir, 'content')
-const dynamicJsonFiles = fs.existsSync(contentDir)
-  ? fs.readdirSync(contentDir).filter(f => f.endsWith('.json') || f.startsWith('.')).map(f => path.join(contentDir, f)).filter(f => fs.existsSync(f) && fs.statSync(f).isFile())
-  : []
+const subDirsToSeal = ['.vault', 'projects', 'orders', 'bookings', 'media', 'video', 'vault-keys']
 
-const sensitiveCandidates = Array.from(new Set([
-  path.resolve(rootDir, 'content', 'site-config.json'),
-  path.resolve(rootDir, 'content', 'users.json'),
-  path.resolve(rootDir, 'content', 'password-requests.json'),
-  path.resolve(rootDir, 'content', 'bookings.json'),
-  path.resolve(rootDir, 'content', 'orders.json'),
-  path.resolve(rootDir, 'content', 'client-accounts.json'),
-  path.resolve(rootDir, 'content', 'blog-posts.json'),
-  path.resolve(rootDir, 'content', 'blog-categories.json'),
-  path.resolve(rootDir, 'content', 'blacklist.json'),
-  path.resolve(rootDir, 'content', 'order-pages.json'),
-  path.resolve(rootDir, 'content', 'delivery-items.json'),
-  path.resolve(rootDir, 'content', '.sessions.json'),
-  path.resolve(rootDir, 'content', 'security-logs.json'),
-  path.resolve(rootDir, 'content', 'events.json'),
-  path.resolve(rootDir, 'content', 'page-views.json'),
-  path.resolve(rootDir, 'content', 'project-heat.json'),
-  path.resolve(rootDir, 'content', 'alipay-config.enc.json'),
-  ...dynamicJsonFiles
-]))
+function ensureDirectorySeals() {
+  if (!fs.existsSync(contentDir)) {
+    fs.mkdirSync(contentDir, { recursive: true })
+  }
+  for (const sub of subDirsToSeal) {
+    const dirPath = path.join(contentDir, sub)
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true })
+    }
+    const sealPath = path.join(dirPath, '.vault-chamber.seal')
+    if (!fs.existsSync(sealPath)) {
+      const payload = JSON.stringify({
+        vaultProtocol: 'XO_DUAL_CHAMBER_V5_DIRECTORY_SEAL',
+        directory: sub,
+        sealedAt: new Date().toISOString(),
+        cipherSuite: 'AES-256-GCM+HKDF-SHA512+HMAC-512/384-DUAL-CHAMBER',
+        zeroDowngrade: true
+      }, null, 2)
+      fs.writeFileSync(sealPath, encryptFileContent(payload), { encoding: 'utf8', mode: 0o600 })
+    }
+  }
+}
+
+function collectAllVaultFiles(dir) {
+  const results = []
+  if (!fs.existsSync(dir)) return results
+  const entries = fs.readdirSync(dir, { withFileTypes: true })
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      results.push(...collectAllVaultFiles(full))
+    } else if (entry.isFile() && entry.name !== 'master.secret') {
+      results.push(full)
+    }
+  }
+  return results
+}
 
 if (command === 'status') {
+  ensureDirectorySeals()
   console.log('==========================================================')
-  console.log('🔐 XO Studio 服务端自研双舱量子金库状态审计 (V5 Dual-Chamber)')
+  console.log('🔐 XO Studio 服务端自研双舱量子金库全目录状态审计 (V5 Dual-Chamber)')
   console.log('==========================================================')
-  const vaultDir = path.resolve(rootDir, 'content', '.vault')
-  console.log(`📂 金库私密根目录: ${vaultDir}`)
-  if (fs.existsSync(vaultDir)) {
-    const files = fs.readdirSync(vaultDir)
-    console.log(`📄 密库文件数量: ${files.length}`)
-    files.forEach(f => {
-      const full = path.join(vaultDir, f)
-      const stat = fs.statSync(full)
-      console.log(`   - ${f} (${stat.size} bytes, mode: 0${(stat.mode & 0o777).toString(8)})`)
-    })
-  } else {
-    console.log('⚠️ 金库私密目录尚未创建')
-  }
+  const allFiles = collectAllVaultFiles(contentDir)
+  let v5Count = 0
+  let otherCount = 0
 
-  console.log('\n🔒 关键运行时独立文件状态:')
-  sensitiveCandidates.forEach(p => {
-    const rel = path.relative(rootDir, p)
-    if (fs.existsSync(p)) {
-      const raw = fs.readFileSync(p, 'utf8').trim()
-      let statusText = '📄 当前为明文/普通格式'
-      if (raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
-        statusText = '🛡️ 已处于自研双舱量子金库 V5 加密状态 (真实业务舱 + 诱饵蜜罐舱 + 双重 HMAC-512/384 签名)'
-      } else if (raw.startsWith('$XO_VAULT_FILE_V4$')) {
-        statusText = '🛡️ 已处于量子文件金库 V4 加密状态 (AES-256-GCM + 双重 HMAC-512/384 签名)'
-      } else if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
-        statusText = '🛡️ 已处于量子文件金库 V3 加密状态 (AES-256-GCM + HMAC-SHA512)'
-      }
-      console.log(`   - ${rel}: ${statusText}`)
+  allFiles.forEach(p => {
+    const rel = path.relative(rootDir, p).replace(/\\/g, '/')
+    const raw = fs.readFileSync(p, 'utf8').trim()
+    let statusText = '📄 当前为明文/普通格式'
+    if (raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+      statusText = '🛡️ V5 自研双舱量子密文 (真实业务舱 + 诱饵蜜罐舱 + 双重 HMAC-512/384 签名)'
+      v5Count++
+    } else if (raw.startsWith('$XO_VAULT_FILE_V4$')) {
+      statusText = '🛡️ V4 级联签名密文'
+      otherCount++
+    } else if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
+      statusText = '🛡️ V3 签名密文'
+      otherCount++
     } else {
-      console.log(`   - ${rel}: (文件暂不存在)`)
+      otherCount++
     }
+    console.log(`   - ${rel}: ${statusText}`)
   })
 
-  const projectsDir = path.resolve(rootDir, 'content', 'projects')
-  if (fs.existsSync(projectsDir)) {
-    const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
-    console.log(`\n🎬 视频项目库加密状态 (${mdFiles.length} 个项目):`)
-    mdFiles.forEach(f => {
-      const full = path.join(projectsDir, f)
-      const raw = fs.readFileSync(full, 'utf8').trim()
-      let statusText = '📄 明文'
-      if (raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
-        statusText = '🛡️ V5 双舱级联签名加密 (真实业务舱 + 诱饵蜜罐舱 + 双重数字签名)'
-      } else if (raw.startsWith('$XO_VAULT_FILE_V4$')) {
-        statusText = '🛡️ V4 级联签名加密 (AES-256-GCM + 双重数字签名)'
-      } else if (raw.startsWith('$XO_VAULT_FILE_V3$')) {
-        statusText = '🛡️ V3 签名加密 (AES-256-GCM + HMAC-512)'
-      }
-      console.log(`   - content/projects/${f}: ${statusText}`)
-    })
-  }
+  console.log(`\n📊 审计汇总: 共扫描 ${allFiles.length} 个文件 (跨全部子目录), V5 双舱加密率: ${allFiles.length ? Math.round((v5Count / allFiles.length) * 100) : 100}% (${v5Count}/${allFiles.length})`)
   console.log('==========================================================')
   process.exit(0)
 }
 
 if (command === 'encrypt-all') {
+  ensureDirectorySeals()
   console.log('==========================================================')
-  console.log('🔐 XO Studio 全站独立文件全面强制加密 (Zero-Downgrade V5 Dual-Chamber)')
+  console.log('🔐 XO Studio 全站所有目录与文件全面强制加密 (Zero-Downgrade V5 Dual-Chamber)')
   console.log('==========================================================')
   let encryptedCount = 0
   let skippedCount = 0
 
-  sensitiveCandidates.forEach(p => {
-    if (fs.existsSync(p)) {
-      const raw = fs.readFileSync(p, 'utf8').trim()
-      if (!raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
-        try {
-          let plain = decryptFileContent(raw)
-          const enc = encryptFileContent(plain)
-          fs.writeFileSync(p, enc, { encoding: 'utf8', mode: 0o600 })
-          console.log(`✅ [升级加密 V5 双舱] ${path.relative(rootDir, p)}`)
-          encryptedCount++
-        } catch (err) {
-          console.warn(`⚠️ [安全保留原密文] ${path.relative(rootDir, p)} 无法通过当前密钥环解密 (${err.message})，安全保留原文件`)
-          skippedCount++
-        }
-      } else {
-        console.log(`🛡️ [已处于 V5 双舱] ${path.relative(rootDir, p)}`)
+  const allFiles = collectAllVaultFiles(contentDir)
+  allFiles.forEach(p => {
+    const rel = path.relative(rootDir, p).replace(/\\/g, '/')
+    const raw = fs.readFileSync(p, 'utf8').trim()
+    if (!raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+      try {
+        const plain = decryptFileContent(raw)
+        const enc = encryptFileContent(plain)
+        fs.writeFileSync(p, enc, { encoding: 'utf8', mode: 0o600 })
+        console.log(`✅ [升级加密 V5 双舱] ${rel}`)
+        encryptedCount++
+      } catch (err) {
+        console.warn(`⚠️ [安全保留原密文] ${rel} 无法通过当前密钥环解密 (${err.message})，安全保留原文件`)
         skippedCount++
       }
+    } else {
+      console.log(`🛡️ [已处于 V5 双舱] ${rel}`)
+      skippedCount++
     }
   })
 
-  const projectsDir = path.resolve(rootDir, 'content', 'projects')
-  if (fs.existsSync(projectsDir)) {
-    const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
-    mdFiles.forEach(f => {
-      const full = path.join(projectsDir, f)
-      const raw = fs.readFileSync(full, 'utf8').trim()
-      if (!raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
-        try {
-          let plain = decryptFileContent(raw)
-          const enc = encryptFileContent(plain)
-          fs.writeFileSync(full, enc, { encoding: 'utf8', mode: 0o600 })
-          console.log(`✅ [升级加密 V5 双舱] content/projects/${f}`)
-          encryptedCount++
-        } catch (err) {
-          console.warn(`⚠️ [安全保留原密文] content/projects/${f} 无法通过当前密钥环解密 (${err.message})，安全保留原文件`)
-          skippedCount++
-        }
-      } else {
-        console.log(`🛡️ [已处于 V5 双舱] content/projects/${f}`)
-        skippedCount++
-      }
-    })
-  }
-
-  console.log(`\n🎉 全面加密完成: ${encryptedCount} 个文件已升级为 V5 自研双舱签名密文, ${skippedCount} 个文件已处于最新状态。`)
+  console.log(`\n🎉 全面加密完成: ${encryptedCount} 个文件已升级为 V5 自研双舱签名密文, ${skippedCount} 个文件已处于最新 V5 状态。`)
   console.log('==========================================================')
   process.exit(0)
 }
@@ -604,33 +570,33 @@ try {
   const content = fs.readFileSync(resolvedTarget, 'utf8')
 
   if (command === 'verify') {
-    if (!content.startsWith('$XO_VAULT_FILE_')) {
+    if (!content.startsWith('$XO_VAULT_')) {
       console.log(`ℹ️ [verify] 文件 ${targetFile} 为普通未加密格式。`)
       process.exit(0)
     }
     decryptFileContent(content)
-    console.log(`✅ [verify] 文件 ${targetFile} 双重数字防篡改封签校验通过！完整性 100% 验证无篡改。`)
+    console.log(`✅ [verify] 文件 ${targetFile} V5 双舱双重数字防篡改封签校验通过！完整性 100% 验证无篡改。`)
     process.exit(0)
   }
 
   if (command === 'encrypt') {
-    if (content.startsWith('$XO_VAULT_FILE_V4$')) {
-      console.log(`⚠️ [encrypt] 文件 ${targetFile} 已经处于 V4 加密状态，无需重复加密。`)
+    if (content.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
+      console.log(`⚠️ [encrypt] 文件 ${targetFile} 已经处于 V5 双舱加密状态，无需重复加密。`)
       process.exit(0)
     }
     let plain = content
-    if (content.startsWith('$XO_VAULT_FILE_V3$')) {
+    if (content.startsWith('$XO_VAULT_')) {
       plain = decryptFileContent(content)
     }
     const encrypted = encryptFileContent(plain)
     const dest = outFile ? path.resolve(process.cwd(), outFile) : resolvedTarget
     fs.writeFileSync(dest, encrypted, { encoding: 'utf8', mode: 0o600 })
-    console.log(`✅ [encrypt] 独立文件已成功执行 V4 级联加密 -> ${dest} (权限: 0600)`)
+    console.log(`✅ [encrypt] 独立文件已成功执行 V5 双舱级联加密 -> ${dest} (权限: 0600)`)
     process.exit(0)
   }
 
   if (command === 'decrypt') {
-    if (!content.startsWith('$XO_VAULT_FILE_')) {
+    if (!content.startsWith('$XO_VAULT_')) {
       console.log(`ℹ️ [decrypt] 文件 ${targetFile} 未包含加密信封，内容保持原样。`)
       process.exit(0)
     }

@@ -3,30 +3,51 @@ import net from 'node:net'
 
 const MAX_REDIRECTS = 3
 
-function isPrivateIp(address: string) {
-  if (net.isIPv4(address)) {
-    const [a, b] = address.split('.').map(Number)
+function isPrivateIp(address: string): boolean {
+  const cleanAddr = address.trim().toLowerCase()
+
+  // Handle IPv4-mapped IPv6 addresses (e.g., ::ffff:127.0.0.1 or ::ffff:7f00:1)
+  if (cleanAddr.startsWith('::ffff:')) {
+    const mappedPart = cleanAddr.slice(7)
+    if (net.isIPv4(mappedPart)) {
+      return isPrivateIp(mappedPart)
+    }
+    const hexMatch = mappedPart.match(/^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/)
+    if (hexMatch) {
+      const hi = parseInt(hexMatch[1], 16)
+      const lo = parseInt(hexMatch[2], 16)
+      const ipv4 = `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`
+      return isPrivateIp(ipv4)
+    }
+    return true
+  }
+
+  if (net.isIPv4(cleanAddr)) {
+    const [a, b] = cleanAddr.split('.').map(Number)
     return (
       a === 10 ||
       a === 127 ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      a === 0
+      (a === 100 && b >= 64 && b <= 127) || // RFC 6598 Carrier-Grade NAT
+      (a === 169 && b === 254) ||           // Link-local / Cloud metadata
+      (a === 172 && b >= 16 && b <= 31) ||  // RFC 1918 private
+      (a === 192 && b === 168) ||           // RFC 1918 private
+      a === 0 ||
+      a >= 224                              // Multicast & reserved
     )
   }
 
-  if (net.isIPv6(address)) {
-    const normalized = address.toLowerCase()
+  if (net.isIPv6(cleanAddr)) {
     return (
-      normalized === '::1' ||
-      normalized === '::' ||
-      normalized.startsWith('fc') ||
-      normalized.startsWith('fd') ||
-      normalized.startsWith('fe8') ||
-      normalized.startsWith('fe9') ||
-      normalized.startsWith('fea') ||
-      normalized.startsWith('feb')
+      cleanAddr === '::1' ||
+      cleanAddr === '0:0:0:0:0:0:0:1' ||
+      cleanAddr === '::' ||
+      cleanAddr === '0:0:0:0:0:0:0:0' ||
+      cleanAddr.startsWith('fc') ||
+      cleanAddr.startsWith('fd') ||
+      cleanAddr.startsWith('fe8') ||
+      cleanAddr.startsWith('fe9') ||
+      cleanAddr.startsWith('fea') ||
+      cleanAddr.startsWith('feb')
     )
   }
 

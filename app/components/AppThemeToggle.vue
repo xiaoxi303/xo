@@ -1,7 +1,7 @@
 <template>
-  <!-- Floating Left-Center Vertical Theme Controller -->
+  <!-- Floating Theme Controller: Bottom-Left on Mobile, Left-Center on Desktop -->
   <aside
-    class="fixed left-3 sm:left-5 top-1/2 -translate-y-1/2 z-50 select-none group"
+    class="fixed bottom-5 left-3 sm:bottom-auto sm:left-5 sm:top-1/2 sm:-translate-y-1/2 z-50 select-none group scale-90 sm:scale-100 origin-bottom-left sm:origin-center"
     aria-label="深浅色模式切换器"
   >
     <!-- Main Floating Capsule Container (Only Sun & Moon Switch Buttons) -->

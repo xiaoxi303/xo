@@ -1,5 +1,5 @@
-import { dbDeleteUser } from '../../utils/db'
-import { validateSession, SESSION_COOKIE } from '../../utils/auth'
+import { dbDeleteUser, dbGetUsers } from '../../utils/db'
+import { validateSession, SESSION_COOKIE, destroyAllUserSessions } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   // Authentication check
@@ -19,6 +19,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const users = await dbGetUsers(event).catch(() => [])
+    const targetUser = users.find((u: any) => String(u.id) === String(id))
+    if (targetUser?.username) {
+      destroyAllUserSessions(targetUser.username)
+    }
     await dbDeleteUser(event, id)
     return { success: true }
   } catch (error) {

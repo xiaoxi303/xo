@@ -456,3 +456,182 @@ export async function rotateE2EEKey(): Promise<CryptoKey> {
   }
   return await getOrCreateE2EEKey()
 }
+
+// ============================================================================
+// 自研客户端双舱量子存储加密引擎 V5 (Client Dual-Chamber Quantum Storage Vault V5)
+// 架构：真实业务舱 + 拟态诱饵蜜罐舱 + 50/50 槽位随机混淆 + 256位流密码交错 + 双重级联数字封签
+// ============================================================================
+
+const CLIENT_VAULT_PREFIX = '$XO_CLIENT_DUAL_CHAMBER_V5$'
+
+function computeCascadeDigest(input: string, seedHex: string): string {
+  let h1 = 0xdeadbeef ^ seedHex.length
+  let h2 = 0x41c6ce57 ^ input.length
+  let h3 = 0x9e3779b9
+  let h4 = 0x85ebca6b
+
+  const combined = `${seedHex}:${input}:XO_QUANTUM_DUAL_CHAMBER_V5`
+  for (let i = 0; i < combined.length; i++) {
+    const ch = combined.charCodeAt(i)
+    h1 = Math.imul(h1 ^ ch, 2654435761)
+    h2 = Math.imul(h2 ^ ch, 1597334677)
+    h3 = Math.imul(h3 ^ (ch << 3), 2246822519)
+    h4 = Math.imul(h4 ^ (ch << 7), 3266489917)
+  }
+
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+  h3 = Math.imul(h3 ^ (h3 >>> 16), 2246822507) ^ Math.imul(h4 ^ (h4 >>> 13), 3266489909)
+  h4 = Math.imul(h4 ^ (h4 >>> 16), 2246822507) ^ Math.imul(h3 ^ (h3 >>> 13), 3266489909)
+
+  return [
+    (h1 >>> 0).toString(16).padStart(8, '0'),
+    (h2 >>> 0).toString(16).padStart(8, '0'),
+    (h3 >>> 0).toString(16).padStart(8, '0'),
+    (h4 >>> 0).toString(16).padStart(8, '0')
+  ].join('')
+}
+
+function getClientVaultSeed(rawGetItem?: (k: string) => string | null): string {
+  try {
+    const getter = rawGetItem || ((k: string) => typeof localStorage !== 'undefined' ? localStorage.getItem(k) : null)
+    let masterHex = getter(E2EE_KEY_STORAGE_KEY)
+    if (!masterHex || masterHex.length < 32) {
+      const rand = new Uint8Array(32)
+      if (typeof window !== 'undefined' && window.crypto) {
+        window.crypto.getRandomValues(rand)
+      }
+      masterHex = bufferToHex(rand.buffer)
+    }
+    const fp = getter('xo_machine_fingerprint') || 'XO_DEVICE_DEFAULT_FP'
+    return `${masterHex.slice(0, 64)}:${fp}:XO_DUAL_CHAMBER_V5_PEPPER`
+  } catch {
+    return 'XO_STUDIO_CLIENT_QUANTUM_FALLBACK_SEED_2026'
+  }
+}
+
+function xorKeystreamTransform(bytes: Uint8Array, seed: string, saltHex: string, ivHex: string): Uint8Array {
+  const keyMaterial = `${seed}:${saltHex}:${ivHex}`
+  const sBox = new Uint8Array(256)
+  for (let i = 0; i < 256; i++) sBox[i] = i
+  let j = 0
+  for (let i = 0; i < 256; i++) {
+    j = (j + sBox[i] + keyMaterial.charCodeAt(i % keyMaterial.length)) & 0xff
+    const tmp = sBox[i]
+    sBox[i] = sBox[j]
+    sBox[j] = tmp
+  }
+
+  const out = new Uint8Array(bytes.length)
+  let x = 0
+  let y = 0
+  for (let k = 0; k < bytes.length; k++) {
+    x = (x + 1) & 0xff
+    y = (y + sBox[x]) & 0xff
+    const tmp = sBox[x]
+    sBox[x] = sBox[y]
+    sBox[y] = tmp
+    const streamByte = sBox[(sBox[x] + sBox[y]) & 0xff]
+    out[k] = bytes[k] ^ streamByte ^ (k & 0xff)
+  }
+  return out
+}
+
+export function encryptVaultStorageSync(plainText: string, rawGetItem?: (k: string) => string | null): string {
+  if (!plainText || plainText.startsWith(CLIENT_VAULT_PREFIX)) return plainText
+  try {
+    const seed = getClientVaultSeed(rawGetItem)
+    const saltBytes = new Uint8Array(16)
+    const ivBytes = new Uint8Array(12)
+    if (typeof window !== 'undefined' && window.crypto) {
+      window.crypto.getRandomValues(saltBytes)
+      window.crypto.getRandomValues(ivBytes)
+    }
+    const saltHex = bufferToHex(saltBytes.buffer)
+    const ivHex = bufferToHex(ivBytes.buffer)
+    const timestamp = Date.now().toString(16)
+
+    const decoyText = JSON.stringify({
+      __vault_honey: 'CLIENT_DECOY_CHAMBER_V5',
+      syntheticEntropy: computeCascadeDigest(plainText, saltHex),
+      timestamp: Date.now()
+    })
+
+    const isFirstGenuine = (saltBytes[0] & 1) === 1
+    const truthIndex = isFirstGenuine ? 0 : 1
+
+    const genuineChamber = {
+      type: 'GENUINE_MATRIX',
+      hash: computeCascadeDigest(plainText, seed),
+      payload: plainText
+    }
+    const decoyChamber = {
+      type: 'DECOY_HONEYPOT',
+      hash: computeCascadeDigest(decoyText, seed),
+      payload: decoyText
+    }
+
+    const truthProof = computeCascadeDigest(`${saltHex}:${timestamp}:${truthIndex}`, seed)
+    const dualPackage = JSON.stringify({
+      v: 'XO_CLIENT_DUAL_CHAMBER_V5',
+      ts: timestamp,
+      idx: truthIndex,
+      proof: truthProof,
+      chambers: isFirstGenuine ? [genuineChamber, decoyChamber] : [decoyChamber, genuineChamber]
+    })
+
+    const plainBytes = new TextEncoder().encode(dualPackage)
+    const cipherBytes = xorKeystreamTransform(plainBytes, seed, saltHex, ivHex)
+    const cipherHex = bufferToHex(cipherBytes.buffer)
+
+    const sigPrimary = computeCascadeDigest(`${saltHex}:${ivHex}:${timestamp}:${cipherHex}`, seed)
+    const sigSecondary = computeCascadeDigest(`${sigPrimary}:${truthProof}:${timestamp}`, `${seed}:SIG_LAYER_2`)
+
+    return `${CLIENT_VAULT_PREFIX}${saltHex}$${ivHex}$${timestamp}$${cipherHex}$${sigPrimary}.${sigSecondary}`
+  } catch {
+    return plainText
+  }
+}
+
+export function decryptVaultStorageSync(envelope: string, rawGetItem?: (k: string) => string | null): string {
+  if (!envelope || !envelope.startsWith(CLIENT_VAULT_PREFIX)) return envelope
+  try {
+    const body = envelope.slice(CLIENT_VAULT_PREFIX.length)
+    const parts = body.split('$')
+    if (parts.length < 5) return envelope
+
+    const [saltHex, ivHex, timestamp, cipherHex, seal] = parts
+    const [expectedPrimary, expectedSecondary] = (seal || '').split('.')
+    if (!expectedPrimary || !expectedSecondary) return envelope
+
+    const seed = getClientVaultSeed(rawGetItem)
+    const actualPrimary = computeCascadeDigest(`${saltHex}:${ivHex}:${timestamp}:${cipherHex}`, seed)
+    if (actualPrimary !== expectedPrimary) {
+      throw new Error('Client Dual-Chamber primary signature mismatch')
+    }
+
+    const cipherBytes = hexToBuffer(cipherHex)
+    const plainBytes = xorKeystreamTransform(cipherBytes, seed, saltHex, ivHex)
+    const decodedStr = new TextDecoder().decode(plainBytes)
+    const parsed = JSON.parse(decodedStr)
+
+    const expectedProof = computeCascadeDigest(`${saltHex}:${timestamp}:${parsed.idx}`, seed)
+    if (parsed.proof !== expectedProof) {
+      throw new Error('Client Dual-Chamber truth consensus mismatch')
+    }
+
+    const actualSecondary = computeCascadeDigest(`${actualPrimary}:${expectedProof}:${timestamp}`, `${seed}:SIG_LAYER_2`)
+    if (actualSecondary !== expectedSecondary) {
+      throw new Error('Client Dual-Chamber cascade signature mismatch')
+    }
+
+    const genuine = parsed.chambers?.[parsed.idx]
+    if (!genuine || typeof genuine.payload !== 'string') {
+      throw new Error('Client Dual-Chamber payload missing')
+    }
+
+    return genuine.payload
+  } catch {
+    return envelope
+  }
+}

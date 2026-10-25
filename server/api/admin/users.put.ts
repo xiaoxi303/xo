@@ -1,5 +1,5 @@
 import { dbUpdateUser } from '../../utils/db'
-import { hashPassword, validateSession, SESSION_COOKIE } from '../../utils/auth'
+import { hashPassword, validateSession, SESSION_COOKIE, destroyAllUserSessions } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   // Authentication check (admin session only)
@@ -61,6 +61,16 @@ export default defineEventHandler(async (event) => {
 
   try {
     await dbUpdateUser(event, id, updateData)
+
+    // 若拉黑用户，立即吊销该用户所有活跃会话
+    if (isBlacklisted === true) {
+      const { dbGetUsers } = await import('../../utils/db')
+      const users = await dbGetUsers(event).catch(() => [])
+      const u = users.find((item: any) => String(item.id) === String(id))
+      if (u?.username) {
+        destroyAllUserSessions(u.username)
+      }
+    }
 
     // 若解除拉黑，同步清除频率限制与 blacklist.json 中的条目
     if (isBlacklisted === false) {

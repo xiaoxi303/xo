@@ -23,6 +23,13 @@ function checkIpRateLimit(ip: string): { allowed: boolean; waitSeconds?: number 
 
 function recordIpSend(ip: string) {
   const now = Date.now()
+  if (ipSendHistory.size > 2000) {
+    for (const [k, list] of ipSendHistory.entries()) {
+      const active = list.filter(t => now - t < 10 * 60 * 1000)
+      if (active.length === 0) ipSendHistory.delete(k)
+      else ipSendHistory.set(k, active)
+    }
+  }
   const timestamps = (ipSendHistory.get(ip) || []).filter(t => now - t < 10 * 60 * 1000)
   timestamps.push(now)
   ipSendHistory.set(ip, timestamps)

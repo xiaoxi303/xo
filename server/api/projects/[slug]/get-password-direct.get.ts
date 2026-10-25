@@ -5,6 +5,7 @@ import { getDailyPassword } from '../../../utils/password-utils'
 import { sendApprovalEmail } from '../../../utils/email'
 import { dbGetUsers } from '../../../utils/db'
 import { assertDeliveryAccess, normalizeDeliverySlug } from '../../../utils/delivery-access'
+import { getRealClientIP } from '../../../utils/ip-helper'
 import fs from 'node:fs'
 
 export default defineEventHandler(async (event) => {
@@ -38,17 +39,8 @@ export default defineEventHandler(async (event) => {
   await assertDeliveryAccess(event, slug)
   const projectTitle = project ? project.title : slug
 
-  // Get real client IP (same logic as booking.post.ts)
-  let ip = ''
-  const cfConnectingIp = getHeader(event, 'cf-connecting-ip')
-  const xRealIp = getHeader(event, 'x-real-ip')
-  const xForwardedFor = getHeader(event, 'x-forwarded-for')
-  
-  if (cfConnectingIp) ip = cfConnectingIp.trim()
-  else if (xRealIp) ip = xRealIp.trim()
-  else if (xForwardedFor) ip = xForwardedFor.split(',')[0]?.trim() || ''
-  if (!ip) ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
-  if (ip === '::1' || ip === '::ffff:127.0.0.1') ip = '127.0.0.1'
+  // Get real client IP via trusted proxy helper
+  const ip = getRealClientIP(event)
 
   // Detect device type
   const userAgent = getHeader(event, 'user-agent') || ''

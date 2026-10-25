@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError, getCookie } from 'h3'
 import { validateSession, SESSION_COOKIE } from '../../utils/auth'
 import { dbGetSiteConfig } from '../../utils/db'
+import { fetchSafeUpstream } from '../../utils/url-security'
 
 export default defineEventHandler(async (event) => {
   // Authentication check (admin session only)
@@ -84,15 +85,23 @@ export default defineEventHandler(async (event) => {
         requestPayload.response_format = { type: 'json_object' }
       }
 
-      const aiRes: any = await $fetch(endpoint, {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+      const upstreamRes = await fetchSafeUpstream(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${aiSettings.apiKey.trim()}`
         },
-        body: requestPayload,
-        timeout: 30000
+        body: JSON.stringify(requestPayload),
+        signal: controller.signal
       })
+      clearTimeout(timeoutId)
+      if (!upstreamRes.ok) {
+        const errBody = await upstreamRes.text().catch(() => '')
+        throw new Error(`HTTP ${upstreamRes.status}: ${errBody.slice(0, 200)}`)
+      }
+      const aiRes: any = await upstreamRes.json()
 
       if (aiRes && aiRes.choices && aiRes.choices[0]?.message?.content) {
         let rawContent = aiRes.choices[0].message.content.trim()

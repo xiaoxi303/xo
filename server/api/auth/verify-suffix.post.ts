@@ -2,6 +2,7 @@ import { dbGetSiteConfig } from '../../utils/db'
 import { getRealClientIP } from '../../utils/ip-helper'
 import { logSecurityEvent } from '../../utils/security-logger'
 import { checkRateLimit, recordFailedAttempt } from '../../utils/rate-limiter'
+import { safeTimingCompare } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const ip = getRealClientIP(event)
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const body = await readBody(event).catch(() => ({}))
+  const body = event.context.decryptedBody || (await readBody(event).catch(() => ({})))
   const candidateSuffix = String(body?.suffix || '').trim().toLowerCase()
 
   if (!candidateSuffix) {
@@ -26,7 +27,7 @@ export default defineEventHandler(async (event) => {
   const config = await dbGetSiteConfig(event)
   const configuredPath = String(config.admin?.adminPath || 'admin').trim().toLowerCase()
 
-  const isValid = candidateSuffix === configuredPath
+  const isValid = safeTimingCompare(candidateSuffix, configuredPath)
 
   if (!isValid) {
     // Record failed probe attempt (max 10 probes in 10 minutes)

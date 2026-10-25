@@ -3,9 +3,10 @@ import { dbGetSiteConfig } from '../utils/db'
 import { getRealClientIP } from '../utils/ip-helper'
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../utils/rate-limiter'
 import { safeTimingCompare } from '../utils/auth'
+import { getVaultRootSecret } from '../utils/storage'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event).catch(() => ({}))
+  const body = event.context.decryptedBody || (await readBody(event).catch(() => ({})))
   const siteConfig = await dbGetSiteConfig(event)
   const configuredPassword = siteConfig?.watermark?.extractPassword || ''
 
@@ -55,7 +56,7 @@ export default defineEventHandler(async (event) => {
     const invisibleOpacity = siteConfig?.watermark?.invisibleOpacity ?? 3
     const certPayload = `XO_CERT:${invisibleText}:${invisibleOpacity}:${now}:${ip}`
     const certSig = crypto
-      .createHmac('sha512', process.env.XO_VAULT_MASTER_SECRET || 'XO-STUDIO-WATERMARK-SECRET-2026')
+      .createHmac('sha512', getVaultRootSecret())
       .update(certPayload)
       .digest('hex')
 

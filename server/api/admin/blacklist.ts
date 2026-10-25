@@ -1,5 +1,5 @@
 import { defineEventHandler, getCookie, readBody, getQuery, getHeader, createError } from 'h3'
-import { validateSession, SESSION_COOKIE } from '../../utils/auth'
+import { validateSession, SESSION_COOKIE, destroyAllUserSessions } from '../../utils/auth'
 import { dbGetBlacklist, dbAddBlacklist, dbRemoveBlacklist, dbGetUsers, dbUpdateUser } from '../../utils/db'
 import { resetRateLimit, getActiveRateLimits, clearAllRateLimits } from '../../utils/rate-limiter'
 
@@ -119,6 +119,9 @@ export default defineEventHandler(async (event) => {
             isBlacklisted: true,
             blacklistReason: reason
           })
+          if (matched.username) {
+            destroyAllUserSessions(matched.username)
+          }
         }
       } catch (err) {}
 

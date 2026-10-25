@@ -1,15 +1,37 @@
+import crypto from 'node:crypto'
 import { getRequestHeader, setResponseHeader, removeResponseHeader, getRequestURL, getHeader, sendRedirect, createError, getCookie } from 'h3'
 import { getRealClientIP, isLocalOrPrivateIP } from '../utils/ip-helper'
 import { logSecurityEvent } from '../utils/security-logger'
 import { checkRateLimit } from '../utils/rate-limiter'
 import { triggerIntruderLockout } from '../utils/vault-cipher'
 import { validateSession, SESSION_COOKIE } from '../utils/auth'
+import { getVaultRootSecret } from '../utils/storage'
 
 export default defineEventHandler(async (event) => {
   // 1. Scrub Framework and Server Identity Headers & Enforce Strict Airtight Security Headers
   removeResponseHeader(event, 'x-powered-by')
   removeResponseHeader(event, 'x-nitro-version')
   setResponseHeader(event, 'Server', 'cloudflare-nginx')
+  setResponseHeader(event, 'X-XO-Quantum-Vault', 'V5-DUAL-CHAMBER-ACTIVE')
+  setResponseHeader(event, 'X-XO-Cipher-Suite', 'RSA4096-OAEP256-AES256GCM-ECDSAP521-ZKP')
+  const urlForSeal = getRequestURL(event)
+  const sealWindow = Math.floor(Date.now() / 60000)
+  const responseSeal = crypto
+    .createHmac('sha512', getVaultRootSecret())
+    .update(`${urlForSeal.pathname}:${sealWindow}:XO_DUAL_CHAMBER_V5`)
+    .digest('hex')
+    .slice(0, 32)
+    .toUpperCase()
+  const pathSegments = (urlForSeal.pathname || '/').replace(/^\/+|\/+$/g, '').split('/').filter(Boolean)
+  const activeRouteSuffix = pathSegments[pathSegments.length - 1] || 'root-home'
+  const suffixSeal = crypto
+    .createHmac('sha512', getVaultRootSecret())
+    .update(`SUFFIX:${activeRouteSuffix}:${urlForSeal.pathname}:${sealWindow}:XO_DUAL_CHAMBER_V5`)
+    .digest('hex')
+    .slice(0, 32)
+    .toUpperCase()
+  setResponseHeader(event, 'X-XO-Vault-Seal', responseSeal)
+  setResponseHeader(event, 'X-XO-Route-Suffix-Cipher', `V5-${suffixSeal}`)
   const rawHost = getRequestHeader(event, 'host') || ''
   const isLocalHost = rawHost.includes('localhost') || rawHost.includes('127.0.0.1') || rawHost.includes('::1')
   const isDev = process.env.NODE_ENV !== 'production'

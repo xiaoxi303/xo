@@ -115,6 +115,7 @@
 
 <script setup lang="ts">
 import { encryptE2EE, isE2EESupported } from '../../../utils/e2ee'
+import { encryptRsaHybrid } from '../../../utils/rsa-hybrid'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -169,16 +170,18 @@ const submitRequest = async () => {
       }
     } catch {}
 
+    const encryptedBody = await encryptRsaHybrid({
+      projectSlug: slug,
+      projectTitle: projectTitle.value,
+      clientName: form.value.clientName,
+      contact: form.value.contact,
+      reason: form.value.reason,
+      e2eePayload: e2eeData
+    })
+
     await $fetch('/api/password-requests', {
       method: 'POST',
-      body: {
-        projectSlug: slug,
-        projectTitle: projectTitle.value,
-        clientName: form.value.clientName,
-        contact: form.value.contact,
-        reason: form.value.reason,
-        e2eePayload: e2eeData
-      }
+      body: encryptedBody
     })
     
     submitSuccess.value = true

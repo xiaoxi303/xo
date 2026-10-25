@@ -54,6 +54,11 @@ export default defineEventHandler(async (event) => {
     } else {
       finalPassword = project.password || ''
     }
+    if (finalPassword && finalPassword.startsWith('$XO_VAULT_')) {
+      try {
+        finalPassword = decryptFileContent(finalPassword)
+      } catch {}
+    }
   }
 
   return {

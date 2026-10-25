@@ -122,11 +122,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: '管理员账号或安全密码错误。' })
   }
 
-  // Verify password against configured password hash (falling back to initial default only if no hash is configured)
+  // Verify password against configured password hash (strictly forbidding pass-the-hash comparison)
   const effectiveHash = allowedPasswordHash || hashPassword('admin')
-  const isPasswordValid =
-    verifyPassword(password, effectiveHash) ||
-    (effectiveHash && password === effectiveHash)
+  const isPasswordValid = verifyPassword(password, effectiveHash)
 
   if (!isPasswordValid) {
     const rec = recordFailedAttempt(ip, 5, 15 * 60)

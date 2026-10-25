@@ -278,10 +278,12 @@
     >
       <!-- Progress bar with A-B markers -->
       <div 
-        class="video-progress-container relative cursor-pointer group/progress py-2"
+        class="video-progress-container relative cursor-pointer group/progress py-2.5 -my-1 touch-none"
         @click="onProgressClick"
         @mousemove="onProgressHover"
         @mouseleave="hoverTime = null"
+        @touchstart.passive="onProgressTouch"
+        @touchmove.prevent="onProgressTouch"
       >
         <div class="video-progress-bar relative h-1 bg-white/20 rounded-full overflow-hidden transition-all group-hover/progress:h-2">
           <!-- Buffered progress -->
@@ -976,8 +978,16 @@ function toggleFullscreen() {
 function onProgressClick(e: MouseEvent) {
   if (!videoRef.value || !duration.value) return
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  const percent = (e.clientX - rect.left) / rect.width
+  const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
   videoRef.value.currentTime = percent * duration.value
+}
+
+function onProgressTouch(e: TouchEvent) {
+  if (!videoRef.value || !duration.value || !e.touches?.[0]) return
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const percent = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width))
+  videoRef.value.currentTime = percent * duration.value
+  currentTime.value = videoRef.value.currentTime
 }
 
 function onProgressHover(e: MouseEvent) {
@@ -1300,7 +1310,11 @@ const renderWebGLFrame = () => {
 
       try {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video)
-      } catch (e) {}
+      } catch (e) {
+        // Cross-origin video without CORS headers taints WebGL texture; gracefully fallback to SVG hardware filter
+        webglAvailable.value = false
+        return
+      }
 
       let modeInt = 0
       if (enhancementMode.value === 'cas') modeInt = 1

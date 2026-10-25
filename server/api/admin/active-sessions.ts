@@ -2,6 +2,7 @@ import { defineEventHandler, getCookie, readBody } from 'h3'
 import { SESSION_COOKIE, getSessionInfo, destroySession } from '../../utils/auth'
 import { getRuntimeDataPath, readEncryptedJson } from '../../utils/storage'
 import { logSecurityEvent } from '../../utils/security-logger'
+import { getRealClientIP } from '../../utils/ip-helper'
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, SESSION_COOKIE)
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
     
     if (!targetToken) throw createError({ statusCode: 400, statusMessage: 'Missing token' })
 
-    const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
+    const ip = getRealClientIP(event)
     const targetSession = getSessionInfo(targetToken)
     destroySession(targetToken)
     

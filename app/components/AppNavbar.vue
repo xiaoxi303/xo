@@ -127,7 +127,16 @@
           <span>{{ link.label }}</span>
           <span v-if="isActive(link.to)" class="w-2 h-2 rounded-full bg-[var(--color-bronze)]" />
         </NuxtLink>
-        <div class="border-t mt-2 pt-2 px-1" style="border-color: rgba(0,0,0,0.06);">
+        <div class="border-t mt-2 pt-2.5 px-1 space-y-2" style="border-color: rgba(0,0,0,0.06);">
+          <div class="flex items-center justify-between px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-mono text-emerald-800 dark:text-emerald-300">
+            <span class="flex items-center gap-1.5 font-bold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>V5 双舱量子加密通道</span>
+            </span>
+            <NuxtLink to="/client" @click="mobileOpen = false" class="underline font-semibold hover:text-amber-700">
+              客户审片中心 &rarr;
+            </NuxtLink>
+          </div>
           <button 
             type="button"
             @click="handleMobileContact"

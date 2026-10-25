@@ -1,7 +1,7 @@
 import { defineNitroPlugin } from 'nitropack/runtime'
 import fs from 'node:fs'
 import path from 'node:path'
-import { getRuntimeDataDir, writeEncryptedJson, writeEncryptedFile, readEncryptedJson, decryptFileContent } from '../utils/storage'
+import { getRuntimeDataDir, writeEncryptedJson, writeEncryptedFile, readEncryptedJson, decryptFileContent, enforceVaultDirectoryEncryption } from '../utils/storage'
 import { issueOneTimePublicKey } from '../utils/vault-cipher'
 import { recordFailedAttempt, resetRateLimit } from '../utils/rate-limiter'
 
@@ -157,35 +157,12 @@ export default defineNitroPlugin(() => {
       writeEncryptedJson(clientAccountsPath, [])
     }
 
-    // 3.5 自动密库全量迁移与强制零降级防护：动态扫描所有项目 Markdown 与运行时核心数据表，升级至 V5 双舱级联数字签名
+    // 3.5 自动密库全量迁移与强制零降级防护：递归扫描所有文件夹、项目 Markdown 与运行时核心数据表，升级至 V5 双舱级联数字签名
     const enforceDualChamberVault = () => {
       try {
-        if (fs.existsSync(projectsDir)) {
-          const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'))
-          for (const f of mdFiles) {
-            const fullPath = path.join(projectsDir, f)
-            const raw = fs.readFileSync(fullPath, 'utf8')
-            if (raw && !raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
-              const plain = decryptFileContent(raw)
-              writeEncryptedFile(fullPath, plain)
-              console.log(`[vault-guard] 🛡️ 自动升级作品文件至 V5 双舱级联签名密文: ${f}`)
-            }
-          }
-        }
-
-        if (fs.existsSync(contentDir)) {
-          const contentFiles = fs.readdirSync(contentDir).filter(f => f.endsWith('.json') || f.startsWith('.'))
-          for (const cf of contentFiles) {
-            const fullPath = path.join(contentDir, cf)
-            if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
-              const raw = fs.readFileSync(fullPath, 'utf8').trim()
-              if (raw && !raw.startsWith('$XO_VAULT_DUAL_CHAMBER_V5$')) {
-                const plain = decryptFileContent(raw)
-                writeEncryptedFile(fullPath, plain)
-                console.log(`[vault-guard] 🛡️ 自动升级核心数据至 V5 双舱级联签名密文: ${cf}`)
-              }
-            }
-          }
+        const res = enforceVaultDirectoryEncryption(contentDir)
+        if (res.encryptedCount > 0) {
+          console.log(`[vault-guard] 🛡️ 自动升级 ${res.encryptedCount} 个文件/目录封签至 V5 双舱级联签名密文 (已验签: ${res.verifiedCount})`)
         }
       } catch (migErr) {
         console.warn('[auto-init] 密库加固与自动加密迁移异常:', migErr)

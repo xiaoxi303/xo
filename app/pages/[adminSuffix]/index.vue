@@ -6682,11 +6682,6 @@ const fetchSiteConfig = async () => {
       hardwareBadge: '100% DCI-P3 CALIBRATED', hardwareTitle: '电影工业级监看与调色台配置', hardwareSpecs: [],
       ...data.about 
     },
-    booking: {
-      heroBadge: 'PRODUCTION & GRADING BOOKING (2026)', heroTitle: '商业合作与后期排期', heroSub: '',
-      services: [], processSteps: [], faqs: [],
-      ...(data.booking || {})
-    },
     admin: {
       username: 'admin',
       adminPath: 'admin',
