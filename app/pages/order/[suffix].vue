@@ -437,13 +437,12 @@ const copyReceipt = () => {
   padding: 48px 20px;
   position: relative;
   overflow: hidden;
-  color: #121316;
-  background: #fdfbf7;
+  color: var(--color-ink-1, #121316);
+  background: var(--color-bg, #fdfbf7);
   background-image:
     radial-gradient(circle at 10% 12%, rgba(217, 119, 6, 0.09), transparent 35%),
     radial-gradient(circle at 92% 16%, rgba(180, 83, 9, 0.08), transparent 32%),
-    radial-gradient(circle at 75% 92%, rgba(245, 158, 11, 0.08), transparent 38%),
-    linear-gradient(135deg, #fdfcf9 0%, #f7f2ea 52%, #f5eee4 100%);
+    radial-gradient(circle at 75% 92%, rgba(245, 158, 11, 0.08), transparent 38%);
 }
 
 .order-page::before {
@@ -494,7 +493,7 @@ const copyReceipt = () => {
 }
 
 .brand-mark {
-  color: #121316;
+  color: var(--color-ink-1, #121316);
   text-decoration: none;
   font: 800 22px/1 'Xo Display', Georgia, serif;
   letter-spacing: .16em;
@@ -511,8 +510,8 @@ const copyReceipt = () => {
   padding: 40px 44px 32px;
   border: 1px solid rgba(217, 119, 6, 0.22);
   border-radius: 32px;
-  background: rgba(255, 254, 250, 0.86);
-  box-shadow: 0 28px 75px rgba(180, 120, 40, 0.08), 0 1px 0 rgba(255, 255, 255, 0.95) inset;
+  background: var(--glass-bg, rgba(255, 254, 250, 0.86));
+  box-shadow: var(--glass-shadow-lg, 0 28px 75px rgba(180, 120, 40, 0.08));
   backdrop-filter: blur(36px) saturate(1.6);
   -webkit-backdrop-filter: blur(36px) saturate(1.6);
 }
@@ -526,7 +525,7 @@ const copyReceipt = () => {
 }
 
 .section-kicker {
-  color: #b45309;
+  color: var(--color-bronze, #b45309);
   font: 700 10px/1.2 'Xo Mono', monospace;
   letter-spacing: .2em;
 }
@@ -535,8 +534,8 @@ const copyReceipt = () => {
   font: 700 10px/1.2 'Xo Mono', monospace;
   padding: 2px 8px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.04);
-  color: #5e6066;
+  background: var(--color-border, rgba(0, 0, 0, 0.04));
+  color: var(--color-ink-4, #5e6066);
 }
 
 .vip-client-pill {
@@ -544,7 +543,7 @@ const copyReceipt = () => {
   padding: 2px 9px;
   border-radius: 9999px;
   background: rgba(217, 119, 6, 0.15);
-  color: #92400e;
+  color: var(--color-bronze-dark, #92400e);
   border: 1px solid rgba(217, 119, 6, 0.25);
 }
 
@@ -570,10 +569,10 @@ const copyReceipt = () => {
   width: 52px;
   height: 52px;
   border-radius: 18px;
-  color: #b45309;
+  color: var(--color-bronze, #b45309);
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(217, 119, 6, 0.12));
   border: 1px solid rgba(217, 119, 6, 0.3);
-  box-shadow: 0 8px 20px rgba(180, 83, 9, 0.12), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  box-shadow: 0 8px 20px rgba(180, 83, 9, 0.12);
 }
 
 .product-icon-wrap svg {
@@ -583,7 +582,7 @@ const copyReceipt = () => {
 
 .product-kicker {
   margin: 0;
-  color: #82848c;
+  color: var(--color-ink-4, #82848c);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -591,18 +590,18 @@ const copyReceipt = () => {
 
 .product-title {
   margin: 2px 0 0;
-  color: #121316;
+  color: var(--color-ink-1, #121316);
   font: 700 clamp(24px, 4vw, 36px)/1.15 'Xo Display', Georgia, serif;
 }
 
 .client-name {
   margin: 6px 0 0;
-  color: #5e6066;
+  color: var(--color-ink-3, #5e6066);
   font-size: 12px;
 }
 
 .client-name strong {
-  color: #121316;
+  color: var(--color-ink-1, #121316);
 }
 
 .price-block {
@@ -613,14 +612,14 @@ const copyReceipt = () => {
 .price-block small {
   display: block;
   margin-bottom: 6px;
-  color: #82848c;
+  color: var(--color-ink-4, #82848c);
   font-size: 11px;
   font-family: 'Xo Mono', monospace;
   letter-spacing: 0.05em;
 }
 
 .price-val {
-  color: #92400e;
+  color: var(--color-bronze-dark, #92400e);
   font: 700 clamp(28px, 4.5vw, 40px)/1 'Xo Mono', monospace;
   letter-spacing: -0.02em;
 }
@@ -629,16 +628,16 @@ const copyReceipt = () => {
   font-size: 0.55em;
   font-style: normal;
   margin-right: 3px;
-  color: #b45309;
+  color: var(--color-bronze, #b45309);
 }
 
 .order-desc-box {
   margin-top: 22px;
   padding: 14px 18px;
   border-radius: 18px;
-  background: rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  color: #5e6066;
+  background: var(--color-border, rgba(0, 0, 0, 0.02));
+  border: 1px solid var(--color-border-2, rgba(0, 0, 0, 0.04));
+  color: var(--color-ink-3, #5e6066);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -652,20 +651,19 @@ const copyReceipt = () => {
 .form-textarea {
   width: 100%;
   resize: vertical;
-  border: 1px solid rgba(0, 0, 0, 0.09);
+  border: 1px solid var(--color-border-2, rgba(0, 0, 0, 0.09));
   border-radius: 16px;
   padding: 12px 16px;
-  color: #121316;
-  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-ink-1, #121316);
+  background: var(--color-surface, rgba(255, 255, 255, 0.9));
   outline: 0;
   font: 13px/1.6 'Xo Sans', sans-serif;
   transition: all 0.2s;
 }
 
 .form-textarea:focus {
-  border-color: #b45309;
+  border-color: var(--color-bronze, #b45309);
   box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
-  background: #fff;
 }
 
 .security-chip {
@@ -674,8 +672,8 @@ const copyReceipt = () => {
   gap: 8px;
   padding: 9px 12px;
   border-radius: 14px;
-  background: rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: var(--color-border, rgba(0, 0, 0, 0.02));
+  border: 1px solid var(--color-border-2, rgba(0, 0, 0, 0.04));
 }
 
 .security-icon {
@@ -685,14 +683,14 @@ const copyReceipt = () => {
 .security-chip strong {
   display: block;
   font-size: 11px;
-  color: #121316;
+  color: var(--color-ink-1, #121316);
 }
 
 .security-chip span {
   display: block;
   font-size: 10px;
   font-family: 'Xo Mono', monospace;
-  color: #82848c;
+  color: var(--color-ink-4, #82848c);
 }
 
 .pay-btn {

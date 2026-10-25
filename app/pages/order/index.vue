@@ -258,13 +258,12 @@ onMounted(fetchItems)
   position: relative;
   overflow: hidden;
   padding: 48px 24px 40px;
-  color: #121316;
-  background: #fdfbf7;
+  color: var(--color-ink-1, #121316);
+  background: var(--color-bg, #fdfbf7);
   background-image:
     radial-gradient(circle at 8% 10%, rgba(217, 119, 6, 0.09), transparent 35%),
     radial-gradient(circle at 94% 15%, rgba(180, 83, 9, 0.08), transparent 32%),
-    radial-gradient(circle at 80% 90%, rgba(245, 158, 11, 0.08), transparent 36%),
-    linear-gradient(135deg, #fdfcf9 0%, #f7f2ea 52%, #f5eee4 100%);
+    radial-gradient(circle at 80% 90%, rgba(245, 158, 11, 0.08), transparent 36%);
 }
 
 .ambient-one {
@@ -318,7 +317,7 @@ onMounted(fetchItems)
 }
 
 .brand-mark {
-  color: #121316;
+  color: var(--color-ink-1, #121316);
   text-decoration: none;
   font: 800 22px/1 'Xo Display', Georgia, serif;
   letter-spacing: .16em;
@@ -336,7 +335,7 @@ onMounted(fetchItems)
   gap: 16px;
   padding: 16px 20px;
   border-radius: 24px;
-  background: rgba(255, 254, 250, 0.88);
+  background: var(--glass-bg, rgba(255, 254, 250, 0.88));
   border: 1px solid rgba(217, 119, 6, 0.28);
   box-shadow: 0 10px 30px rgba(180, 120, 40, 0.06);
   text-decoration: none;
@@ -373,7 +372,7 @@ onMounted(fetchItems)
   overflow: hidden;
   padding: 28px;
   border-radius: 28px;
-  background: rgba(255, 254, 250, 0.88);
+  background: var(--glass-bg, rgba(255, 254, 250, 0.88));
   border: 1px solid rgba(217, 119, 6, 0.20);
   box-shadow: 0 20px 60px rgba(180, 120, 40, 0.06);
   backdrop-filter: blur(30px);

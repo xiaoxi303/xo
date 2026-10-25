@@ -9,8 +9,8 @@
 
     <!-- MAIN PANEL CARD -->
     <div
-      class="w-full max-w-md p-8 rounded-3xl shadow-[0_24px_60px_rgba(80,60,30,0.07)] border backdrop-blur-xl relative z-10 space-y-6"
-      style="background: rgba(255, 252, 248, 0.88); border-color: rgba(200, 185, 160, 0.3); max-width: 420px;"
+      class="glass-card w-full max-w-md p-8 rounded-3xl shadow-[0_24px_60px_rgba(80,60,30,0.07)] border backdrop-blur-xl relative z-10 space-y-6"
+      style="background: var(--glass-bg); border-color: var(--color-border-2); max-width: 420px;"
     >
       
       <!-- STATE 1: LOADING PAGE STATUS -->

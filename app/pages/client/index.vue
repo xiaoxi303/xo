@@ -891,7 +891,7 @@
         <div class="absolute inset-0 bg-black/40 backdrop-blur-md" @click="closeEditModal" />
         
         <!-- Modal Card -->
-        <div class="relative glass-card p-6 sm:p-7 w-full max-w-md space-y-5 shadow-2xl z-10 rounded-[32px]" style="background: rgba(255, 254, 250, 0.98);">
+        <div class="relative glass-card p-6 sm:p-7 w-full max-w-md space-y-5 shadow-2xl z-10 rounded-[32px]" style="background: var(--glass-bg); border-color: var(--color-border-2);">
           <div class="flex justify-between items-center border-b border-black/[0.06] pb-3">
             <h3 class="font-display font-bold text-base text-[#121316]">编辑个人资料与密码</h3>
             <button @click="closeEditModal" class="text-slate-400 hover:text-slate-700 text-base font-bold cursor-pointer">✕</button>

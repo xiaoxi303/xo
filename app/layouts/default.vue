@@ -295,7 +295,7 @@
     <!-- Main Layout Content Slot -->
     <div :class="{'pt-10': isAnnouncementActive && announcement?.position === 'top-bar'}">
       <AppNavbar v-if="!isPanelPage" :style="isAnnouncementActive && announcement?.position === 'top-bar' ? { top: '38px' } : {}" />
-      <AppThemeToggle v-if="!isPanelPage" />
+      <AppThemeToggle v-if="!isAdminPage" />
       <main>
         <slot />
       </main>
@@ -480,11 +480,13 @@ const minimizeBanner = () => {
   showBanner.value = false
 }
 
+const { isDark } = useThemeMode()
+
 const accentColors = {
-  bronze: { primary: '#b45309', primaryRgb: '180, 83, 9', hover: '#92400e' },
-  gold: { primary: '#d97706', primaryRgb: '217, 119, 6', hover: '#b45309' },
-  emerald: { primary: '#059669', primaryRgb: '5, 150, 105', hover: '#047857' },
-  slate: { primary: '#27272a', primaryRgb: '39, 39, 42', hover: '#18181b' }
+  bronze: { primary: '#b45309', primaryRgb: '180, 83, 9', hover: '#92400e', darkPrimary: '#f59e0b', darkPrimaryRgb: '245, 158, 11', darkHover: '#fbbf24' },
+  gold: { primary: '#d97706', primaryRgb: '217, 119, 6', hover: '#b45309', darkPrimary: '#fbbf24', darkPrimaryRgb: '251, 191, 36', darkHover: '#fde68a' },
+  emerald: { primary: '#059669', primaryRgb: '5, 150, 105', hover: '#047857', darkPrimary: '#10b981', darkPrimaryRgb: '16, 185, 129', darkHover: '#34d399' },
+  slate: { primary: '#27272a', primaryRgb: '39, 39, 42', hover: '#18181b', darkPrimary: '#f59e0b', darkPrimaryRgb: '245, 158, 11', darkHover: '#fbbf24' }
 }
 
 const showOrbs = computed(() => siteConfig.value?.theme?.showOrbs ?? true)
@@ -536,22 +538,24 @@ const getPingColor = (color?: string) => {
 }
 
 
-watch(preset, (val) => {
+watch([preset, isDark], ([val, dark]) => {
   const ac = accentColors[val as keyof typeof accentColors] || accentColors.bronze
   if (import.meta.client) {
     const root = document.documentElement
-    root.style.setProperty('--color-brand-accent', ac.primary)
-    root.style.setProperty('--color-brand-accent-rgb', ac.primaryRgb)
-    root.style.setProperty('--color-brand-accent-hover', ac.hover)
+    const isDarkNow = dark || root.classList.contains('dark')
+    root.style.setProperty('--color-brand-accent', isDarkNow ? ac.darkPrimary : ac.primary)
+    root.style.setProperty('--color-brand-accent-rgb', isDarkNow ? ac.darkPrimaryRgb : ac.primaryRgb)
+    root.style.setProperty('--color-brand-accent-hover', isDarkNow ? ac.darkHover : ac.hover)
   }
 }, { immediate: true })
 
 useHead(() => {
   const p = preset.value
   const ac = accentColors[p as keyof typeof accentColors] || accentColors.bronze
+  const dark = isDark.value
   return {
     htmlAttrs: {
-      style: `--color-brand-accent: ${ac.primary}; --color-brand-accent-rgb: ${ac.primaryRgb}; --color-brand-accent-hover: ${ac.hover};`
+      style: `--color-brand-accent: ${dark ? ac.darkPrimary : ac.primary}; --color-brand-accent-rgb: ${dark ? ac.darkPrimaryRgb : ac.primaryRgb}; --color-brand-accent-hover: ${dark ? ac.darkHover : ac.hover};`
     }
   }
 })
