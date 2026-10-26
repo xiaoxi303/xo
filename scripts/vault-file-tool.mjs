@@ -359,6 +359,7 @@ function getCandidateSecretsRing() {
   addSecret(process.env.XO_PROJECT_PASSWORD_SECRET)
   addSecret(process.env.SESSION_SECRET)
   addSecret(process.env.XO_ALIPAY_CONFIG_SECRET)
+  addSecret(process.env.XO_STRIPE_CONFIG_SECRET)
 
   const envPaths = [path.resolve(rootDir, '.env'), path.resolve(rootDir, '..', '.env')]
   for (const ep of envPaths) {

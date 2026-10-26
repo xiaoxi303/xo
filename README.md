@@ -18,7 +18,7 @@
 
 <p align="center">
   <strong>专为独立视频剪辑指导、电影 DI 调色总监与高端视觉创意工作室量身铸造的数字主场与商业交付全流程系统</strong><br>
-  集 35mm 模拟胶卷开场加载仪式、Log/Rec.709 调色前后交互式对比、次世代胶囊极奢博客、AI 智能深度摘要引擎、<br>客户私密审片与加密交付库、支付宝官方收银直连、零知识端到端加密与 7 轮 AST 生产加固混淆于一体。
+  集 35mm 模拟胶卷开场加载仪式、Log/Rec.709 调色前后交互式对比、次世代胶囊极奢博客、AI 智能深度摘要引擎、<br>客户私密审片与加密交付库、Stripe 全球安全收银直连、零知识端到端加密与 7 轮 AST 生产加固混淆于一体。
 </p>
 
 <p align="center">
@@ -51,7 +51,7 @@
 1. **纯正影视工业美学**：35mm 模拟胶卷打孔带、12 叶片钛金机械光圈聚焦、SMPTE 毫秒广播时间码、母带级立体声 VU 电平表，赋予访客登堂入室的尊荣仪式感。
 2. **专业调色资产展示**：原生集成 Log 灰片与 ACES/Rec.709 调色成片的**交互式平滑对比滑块**，完整呈现调色师的色彩塑造控制力。
 3. **私密客户交付中心**：独立客户通行证与交付库，免除公有网盘繁杂流程，客户可在线审片、下载无损高码率商业母带。
-4. **商业变现原生闭环**：内置合作排期档期日历，集成**支付宝官方当面付与快捷网页支付**，支持订金在线支付、自动验签对账与立项通知。
+4. **商业变现原生闭环**：内置合作排期档期日历，集成**Stripe 全球在线收银与多币种结算**，支持订金在线支付、自动验签对账与立项通知。
 5. **银行级数据安全防御**：全站写操作由 **E2EE v6.0（AES-256-GCM + HKDF-SHA512 + ZKP 零知识挑战）** 护航，生产代码经过 **7 轮 AST 语法树深度混淆** 与反调试陷阱加固。
 6. **双引擎自适应存储**：本地开发与单机部署使用 `content/` 独立 JSON 持久化，云原生部署支持 Cloudflare D1 边缘数据库，Git 升级拉取代码绝不覆写生产数据。
 
@@ -122,12 +122,12 @@
 </td>
 <td width="50%" valign="top">
 
-### 💳 6. 商业合作预约与支付宝支付闭环
+### 💳 6. 商业合作预约与 Stripe 支付闭环
 - 📅 **合作排期档期系统**：可视化预约日历，直观呈现已锁档期与可约制作周期。
-- 💰 **支付宝官方直连 SDK**：
-  - 📱 **移动端**：自适应唤起支付宝快捷网页支付 / 手机客户端；
-  - 💻 **桌面端**：高清动态生成当面付收款二维码。
-- 🛡️ **高安全异步验签回调**：基于 RSA2 签名算法与订单状态防篡改对账机制，支付成功后自动确认订单。
+- 💰 **Stripe 全球直连收银**：
+  - 📱 **全终端适配**：自适应支持全球信用卡、Apple Pay 及多币种在线结算；
+  - 💻 **安全托管收银台**：基于 Stripe Checkout Session 银行级防欺诈通道。
+- 🛡️ **高安全异步验签回调**：基于 HMAC-SHA256 Webhook 签名算法与订单状态防篡改对账机制，支付成功后自动确认订单。
 - 🧾 **财务与订单中心**：可视化账单流水、订单状态实时长轮询、款项对账与订单导出。
 
 </td>
@@ -181,7 +181,7 @@ flowchart TD
         UI_Portfolio["4K DI 调色作品集 (Slider & HLS.js)"]
         UI_Blog["次世代胶囊博客 (AI 摘要 & 实时编辑器)"]
         UI_Delivery["客户专属交付中心 (/client & /login)"]
-        UI_Booking["商业合作预约与支付宝收银台"]
+        UI_Booking["商业合作预约与 Stripe 收银台"]
         UI_Announcement["全网广播通告 (TopBar / Capsule / Modal)"]
         UI_Admin["动态隐蔽后台管理中枢 (/[adminSuffix])"]
     end
@@ -198,7 +198,7 @@ flowchart TD
         API_Projects["/api/projects · 作品元数据与访问热度"]
         API_Blog["/api/blog · 博客文章与分类体系"]
         API_Delivery["/api/delivery · 客户项目交付与下载流"]
-        API_Alipay["/api/alipay · 支付宝当面付与异步通知验签"]
+        API_Stripe["/api/order/notify · Stripe 全球在线支付与 Webhook 签名验签"]
         API_AI["/api/ai · 大模型深度总结代理中继"]
         API_Mail["/api/mail · SMTP 邮件即时通知服务"]
     end
@@ -373,12 +373,12 @@ JWT_SECRET=your_super_strong_jwt_secret_change_me_in_prod
 E2EE_SECRET=your_ultra_secure_e2ee_root_key_2026_xyz
 
 # ------------------------------------------------------------------------------
-# 💳 支付宝开放平台收银参数 (选填，启用商业在线支付时填写)
+# 💳 Stripe 全球在线支付收银参数 (选填，启用商业在线支付时填写)
 # ------------------------------------------------------------------------------
-ALIPAY_APP_ID=2021000000000000
-ALIPAY_PRIVATE_KEY=MIIEowIBAAKCAQEA...
-ALIPAY_PUBLIC_KEY=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
-ALIPAY_GATEWAY=https://openapi.alipay.com/gateway.do
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+XO_STRIPE_CONFIG_SECRET=your_stripe_config_vault_secret_2026
 
 # ------------------------------------------------------------------------------
 # 🤖 AI 智能深度摘要大模型配置 (支持 DeepSeek / OpenAI / Gemini / 任意中继端点)
@@ -421,7 +421,7 @@ node -e "const c=require('crypto');const p='your_password';console.log(c.createH
 |:---:|:---|:---|
 | **📊 核心中枢** | 📈 数据看板 | 全站真实 PV / UV 监控、作品热度趋势、访客地理与设备分布、服务器负载状态 |
 | | 📢 广播公告 | 置顶流光条、悬浮胶囊、居中模态、常驻挂件 4 种形态自由发布与轮播 |
-| | 🧾 订单管理 | 支付宝付款交易记录、订单流水状态轮询、对账与退款状态 |
+| | 🧾 订单管理 | Stripe 付款交易记录、订单流水状态轮询、对账与退款状态 |
 | | 📦 专属交付 | 客户交付项目库管理、无损下载链接、审片权限与批注对接 |
 | **🎨 内容创作** | 🎬 作品管理 | 4K 视频直链、Before/After 调色对比图配置、技术规格标签、海报大字编号 |
 | | ✍️ 博客文章 | 实时双栏编辑器、AI 深度摘要一键生成、智能阅读时长运算 |
@@ -430,7 +430,7 @@ node -e "const c=require('crypto');const p='your_password';console.log(c.createH
 | **💼 商业运营** | 📅 合作预约 | 预约日历排期档期管控、合作咨询意向管理与流转邮件提醒 |
 | | 🔑 授权申请 | 密码访问保护、私密作品查看申请流转与审核批准 |
 | | 👥 用户管理 | 注册客户档案、交付访问权限白名单配置与黑名单防刷拦截 |
-| | 💳 支付宝配置 | 开放平台 AppID、商户私钥、公钥与沙箱测试通道管理 |
+| | 💳 Stripe 配置 | Stripe Publishable Key、Secret Key、Webhook 密钥与多币种结算管理 |
 | **⚙️ 系统基座** | 🌐 站点信息 | 品牌名称、SEO TDK 元数据、联系邮箱、微信与社交主页链接 |
 | | 🔒 水印设置 | 播放器动态显式水印、隐形版权数字防盗印章开关 |
 | | 🛠️ 高级设置 | 动态后台路径别名变更、AES 密钥热轮换、全站备份还原与会话注销 |
@@ -504,7 +504,7 @@ xo-studio/
 │   │   ├── login.vue                 # 客户通行证登录鉴权
 │   │   ├── about.vue                 # 个人履历与电影哲学理念
 │   │   ├── booking.vue               # 合作排期与意向登记
-│   │   └── payment/                  # 💳 支付宝收银台与结果确认页
+│   │   └── order/                    # 💳 Stripe 收银台与结果确认页
 │   ├── plugins/                      # 客户端插件 (anti-scrape.client.ts 等)
 │   └── utils/                        # 核心工具库 (E2EE v6.0 加密、BlogData、格式化工具)
 ├── content/                          # 磁盘数据持久化目录 (已配置 .gitignore，升级不丢失)
@@ -521,7 +521,7 @@ xo-studio/
 │   │   ├── projects.*.ts             # 作品流管理
 │   │   ├── blog.*.ts                 # 博客 CRUD
 │   │   ├── delivery.*.ts             # 客户专属交付库权限分发
-│   │   ├── alipay/                   # 支付宝当面付与异步通知验签
+│   │   ├── order/                    # Stripe 支付与 Webhook 签名验签通道
 │   │   ├── ai/                       # 大模型智能总结调用中继
 │   │   └── auth/                     # 安全会话、哈希校验与 ZKP 挑战
 │   └── utils/                        # 服务端密码学工具、邮件发送、磁盘/D1 IO
@@ -567,7 +567,7 @@ xo-studio/
 - [x] **v3.0**：次世代极奢胶囊博客与双栏实时编辑器
 - [x] **v4.0**：DeepSeek / OpenAI 大模型智能深度精炼摘要引擎
 - [x] **v5.0**：E2EE v6.0 零知识端到端加密与防审查反调试加固
-- [x] **v5.5**：支付宝官方当面付与快捷收银 SDK 直连
+- [x] **v5.5**：Stripe 全球在线收银与 Webhook 签名验签直连
 - [x] **v6.0**：35mm 模拟胶卷开场加载仪式与 12 叶片机械光圈重构
 - [x] **v6.2**：全场景广播通告系统（置顶条 / 悬浮胶囊 / 模态弹窗 / 常驻挂件）
 - [ ] **v6.5 (In Progress)**：客户在线批注时间码实时打点审片播放器

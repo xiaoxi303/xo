@@ -137,6 +137,11 @@ else
     echo "XO_ALIPAY_CONFIG_SECRET=$ALIPAY_SEC" >> .env
     echo "🔑 已为现有 .env 自动补齐独立文件加密专属密钥。"
   fi
+  if ! grep -q "XO_STRIPE_CONFIG_SECRET" .env; then
+    STRIPE_SEC=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+    echo "XO_STRIPE_CONFIG_SECRET=$STRIPE_SEC" >> .env
+    echo "🔑 已为现有 .env 自动补齐 Stripe 支付配置专属金库密钥。"
+  fi
   # 若现有 .env 仍包含旧的 3000 端口，全自动平滑升级为专属智能端口 3007
   if grep -q "^PORT=3000" .env; then
     sed -i "s/^PORT=3000/PORT=3007/" .env 2>/dev/null || true

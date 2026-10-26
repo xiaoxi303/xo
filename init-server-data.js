@@ -314,6 +314,7 @@ function getCandidateSecretsRing() {
   addSecret(process.env.XO_PROJECT_PASSWORD_SECRET)
   addSecret(process.env.SESSION_SECRET)
   addSecret(process.env.XO_ALIPAY_CONFIG_SECRET)
+  addSecret(process.env.XO_STRIPE_CONFIG_SECRET)
 
   const envPaths = [path.resolve(rootDir, '.env'), path.resolve(rootDir, '..', '.env')]
   for (const ep of envPaths) {
@@ -517,7 +518,8 @@ const defaultSensitiveFiles = [
   { path: path.join(contentDir, 'password-requests.json'), defaultVal: [] },
   { path: path.join(contentDir, 'users.json'), defaultVal: [] },
   { path: path.join(contentDir, 'events.json'), defaultVal: [] },
-  { path: path.join(contentDir, 'project-heat.json'), defaultVal: {} }
+  { path: path.join(contentDir, 'project-heat.json'), defaultVal: {} },
+  { path: path.join(contentDir, 'stripe-config.enc.json'), defaultVal: { enabled: false, publishableKey: '', secretKey: '', webhookSecret: '', currency: 'cny', mode: 'payment', successUrl: '', cancelUrl: '', subjectPrefix: 'XO Studio 订单' } }
 ]
 
 for (const file of defaultSensitiveFiles) {

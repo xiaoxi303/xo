@@ -485,7 +485,7 @@ export async function sendBookingOrderPaymentEmail(
           <div style="padding: 36px 40px;">
             <p style="font-size: 16px; margin-top: 0; color: #ffffff; font-weight: 600;">尊敬的 ${clientName} 老师：</p>
             <p style="font-size: 14px; color: #94a3b8; margin-bottom: 24px; line-height: 1.7;">
-              感谢您对 <strong>${senderName}</strong> 的信任。我们已就您的合作需求生成了专属项目结算账单，支持支付宝 RSA-OAEP-256 安全直连付款。详情如下：
+              感谢您对 <strong>${senderName}</strong> 的信任。我们已就您的合作需求生成了专属项目结算账单，支持 Stripe 全球安全直连付款。详情如下：
             </p>
             
             <!-- Amount Card -->

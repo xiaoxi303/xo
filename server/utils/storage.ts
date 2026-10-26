@@ -431,6 +431,7 @@ export function getCandidateSecretsRing(customSecret?: string): Buffer[] {
   addSecret(process.env.XO_PROJECT_PASSWORD_SECRET)
   addSecret(process.env.SESSION_SECRET)
   addSecret(process.env.XO_ALIPAY_CONFIG_SECRET)
+  addSecret(process.env.XO_STRIPE_CONFIG_SECRET)
 
   // 3. .env 文件直接探测
   const cwd = process.cwd()

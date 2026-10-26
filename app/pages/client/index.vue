@@ -787,7 +787,7 @@
                     </div>
 
                     <div v-if="order.tradeNo" class="flex items-center justify-between sm:justify-start gap-2">
-                      <span class="text-slate-400">支付宝流水:</span>
+                      <span class="text-slate-400">Stripe 流水:</span>
                       <span class="font-bold text-[#121316] select-all truncate">{{ order.tradeNo }}</span>
                     </div>
 

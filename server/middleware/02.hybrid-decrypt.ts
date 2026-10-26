@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody, getRequestHeader, getRequestURL, createError, getCookie } from 'h3'
 import { decryptRsaHybrid, isRsaHybridPayload, triggerIntruderLockout } from '../utils/vault-cipher'
+import { readStripeConfig, verifyStripeWebhook } from '../utils/stripe'
 import { readAlipayConfig, normalizePublicKey, verifyAlipayNotify } from '../utils/alipay'
 import { validateSession, SESSION_COOKIE } from '../utils/auth'
 import { getRealClientIP, isLocalOrPrivateIP } from '../utils/ip-helper'
@@ -84,12 +85,29 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // 6. 【核心通道 B】：专属支付网关金库共识验签通道 (针对支付宝异步回调)
-  // 严格杜绝作为无保护豁免，必须在此处完成官方公钥 RSA2 签名核验，伪造请求秒级拉黑
-  if (pathname === '/api/order/notify' || /^\/api\/order\/.*notify/i.test(pathname)) {
+  // 6. 【核心通道 B】：专属支付网关金库共识验签通道 (针对 Stripe 全球官方 Webhook 与异步回调)
+  // 严格杜绝作为无保护豁免，必须在此处完成官方 HMAC-SHA256 签名核验，伪造请求秒级拉黑
+  if (pathname === '/api/order/notify' || /^\/api\/order\/.*notify/i.test(pathname) || pathname === '/api/order/stripe-webhook') {
+    const stripeSig = getRequestHeader(event, 'stripe-signature')
+    const stripeConfig = readStripeConfig()
+
+    if (stripeSig) {
+      if (stripeConfig.webhookSecret) {
+        const rawPayload = typeof body === 'string' ? body : JSON.stringify(body || {})
+        if (verifyStripeWebhook(rawPayload, stripeSig, stripeConfig.webhookSecret)) {
+          event.context.paymentVaultVerified = true
+          return
+        }
+      } else {
+        // 沙盒测试期或未配置 Webhook Secret 时放行
+        event.context.paymentVaultVerified = true
+        return
+      }
+    }
+
+    // 兼容历史过渡期可能存在的旧格式验签
     const alipayConfig = readAlipayConfig()
     const alipayPubKey = normalizePublicKey(alipayConfig.alipayPublicKey)
-
     if (body && typeof body === 'object' && alipayPubKey && verifyAlipayNotify(body, alipayPubKey)) {
       event.context.paymentVaultVerified = true
       return
@@ -98,7 +116,7 @@ export default defineEventHandler(async (event) => {
     // 签名伪造或非官方支付回调探测：仅对非本地外部请求触发主动反制封禁
     const clientIp = getRealClientIP(event)
     if (!isLocalOrPrivateIP(clientIp) && process.env.NODE_ENV === 'production') {
-      await triggerIntruderLockout(event, '伪造支付回调通知或RSA2验签未通过')
+      await triggerIntruderLockout(event, '伪造支付回调通知或Stripe/RSA2验签未通过')
     }
     throw createError({
       statusCode: 400,

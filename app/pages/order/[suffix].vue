@@ -142,15 +142,15 @@
                     {{ paidOrder?.outTradeNo || (route.query.out_trade_no as string) || `XO${suffix}` }}
                   </span>
                 </div>
-                <div v-if="paidOrder?.tradeNo || route.query.trade_no" class="flex items-center justify-between">
-                  <span class="text-slate-400">支付宝流水:</span>
+                <div v-if="paidOrder?.tradeNo || route.query.trade_no || route.query.session_id" class="flex items-center justify-between">
+                  <span class="text-slate-400">Stripe 流水:</span>
                   <span class="font-bold text-[#121316] select-all truncate">
-                    {{ paidOrder?.tradeNo || route.query.trade_no }}
+                    {{ paidOrder?.tradeNo || route.query.trade_no || route.query.session_id }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-slate-400">支付渠道:</span>
-                  <span class="font-bold text-slate-800">支付宝即时结算</span>
+                  <span class="font-bold text-slate-800">Stripe 全球即时结算</span>
                 </div>
               </div>
             </div>
@@ -193,14 +193,14 @@
             </div>
           </div>
 
-          <!-- ================= STATE 2: ALIPAY RETURN WARNING ================= -->
-          <div v-else-if="isAlipayReturn && returnError" class="return-warning">
+          <!-- ================= STATE 2: STRIPE RETURN WARNING ================= -->
+          <div v-else-if="isStripeReturn && returnError" class="return-warning">
             <div class="flex items-start gap-3">
               <span class="text-xl">⚠️</span>
               <div class="space-y-1">
                 <strong>已返回订单页面，但验签出现疑问</strong>
                 <p>{{ returnError }}</p>
-                <p class="text-[11px] text-amber-800/80 mt-1">若您已在支付宝成功扣款，请稍等数秒后刷新本页或前往客户中心查看最新订单状态。</p>
+                <p class="text-[11px] text-amber-800/80 mt-1">若您已在 Stripe 成功付款，请稍等数秒后刷新本页或前往客户中心查看最新订单状态。</p>
               </div>
             </div>
           </div>
@@ -245,7 +245,7 @@
                 <span class="security-icon">⚡</span>
                 <div>
                   <strong>即时安全结算</strong>
-                  <span>支付宝官方直连</span>
+                  <span>Stripe 官方直连通道</span>
                 </div>
               </div>
               <div class="security-chip">
@@ -259,7 +259,7 @@
 
             <!-- Error message if payment disabled -->
             <div v-if="!page.paymentEnabled" class="muted-box">
-              ⚠️ 当前订单服务暂未开启支付宝付款通道，请联系管理员开启支付配置。
+              ⚠️ 当前订单服务暂未开启 Stripe 支付通道，请联系管理员开启支付配置。
             </div>
 
             <div v-if="error" class="p-3 rounded-2xl bg-rose-50 border border-rose-100 text-xs text-rose-700 font-semibold">
@@ -276,7 +276,7 @@
                 <span v-if="loading" class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin inline-block" />
                 <span v-else class="text-lg">💳</span>
                 <span class="font-bold text-sm tracking-wide">
-                  {{ loading ? '正在建立安全加密支付通道…' : page.paymentEnabled ? `前往支付宝付款 · ¥${page.amount}` : '当前不可付款' }}
+                  {{ loading ? '正在建立安全加密支付通道…' : page.paymentEnabled ? `前往 Stripe 付款 · ¥${page.amount}` : '当前不可付款' }}
                 </span>
               </div>
               <span class="pay-arrow group-hover:translate-x-1 transition-transform" aria-hidden="true">&rarr;</span>
@@ -288,7 +288,7 @@
             <span class="font-mono">订单后缀识别码：/order/{{ suffix }}</span>
             <span class="flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>支付宝电脑网站支付 · 256-Bit SSL/TLS 官方存证</span>
+              <span>Stripe 全球在线支付 · 256-Bit SSL/TLS 官方存证</span>
             </span>
           </div>
         </template>
@@ -342,7 +342,7 @@ const error = ref('')
 const toastMessage = ref('')
 
 const paid = computed(() => String(route.query.paid || '') === '1')
-const isAlipayReturn = computed(() => Boolean(route.query.out_trade_no && route.query.trade_no && route.query.sign))
+const isStripeReturn = computed(() => Boolean(route.query.session_id || (route.query.out_trade_no && route.query.trade_no) || route.query.paid === '1'))
 const paidVerified = ref(false)
 const paidOrder = ref<any>(null)
 const returnError = ref('')
@@ -362,7 +362,7 @@ const showToast = (msg: string) => {
 }
 
 onMounted(async () => {
-  if (isAlipayReturn.value) {
+  if (isStripeReturn.value && paid.value) {
     try {
       const res = await $fetch<any>(`/api/order/${encodeURIComponent(suffix.value)}/return`, { query: route.query })
       paidVerified.value = true
@@ -390,21 +390,17 @@ const submitOrder = async () => {
       method: 'POST',
       body: await encryptRsaHybrid({ note: note.value })
     })
-    const form = document.createElement('form')
-    form.method = 'POST'
-    form.acceptCharset = 'UTF-8'
-    form.action = result.gateway
-    for (const [key, value] of Object.entries({ ...result.params, sign: result.sign })) {
-      const input = document.createElement('input')
-      input.type = 'hidden'
-      input.name = key
-      input.value = String(value)
-      form.appendChild(input)
+    if (result.url) {
+      window.location.href = result.url
+      return
     }
-    document.body.appendChild(form)
-    form.submit()
+    if (result.gateway) {
+      window.location.href = result.gateway
+      return
+    }
+    throw new Error('未获取到有效的 Stripe 支付链接')
   } catch (err: any) {
-    error.value = err.data?.statusMessage || '订单创建失败，请稍后重试。'
+    error.value = err.data?.statusMessage || err.message || '订单创建失败，请稍后重试。'
   } finally {
     loading.value = false
   }
@@ -417,7 +413,7 @@ const copyReceipt = () => {
 结算金额：¥${paidOrder.value?.amount || page.value?.amount}
 订单后缀：/order/${suffix.value}
 商户单号：${paidOrder.value?.outTradeNo || (route.query.out_trade_no as string) || `XO${suffix.value}`}
-交易流水：${paidOrder.value?.tradeNo || route.query.trade_no || '支付宝官方已存证'}
+交易流水：${paidOrder.value?.tradeNo || route.query.trade_no || route.query.session_id || 'Stripe 官方已存证'}
 付款状态：已安全结清
 （感谢您对 XO Studio 的信任与支持）`
 

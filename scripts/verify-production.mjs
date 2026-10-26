@@ -31,7 +31,7 @@ if (!hasServerEntry) {
 const mapFiles = files.filter(file => file.endsWith('.map'))
 const sensitiveLeaks = []
 const sourceLeaks = []
-const sensitivePattern = /(?:-----BEGIN (?:RSA )?PRIVATE KEY-----|"passwordHash"|"smtpPass"|"alipayPrivateKey")/i
+const sensitivePattern = /(?:-----BEGIN (?:RSA )?PRIVATE KEY-----|"passwordHash"|"smtpPass"|"alipayPrivateKey"|"stripeSecretKey")/i
 
 const publicFiles = await walk(publicRoot).catch(() => [])
 for (const file of publicFiles.filter(file => /\.(js|mjs|css|html)$/.test(file))) {

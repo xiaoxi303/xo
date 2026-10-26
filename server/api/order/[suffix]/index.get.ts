@@ -1,11 +1,14 @@
-import { getRouterParam } from 'h3'
+import { getRouterParam, createError, defineEventHandler } from 'h3'
 import { getOrderPage } from '../../../utils/order-pages'
-import { readAlipayConfig, publicAlipayConfig } from '../../../utils/alipay'
+import { readStripeConfig, publicStripeConfig } from '../../../utils/stripe'
 
 export default defineEventHandler((event) => {
   const suffix = String(getRouterParam(event, 'suffix') || '')
   const page = getOrderPage(suffix)
   if (!page || !page.enabled) throw createError({ statusCode: 404, statusMessage: '订单页面不存在或已关闭。' })
+
+  const stripe = publicStripeConfig(readStripeConfig())
+
   return {
     suffix: page.suffix,
     subject: page.subject,
@@ -14,6 +17,8 @@ export default defineEventHandler((event) => {
     clientName: page.clientName,
     clientUsername: page.clientUsername || '',
     successText: page.successText,
-    paymentEnabled: publicAlipayConfig(readAlipayConfig()).enabled
+    paymentEnabled: stripe.enabled,
+    currency: stripe.currency || 'cny',
+    publishableKey: stripe.publishableKey || ''
   }
 })

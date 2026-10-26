@@ -82,7 +82,7 @@
         <div class="p-3.5 rounded-2xl bg-white/70 border border-black/[0.05] shadow-xs space-y-1">
           <div class="text-base">🛡️</div>
           <strong class="text-xs text-[#121316] block font-bold">官方直连清算</strong>
-          <span class="text-[10px] font-mono text-[#82848c] block">支付宝安全即时到账</span>
+          <span class="text-[10px] font-mono text-[#82848c] block">Stripe 安全即时到账</span>
         </div>
         <div class="p-3.5 rounded-2xl bg-white/70 border border-black/[0.05] shadow-xs space-y-1">
           <div class="text-base">🎬</div>
@@ -167,7 +167,7 @@
             <div class="pt-5 border-t border-black/[0.05] mt-6 flex items-center justify-between">
               <span class="text-[11px] font-mono text-emerald-700 font-bold flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span>支持支付宝直付</span>
+                <span>支持 Stripe 直付</span>
               </span>
 
               <NuxtLink

@@ -146,7 +146,7 @@ npm run deploy:fix
 
 **一键部署全自动流程**：
 1. **Node.js 环境自适应探测**：自动识别 NVM、FNM 与系统 PATH，设置 4096MB 内存限制杜绝 OOM。
-2. **生产安全环境自检 (.env)**：自动生成/补齐 512 位 `VAULT_MASTER_SECRET`、`SESSION_SECRET`、`XO_PROJECT_PASSWORD_SECRET` 与 `XO_ALIPAY_CONFIG_SECRET`。
+2. **生产安全环境自检 (.env)**：自动生成/补齐 512 位 `VAULT_MASTER_SECRET`、`SESSION_SECRET`、`XO_PROJECT_PASSWORD_SECRET`、`XO_ALIPAY_CONFIG_SECRET` 与 `XO_STRIPE_CONFIG_SECRET`。
 3. **全站独立文件强制加密 (Zero-Downgrade)**：自动运行 `node scripts/vault-file-tool.mjs encrypt-all`，全面消除明文，设置 `0700` 密库目录权限与 `0600` 数据文件物理保护。
 4. **代码编译与生产混淆**：执行 `npm run build`，完成 Nuxt SSR 静态编译并触发生产 JS 混淆保护。
 5. **智能端口分配自愈**：基准端口 `3007`，遭遇冲突自动扫描候选池并无缝重写 `.env`。

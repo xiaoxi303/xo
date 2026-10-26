@@ -1445,7 +1445,7 @@
                     <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t" :class="b.status === 'paid' ? 'border-emerald-100/60' : 'border-amber-100/60'">
                       <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
                         <span class="text-amber-600">🛡️</span>
-                        <span>支付宝官方直连安全验签，支付完成后台与预约进度自动打通。</span>
+                        <span>Stripe 官方直连安全验签，支付完成后台与预约进度自动打通。</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <button
@@ -3500,21 +3500,21 @@
           </div>
         </div>
 
-          <div v-else-if="activeTab === 'alipay'" key="alipay-clean" class="space-y-6">
+          <div v-else-if="activeTab === 'stripe' || activeTab === 'alipay'" key="stripe-clean" class="space-y-6">
             <div class="glass-card p-6 sm:p-7 rounded-2xl border border-black/[0.06] shadow-xs space-y-5">
               <div class="border-b border-black/[0.06] pb-3 flex items-center justify-between">
                 <div>
                   <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
                     <span>💳</span>
-                    <span>支付宝开放平台支付网关参数</span>
+                    <span>Stripe 全球在线支付网关参数</span>
                   </h3>
-                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">配置 App ID、网关、公钥、私钥和回调地址；私钥仅加密保存在服务端</p>
+                  <p class="text-[11px] text-slate-400 font-mono mt-0.5">配置 Publishable Key、Secret Key、Webhook 签名密钥与结算币种；敏感密钥经由自研 V5 量子金库强加密存储</p>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs font-mono font-bold" :class="alipayConfig.enabled ? 'text-emerald-700' : 'text-slate-400'">
-                    {{ alipayConfig.enabled ? '🟢 支付已启用' : '⚪ 支付已关闭' }}
+                  <span class="text-xs font-mono font-bold" :class="stripeConfig.enabled ? 'text-emerald-700' : 'text-slate-400'">
+                    {{ stripeConfig.enabled ? '🟢 Stripe 支付已启用' : '⚪ Stripe 支付已关闭' }}
                   </span>
-                  <select v-model="alipayConfig.enabled" class="text-xs py-1 px-2.5 rounded-lg border border-black/10 bg-white font-mono">
+                  <select v-model="stripeConfig.enabled" class="text-xs py-1 px-2.5 rounded-lg border border-black/10 bg-white font-mono">
                     <option :value="false">关闭支付</option>
                     <option :value="true">启用支付</option>
                   </select>
@@ -3522,18 +3522,54 @@
               </div>
               <div class="space-y-4">
                 <div class="grid sm:grid-cols-2 gap-3">
-                <label class="form-label">App ID<input v-model="alipayConfig.appId" class="form-input font-mono" placeholder="2026..." /></label>
-                <label class="form-label">支付宝网关<input v-model="alipayConfig.gateway" class="form-input font-mono" placeholder="https://openapi.alipay.com/gateway.do" /></label>
-                <label class="form-label">异步通知地址<input v-model="alipayConfig.notifyUrl" class="form-input font-mono" placeholder="https://你的域名/api/order/xiao/notify" /></label>
-                <label class="form-label">同步返回地址<input v-model="alipayConfig.returnUrl" class="form-input font-mono" placeholder="https://你的域名/order/xiao?paid=1" /></label>
-              </div>
-              <label class="form-label">支付宝公钥<textarea v-model="alipayConfig.alipayPublicKey" rows="4" class="form-input font-mono text-[10px]" /></label>
-              <label class="form-label">应用私钥<textarea v-model="alipayPrivateKeyInput" rows="5" class="form-input font-mono text-[10px]" placeholder="留空表示保持原私钥" /></label>
-                <div class="flex items-center justify-between pt-2">
-                  <span class="text-xs" :class="alipayConfig.hasPrivateKey ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'">
-                    {{ alipayConfig.hasPrivateKey ? '🔒 私钥已加密保存于服务端' : '⚠️ 尚未配置应用私钥' }}
-                  </span>
-                  <button type="button" class="btn-primary text-xs py-2 px-5" @click="saveAlipayConfig">保存支付宝配置</button>
+                  <label class="form-label">Publishable Key (公钥)
+                    <input v-model="stripeConfig.publishableKey" class="form-input font-mono" placeholder="pk_live_... 或 pk_test_..." />
+                  </label>
+                  <label class="form-label">结算币种 (Currency)
+                    <select v-model="stripeConfig.currency" class="form-input font-mono">
+                      <option value="cny">CNY (人民币 ¥)</option>
+                      <option value="usd">USD (美元 $)</option>
+                      <option value="eur">EUR (欧元 €)</option>
+                      <option value="hkd">HKD (港币 HK$)</option>
+                      <option value="gbp">GBP (英镑 £)</option>
+                      <option value="jpy">JPY (日元 ¥)</option>
+                      <option value="sgd">SGD (新加坡元 S$)</option>
+                      <option value="aud">AUD (澳元 A$)</option>
+                      <option value="cad">CAD (加元 C$)</option>
+                    </select>
+                  </label>
+                  <label class="form-label">异步 Webhook 接收地址 (配置于 Stripe Dashboard)
+                    <input :value="stripeWebhookUrl" readonly class="form-input font-mono bg-slate-50 cursor-pointer text-slate-600" @click="copyStripeWebhookUrl" title="点击复制 Webhook 地址" />
+                  </label>
+                  <label class="form-label">订单标题前缀
+                    <input v-model="stripeConfig.subjectPrefix" class="form-input font-mono" placeholder="XO Studio 订单" />
+                  </label>
+                  <label class="form-label">支付成功跳转地址 (可选)
+                    <input v-model="stripeConfig.successUrl" class="form-input font-mono" placeholder="留空则自动生成: https://你的域名/order/xiao?session_id={CHECKOUT_SESSION_ID}&paid=1" />
+                  </label>
+                  <label class="form-label">支付取消返回地址 (可选)
+                    <input v-model="stripeConfig.cancelUrl" class="form-input font-mono" placeholder="留空则自动返回: https://你的域名/order/xiao?canceled=1" />
+                  </label>
+                </div>
+                <label class="form-label">Secret Key (私钥密钥)
+                  <textarea v-model="stripeSecretKeyInput" rows="3" class="form-input font-mono text-[11px]" placeholder="sk_live_... 或 sk_test_... (留空表示保持当前服务端密库中的密钥)" />
+                </label>
+                <label class="form-label">Webhook Signing Secret (端点签名密钥)
+                  <textarea v-model="stripeWebhookSecretInput" rows="3" class="form-input font-mono text-[11px]" placeholder="whsec_... (留空表示保持当前服务端密库中的 Webhook 签名密钥)" />
+                </label>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                  <div class="flex items-center gap-4 text-xs font-mono">
+                    <span :class="stripeConfig.hasSecretKey ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'">
+                      {{ stripeConfig.hasSecretKey ? '🔒 Secret Key 已加密存入服务端' : '⚠️ 尚未配置 Secret Key' }}
+                    </span>
+                    <span :class="stripeConfig.hasWebhookSecret ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'">
+                      {{ stripeConfig.hasWebhookSecret ? '🔒 Webhook 密钥已加密存入服务端' : '⚠️ 尚未配置 Webhook 密钥' }}
+                    </span>
+                  </div>
+                  <button type="button" class="btn-primary text-xs py-2 px-6 flex items-center justify-center gap-1.5" :disabled="stripeConfigSaving" @click="saveStripeConfig">
+                    <span v-if="stripeConfigSaving" class="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin inline-block" />
+                    <span>{{ stripeConfigSaving ? '正在自研双舱加密存储…' : '保存 Stripe 支付配置' }}</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -3682,10 +3718,10 @@
                       </div>
                       <div class="grid sm:grid-cols-2 gap-x-4 gap-y-1 text-slate-500">
                         <span>金额：¥{{ item.amount }}</span>
-                        <span>付款账号：{{ item.buyerLogonId || (item.status === 'paid' ? '同步返回未提供' : '等待支付宝回调') }}</span>
+                        <span>付款账号：{{ item.buyerLogonId || (item.status === 'paid' ? '同步返回未提供' : '等待 Stripe 回调') }}</span>
                         <span>订单号：{{ item.outTradeNo }}</span>
                         <span v-if="item.clientName || item.clientUsername">关联客户：{{ item.clientUsername ? `@${item.clientUsername}` : '' }}{{ item.clientName ? ` (${item.clientName})` : '' }}</span>
-                        <span v-if="item.tradeNo">支付宝交易号：{{ item.tradeNo }}</span>
+                        <span v-if="item.tradeNo">Stripe 交易流水号：{{ item.tradeNo }}</span>
                         <span v-if="item.paidAt">付款时间：{{ item.paidAt }}</span>
                         <span v-if="item.note">备注：{{ item.note }}</span>
                       </div>
@@ -5297,7 +5333,7 @@ const tabs = [
   { label: '合作预约', value: 'bookings', icon: 'calendar-2', category: 'business', keywords: '预约,排期,咨询,档期,日历' },
   { label: '授权申请', value: 'requests', icon: 'key', category: 'business', keywords: '密码,申请,授权,查看权限,访客申请' },
   { label: '用户管理', value: 'users', icon: 'profile-2user', category: 'business', keywords: '用户,客户,账号,会员,名单' },
-  { label: '支付宝配置', value: 'alipay', icon: 'card', category: 'business', keywords: '支付,支付宝,商户,签约,交易,收款' },
+  { label: 'Stripe 支付配置', value: 'stripe', icon: 'card', category: 'business', keywords: '支付,stripe,信用卡,商户,结算,收款,外币,美元' },
   { label: '站点信息', value: 'siteinfo', icon: 'global', category: 'system', keywords: '站点,SEO,邮箱,微信,品牌,社交,联系方式' },
   { label: '水印设置', value: 'watermark', icon: 'lock', category: 'system', keywords: '水印,防盗,隐形水印,版权,明水印' },
   { label: '高级设置', value: 'advanced', icon: 'setting', category: 'system', keywords: '高级,音乐,调色盘,邮箱,AI,密码,安全,备份' }
@@ -5318,7 +5354,7 @@ const currentCategoryName = computed(() => {
 const tabDescriptions: Record<string, string> = {
   analytics: '全站综合指标大盘、实时在线访客、各页面转化率与地理分布安全遥测',
   announcement: '全站置顶公告栏、广播通知、跑马灯与动态胶囊消息编排',
-  orders: '客户专属成片交付订单、交易明细、支付宝收款与付款状态流水',
+  orders: '客户专属成片交付订单、交易明细、Stripe 收款与付款状态流水',
   'delivery-library': '专属客户交付素材库、独立后缀通道与查看密钥分发',
   projects: '影视作品展映库、DaVinci 调色对比图、4K母带视频源与密码保护',
   blog: '行业灵感文章撰写、分类管理、AI摘要生成与前台专栏展示',
@@ -5327,7 +5363,8 @@ const tabDescriptions: Record<string, string> = {
   bookings: '商业项目合作咨询、预约排期处理与意向客户联络',
   requests: '商业项目看片专属密码申请审核、一键审批与专属观摩链接',
   users: '注册客户账号管理、私密交付权限分配与角色控制',
-  alipay: '支付宝开放平台支付网关参数、公私钥密钥对与异步回调配置',
+  stripe: 'Stripe 全球在线支付网关参数、公钥密钥、Webhook 签名密钥与结算币种配置',
+  alipay: 'Stripe 全球在线支付网关参数、公钥密钥、Webhook 签名密钥与结算币种配置',
   siteinfo: '全局品牌标识、公开联系方式、SEO 搜索引擎参数与社交平台矩阵',
   watermark: '达芬奇色彩防伪明水印与隐形数字版权 Canvas 防盗印章',
   advanced: '管理员账号凭证、SMTP邮件发信服务、全站备份与黑名单访问控制'
@@ -5730,18 +5767,36 @@ const isDirty = computed(() => {
   return computeConfigHash(siteConfig.value) !== initialConfigHash.value
 })
 
-const alipayConfig = ref<any>({
-
+const stripeConfig = ref<any>({
   enabled: false,
-  appId: '',
-  gateway: 'https://openapi.alipay.com/gateway.do',
-  notifyUrl: '',
-  returnUrl: '',
-  subjectPrefix: 'Xo Studio 订单',
-  hasPrivateKey: false,
-  hasAlipayPublicKey: false
+  publishableKey: '',
+  currency: 'cny',
+  mode: 'payment',
+  successUrl: '',
+  cancelUrl: '',
+  subjectPrefix: 'XO Studio 订单',
+  hasSecretKey: false,
+  hasWebhookSecret: false
 })
-const alipayPrivateKeyInput = ref('')
+const stripeSecretKeyInput = ref('')
+const stripeWebhookSecretInput = ref('')
+const stripeConfigSaving = ref(false)
+
+const stripeWebhookUrl = computed(() => {
+  if (!import.meta.client) return '/api/order/notify'
+  return `${window.location.origin}/api/order/notify`
+})
+
+const copyStripeWebhookUrl = async () => {
+  if (!import.meta.client) return
+  const ok = await copyToClipboard(stripeWebhookUrl.value)
+  if (ok) alert(`已复制 Webhook 接收地址到剪贴板：\n${stripeWebhookUrl.value}`)
+  else alert(`请手动复制 Webhook 地址：${stripeWebhookUrl.value}`)
+}
+
+// 兼容别名
+const alipayConfig = stripeConfig
+const alipayPrivateKeyInput = stripeSecretKeyInput
 const orderPages = ref<any[]>([])
 const orders = ref<any[]>([])
 const orderPageFilter = ref<'all' | 'public' | 'private'>('all')
@@ -5849,25 +5904,37 @@ const deleteOrderPage = async (suffix: string) => {
   orderPages.value = orderPages.value.filter(item => item.suffix !== suffix)
 }
 
-const fetchAlipayConfig = async () => {
+const fetchStripeConfig = async () => {
   try {
-    alipayConfig.value = await $fetch('/api/admin/alipay-config') as any
+    stripeConfig.value = await $fetch('/api/admin/stripe-config') as any
   } catch {}
 }
+const fetchAlipayConfig = fetchStripeConfig
 
-const saveAlipayConfig = async () => {
+const saveStripeConfig = async () => {
+  stripeConfigSaving.value = true
   try {
-    const response = await $fetch<any>('/api/admin/alipay-config', {
+    const payload = {
+      ...stripeConfig.value,
+      secretKey: stripeSecretKeyInput.value || undefined,
+      webhookSecret: stripeWebhookSecretInput.value || undefined
+    }
+    const encryptedBody = await encryptRsaHybrid(payload)
+    const response = await $fetch<any>('/api/admin/stripe-config', {
       method: 'PUT',
-      body: { ...alipayConfig.value, privateKey: alipayPrivateKeyInput.value || undefined }
+      body: encryptedBody
     })
-    alipayConfig.value = response.config
-    alipayPrivateKeyInput.value = ''
-    alert('支付宝配置已加密保存到服务端。')
+    stripeConfig.value = response.config
+    stripeSecretKeyInput.value = ''
+    stripeWebhookSecretInput.value = ''
+    alert('Stripe 支付网关配置已接入自研双舱金库并安全保存。')
   } catch (err: any) {
-    alert(err.data?.statusMessage || '保存支付宝配置失败。')
+    alert(err.data?.statusMessage || err.message || '保存 Stripe 支付配置失败。')
+  } finally {
+    stripeConfigSaving.value = false
   }
 }
+const saveAlipayConfig = saveStripeConfig
 
 const isModalOpen = ref(false)
 const isEditing = ref(false)
@@ -6475,7 +6542,7 @@ const copyBookingDeliveryCredentials = async (b: any) => {
 const copyBookingOrderLink = async (orderSuffix: string, amount: string) => {
   const origin = getNormalizedOrigin()
   const url = `${origin}/order/${encodeURIComponent(orderSuffix)}`
-  const text = `【XO Studio 项目安全结算】\n专属订单金额：¥${amount}\n安全结算链接：${url}\n（支持支付宝官方直连安全付款）`
+  const text = `【XO Studio 项目安全结算】\n专属订单金额：¥${amount}\n安全结算链接：${url}\n（支持 Stripe 官方直连安全付款）`
   await copyBookingText(text, '订单付款链接')
 }
 
@@ -6982,7 +7049,7 @@ onMounted(() => {
 })
 onMounted(() => {
   checkAuth()
-  fetchAlipayConfig()
+  fetchStripeConfig()
   fetchOrderData()
   fetchDeliveryItems()
   // Restore last active tab from localStorage (SSR-safe: only runs on client)
