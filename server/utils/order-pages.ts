@@ -24,8 +24,8 @@ const defaultPages: OrderPageConfig[] = [{
   suffix: 'xiao',
   enabled: true,
   subject: '影视后期制作服务',
-  amount: '1.00',
-  description: '请在后台订单管理中编辑本订单的商品名称、金额和交付说明。',
+  amount: '10.00',
+  description: '请在后台订单管理中编辑本订单的商品名称、金额和交付说明（Stripe 国际结算最低门槛为 ¥4.00）。',
   clientName: '',
   successText: '支付成功后，我们会按约定完成交付。',
   updatedAt: new Date().toISOString()

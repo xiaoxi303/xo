@@ -368,14 +368,14 @@ onMounted(async () => {
       paidVerified.value = true
       paidOrder.value = res.order
     } catch (err: any) {
-      returnError.value = err.data?.statusMessage || '支付已返回，但服务器验证订单流水失败。'
+      returnError.value = err.data?.data?.statusMessage || err.data?.message || err.data?.statusMessage || '支付已返回，但服务器验证订单流水失败。'
     }
   }
 
   try {
     page.value = await $fetch(`/api/order/${encodeURIComponent(suffix.value)}`)
   } catch (err: any) {
-    error.value = err.data?.statusMessage || '订单信息加载失败。'
+    error.value = err.data?.data?.statusMessage || err.data?.message || err.data?.statusMessage || '订单信息加载失败。'
   } finally {
     loadingPage.value = false
   }
@@ -400,7 +400,7 @@ const submitOrder = async () => {
     }
     throw new Error('未获取到有效的 Stripe 支付链接')
   } catch (err: any) {
-    error.value = err.data?.statusMessage || err.message || '订单创建失败，请稍后重试。'
+    error.value = err.data?.data?.statusMessage || err.data?.message || err.data?.statusMessage || err.message || '订单创建失败，请稍后重试。'
   } finally {
     loading.value = false
   }
