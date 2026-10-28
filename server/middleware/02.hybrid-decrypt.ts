@@ -46,9 +46,17 @@ export default defineEventHandler(async (event) => {
       return
     } catch (decryptErr: any) {
       console.error('[02.hybrid-decrypt] Decrypt error:', decryptErr?.message || decryptErr)
+      const detail = decryptErr?.message ? String(decryptErr.message) : ''
+      const safeMsg = detail.startsWith('安全拒绝') || detail.includes('共识') || detail.includes('公钥') || detail.includes('时钟')
+        ? detail
+        : `安全策略拦截：公钥凭据已失效或时钟不同步，请刷新页面后重试。(${detail || '解密校验未通过'})`
       throw createError({
         statusCode: 400,
-        statusMessage: '安全策略拦截：公钥凭据已失效或时钟不同步，请刷新页面后重试。'
+        statusMessage: 'HYBRID_DECRYPT_REJECTED',
+        message: safeMsg,
+        data: {
+          statusMessage: safeMsg
+        }
       })
     }
   }

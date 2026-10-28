@@ -83,8 +83,9 @@ module.exports = {
     {
       name: 'xo-studio',
       script: './.output/server/index.mjs',
-      instances: 2,
-      exec_mode: 'cluster',
+      cwd: __dirname,
+      instances: 1,
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',

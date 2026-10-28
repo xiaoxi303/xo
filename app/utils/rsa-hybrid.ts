@@ -4,6 +4,8 @@ export interface RsaPublicKeyResponse {
   consensusSeed?: string
   algorithm?: string
   epoch?: string
+  serverTime?: number
+  serverTimeIso?: string
   expiresAt?: string
   tamperProofSign?: string
 }
@@ -200,8 +202,8 @@ export function isRsaHybridPayload(value: any): value is RsaHybridPayload {
 }
 
 async function getServerPublicKey(): Promise<RsaPublicKeyResponse> {
-  // Always obtain a fresh ephemeral One-Time Public Key (OTPK) with single-use ticket
-  return $fetch<RsaPublicKeyResponse>('/api/security/rsa-public-key', {
+  // 必须携带时间戳随机参数，杜绝浏览器与反向代理缓存过期的单次公钥凭据
+  return $fetch<RsaPublicKeyResponse>(`/api/security/rsa-public-key?_t=${Date.now()}`, {
     headers: {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       Pragma: 'no-cache',
@@ -419,7 +421,14 @@ export async function encryptRsaHybrid(value: unknown): Promise<RsaHybridPayload
     )
   }
 
-  const timestamp = new Date().toISOString()
+  // 毫秒级自适应对齐服务端真实时钟，彻底消除本地系统时钟偏差导致的安全策略误杀
+  let timestamp = new Date().toISOString()
+  if (serverKey.serverTime && typeof serverKey.serverTime === 'number') {
+    const clientNow = Date.now()
+    const clockDelta = serverKey.serverTime - clientNow
+    timestamp = new Date(clientNow + clockDelta).toISOString()
+  }
+
   const truthNonce = toBase64Url(webCrypto.getRandomValues(new Uint8Array(16)))
   const machineId = getMachineFingerprint()
 
